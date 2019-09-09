@@ -25,4 +25,4 @@ The primary goals of the project are:
 5. Graphical view using ElectronJS
 ```
 
-For installation instructions, please head-over to [INSTALL.md]().
+For installation instructions, please head-over to [INSTALL.md](https://github.com/zairza-cetb/bench-routes/blob/master/INSTALL.md).
