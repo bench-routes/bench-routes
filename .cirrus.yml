@@ -5,5 +5,4 @@ env:
   GOPROXY: https://proxy.golang.org
 
 test_task:
-  get_script: go get -v -u ./...
   test_script: ./go-build-all
