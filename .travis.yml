@@ -18,6 +18,12 @@ notifications:
 before-install:
   - go get -v -u ./...
 
-script:
-  - echo "running tests recursively ..."
-  - go test ./...
+jobs:
+  include:
+    - stage: test
+      script:
+        - echo "running tests recursively ..."
+        - go test ./...
+    - stage: build
+      script:
+        - ./go-build-all
