@@ -26,4 +26,8 @@ jobs:
         - go test ./...
     - stage: build
       script:
-        - go-build-all
+        - ./go-build-all.sh
+
+# script:
+#   - echo "running tests recursively ..."
+#   - go test ./...
