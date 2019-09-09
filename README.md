@@ -20,3 +20,5 @@ The primary goals of the project are:
 4. Maintain a check on server-route output and alert on changes above the threshold
 5. Graphical view using ElectronJS
 ```
+
+For installation instructions, please head-over to [INSTALL.md]().
