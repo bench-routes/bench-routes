@@ -53,7 +53,7 @@ done
 
 # ARM builds
 if [[ $PLATFORMS_ARM == *"linux"* ]]; then 
-  CMD="GOOS=linux GOARCH=arm64 go build -o ${OUTPUT}-linux-arm64 $@"
+  CMD="GOOS=linux GOARCH=arm64 go build -o ../build/${OUTPUT}-linux-arm64 $@"
   echo "${CMD}"
   eval $CMD || FAILURES="${FAILURES} ${PLATFORM}"
 fi
@@ -62,7 +62,7 @@ for GOOS in $PLATFORMS_ARM; do
   # build for each ARM version
   for GOARM in 7 6 5; do
     BIN_FILENAME="${OUTPUT}-${GOOS}-${GOARCH}${GOARM}"
-    CMD="GOARM=${GOARM} GOOS=${GOOS} GOARCH=${GOARCH} go build -o ${BIN_FILENAME} $@"
+    CMD="GOARM=${GOARM} GOOS=${GOOS} GOARCH=${GOARCH} go build -o ../build/${BIN_FILENAME} $@"
     echo "${CMD}"
     eval "${CMD}" || FAILURES="${FAILURES} ${GOOS}/${GOARCH}${GOARM}" 
   done
