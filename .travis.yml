@@ -1,0 +1,33 @@
+os:
+  - linux
+  - mac
+sudo: required
+
+services:
+  - docker
+
+language:
+  - go
+
+go:
+  1.12.x
+
+notifications:
+  email: truemac
+
+before-install:
+  - go get -v -u ./...
+
+jobs:
+  include:
+    - stage: test
+      script:
+        - echo "running tests recursively ..."
+        - go test ./...
+    - stage: build
+      script:
+        - ./go-build-all.sh
+
+# script:
+#   - echo "running tests recursively ..."
+#   - go test ./...

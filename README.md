@@ -1,4 +1,8 @@
 # bench-routes
+
+[![Build Status](https://travis-ci.com/zairza-cetb/bench-routes.svg?branch=master)](https://travis-ci.com/zairza-cetb/bench-routes)
+
+
 bench-routes is a highly scalable network benchmarking, routes performance and monitoring tool, that monitors in regular intervals the state
 of the server, running as a daemon process. For more information, read the [docs](https://docs.google.com/document/d/1jGfc2eXvToRL9anzosTLQ4zJ7fdFxMGfaiDv2BYHEvw/edit?usp=sharing)
 
@@ -20,3 +24,5 @@ The primary goals of the project are:
 4. Maintain a check on server-route output and alert on changes above the threshold
 5. Graphical view using ElectronJS
 ```
+
+For installation instructions, please head-over to [INSTALL.md]().
