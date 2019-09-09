@@ -1,0 +1,3 @@
+requiredChecks:
+  - travis-ci
+  - GolangCI
