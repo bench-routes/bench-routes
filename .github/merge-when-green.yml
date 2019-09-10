@@ -1,3 +1,2 @@
 requiredChecks:
   - travis-ci
-  - cirrus-ci
