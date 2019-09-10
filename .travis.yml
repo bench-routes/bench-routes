@@ -15,8 +15,6 @@ go:
 notifications:
   email: truemac
 
-before-install:
-
 jobs:
   include:
     - stage: test
@@ -28,7 +26,3 @@ jobs:
       script:
         - go get -u ./...
         - ./shell/go-build-all.sh
-
-# script:
-#   - echo "running tests recursively ..."
-#   - go test ./...
