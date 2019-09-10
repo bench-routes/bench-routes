@@ -20,4 +20,3 @@ script:
   - make build
   - make test
   - make test_complete
-  - make clean
