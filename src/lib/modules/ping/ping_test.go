@@ -2,6 +2,7 @@ package ping
 
 import (
 	"testing"
+	"log"
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 )
 
@@ -17,6 +18,8 @@ func TestHandlerPing(t *testing.T) {
 		a := HandlePing(&inst, 20)
 		if *a == (scrap.TypePingScrap{}) {
 			t.Errorf("invalid response from HandlePing")
+		} else {
+			log.Println(*a)
 		}
 	}
 }
