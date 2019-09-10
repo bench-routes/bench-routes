@@ -1,10 +1,8 @@
 package utils
 
 import (
-	"fmt"
 	"os/exec"
 	"strconv"
-
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 )
 
@@ -20,14 +18,11 @@ const (
 // method of variables, as using variables require the time involved in loading into and out from cpu registers.
 // Specifying addresses directly speeds the entire process manyfolds.
 func CLIPing(url *string, packets int, cliPingChannel chan *string) {
-	fmt.Println("called "+*url)
 	url = filters.HTTPPingFilter(url)
 	cmd, err := exec.Command(CmdPingBasedOnPacketsNumber, "-c", strconv.Itoa(packets), *url).Output()
 	if err != nil {
 		panic(err)
 	}
-
 	cmdStr := string(cmd)
-	fmt.Println(cmdStr)
 	cliPingChannel <- &cmdStr
 }
