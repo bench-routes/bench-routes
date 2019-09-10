@@ -26,3 +26,14 @@ The primary goals of the project are:
 ```
 
 For installation instructions, please head-over to [INSTALL.md](https://github.com/zairza-cetb/bench-routes/blob/master/INSTALL.md).
+
+We use `make` for building and executing the program.
+
+Follow the commands to make the development proces easier:
+
+1. Updating the dependencies: `make update`
+2. Executing the application (assuming all dependencies are installed): `make run`
+2. Building the application for the current OS: `make build`
+3. Testing Golang code: `make test`
+4. Complete testing include building for all OSs out there: `make test_complete`
+5. Cleaning up the residula files: `make clean`

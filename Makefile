@@ -2,7 +2,7 @@ update:
 	echo "updating dependencies ..."
 	go get -u ./...
 
-build: update
+build:
 	echo "building bench-routes ..." 
 	go build src/main.go
 	mv main bench-routes
@@ -17,5 +17,10 @@ test_complete: build
 	./shell/go-build-all.sh
 	echo "test success! cleaning ..."
 	make clean
+
+run:
+	echo "compiling go-code and executing bench-routes"
+	echo "using 9090 as default service listerner port"
+	go run src/main.go 9090
 
 
