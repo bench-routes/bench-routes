@@ -1,6 +1,3 @@
-init:
-	echo "running make"
-
 update:
 	echo "updating dependencies ..."
 	go get -u ./...
@@ -19,6 +16,6 @@ test: build
 test_complete: build
 	./shell/go-build-all.sh
 	echo "test success! cleaning ..."
-	clean
+	make clean
 
 
