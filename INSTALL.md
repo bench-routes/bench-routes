@@ -13,5 +13,18 @@ environment.
 7. To start running, `go run src/main.go 9090` will start the service. For running independent modules, make the .go files in the modules
 as `package main` and include in them, a `main()` function. This is just for testing when developing independent application module. Make sure to link everything with `main.go` file or the parent file before pushing, else the **CI-builds** will fail.
 
+#### Optional
+1. Installing [golangci-lint](https://github.com/golangci/golangci-lint) (simply paste command in your terminal after each step): 
+
+```
+
+    curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s sh -s v1.18.0
+
+    golangci-lint --version
+
+    golangci-lint run
+```
+2. Scanning your `.go` files for linting issues using `golangci-lint`
+
 
 Please feel free to open any issue in case you encounter any issues while setting up the development environment.

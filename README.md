@@ -37,3 +37,4 @@ Follow the commands to make the development proces easier:
 3. Testing Golang code: `make test`
 4. Complete testing include building for all OSs out there: `make test_complete`
 5. Cleaning up the residula files: `make clean`
+6. *(optional)* Check linting (assuming [golangci-lint](https://github.com/golangci/golangci-lint#install) is installed): `make lint`

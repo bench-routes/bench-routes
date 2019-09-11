@@ -20,11 +20,6 @@ func error404(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, `404 page not found`)
 }
 
-func routeHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	fmt.Fprintln(w, `Check`)
-}
-
 //Service initiates services and avail different routes for bench-routes
 func Service(port string) {
 

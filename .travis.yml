@@ -15,6 +15,9 @@ notifications:
 
 before_script:
   - go get -u ./...
+  - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s v1.18.0
+  - echo "checking linting in golang"
+  - golangci-lint run
 
 script:
   - make build
