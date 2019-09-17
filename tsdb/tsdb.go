@@ -1,25 +1,37 @@
-package tsdb
+package main
 
 import (
 	"unsafe"
 	"log"
 	"time"
+
+	"io/ioutil"
+	"errors"
+	"fmt"
+	"encoding/json"
 )
 
 // Block use case block for the TSDB chain
 type Block struct {
-	prevBlock 		*Block
-	nextBlock 		*Block
-	datapoint 		int64
-	normalizedTime 	uint64
-	timestamp 		time.Time
+	PrevBlock 		*Block
+	NextBlock 		*Block
+	Datapoint 		int
+	NormalizedTime 	int64
+	Timestamp 		time.Time
+}
+
+// BlockJSON helps reffer Block as JSON
+type BlockJSON struct {
+	Datapoint 		int 		`json:"datapoint"`
+	NormalizedTime 	int64		`json:"normalizedTime"`
+	Timestamp 		time.Time 	`json:"timestamp"`
 }
 
 // Chain contains Blocks arranged as a chain
 type Chain struct {
-	path 			string
+	path 			string 
 	chain 			[]Block
-	lengthElements 	uint64
+	lengthElements 	int
 	size 		   	uintptr
 }
 
@@ -53,9 +65,29 @@ type TSDB interface {
 	Save() bool
 }
 
+func parse(path string) (*string, error) {
+	res, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, errors.New("file not existed. create a new chain")
+	}
+	str := string(res)
+	return &str, nil
+}
+
+func loadFromStorage(raw *string) *[]Block {
+	inst := []Block{}
+	b := []byte(*raw)
+	e := json.Unmarshal(b, &inst)
+	fmt.Println(inst)
+	if e != nil {
+		panic(e)
+	}
+	return &inst
+}
+
 // Init initialize Chain properties
 func (c Chain) Init(path *string) *[]Block {
-	_, e := parse(*path)
+	res, e := parse(*path)
 	if e != nil {
 		log.Printf("chain not found at %s. creating one ...", *path)
 		c.path = *path
@@ -64,7 +96,64 @@ func (c Chain) Init(path *string) *[]Block {
 		c.chain = []Block{}
 		return &c.chain
 	}
+
 	c.path = *path
-	return nil
+	c.chain = *loadFromStorage(res)
+	c.lengthElements = len(c.chain)
+	c.size = unsafe.Sizeof(c)
+	return &c.chain
 }
 
+func main() {
+	arr := []Block{}
+	for i:=0; i < 10; i++ {
+		inst := Block{}
+		inst.Datapoint = i*100
+		inst.NormalizedTime = time.Now().Unix()
+		inst.Timestamp = time.Now()
+		arr = append(arr, inst)
+		if i == 0 {
+			arr[i].PrevBlock = nil
+		} else {
+			arr[i].PrevBlock = &arr[i-1]
+		}
+		fmt.Println(arr[i])
+		// if i == 9 {
+		// 	arr[i].NextBlock = nil
+		// } else {
+		// 	arr[i-1].NextBlock = &arr[i]
+		// }
+	}
+	//  assign nextBlock addresses
+	for i:=0; i<10; i++ {
+		if i == 9 {
+			arr[i].NextBlock = nil
+		} else {
+			arr[i].NextBlock = &arr[i+1]
+		}
+		// jsons, e := json.Marshal(arr[i])
+		// if e != nil {
+		// 	panic(e)
+		// }
+		// fmt.Println(string(jsons))
+	}
+	fmt.Println(arr)
+	// convert to json
+	arrJSON := []BlockJSON{}
+	for i:=0; i<10; i++ {
+		inst := BlockJSON{}
+		inst.Datapoint = arr[i].Datapoint
+		inst.NormalizedTime = (arr[i].NormalizedTime)
+		inst.Timestamp = arr[i].Timestamp
+		arrJSON = append(arrJSON, inst)
+	}
+
+	jsons, e := json.Marshal(arrJSON)
+	if e != nil {
+		panic(e)
+	}
+
+	// fmt.Println(*arr[6].NextBlock)
+	// fmt.Println(arr[7])
+	fmt.Println(string(jsons))
+}

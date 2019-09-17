@@ -3,6 +3,8 @@ package tsdb
 import (
 	"io/ioutil"
 	"errors"
+	"encoding/json"
+	"fmt"
 )
 
 func parse(path string) (*string, error) {
@@ -12,4 +14,15 @@ func parse(path string) (*string, error) {
 	}
 	str := string(res)
 	return &str, nil
+}
+
+func loadFromStorage(raw *string) *[]Block {
+	inst := []Block{}
+	b := []byte(*raw)
+	e := json.Unmarshal(b, &inst)
+	fmt.Println(inst)
+	if e != nil {
+		panic(e)
+	}
+	return &inst
 }

@@ -1,0 +1,14 @@
+[
+    {
+        "prevBlock": "0x0011",
+        "nextBlock": "0x0022",
+        "datapoint": "100",
+        "timestamp": "1568701263276947430"
+    },
+    {
+        "prevBlock": "0x0033",
+        "nextBlock": "0x0033",
+        "datapoint": "100",
+        "timestamp": "1568701279671990480"
+    }
+]
