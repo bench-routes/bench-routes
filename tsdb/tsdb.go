@@ -1,14 +1,9 @@
-package main
+package tsdb
 
 import (
 	"unsafe"
 	"log"
 	"time"
-
-	"io/ioutil"
-	"errors"
-	"fmt"
-	"encoding/json"
 )
 
 // Block use case block for the TSDB chain
@@ -65,26 +60,6 @@ type TSDB interface {
 	Save() bool
 }
 
-func parse(path string) (*string, error) {
-	res, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, errors.New("file not existed. create a new chain")
-	}
-	str := string(res)
-	return &str, nil
-}
-
-func loadFromStorage(raw *string) *[]Block {
-	inst := []Block{}
-	b := []byte(*raw)
-	e := json.Unmarshal(b, &inst)
-	fmt.Println(inst)
-	if e != nil {
-		panic(e)
-	}
-	return &inst
-}
-
 // Init initialize Chain properties
 func (c Chain) Init(path *string) *[]Block {
 	res, e := parse(*path)
@@ -98,62 +73,40 @@ func (c Chain) Init(path *string) *[]Block {
 	}
 
 	c.path = *path
-	c.chain = *loadFromStorage(res)
+	raw := loadFromStorage(res)
+	c.chain = *formLinkedChainFromRawBlock(raw)
 	c.lengthElements = len(c.chain)
 	c.size = unsafe.Sizeof(c)
 	return &c.chain
 }
 
-func main() {
+func formLinkedChainFromRawBlock(a *[]BlockJSON) *[]Block {
+	r := *a
+	l := len(r)
 	arr := []Block{}
-	for i:=0; i < 10; i++ {
-		inst := Block{}
-		inst.Datapoint = i*100
-		inst.NormalizedTime = time.Now().Unix()
-		inst.Timestamp = time.Now()
+	for i:=0; i<l; i++ {
+		inst := Block{
+			PrevBlock: nil,
+			NextBlock: nil,
+			Timestamp: r[i].Timestamp,
+			NormalizedTime: r[i].NormalizedTime,
+			Datapoint: r[i].Datapoint,
+		}
 		arr = append(arr, inst)
+	}
+
+	// form doubly linked list
+	for i:=0; i< l; i++ {
 		if i == 0 {
 			arr[i].PrevBlock = nil
 		} else {
 			arr[i].PrevBlock = &arr[i-1]
 		}
-		fmt.Println(arr[i])
-		// if i == 9 {
-		// 	arr[i].NextBlock = nil
-		// } else {
-		// 	arr[i-1].NextBlock = &arr[i]
-		// }
-	}
-	//  assign nextBlock addresses
-	for i:=0; i<10; i++ {
-		if i == 9 {
+		if i == l-1 {
 			arr[i].NextBlock = nil
 		} else {
 			arr[i].NextBlock = &arr[i+1]
 		}
-		// jsons, e := json.Marshal(arr[i])
-		// if e != nil {
-		// 	panic(e)
-		// }
-		// fmt.Println(string(jsons))
 	}
-	fmt.Println(arr)
-	// convert to json
-	arrJSON := []BlockJSON{}
-	for i:=0; i<10; i++ {
-		inst := BlockJSON{}
-		inst.Datapoint = arr[i].Datapoint
-		inst.NormalizedTime = (arr[i].NormalizedTime)
-		inst.Timestamp = arr[i].Timestamp
-		arrJSON = append(arrJSON, inst)
-	}
-
-	jsons, e := json.Marshal(arrJSON)
-	if e != nil {
-		panic(e)
-	}
-
-	// fmt.Println(*arr[6].NextBlock)
-	// fmt.Println(arr[7])
-	fmt.Println(string(jsons))
+	return &arr
 }

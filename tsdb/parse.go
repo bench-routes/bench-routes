@@ -16,8 +16,8 @@ func parse(path string) (*string, error) {
 	return &str, nil
 }
 
-func loadFromStorage(raw *string) *[]Block {
-	inst := []Block{}
+func loadFromStorage(raw *string) *[]BlockJSON {
+	inst := []BlockJSON{}
 	b := []byte(*raw)
 	e := json.Unmarshal(b, &inst)
 	fmt.Println(inst)
