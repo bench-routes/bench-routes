@@ -1,7 +1,6 @@
 package tsdb
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -14,7 +13,7 @@ func TestInit(t *testing.T) {
 	if len(blocks) == 0 {
 		t.Errorf("tsdb Init not working as expected")
 	} else {
-		fmt.Println("printing block values ...")
-		fmt.Println(blocks)
+		t.Log("printing block values ...")
+		t.Log(blocks)
 	}
 }

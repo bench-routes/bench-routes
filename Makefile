@@ -11,7 +11,8 @@ clean:
 	rm -R build/ bench-routes
 
 test: build
-	go test ./...
+	go clean -testcache
+	go test -v ./...
 
 test_complete: build
 	./shell/go-build-all.sh
