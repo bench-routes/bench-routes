@@ -10,6 +10,9 @@ var (
 	urls = []string{
 		"google.co.in",
 		"facebook.com",
+		"yahoo.com",
+		"github.com",
+		"youtube.com",
 	}
 )
 
