@@ -35,3 +35,16 @@ func CLIPingScrap(s *string) (a *TypePingScrap) {
 	}
 	return
 }
+
+// CLIFLoodPingScrap returns packet loss
+func CLIFLoodPingScrap(s *string) (a uint64) {
+	arr := strings.Split(*s, "\n")
+	sentence := arr[3]
+	words := strings.Split(sentence, ", ")
+	percentage := strings.Split(words[2], " ")[0]
+	a, err := strconv.ParseUint(strings.TrimRight(percentage, "%"), 10, 32)
+	if err != nil {
+		panic(err)
+	}
+	return
+}
