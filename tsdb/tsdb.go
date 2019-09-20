@@ -124,7 +124,7 @@ func (c Chain) Append(b *Block) (bool, Chain) {
 	c.chain[l-1].PrevBlock = &c.chain[l-2]
 	c.chain[l-1].NextBlock = nil
 	return true, c
-	
+
 }
 
 // Save saves or commits the existing chain in the secondary memory.
