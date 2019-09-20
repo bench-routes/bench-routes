@@ -4,16 +4,29 @@ import (
 	"testing"
 )
 
+var (
+	chain = Chain{
+		path: "../test-files/loadFromStorage_testdata/test1.json",
+		lengthElements: 0,
+		chain: []Block{},
+		size: 0,
+	}
+	savingPath = "wal_test1.json"
+)
+
 func TestInit(t *testing.T) {
-	var (
-		chain Chain
-		path = "../test-files/loadFromStorage_testdata/test1.json"
-	)
-	blocks := *chain.Init(&path)
-	if len(blocks) == 0 {
+	blocks, _ := chain.Init()
+	if len(*blocks) == 0 {
 		t.Errorf("tsdb Init not working as expected")
 	} else {
 		t.Log("printing block values ...")
 		t.Log(blocks)
+	}
+}
+
+func TestSave(t *testing.T) {
+	_, chain := chain.Init()
+	if chain.Save() {
+		t.Logf("tsdb Save works as expected")
 	}
 }

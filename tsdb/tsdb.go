@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+var (
+	parser Parser
+)
+
 // Block use case block for the TSDB chain
 type Block struct {
 	PrevBlock 		*Block
@@ -38,16 +42,16 @@ type TSDB interface {
 	// have a minimal effect on the performance.
 	// Takes *path* as path to the existing chain or for creating a new one.
 	// Returns address of the chain in RAM.
-	Init(path *string) *[]Block
+	Init() (*[]Block, Chain)
 
 	// Append appends a new tsdb block passed as params to the most recent location (or
 	// the last location) of the chain. Returns success status.
 	Append(b *Block) bool
 
-	// GetPositionalPointer accepts the normalized time, searches for the block with that time
+	// GetPositionalPointerNormalized accepts the normalized time, searches for the block with that time
 	// using jump search, and returns the address of the block having the specified normalized
 	// time.
-	GetPositionalPointer(n uint64) *Block
+	GetPositionalPointerNormalized(n int64) *Block
 
 	// PopPreviousNBlocks pops or removes **n** previous blocks from the chain and returns
 	// success status.
@@ -61,23 +65,21 @@ type TSDB interface {
 }
 
 // Init initialize Chain properties
-func (c Chain) Init(path *string) *[]Block {
-	res, e := parse(*path)
+func (c Chain) Init() (*[]Block, Chain) {
+	res, e := parse(c.path)
 	if e != nil {
-		log.Printf("chain not found at %s. creating one ...", *path)
-		c.path = *path
+		log.Printf("chain not found at %s. creating one ...", c.path)
 		c.lengthElements = 0
 		c.size = unsafe.Sizeof(c)
 		c.chain = []Block{}
-		return &c.chain
+		return &c.chain, c
 	}
 
-	c.path = *path
 	raw := loadFromStorage(res)
 	c.chain = *formLinkedChainFromRawBlock(raw)
 	c.lengthElements = len(c.chain)
 	c.size = unsafe.Sizeof(c)
-	return &c.chain
+	return &c.chain, c
 }
 
 func formLinkedChainFromRawBlock(a *[]BlockJSON) *[]Block {
@@ -109,4 +111,15 @@ func formLinkedChainFromRawBlock(a *[]BlockJSON) *[]Block {
 		}
 	}
 	return &arr
+}
+
+// Save saves or commits the existing chain in the secondary memory.
+// Returns the success status
+func (c Chain) Save() bool {
+	bytes := parser.ParseToJSON(c.chain)
+	e := saveToHDD(c.path, bytes)
+	if e != nil {
+		panic(e)
+	}
+	return true
 }
