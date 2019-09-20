@@ -11,7 +11,6 @@ var (
 		chain: []Block{},
 		size: 0,
 	}
-	savingPath = "wal_test1.json"
 )
 
 func TestInit(t *testing.T) {
