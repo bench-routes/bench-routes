@@ -1,9 +1,9 @@
 package tsdb
 
 import (
-	"unsafe"
 	"log"
 	"time"
+	"unsafe"
 )
 
 var (
@@ -12,26 +12,26 @@ var (
 
 // Block use case block for the TSDB chain
 type Block struct {
-	PrevBlock 		*Block
-	NextBlock 		*Block
-	Datapoint 		int
-	NormalizedTime 	int64
-	Timestamp 		time.Time
+	PrevBlock      *Block
+	NextBlock      *Block
+	Datapoint      int
+	NormalizedTime int64
+	Timestamp      time.Time
 }
 
 // BlockJSON helps reffer Block as JSON
 type BlockJSON struct {
-	Datapoint 		int 		`json:"datapoint"`
-	NormalizedTime 	int64		`json:"normalizedTime"`
-	Timestamp 		time.Time 	`json:"timestamp"`
+	Datapoint      int       `json:"datapoint"`
+	NormalizedTime int64     `json:"normalizedTime"`
+	Timestamp      time.Time `json:"timestamp"`
 }
 
 // Chain contains Blocks arranged as a chain
 type Chain struct {
-	path 			string 
-	chain 			[]Block
-	lengthElements 	int
-	size 		   	uintptr
+	path           string
+	chain          []Block
+	lengthElements int
+	size           uintptr
 }
 
 // TSDB implements the idea of tsdb
@@ -86,19 +86,19 @@ func formLinkedChainFromRawBlock(a *[]BlockJSON) *[]Block {
 	r := *a
 	l := len(r)
 	arr := []Block{}
-	for i:=0; i<l; i++ {
+	for i := 0; i < l; i++ {
 		inst := Block{
-			PrevBlock: nil,
-			NextBlock: nil,
-			Timestamp: r[i].Timestamp,
+			PrevBlock:      nil,
+			NextBlock:      nil,
+			Timestamp:      r[i].Timestamp,
 			NormalizedTime: r[i].NormalizedTime,
-			Datapoint: r[i].Datapoint,
+			Datapoint:      r[i].Datapoint,
 		}
 		arr = append(arr, inst)
 	}
 
 	// form doubly linked list
-	for i:=0; i< l; i++ {
+	for i := 0; i < l; i++ {
 		if i == 0 {
 			arr[i].PrevBlock = nil
 		} else {

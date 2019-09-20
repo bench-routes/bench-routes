@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"net/http"
 	"log"
+	"net/http"
 )
 
 // VerifyConnection verifies the connectivity of the program with the external network

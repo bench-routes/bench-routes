@@ -24,6 +24,9 @@ run:
 	echo "using 9090 as default service listerner port"
 	go run src/main.go 9090
 
+fix:
+	go fmt ./...
+
 lint:
 	golangci-lint run
 

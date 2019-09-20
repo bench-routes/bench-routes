@@ -1,10 +1,10 @@
 package tsdb
 
 import (
-	"io/ioutil"
-	"errors"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 )
 
 func parse(path string) (*string, error) {
@@ -49,9 +49,9 @@ func (p Parser) ParseToJSON(a []Block) (j []byte) {
 
 	for _, inst := range a {
 		t := BlockJSON{
-			Timestamp: inst.Timestamp,
+			Timestamp:      inst.Timestamp,
 			NormalizedTime: inst.NormalizedTime,
-			Datapoint: inst.Datapoint,
+			Datapoint:      inst.Datapoint,
 		}
 		b = append(b, t)
 	}

@@ -6,10 +6,10 @@ import (
 
 var (
 	chain = Chain{
-		path: "../test-files/loadFromStorage_testdata/test1.json",
+		path:           "../test-files/loadFromStorage_testdata/test1.json",
 		lengthElements: 0,
-		chain: []Block{},
-		size: 0,
+		chain:          []Block{},
+		size:           0,
 	}
 )
 
