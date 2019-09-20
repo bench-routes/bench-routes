@@ -18,7 +18,7 @@ func HTTPPingFilter(s *string) *string {
 	temp:=*s
 		for _,value:=range do{
 			v:=(strings.Index(*s,value))
-			vv[:v+len(value)]
+			temp[:v+len(value)]
 			*s=temp
 		}
 	
