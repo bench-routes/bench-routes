@@ -2,6 +2,7 @@ package tsdb
 
 import (
 	"testing"
+	"time"
 )
 
 var (
@@ -20,6 +21,28 @@ func TestInit(t *testing.T) {
 	} else {
 		t.Log("printing block values ...")
 		t.Log(blocks)
+	}
+}
+
+func TestAppend(t *testing.T) {
+	_, chain := chain.Init()
+	b := Block{
+		PrevBlock:      nil,
+		NextBlock:      nil,
+		Timestamp:      time.Now(),
+		NormalizedTime: 1568705420,
+		Datapoint:      20,
+	}
+
+	status, c := chain.Append(&b)
+	if status {
+		if c.lengthElements == chain.lengthElements+1 {
+			t.Logf("Block Append Successful")
+		} else {
+			t.Errorf("Block Append Unsuccessful")
+		}
+	} else {
+		t.Errorf("Block Append Unsuccessful")
 	}
 }
 

@@ -37,9 +37,9 @@ type Chain struct {
 // TSDB implements the idea of tsdb
 type TSDB interface {
 	// Init helps to initialize the tsdb chain for the respective component. This function
-	// should be capable to detect existing wals of the required type and build from the
-	// local storage at the init of main thread and return the chain address in order to
-	// have a minimal effect on the performance.
+	// should be capable to detect existing wals(write ahead log) of the required type and
+	// build from the local storage at the init of main thread and return the chain address
+	// in order to have a minimal effect on the performance.
 	// Takes *path* as path to the existing chain or for creating a new one.
 	// Returns address of the chain in RAM.
 	Init() (*[]Block, Chain)
@@ -57,7 +57,7 @@ type TSDB interface {
 	// success status.
 	PopPreviousNBlocks(n uint64) bool
 
-	// GetChain returns the address of chain.
+	// GetChain returns the positional pointer address of the first element of the chain.
 	GetChain() *[]Block
 
 	// Save saves or commits the chain in storage and returns success status.
@@ -111,6 +111,20 @@ func formLinkedChainFromRawBlock(a *[]BlockJSON) *[]Block {
 		}
 	}
 	return &arr
+}
+
+//Append function appends the new block in
+func (c Chain) Append(b *Block) (bool, Chain) {
+
+	c.chain = append(c.chain, *b)
+	c.size = unsafe.Sizeof(c)
+	c.lengthElements = len(c.chain)
+	l := c.lengthElements
+	c.chain[l-2].NextBlock = &c.chain[l-1]
+	c.chain[l-1].PrevBlock = &c.chain[l-2]
+	c.chain[l-1].NextBlock = nil
+	return true, c
+
 }
 
 // Save saves or commits the existing chain in the secondary memory.
