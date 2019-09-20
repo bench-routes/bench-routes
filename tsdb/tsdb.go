@@ -1,26 +1,26 @@
 package tsdb
 
 import (
-	"unsafe"
 	"log"
 	"time"
+	"unsafe"
 )
 
 // Block use case block for the TSDB chain
 type Block struct {
-	prevBlock 		*Block
-	nextBlock 		*Block
-	datapoint 		int64
-	normalizedTime 	uint64
-	timestamp 		time.Time
+	prevBlock      *Block
+	nextBlock      *Block
+	datapoint      int64
+	normalizedTime uint64
+	timestamp      time.Time
 }
 
 // Chain contains Blocks arranged as a chain
 type Chain struct {
-	path 			string
-	chain 			[]Block
-	lengthElements 	uint64
-	size 		   	uintptr
+	path           string
+	chain          []Block
+	lengthElements uint64
+	size           uintptr
 }
 
 // TSDB implements the idea of tsdb
@@ -67,4 +67,3 @@ func (c Chain) Init(path *string) *[]Block {
 	c.path = *path
 	return nil
 }
-

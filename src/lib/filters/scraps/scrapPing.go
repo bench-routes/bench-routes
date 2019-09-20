@@ -1,8 +1,8 @@
 package scraps
 
 import (
-	"strings"
 	"strconv"
+	"strings"
 )
 
 // TypePingScrap as datatype for ping outputs
@@ -26,9 +26,9 @@ func CLIPingScrap(s *string) (a *TypePingScrap) {
 		if words[0] == "rtt" {
 			temp := strings.Split(words[len(words)-2], "/")
 			a = &TypePingScrap{
-				Min: strToFloat64(temp[0]),
-				Avg: strToFloat64(temp[1]),
-				Max: strToFloat64(temp[2]),
+				Min:  strToFloat64(temp[0]),
+				Avg:  strToFloat64(temp[1]),
+				Max:  strToFloat64(temp[2]),
 				Mdev: strToFloat64(temp[3]),
 			}
 		}

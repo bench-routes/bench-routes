@@ -1,8 +1,8 @@
 package tsdb
 
 import (
-	"io/ioutil"
 	"errors"
+	"io/ioutil"
 )
 
 func parse(path string) (*string, error) {

@@ -14,13 +14,16 @@ func HTTPPingFilter(s *string) *string {
 	*s = strings.Replace(*s, "/", "", -1)
 	*s = strings.Replace(*s, "www.", "", -1)
 	*s = strings.Replace(*s, ":", "", -1)
-	do := [...]string{".com", ".in", ".org", ".edu"}
+	do := [...]string{".com", ".in", ".org", ".co.in", ".edu"}
+	
 	temp := *s
 	for _, value := range do {
-		v := (strings.Index(*s, value))
-		temp = temp[:v+len(value)]
-		*s = temp
+		if (strings.Index(*s, value) > 0) {
+			v := (strings.Index(*s, value))
+			temp = temp[:v+len(value)]
+			*s = temp
+		}
+		
 	}
-
 	return s
 }
