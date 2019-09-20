@@ -5,13 +5,18 @@ import (
 	"time"
 )
 
+var (
+	chain = Chain{
+		path:           "../test-files/loadFromStorage_testdata/test1.json",
+		lengthElements: 0,
+		chain:          []Block{},
+		size:           0,
+	}
+)
+
 func TestInit(t *testing.T) {
-	var (
-		chain Chain
-		path = "../test-files/loadFromStorage_testdata/test1.json"
-	)
-	blocks := *chain.Init(&path)
-	if len(blocks) == 0 {
+	blocks, _ := chain.Init()
+	if len(*blocks) == 0 {
 		t.Errorf("tsdb Init not working as expected")
 	} else {
 		t.Log("printing block values ...")
@@ -19,17 +24,31 @@ func TestInit(t *testing.T) {
 	}
 }
 
-// func TestAppend(t *testing.T) {
-// 	var (
-// 		chain Chain
-// 		// path = "../test-files/loadFromStorage_testdata/test1.json"
-// 	)
-// 	b := Block{
-// 		PrevBlock: nil,
-// 		NextBlock: nil,
-// 		Timestamp: time.Now(),
-// 		NormalizedTime: 1568705420,
-// 		Datapoint: 20,
+func TestAppend(t *testing.T) {
+	_, chain := chain.Init()
+	b := Block{
+		PrevBlock: nil,
+		NextBlock: nil,
+		Timestamp: time.Now(),
+		NormalizedTime: 1568705420,
+		Datapoint: 20,
+	}
 
-// 	}
-// }
+	status, c := chain.Append(&b)
+	if status {
+		if c.lengthElements == chain.lengthElements + 1 {
+			t.Logf("Block Append Successful")
+		} else {
+			t.Errorf("Block Append Unsuccessful")
+		}
+	} else {
+		t.Errorf("Block Append Unsuccessful")
+	}
+}
+
+func TestSave(t *testing.T) {
+	_, chain := chain.Init()
+	if chain.Save() {
+		t.Logf("tsdb Save works as expected")
+	}
+}

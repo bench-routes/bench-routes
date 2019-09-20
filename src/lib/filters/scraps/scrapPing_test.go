@@ -21,7 +21,7 @@ PING google.co.in (172.217.26.227) 56(84) bytes of data.
 10 packets transmitted, 10 received, 0% packet loss, time 20ms
 rtt min/avg/max/mdev = 52.065/52.894/54.366/0.676 ms
 `,
-`
+	`
 PING google.co.in (172.217.26.227) 56(84) bytes of data.
 64 bytes from bom05s09-in-f3.1e100.net (172.217.26.227): icmp_seq=1 ttl=57 time=52.4 ms
 64 bytes from bom05s09-in-f3.1e100.net (172.217.26.227): icmp_seq=2 ttl=57 time=52.10 ms
@@ -48,7 +48,7 @@ PING google.co.in (172.217.26.227) 56(84) bytes of data.
 20 packets transmitted, 20 received, 0% packet loss, time 49ms
 rtt min/avg/max/mdev = 50.967/52.729/66.345/3.211 ms
 `,
-};
+}
 
 func TestCLIPingScrap(t *testing.T) {
 	for _, samples := range input {

@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-// HTTPPingFilter filters the illegal characters that may panic the ping 
+// HTTPPingFilter filters the illegal characters that may panic the ping
 // subprocess running from the terminal
 func HTTPPingFilter(s *string) *string {
 	*s = strings.Replace(*s, "http://", "", -1)
