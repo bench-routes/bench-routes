@@ -1,41 +1,42 @@
 package tsdb
 
 import (
-	"unsafe"
+	"fmt"
 	"log"
 	"time"
+	"unsafe"
 )
 
 // Block use case block for the TSDB chain
 type Block struct {
-	PrevBlock 		*Block
-	NextBlock 		*Block
-	Datapoint 		int
-	NormalizedTime 	int64
-	Timestamp 		time.Time
+	PrevBlock      *Block
+	NextBlock      *Block
+	Datapoint      int
+	NormalizedTime int64
+	Timestamp      time.Time
 }
 
 // BlockJSON helps reffer Block as JSON
 type BlockJSON struct {
-	Datapoint 		int 		`json:"datapoint"`
-	NormalizedTime 	int64		`json:"normalizedTime"`
-	Timestamp 		time.Time 	`json:"timestamp"`
+	Datapoint      int       `json:"datapoint"`
+	NormalizedTime int64     `json:"normalizedTime"`
+	Timestamp      time.Time `json:"timestamp"`
 }
 
 // Chain contains Blocks arranged as a chain
 type Chain struct {
-	path 			string 
-	chain 			[]Block
-	lengthElements 	int
-	size 		   	uintptr
+	path           string
+	chain          []Block
+	lengthElements int
+	size           uintptr
 }
 
 // TSDB implements the idea of tsdb
 type TSDB interface {
 	// Init helps to initialize the tsdb chain for the respective component. This function
-	// should be capable to detect existing wals of the required type and build from the
-	// local storage at the init of main thread and return the chain address in order to
-	// have a minimal effect on the performance.
+	// should be capable to detect existing wals(write ahead log) of the required type and
+	// build from the local storage at the init of main thread and return the chain address
+	// in order to have a minimal effect on the performance.
 	// Takes *path* as path to the existing chain or for creating a new one.
 	// Returns address of the chain in RAM.
 	Init(path *string) *[]Block
@@ -53,7 +54,7 @@ type TSDB interface {
 	// success status.
 	PopPreviousNBlocks(n uint64) bool
 
-	// GetChain returns the address of chain.
+	// GetChain returns the positional pointer address of the first element of the chain.
 	GetChain() *[]Block
 
 	// Save saves or commits the chain in storage and returns success status.
@@ -63,6 +64,7 @@ type TSDB interface {
 // Init initialize Chain properties
 func (c Chain) Init(path *string) *[]Block {
 	res, e := parse(*path)
+	// fmt.Println(res)
 	if e != nil {
 		log.Printf("chain not found at %s. creating one ...", *path)
 		c.path = *path
@@ -73,30 +75,49 @@ func (c Chain) Init(path *string) *[]Block {
 	}
 
 	c.path = *path
+	// fmt.Println(c.path)
 	raw := loadFromStorage(res)
+	// fmt.Println("rawwwwwwwwwwww::::::")
+	// fmt.Println(raw)
 	c.chain = *formLinkedChainFromRawBlock(raw)
+	// fmt.Println("c.chain::::::;;;")
+	// fmt.Println(c.chain)
 	c.lengthElements = len(c.chain)
 	c.size = unsafe.Sizeof(c)
 	return &c.chain
 }
 
+// func main() {
+// 	var (
+// 		chain Chain
+// 		path = "../test-files/loadFromStorage_testdata/test1.json"
+// 	)
+// 	blocks := *chain.Init(&path)
+// 	if len(blocks) == 0 {
+// 		fmt.Println("tsdb Init not working as expected")
+// 	} else {
+// 		fmt.Println("printing block values ...")
+// 		fmt.Println(blocks)
+// 	}
+// }
+
 func formLinkedChainFromRawBlock(a *[]BlockJSON) *[]Block {
 	r := *a
 	l := len(r)
 	arr := []Block{}
-	for i:=0; i<l; i++ {
+	for i := 0; i < l; i++ {
 		inst := Block{
-			PrevBlock: nil,
-			NextBlock: nil,
-			Timestamp: r[i].Timestamp,
+			PrevBlock:      nil,
+			NextBlock:      nil,
+			Timestamp:      r[i].Timestamp,
 			NormalizedTime: r[i].NormalizedTime,
-			Datapoint: r[i].Datapoint,
+			Datapoint:      r[i].Datapoint,
 		}
 		arr = append(arr, inst)
 	}
 
 	// form doubly linked list
-	for i:=0; i< l; i++ {
+	for i := 0; i < l; i++ {
 		if i == 0 {
 			arr[i].PrevBlock = nil
 		} else {
@@ -109,4 +130,17 @@ func formLinkedChainFromRawBlock(a *[]BlockJSON) *[]Block {
 		}
 	}
 	return &arr
+}
+
+func (c Chain) Append(b *Block) (bool, Chain) {
+
+	c.chain = append(c.chain, *b)
+	c.size = unsafe.Sizeof(c)
+	c.lengthElements = len(c.chain)
+	l := c.lengthElements
+	c.chain[l-2].NextBlock = &c.chain[l-1]
+	c.chain[l-1].PrevBlock = &c.chain[l-2]
+	c.chain[l-1].NextBlock = nil
+	return true, c
+
 }
