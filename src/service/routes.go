@@ -1,12 +1,12 @@
 package service
 
 import (
-    "fmt"
-    "log"
-    "net/http"
+	"fmt"
+	"log"
+	"net/http"
 
-    "github.com/gorilla/mux"
-    "github.com/zairza-cetb/bench-routes/src/service/controllers"
+	"github.com/gorilla/mux"
+	"github.com/zairza-cetb/bench-routes/src/service/controllers"
 )
 
 func init() {

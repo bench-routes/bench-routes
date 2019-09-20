@@ -16,9 +16,12 @@ notifications:
 before_script:
   - go get -u ./...
   - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
-  - echo "checking linting in golang"
+  - echo "checking linting in golang ..."
   - golangci-lint run
   - echo "perfect linting standards! moving ahead ..."
+  - echo "checking go format ..."
+  - diff -u <(echo -n) <(gofmt -d ./)
+  - echo "perfect go format. moving ahead ..."
 
 script:
   - make build
