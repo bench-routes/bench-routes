@@ -37,14 +37,21 @@ func CLIPingScrap(s *string) (a *TypePingScrap) {
 }
 
 // CLIFLoodPingScrap returns packet loss
-func CLIFLoodPingScrap(s *string) (a uint64) {
+func CLIFLoodPingScrap(s *string) (a float64, b *TypePingScrap) {
 	arr := strings.Split(*s, "\n")
 	sentence := arr[3]
 	words := strings.Split(sentence, ", ")
 	percentage := strings.Split(words[2], " ")[0]
-	a, err := strconv.ParseUint(strings.TrimRight(percentage, "%"), 10, 32)
-	if err != nil {
-		panic(err)
+	a = strToFloat64(strings.TrimRight(percentage, "%"))
+
+	pingValuesString := strings.Split(arr[4], " ")[3]
+	pingValues := strings.Split(pingValuesString, "/")
+	b = &TypePingScrap{
+		Min:  strToFloat64(pingValues[0]),
+		Avg:  strToFloat64(pingValues[1]),
+		Max:  strToFloat64(pingValues[2]),
+		Mdev: strToFloat64(pingValues[3]),
 	}
+
 	return
 }

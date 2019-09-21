@@ -6,7 +6,7 @@ import (
 )
 
 // HandleFloodPing is the main handler for flood ping operations
-func HandleFloodPing(url *string, packets int) uint64 {
+func HandleFloodPing(url *string, packets int) (float64, *scrap.TypePingScrap) {
 	chnl := make(chan *string)
 
 	// launch a goroutine to handle ping operations
