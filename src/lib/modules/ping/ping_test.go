@@ -1,9 +1,9 @@
 package ping
 
 import (
+	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"log"
 	"reflect"
-	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"testing"
 )
 
