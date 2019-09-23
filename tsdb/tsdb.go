@@ -1,6 +1,7 @@
 package tsdb
 
 import (
+	"errors"
 	"log"
 	"time"
 	"unsafe"
@@ -125,6 +126,22 @@ func (c Chain) Append(b *Block) (bool, Chain) {
 	c.chain[l-1].NextBlock = nil
 	return true, c
 
+}
+
+// PopPreviousNBlocks pops last n elements from chain.
+func (c Chain) PopPreviousNBlocks(n int) (Chain, error) {
+	c.lengthElements = len(c.chain)
+	l := c.lengthElements
+	if c.chain[l-1].NextBlock != nil || c.chain[0].PrevBlock != nil {
+		return c, errors.New("Chain corrupted")
+	} else if l < n {
+		return c, errors.New("Deletion will cause underflow")
+	}
+	c.chain = c.chain[:len(c.chain)-n]
+	c.chain[l-n-1].NextBlock = nil
+	c.lengthElements = l - n
+	c.size = unsafe.Sizeof(c)
+	return c, nil
 }
 
 // Save saves or commits the existing chain in the secondary memory.

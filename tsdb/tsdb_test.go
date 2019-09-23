@@ -46,6 +46,16 @@ func TestAppend(t *testing.T) {
 	}
 }
 
+func TestPopPreviousNBlocks(t *testing.T) {
+	_, chain := chain.Init()
+	chain, err := chain.PopPreviousNBlocks(10)
+	if err != nil {
+		t.Logf(err.Error())
+	} else {
+		t.Logf("Block removal worked properly")
+	}
+}
+
 func TestSave(t *testing.T) {
 	_, chain := chain.Init()
 	if chain.Save() {
