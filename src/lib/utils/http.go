@@ -16,7 +16,7 @@ const (
 )
 
 //will retrieve this from a user settings file at later stages
-var password = "megha"
+var password = ""
 
 // CLIPing works as an *independent subroutine*, for ping operations with the external networks
 // Takes in a pointer channel in the last params inorder to implement subroutines since the ping
