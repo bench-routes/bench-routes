@@ -14,14 +14,14 @@ var (
 type Block struct {
 	PrevBlock      *Block
 	NextBlock      *Block
-	Datapoint      int
+	Datapoint      float32
 	NormalizedTime int64
 	Timestamp      time.Time
 }
 
 // BlockJSON helps reffer Block as JSON
 type BlockJSON struct {
-	Datapoint      int       `json:"datapoint"`
+	Datapoint      float32   `json:"datapoint"`
 	NormalizedTime int64     `json:"normalizedTime"`
 	Timestamp      time.Time `json:"timestamp"`
 }

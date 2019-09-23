@@ -1,11 +1,10 @@
 package ping
 
 import (
+	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"log"
 	"reflect"
 	"testing"
-
-	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 )
 
 var (
@@ -13,21 +12,20 @@ var (
 		"google.co.in",
 		"facebook.com",
 		"yahoo.com",
-		// "github.com",
 		"youtube.com",
 	}
 )
 
-// func TestHandlerPing(t *testing.T) {
-// 	for _, inst := range urls {
-// 		a := HandlePing(&inst, 20)
-// 		if *a == (scrap.TypePingScrap{}) {
-// 			t.Errorf("invalid response from HandlePing")
-// 		} else {
-// 			log.Println(*a)
-// 		}
-// 	}
-// }
+func TestHandlerPing(t *testing.T) {
+	for _, inst := range urls {
+		a := HandlePing(&inst, 20)
+		if *a == (scrap.TypePingScrap{}) {
+			t.Errorf("invalid response from HandlePing")
+		} else {
+			log.Println(*a)
+		}
+	}
+}
 
 func TestHandlerFloodPing(t *testing.T) {
 	for _, inst := range urls {
