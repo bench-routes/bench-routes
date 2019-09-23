@@ -26,7 +26,7 @@ func TestRouteDispatcherForUnmentionedRequestTypes(t *testing.T) {
 	routeToTest := routes[1]
 	res := HandleResponseDelayForRoute(routeToTest)
 	// Output: Should return a large Integer
-	if res != math.MaxInt32 {
+	if res.delay != math.MaxInt32 {
 		t.Errorf("should return a large integer to automatically rule out of threshold")
 	}
 	log.Println(res)
@@ -38,8 +38,20 @@ func TestIfLargerReponseDelaysAreProneToAlert(t *testing.T) {
 	routeToTest := routes[0]
 	res := HandleResponseDelayForRoute(routeToTest)
 	// Output: res > threshold, Prone to alerting
-	if res < threshold {
+	if res.delay < threshold {
 		t.Errorf("Invalid result. Expected result > threshold")
+	}
+	log.Println(res)
+}
+
+// Test if Content-Length headers are not set, resLength
+// returns 0 or any negative number
+func TestIfNoContentLengthHeadersReturnsNegative(t *testing.T) {
+	routeToTest := routes[1]
+	res := HandleResponseDelayForRoute(routeToTest)
+	// Output: 0 or a negative number
+	if res.resLength > 0 {
+		t.Errorf("Should return a 0 or a negative number as Content-Length header is not set!")
 	}
 	log.Println(res)
 }
