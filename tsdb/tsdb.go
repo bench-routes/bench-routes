@@ -166,16 +166,28 @@ func (c Chain) GetPositionalPointerNormalized(n int64) (*Block, error) {
 		return nil, errors.New("Normalized time not in Chain range")
 	}
 
-	for n > c.chain[index].NormalizedTime {
+	for n > c.chain[index].NormalizedTime && index < c.lengthElements-jumpSize {
 		index += jumpSize
 	}
 
-	for c.chain[index].NormalizedTime != n {
-		if c.chain[index].NormalizedTime > n {
-			index--
-		} else {
-			index++
-		}
+	// for c.chain[index].NormalizedTime != n {
+	// 	if c.chain[index].NormalizedTime > n {
+	// 		index--
+	// 	} else {
+	// 		index++
+	// 	}
+	// }
+
+	for c.chain[index].NormalizedTime < n {
+		index++
+	}
+
+	for c.chain[index].NormalizedTime > n {
+		index--
+	}
+
+	if c.chain[index].NormalizedTime != n {
+		return nil, errors.New("Normalized time not found in chain")
 	}
 
 	return &c.chain[index], nil
