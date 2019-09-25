@@ -170,14 +170,6 @@ func (c Chain) GetPositionalPointerNormalized(n int64) (*Block, error) {
 		index += jumpSize
 	}
 
-	// for c.chain[index].NormalizedTime != n {
-	// 	if c.chain[index].NormalizedTime > n {
-	// 		index--
-	// 	} else {
-	// 		index++
-	// 	}
-	// }
-
 	for c.chain[index].NormalizedTime < n {
 		index++
 	}
