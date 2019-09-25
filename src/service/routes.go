@@ -21,19 +21,24 @@ func error404(w http.ResponseWriter, r *http.Request) {
 }
 
 //Service initiates services and avail different routes for bench-routes
-func Service(port string) {
+func service(port string) {
 
 	r := mux.NewRouter()
-	fmt.Println("Running on port", port)
-	r.HandleFunc("/login", controllers.LoginHandler)
 
-	r.NotFoundHandler = http.HandlerFunc(error404)
+	// routes
+
+		// Login
+		r.HandleFunc("/login", controllers.LoginHandler)
+
+		
+		// error not found
+		r.NotFoundHandler = http.HandlerFunc(error404)
 
 	log.Fatal(http.ListenAndServe(port, r))
 }
 
 // Runner serves as a default runner for bench-routes
 func Runner(port string) {
-	log.Println("Init Started")
-	Service(port)
+	log.Println("Starting bench-routes service ...")
+	service(port)
 }
