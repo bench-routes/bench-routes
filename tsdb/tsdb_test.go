@@ -62,3 +62,26 @@ func TestSave(t *testing.T) {
 		t.Logf("tsdb Save works as expected")
 	}
 }
+
+func TestChainTraversal(t *testing.T) {
+	_, chain := chain.Init()
+	c := chain.chain
+	node := c[0]
+	if node.PrevBlock != nil {
+		t.Errorf("corrupted chain")
+	}
+	count := 1
+	for {
+		node = *node.NextBlock
+		if node.NextBlock == nil {
+			break
+		}
+		count++
+	}
+
+	if count == len(c) {
+		t.Errorf("corrupted chain")
+	} else {
+		t.Logf("Succesful traversal")
+	}
+}
