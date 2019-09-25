@@ -3,6 +3,7 @@ package tsdb
 import (
 	"errors"
 	"log"
+	"math"
 	"time"
 	"unsafe"
 )
@@ -52,11 +53,11 @@ type TSDB interface {
 	// GetPositionalPointerNormalized accepts the normalized time, searches for the block with that time
 	// using jump search, and returns the address of the block having the specified normalized
 	// time.
-	GetPositionalPointerNormalized(n int64) *Block
+	GetPositionalPointerNormalized(n int64) (*Block, error)
 
 	// PopPreviousNBlocks pops or removes **n** previous blocks from the chain and returns
 	// success status.
-	PopPreviousNBlocks(n uint64) bool
+	PopPreviousNBlocks(n uint64) (Chain, error)
 
 	// GetChain returns the positional pointer address of the first element of the chain.
 	GetChain() *[]Block
@@ -153,4 +154,33 @@ func (c Chain) Save() bool {
 		panic(e)
 	}
 	return true
+}
+
+//GetPositionalPointerNormalized Returns block by searching the chain for the NormalizedTime
+func (c Chain) GetPositionalPointerNormalized(n int64) (*Block, error) {
+	c.lengthElements = len(c.chain)
+	jumpSize := int(math.Floor(math.Sqrt(float64(c.lengthElements))))
+	index := jumpSize - 1
+
+	if c.chain[c.lengthElements-1].NormalizedTime < n || c.chain[0].NormalizedTime > n {
+		return nil, errors.New("Normalized time not in Chain range")
+	}
+
+	for n > c.chain[index].NormalizedTime && index < c.lengthElements-jumpSize {
+		index += jumpSize
+	}
+
+	for c.chain[index].NormalizedTime < n {
+		index++
+	}
+
+	for c.chain[index].NormalizedTime > n {
+		index--
+	}
+
+	if c.chain[index].NormalizedTime != n {
+		return nil, errors.New("Normalized time not found in chain")
+	}
+
+	return &c.chain[index], nil
 }
