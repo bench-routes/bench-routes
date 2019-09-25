@@ -27,12 +27,11 @@ func service(port string) {
 
 	// routes
 
-		// Login
-		r.HandleFunc("/login", controllers.LoginHandler)
+	// Login
+	r.HandleFunc("/login", controllers.LoginHandler)
 
-		
-		// error not found
-		r.NotFoundHandler = http.HandlerFunc(error404)
+	// error not found
+	r.NotFoundHandler = http.HandlerFunc(error404)
 
 	log.Fatal(http.ListenAndServe(port, r))
 }
