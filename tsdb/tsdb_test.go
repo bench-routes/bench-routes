@@ -56,6 +56,18 @@ func TestPopPreviousNBlocks(t *testing.T) {
 	}
 }
 
+func TestGetPositionalPointerNormalized(t *testing.T) {
+	_, chain := chain.Init()
+	var normalizedTime int64 = 1568705425
+	block := *chain.GetPositionalPointerNormalized(1568705425)
+	if block.NormalizedTime == normalizedTime {
+		t.Log("Test Successful")
+		t.Log(block)
+	} else {
+		t.Errorf("Block not found")
+	}
+}
+
 func TestSave(t *testing.T) {
 	_, chain := chain.Init()
 	if chain.Save() {

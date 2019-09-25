@@ -3,6 +3,7 @@ package tsdb
 import (
 	"errors"
 	"log"
+	"math"
 	"time"
 	"unsafe"
 )
@@ -153,4 +154,24 @@ func (c Chain) Save() bool {
 		panic(e)
 	}
 	return true
+}
+
+//GetPositionalPointerNormalized Returns block by searching the chain for the NormalizedTime
+func (c Chain) GetPositionalPointerNormalized(n int64) *Block {
+	c.lengthElements = len(c.chain)
+	jumpSize := int(math.Floor(math.Sqrt(float64(c.lengthElements))))
+	index := jumpSize - 1
+	for n > c.chain[index].NormalizedTime {
+		index += jumpSize
+	}
+
+	for c.chain[index].NormalizedTime != n {
+		if c.chain[index].NormalizedTime > n {
+			index--
+		} else {
+			index++
+		}
+	}
+
+	return &c.chain[index]
 }
