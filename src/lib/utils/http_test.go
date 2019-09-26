@@ -8,6 +8,7 @@ var (
 	// to verify whether the service is able to respond and request to multiple website urls
 	urlsDiff = []string{
 		"https://www.google.co.in/",
+		"https://www.google.co.in/search?q=hello",
 		"https://www.facebook.com/",
 		"https://www.yahoo.com/",
 	}

@@ -11,20 +11,17 @@ var (
 // HTTPPingFilter filters the illegal characters that may panic the ping
 // subprocess running from the terminal
 func HTTPPingFilter(s *string) *string {
-	*s = strings.Replace(*s, "http://", "", -1)
-	*s = strings.Replace(*s, "https://", "", -1)
-	*s = strings.Replace(*s, "https:", "", -1)
-	*s = strings.Replace(*s, "http:", "", -1)
-	*s = strings.Replace(*s, "/", "", -1)
-	*s = strings.Replace(*s, "www.", "", -1)
-	*s = strings.Replace(*s, ":", "", -1)
-	temp := *s
-	for _, value := range domains {
-		if strings.Index(*s, value) > 0 {
-			v := (strings.Index(*s, value))
-			temp = temp[:v+len(value)]
-			*s = temp
+	urlParts := strings.Split(*s, "/")
+	for _, urlPart := range urlParts {
+		if strings.Contains(urlPart, ".") {
+			*s = urlPart
 		}
 	}
+
+	*s = strings.Replace(*s, "www.", "", -1)
+	*s = strings.Replace(*s, "https:", "", -1)
+	*s = strings.Replace(*s, "http:", "", -1)
+	*s = strings.Split(*s, ":")[0]
+
 	return s
 }
