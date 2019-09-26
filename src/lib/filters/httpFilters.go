@@ -4,10 +4,6 @@ import (
 	"strings"
 )
 
-var (
-	domains = [...]string{".com", ".in", ".org", ".co.in", ".edu"}
-)
-
 // HTTPPingFilter filters the illegal characters that may panic the ping
 // subprocess running from the terminal
 func HTTPPingFilter(s *string) *string {
