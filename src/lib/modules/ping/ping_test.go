@@ -1,10 +1,11 @@
 package ping
 
 import (
-	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"log"
 	"reflect"
 	"testing"
+
+	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 )
 
 var (
