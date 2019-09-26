@@ -13,7 +13,6 @@ func TestNotify(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(dir, "me")
 	substr := "/bench-routes/"
 	c := strings.Index(dir, substr)
 	dir = dir[:c+len(substr)] + "assets/icon.png"
