@@ -1,14 +1,13 @@
 package notify
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strings"
 	"testing"
 )
 
-func TestNotify(t *testing.T) {
+func TestSendNotification(t *testing.T) {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
@@ -23,10 +22,10 @@ func TestNotify(t *testing.T) {
 		urgency:     "critical",
 		time:        5000,
 	}
-	n.Notify1()
-	n.Notify2()
-	n.Notify3()
-	n.Notify4()
-	n.Notify5()
-	n.Notify6()
+	n.SendNotification1()
+	n.SendNotification2()
+	n.SendNotification3()
+	n.SendNotification4()
+	n.SendNotification5()
+	n.SendNotification6()
 }

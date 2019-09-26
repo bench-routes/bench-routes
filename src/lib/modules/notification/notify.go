@@ -18,22 +18,22 @@ type NotificationData struct {
 //NotificationManage sends notifications to the user based on different params passed
 //All the methods in this interface based on different params
 type NotificationManage interface {
-	//Notify1 with title and description
-	Notify1()
-	//Notify2 with title and description and lives for a certain time span
-	Notify2()
-	//Notify3 with title, description and image icon
-	Notify3()
-	//Notify4 with title, description and urgency level(low,normal,critical)
-	Notify4()
-	//Notify5 with title, description, image and lives for a certain time span
-	Notify5()
-	//Notify6 with title and description, urgency and lives for a certain time span
-	Notify6()
+	//SendNotification1 with title and description
+	SendNotification1()
+	//SendNotification2 with title and description and lives for a certain time span
+	SendNotification2()
+	//SendNotification3 with title, description and image icon
+	SendNotification3()
+	//SendNotification4 with title, description and urgency level(low,normal,critical)
+	SendNotification4()
+	//SendNotification5 with title, description, image and lives for a certain time span
+	SendNotification5()
+	//SendNotification6 with title and description, urgency and lives for a certain time span
+	SendNotification6()
 }
 
-// Notify1 executes the command to notify with title and description
-func (N *NotificationData) Notify1() {
+// SendNotification1 executes the command to notify with title and description
+func (N *NotificationData) SendNotification1() {
 	cmd := exec.Command("notify-send", N.title, N.description)
 	err := cmd.Run()
 	if err != nil {
@@ -41,8 +41,8 @@ func (N *NotificationData) Notify1() {
 	}
 }
 
-//Notify2 executes the command to notify with title, des and time
-func (N *NotificationData) Notify2() {
+//SendNotification2 executes the command to notify with title, des and time
+func (N *NotificationData) SendNotification2() {
 	cmd := exec.Command("notify-send", N.title, N.description, "-t", strconv.Itoa(N.time))
 	err := cmd.Run()
 	if err != nil {
@@ -50,8 +50,8 @@ func (N *NotificationData) Notify2() {
 	}
 }
 
-// Notify3 executes the command to notify with title, description, and icon
-func (N *NotificationData) Notify3() {
+// SendNotification3 executes the command to notify with title, description, and icon
+func (N *NotificationData) SendNotification3() {
 	cmd := exec.Command("notify-send", N.title, N.description, "-i", N.icon)
 	err := cmd.Run()
 	if err != nil {
@@ -59,8 +59,8 @@ func (N *NotificationData) Notify3() {
 	}
 }
 
-// Notify4 executes the command to notify with title, description and urgency level
-func (N *NotificationData) Notify4() {
+// SendNotification4 executes the command to notify with title, description and urgency level
+func (N *NotificationData) SendNotification4() {
 
 	cmd := exec.Command("notify-send", N.title, N.description, "-u", N.urgency)
 	err := cmd.Run()
@@ -69,17 +69,17 @@ func (N *NotificationData) Notify4() {
 	}
 }
 
-// Notify5 executes the command to notify with title, description, icon and time
-func (N *NotificationData) Notify5() {
-	cmd := exec.Command("notify-send", N.title, N.description, "-i", "/home/jayashree/go/src/github.com/zairza-cetb/bench-routes/assets/jj.png", "-t", strconv.Itoa(N.time))
+// SendNotification5 executes the command to notify with title, description, icon and time
+func (N *NotificationData) SendNotification5() {
+	cmd := exec.Command("notify-send", N.title, N.description, "-i", N.icon, "-t", strconv.Itoa(N.time))
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-// Notify6 executes the command to notify with title, description, urgency and time
-func (N *NotificationData) Notify6() {
+// SendNotification6 executes the command to notify with title, description, urgency and time
+func (N *NotificationData) SendNotification6() {
 
 	cmd := exec.Command("notify-send", N.title, N.description, "-u", N.urgency, "-t", strconv.Itoa(N.time))
 	err := cmd.Run()
