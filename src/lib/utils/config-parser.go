@@ -68,14 +68,13 @@ func (inst YAMLBenchRoutesType) Load() *YAMLBenchRoutesType {
 	return &inst
 }
 
-func (inst YAMLBenchRoutesType) Write() (bool, error) {
+func (inst YAMLBenchRoutesType) Write() bool {
 	config := *inst.config
 	r, e := yaml.Marshal(config)
 	if e != nil {
-		log.Fatalf("%s\n", e)
-		return false, e
+		panic(e)
 	}
 
 	ioutil.WriteFile(inst.address, []byte(r), 0644)
-	return true, nil
+	return true
 }
