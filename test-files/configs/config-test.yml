@@ -1,0 +1,116 @@
+password: your password
+interval:
+- test: ping
+  type: s
+  duration: 10
+- test: jitter
+  type: m
+  duration: 5
+- test: req-res-delay-and-monitoring
+  type: s
+  duration: 15
+routes:
+- method: GET
+  url: https://www.google.co.in
+  route: search
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: q
+    value: bench-routes
+- method: GET
+  url: https://in.search.yahoo.com
+  route: search
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: p
+    value: bench-routes
+  - name: fp
+    value: "1"
+  - name: toggle
+    value: "1"
+  - name: cop
+    value: mss
+  - name: ei
+    value: UTF-8
+- method: GET
+  url: https://www.google.co.in
+  route: search
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: q
+    value: bench-routes
+- method: GET
+  url: https://in.search.yahoo.com
+  route: search
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: p
+    value: bench-routes
+  - name: fp
+    value: "1"
+  - name: toggle
+    value: "1"
+  - name: cop
+    value: mss
+  - name: ei
+    value: UTF-8
+- method: GET
+  url: https://www.google.co.in
+  route: search
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: q
+    value: bench-routes
+- method: GET
+  url: https://in.search.yahoo.com
+  route: search
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: p
+    value: bench-routes
+  - name: fp
+    value: "1"
+  - name: toggle
+    value: "1"
+  - name: cop
+    value: mss
+  - name: ei
+    value: UTF-8
+- method: GET
+  url: https://www.google.co.in
+  route: search
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: q
+    value: bench-routes
+- method: GET
+  url: https://in.search.yahoo.com
+  route: search
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: p
+    value: bench-routes
+  - name: fp
+    value: "1"
+  - name: toggle
+    value: "1"
+  - name: cop
+    value: mss
+  - name: ei
+    value: UTF-8
