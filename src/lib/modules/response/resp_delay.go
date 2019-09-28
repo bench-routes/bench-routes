@@ -1,9 +1,9 @@
 package response
 
 import (
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"math"
 	"time"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 )
 
 // Route struct
@@ -34,7 +34,7 @@ func HandleResponseDelayForRoute(route Route) Response {
 func RouteDispatcher(route Route, c chan Response) {
 	if route.requestType == "GET" {
 		res := HandleGetRequest(route.url)
-		c <- res	
+		c <- res
 	} else {
 		// Send a very large integer to automatically rule out as it
 		// is much much larger than the threshold
@@ -46,10 +46,10 @@ func RouteDispatcher(route Route, c chan Response) {
 // and after processing of each request and returns the difference
 func HandleGetRequest(url string) Response {
 	// Time init
-	
+
 	start := time.Now().UnixNano()
-	resp:=utils.SendGETRequest(url)
-		resLength := resp.ContentLength
+	resp := utils.SendGETRequest(url)
+	resLength := resp.ContentLength
 	defer resp.Body.Close()
 
 	end := time.Now().UnixNano()
