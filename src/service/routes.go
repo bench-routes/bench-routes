@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/zairza-cetb/bench-routes/src/service/controllers"
 )
 
 var upgrader = websocket.Upgrader{
@@ -44,7 +43,6 @@ func sockets(w http.ResponseWriter, r *http.Request) {
 
 		switch messageStr {
 		case "force-start-ping":
-			controllers
 			break
 		}
 	}
