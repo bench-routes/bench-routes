@@ -20,7 +20,10 @@ func init() {
 
 func home(w http.ResponseWriter, r *http.Request) {
 	log.Printf("ping\n")
-	w.Write([]byte("pong"))
+	_, e := w.Write([]byte("pong"))
+	if e != nil {
+		panic(e)
+	}
 }
 
 func sockets(w http.ResponseWriter, r *http.Request) {
