@@ -48,7 +48,6 @@ func CLIFloodPing(url *string, packets int, cliPingChannel chan *string) {
 	cmdStr := string(cmdPing)
 	cliPingChannel <- &cmdStr
 }
-
 //SendGETRequest sends http GET request to the specified url(both resp_delay and monitor_response_status module use it)
 func SendGETRequest(url string) *http.Response {
 	resp, err := http.Get(url)
@@ -59,3 +58,4 @@ func SendGETRequest(url string) *http.Response {
 	return resp
 
 }
+
