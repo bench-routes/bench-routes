@@ -22,10 +22,11 @@ func TestSendNotification(t *testing.T) {
 		urgency:     "critical",
 		time:        5000,
 	}
-	n.SendNotification1()
-	n.SendNotification2()
-	n.SendNotification3()
-	n.SendNotification4()
-	n.SendNotification5()
-	n.SendNotification6()
+
+	n.NotifyBasic()
+	n.NotifyWithTimeSpan()
+	n.NotifyWithImageIcon()
+	n.NotifyWithUrgencyLevel()
+	n.NotifyWithImageAndTimeSpan()
+	n.NotifyWithUrgencyLevelAndTimeSpan()
 }
