@@ -5,8 +5,8 @@ import (
 	"net/http"
 )
 
-//ResponseStatus contains the status code of the requested url
-type ResponseStatus struct {
+//Status contains the status code of the requested url
+type Status struct {
 	status int
 }
 
@@ -17,13 +17,13 @@ func GETRequestDispatcher(url string, chnl chan *http.Response) {
 }
 
 //HandleRequest is the entry point for this module
-func HandleRequest(route Route) ResponseStatus {
+func HandleRequest(route Route) Status {
 	chnl := make(chan *http.Response)
 	if route.requestType == "GET" {
 		go GETRequestDispatcher(route.url, chnl)
 		resp := <-chnl
-		return ResponseStatus{status: resp.StatusCode}
+		return Status{status: resp.StatusCode}
 	}
-	return ResponseStatus{status: 100}
+	return Status{status: 100}
 
 }
