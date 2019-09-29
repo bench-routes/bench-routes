@@ -11,7 +11,7 @@ type Status struct {
 }
 
 //GETRequestDispatcher dispatches a specific type(GET,POST,PUT,DETLETE,)route to the respective function
-func GETRequestDispatcher(url string, chnl chan *http.Response) {
+func GETRequestDispatcher(url string, chnl chan *http.Response){
 	res := utils.SendGETRequest(url)
 	chnl <- res
 }
@@ -19,11 +19,11 @@ func GETRequestDispatcher(url string, chnl chan *http.Response) {
 //HandleRequest is the entry point for this module
 func HandleRequest(route Route) Status {
 	chnl := make(chan *http.Response)
-	if route.requestType == "GET" {
-		go GETRequestDispatcher(route.url, chnl)
-		resp := <-chnl
-		return Status{status: resp.StatusCode}
-	}
-	return Status{status: 100}
-
+	if(route.requestType == "GET"){
+		go GETRequestDispatcher(route.url,chnl)
+		resp := <- chnl
+		return Status{status:resp.StatusCode}
+	} 
+		return Status{status:100}
+	
 }

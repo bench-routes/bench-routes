@@ -66,7 +66,6 @@ func (N *NotificationData) NotifyWithImageIcon() {
 
 // NotifyWithUrgencyLevel executes the command to notify with title, description and urgency level
 func (N *NotificationData) NotifyWithUrgencyLevel() {
-
 	cmd := exec.Command(CmdNotify, N.title, N.description, "-u", N.urgency)
 	err := cmd.Run()
 	if err != nil {
@@ -85,7 +84,6 @@ func (N *NotificationData) NotifyWithImageAndTimeSpan() {
 
 // NotifyWithUrgencyLevelAndTimeSpan executes the command to notify with title, description, urgency and time
 func (N *NotificationData) NotifyWithUrgencyLevelAndTimeSpan() {
-
 	cmd := exec.Command(CmdNotify, N.title, N.description, "-u", N.urgency, "-t", strconv.Itoa(N.time))
 	err := cmd.Run()
 	if err != nil {
