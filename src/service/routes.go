@@ -1,21 +1,17 @@
 package service
 
 import (
+	"github.com/gorilla/websocket"
+	"github.com/zairza-cetb/bench-routes/src/service/controllers"
 	"log"
 	"net/http"
-
-	"github.com/gorilla/websocket"
+	"strconv"
 )
 
 var upgrader = websocket.Upgrader{
+	// set buffer size to 3 mega-bytes
 	ReadBufferSize:  3072,
 	WriteBufferSize: 3072,
-}
-
-func init() {
-	log.SetPrefix("LOG: ")
-	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Llongfile)
-	log.Println("init started")
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -46,6 +42,7 @@ func sockets(w http.ResponseWriter, r *http.Request) {
 
 		switch messageStr {
 		case "force-start-ping":
+			ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.PingController())))
 			break
 		}
 	}

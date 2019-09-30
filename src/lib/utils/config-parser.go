@@ -44,11 +44,23 @@ type Routes struct {
 	Params []params  `yaml:"params"`
 }
 
+// ResponseChangesConfig acts as a type for response-length configuration in config.yml
+type ResponseChangesConfig struct {
+	Mode float32 `yaml:"mode"`
+	Mean float32 `yaml:"mean"`
+}
+
+// UConfig type for storing utilities in config.yml as local DB
+type UConfig struct {
+	RespChanges ResponseChangesConfig `yaml:"response-length"`
+}
+
 // ConfigurationBR sets a type for configuration file which also acts as a local DB
 type ConfigurationBR struct {
-	Password string     `yaml:"password"`
-	Interval []Interval `yaml:"interval"`
-	Routes   []Routes   `yaml:"routes"`
+	Password  string     `yaml:"password"`
+	Interval  []Interval `yaml:"interval"`
+	Routes    []Routes   `yaml:"routes"`
+	UtilsConf UConfig    `yaml:"utils"`
 }
 
 // Load loads the configuration file on startup
