@@ -1,8 +1,8 @@
 password: your password
-interval:
+test_interval:
 - test: ping
   type: sec
-  duration: 10
+  duration: 3
 - test: jitter
   type: min
   duration: 5
@@ -118,3 +118,8 @@ utils:
   response-length:
     mean: 0
     mode: 0
+  services-state:
+    ping: passive
+    flood-ping: passive
+    jitter: passive
+    req-res-deplay-or-monitoring: passive
