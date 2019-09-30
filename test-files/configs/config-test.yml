@@ -1,13 +1,13 @@
 password: your password
 interval:
 - test: ping
-  type: s
+  type: sec
   duration: 10
 - test: jitter
-  type: m
+  type: min
   duration: 5
 - test: req-res-delay-and-monitoring
-  type: s
+  type: sec
   duration: 15
 routes:
 - method: GET
@@ -114,3 +114,7 @@ routes:
     value: mss
   - name: ei
     value: UTF-8
+utils:
+  response-length:
+    mean: 0
+    mode: 0
