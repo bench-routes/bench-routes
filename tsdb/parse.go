@@ -27,8 +27,22 @@ func loadFromStorage(raw *string) *[]BlockJSON {
 	return &inst
 }
 
+func loadFromStoragePing(raw *string) *[]BlockPingJSON {
+	inst := []BlockPingJSON{}
+	b := []byte(*raw)
+	e := json.Unmarshal(b, &inst)
+	fmt.Println(inst)
+	if e != nil {
+		panic(e)
+	}
+	return &inst
+}
+
 func saveToHDD(path string, data []byte) error {
-	e := ioutil.WriteFile(path, data, 0644)
+	fmt.Println("saving as ")
+	fmt.Println("saving path is ", path)
+	fmt.Println(string(data))
+	e := ioutil.WriteFile(path, data, 0755)
 	if e != nil {
 		return e
 	}
@@ -57,6 +71,29 @@ func (p Parser) ParseToJSON(a []Block) (j []byte) {
 	}
 
 	j, e := json.Marshal(b)
+	if e != nil {
+		panic(e)
+	}
+	return
+}
+
+// ParseToJSONPing converts the ping chain into Marshallable JSON
+func (p Parser) ParseToJSONPing(a []BlockPing) (j []byte) {
+	b := []BlockPingJSON{}
+	fmt.Println("here we are")
+	fmt.Println(a)
+	for _, inst := range a {
+		t := BlockPingJSON{
+			Timestamp:      inst.Timestamp,
+			NormalizedTime: inst.NormalizedTime,
+			Datapoint:      inst.Datapoint,
+		}
+		b = append(b, t)
+	}
+	fmt.Println(b)
+	j, e := json.Marshal(b)
+	fmt.Println("after marshalled")
+	fmt.Println(string(j))
 	if e != nil {
 		panic(e)
 	}

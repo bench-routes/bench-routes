@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"fmt"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"log"
@@ -13,25 +12,20 @@ const (
 	// ConfigurationFilePath is the constant path to the configuration file needed to start the application
 	// written from root file since the application starts from `make run`
 	ConfigurationFilePath = "storage/local-config.yml"
+	// PathPing stores the defualt address of storage directory of ping data
+	PathPing = "storage/ping"
+	// PathJitter stores the defualt address of storage directory of jitter data
+	PathJitter = "storage/jitter"
+	// PathFloodPing stores the defualt address of storage directory of flood ping data
+	PathFloodPing = "storage/flood-ping"
+	// PathReqResDelayMonitoring stores the defualt address of storage directory of req-res and monitoring data
+	PathReqResDelayMonitoring = "storage/req-res-delay-monitoring"
 )
 
 var (
 	// Configuration corresponds to the global use of configuration settings
 	Configuration utils.YAMLBenchRoutesType
 )
-
-func init() {
-	log.SetPrefix("LOG: ")
-	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Llongfile)
-
-	// load configuration file
-	Configuration.Address = ConfigurationFilePath
-	Configuration = *Configuration.Load()
-
-	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
-	// required resources for the application is up and healthy
-	log.Println("Bench-routes is up and running")
-}
 
 // HandlerPingGeneral handles the ping route
 func HandlerPingGeneral(signal string) bool {
@@ -50,20 +44,19 @@ func HandlerPingGeneral(signal string) bool {
 				panic(e)
 			}
 			go func() {
-				fmt.Println("inside goroutine")
 				pingConfig := Configuration.Config.Routes
 				pingInterval := getInterval(Configuration.Config.Interval, "ping")
 				if pingInterval == (testInterval{}) {
 					log.Fatalf("interval not found in configuration file for ping")
 					return
 				}
-				fmt.Println("ping configuration is")
-				fmt.Println(pingConfig)
 
 				var urlStack []string
 				for _, route := range pingConfig {
 					url := route.URL
 					exists := false
+
+					// maintain urls uniquely
 					for _, e := range urlStack {
 						if e == url {
 							exists = true
@@ -74,7 +67,6 @@ func HandlerPingGeneral(signal string) bool {
 					}
 				}
 				for {
-					fmt.Println("inside for infinite")
 					Configuration = Configuration.Refresh()
 
 					switch Configuration.Config.UtilsConf.ServicesSignal.Ping {
@@ -82,7 +74,7 @@ func HandlerPingGeneral(signal string) bool {
 						var wg sync.WaitGroup
 						wg.Add(len(urlStack))
 						for u := range urlStack {
-							go ping.HandlePing(&urlStack[u], 10, &wg)
+							go ping.HandlePing(&urlStack[u], 10, utils.GetHash(&urlStack[u]), &wg)
 						}
 						wg.Wait()
 					case "passive":
@@ -129,8 +121,6 @@ type testInterval struct {
 }
 
 func getInterval(intervals []utils.Interval, testName string) testInterval {
-	fmt.Println("here")
-	fmt.Println(intervals)
 	for _, intrv := range intervals {
 		if testName == intrv.Test {
 			return testInterval{

@@ -19,23 +19,6 @@ routes:
   params:
   - name: q
     value: bench-routes
-- method: GET
-  url: https://in.search.yahoo.com
-  route: search
-  headers:
-  - type: Content-Type
-    value: application/json
-  params:
-  - name: p
-    value: bench-routes
-  - name: fp
-    value: "1"
-  - name: toggle
-    value: "1"
-  - name: cop
-    value: mss
-  - name: ei
-    value: UTF-8
 utils:
   response-length:
     mode: 0

@@ -22,7 +22,7 @@ func TestHandlerPing(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(len(urls))
 	for _, inst := range urls {
-		go HandlePing(&inst, 20, &wg)
+		go HandlePing(&inst, 5, "", &wg)
 	}
 	wg.Wait()
 }

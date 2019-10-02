@@ -47,7 +47,6 @@ func sockets(w http.ResponseWriter, r *http.Request) {
 			if e != nil {
 				panic(e)
 			}
-			// break
 		case "force-stop-ping":
 			// true if success else false
 			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.PingController("stop"))))
