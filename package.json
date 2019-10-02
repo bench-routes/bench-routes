@@ -1,0 +1,24 @@
+{
+  "name": "bench-routes-electron",
+  "version": "1.0.0",
+  "description": "User interface for bench-routes",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ./app/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zairza-cetb/bench-routes-electron.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zairza-cetb/bench-routes-electron/issues"
+  },
+  "homepage": "https://github.com/zairza-cetb/bench-routes-electron#readme",
+  "devDependencies": {
+    "electron": "^6.0.10",
+    "typescript": "^3.6.3"
+  }
+}
