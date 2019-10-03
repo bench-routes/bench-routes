@@ -4,7 +4,7 @@
   "description": "User interface for bench-routes",
   "main": "main.js",
   "scripts": {
-    "start": "electron ./app/main.js",
+    "start": "tsc -w & electron ./app/main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
