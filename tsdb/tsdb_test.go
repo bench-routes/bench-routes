@@ -7,16 +7,16 @@ import (
 
 var (
 	chain = Chain{
-		path:           "../test-files/loadFromStorage_testdata/test1.json",
-		lengthElements: 0,
-		chain:          []Block{},
-		size:           0,
+		Path:           "../test-files/loadFromStorage_testdata/test1.json",
+		LengthElements: 0,
+		Chain:          []Block{},
+		Size:           0,
 	}
 )
 
 func TestInit(t *testing.T) {
-	blocks, _ := chain.Init()
-	if len(*blocks) == 0 {
+	blocks := chain.Init()
+	if len(blocks.Chain) == 0 {
 		t.Errorf("tsdb Init not working as expected")
 	} else {
 		t.Log("printing block values ...")
@@ -25,7 +25,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestAppend(t *testing.T) {
-	_, chain := chain.Init()
+	chain := chain.Init()
 	b := Block{
 		PrevBlock:      nil,
 		NextBlock:      nil,
@@ -34,20 +34,16 @@ func TestAppend(t *testing.T) {
 		Datapoint:      20,
 	}
 
-	status, c := chain.Append(&b)
-	if status {
-		if c.lengthElements == chain.lengthElements+1 {
-			t.Logf("Block Append Successful")
-		} else {
-			t.Errorf("Block Append Unsuccessful")
-		}
+	c := chain.Append(b)
+	if c.LengthElements == chain.LengthElements+1 {
+		t.Logf("Block Append Successful")
 	} else {
 		t.Errorf("Block Append Unsuccessful")
 	}
 }
 
 func TestPopPreviousNBlocks(t *testing.T) {
-	_, chain := chain.Init()
+	chain := chain.Init()
 	chain, err := chain.PopPreviousNBlocks(10)
 	if err != nil {
 		t.Logf(err.Error())
@@ -57,7 +53,7 @@ func TestPopPreviousNBlocks(t *testing.T) {
 }
 
 func TestGetPositionalPointerNormalized(t *testing.T) {
-	_, chain := chain.Init()
+	chain := chain.Init()
 	var normalizedTime int64 = 1568705425
 	var outOfRangeTime int64 = 21568705425
 	var notFoundTime int64 = 1568705420
@@ -81,15 +77,15 @@ func TestGetPositionalPointerNormalized(t *testing.T) {
 }
 
 func TestSave(t *testing.T) {
-	_, chain := chain.Init()
+	chain := chain.Init()
 	if chain.Save() {
 		t.Logf("tsdb Save works as expected")
 	}
 }
 
 func TestChainTraversal(t *testing.T) {
-	_, chain := chain.Init()
-	c := chain.chain
+	chain := chain.Init()
+	c := chain.Chain
 	node := c[0]
 	if node.PrevBlock != nil {
 		t.Errorf("corrupted chain")

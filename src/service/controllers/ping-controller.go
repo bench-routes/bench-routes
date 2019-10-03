@@ -1,11 +1,10 @@
 package controllers
 
 import (
-	"fmt"
+	core "github.com/zairza-cetb/bench-routes/src/lib"
 )
 
 // PingController controllers the ping requests and transfers to the respective handler
-func PingController() bool {
-	fmt.Println("ping controller")
-	return true
+func PingController(sig string) bool {
+	return core.HandlerPingGeneral(sig)
 }

@@ -42,7 +42,14 @@ func sockets(w http.ResponseWriter, r *http.Request) {
 
 		switch messageStr {
 		case "force-start-ping":
-			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.PingController())))
+			// true if success else false
+			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.PingController("start"))))
+			if e != nil {
+				panic(e)
+			}
+		case "force-stop-ping":
+			// true if success else false
+			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.PingController("stop"))))
 			if e != nil {
 				panic(e)
 			}

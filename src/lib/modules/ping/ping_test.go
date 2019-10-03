@@ -3,6 +3,7 @@ package ping
 import (
 	"log"
 	"reflect"
+	"sync"
 	"testing"
 
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
@@ -18,14 +19,12 @@ var (
 )
 
 func TestHandlerPing(t *testing.T) {
+	var wg sync.WaitGroup
+	wg.Add(len(urls))
 	for _, inst := range urls {
-		a := HandlePing(&inst, 20)
-		if *a == (scrap.TypePingScrap{}) {
-			t.Errorf("invalid response from HandlePing")
-		} else {
-			log.Println(*a)
-		}
+		go HandlePing(&inst, 5, "", &wg)
 	}
+	wg.Wait()
 }
 
 func TestHandlerFloodPing(t *testing.T) {
