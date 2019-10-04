@@ -2,10 +2,42 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Bench Route</title>
-    <link rel="stylesheet" href="../css/styles.css">
-  </head>
-  <body>
-    <h1>Welcome to Bench Route Desktop App</h1>
+    <link rel="stylesheet" href="../../../assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../../assets/css/styles.css">
+    <script src="../../../assets/js/jquery.min.js"></script>
+  <body style="display: inline-flex;">
+    <div class="sidebar-component">
+      <!-- sidebar -->
+      <div>
+        <div class="sidebar-general sidebar-first" id="sidebar-dashboard">
+          Dashboard
+        </div>
+        <div class="sidebar-general" id="sidebar-network">
+          Benchmarks
+        </div>
+        <div class="sidebar-level-1" id="collapseable-network">
+            <div class="sidebar-general-1" id="sidebar-ping">
+                Ping
+              </div>
+            <div class="sidebar-general-1" id="sidebar-jitter">
+              Jitter
+            </div>
+        </div>
+        <div class="sidebar-general" id="sidebar-monitoring">
+            Monitoring
+        </div>
+      </div>
+    </div>
+    <div class="main-component" id="main-component">
+      <!-- main-screen -->
+    </div>
+    <div class="notification-component">
+      <!-- notifications -->
+    </div>
+
   </body>
+  <script>
+    require('../index.js');
+    
+  </script>
 </html>

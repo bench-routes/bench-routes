@@ -1,0 +1,40 @@
+body {
+    background-color: #E1F5FE;
+    overflow-y: hidden;
+}
+
+.sidebar-component {
+    height: 110vh;
+    background-color: #9ADDFB;
+    width: 30vh;
+    padding: 2% 0% 0% 2%;
+    margin: -2%;
+    color: black;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.notification-component {
+    position: absolute;
+    right: 0%;
+    width: 40vh;
+}
+
+.sidebar-level-1 {
+    padding-left: 10%;
+}
+
+.sidebar-general {
+    border-bottom: 1px solid black;
+    width: 100%;
+    padding: 10px 5px;
+}
+
+.sidebar-general-1 {
+    width: 100%;
+    padding: 10px 5px;
+}
+
+.sidebar-first {
+    border-top: 1px solid black;
+}

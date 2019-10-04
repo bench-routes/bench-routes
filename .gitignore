@@ -3,5 +3,5 @@ node_modules/
 package-lock.json
 
 # Ignore all the typescript compiled files
-app/**/*.js
+app/**/**/*.js
 
