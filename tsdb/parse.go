@@ -82,7 +82,7 @@ func (p Parser) ParseToJSONPing(a []BlockPing) (j []byte) {
 		}
 		b = append(b, t)
 	}
-	j, e := json.Marshal(b)
+	j, e := json.MarshalIndent(b, "", "\t")
 	if e != nil {
 		panic(e)
 	}
