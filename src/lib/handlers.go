@@ -4,6 +4,7 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/tsdb"
 	"log"
 	"sync"
 	"time"
@@ -79,7 +80,7 @@ func HandlerPingGeneral(signal string) bool {
 						var wg sync.WaitGroup
 						wg.Add(len(urlStack))
 						for u := range urlStack {
-							go ping.HandlePing(&urlStack[u], 10, urlHashMap[urlStack[u]], &wg)
+							go ping.HandlePing(tsdb.GlobalPingChain, &urlStack[u], 10, urlHashMap[urlStack[u]], &wg, false)
 						}
 
 						wg.Wait()

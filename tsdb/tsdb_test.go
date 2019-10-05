@@ -1,6 +1,7 @@
 package tsdb
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -35,7 +36,8 @@ func TestAppend(t *testing.T) {
 	}
 
 	c := chain.Append(b)
-	if c.LengthElements == chain.LengthElements+1 {
+	fmt.Println(c.Chain[len(c.Chain)-1].Datapoint)
+	if c.Chain[len(c.Chain)-1].Datapoint == 20 {
 		t.Logf("Block Append Successful")
 	} else {
 		t.Errorf("Block Append Unsuccessful")

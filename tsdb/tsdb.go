@@ -14,6 +14,7 @@ var (
 	// PingDBNames contains the name of the database corresponding to the unique config url
 	PingDBNames = make(map[string]string)
 	// GlobalPingChain contains chains of all the pings operating in bench-routes which has to be globally accessed
+	// This is necessary as it helps to retain the parent values which are required for concurreny
 	GlobalPingChain []*ChainPing
 )
 
