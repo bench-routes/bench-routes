@@ -1,6 +1,8 @@
 package lib
 
 import (
+	"fmt"
+	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 	"log"
@@ -22,6 +24,8 @@ func init() {
 
 	// Load and build TSDB chain
 	// searching for unique URLs
+	fmt.Println("routes below")
+	fmt.Println(Configuration.Config.Routes)
 	for _, r := range Configuration.Config.Routes {
 		found := false
 		for _, i := range ConfigURLs {
@@ -31,15 +35,17 @@ func init() {
 			}
 		}
 		if !found {
+			filters.HTTPPingFilter(&r.URL)
 			ConfigURLs = append(ConfigURLs, r.URL)
-			tsdb.PingDBNames[r.URL] = utils.GetHash(&r.URL)
+			tsdb.PingDBNames[r.URL] = utils.GetHash(r.URL)
 		}
 	}
-
+	fmt.Println("maps")
+	fmt.Println(tsdb.PingDBNames)
 	// forming ping chain
 	for i, v := range ConfigURLs {
 		path := PathPing + "/" + "chunk_ping_" + tsdb.PingDBNames[v] + ".json"
-		inst := tsdb.ChainPing{
+		inst := &tsdb.ChainPing{
 			Path:           path,
 			Chain:          []tsdb.BlockPing{},
 			LengthElements: 0,

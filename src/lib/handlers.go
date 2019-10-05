@@ -1,6 +1,8 @@
 package lib
 
 import (
+	"fmt"
+	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"log"
@@ -51,7 +53,8 @@ func HandlerPingGeneral(signal string) bool {
 					return
 				}
 
-				var urlStack []string
+				urlStack := make([]string, 0)
+				urlHashMap := make(map[string]string)
 				for _, route := range pingConfig {
 					url := route.URL
 					exists := false
@@ -63,19 +66,27 @@ func HandlerPingGeneral(signal string) bool {
 						}
 					}
 					if !exists {
-						urlStack = append(urlStack, url)
+						urlStack = append(urlStack, *filters.HTTPPingFilter(&url))
+						urlHashMap[url] = utils.GetHash(url)
 					}
 				}
+				i := 0
 				for {
+					i++
 					Configuration = Configuration.Refresh()
 
 					switch Configuration.Config.UtilsConf.ServicesSignal.Ping {
 					case "active":
 						var wg sync.WaitGroup
 						wg.Add(len(urlStack))
+						fmt.Println("iteration ", i)
+						fmt.Println(urlStack)
 						for u := range urlStack {
-							go ping.HandlePing(&urlStack[u], 10, utils.GetHash(&urlStack[u]), &wg)
+							fmt.Println(urlHashMap)
+							fmt.Println("-> ", urlHashMap[urlStack[u]])
+							go ping.HandlePing(&urlStack[u], 10, urlHashMap[urlStack[u]], &wg)
 						}
+
 						wg.Wait()
 					case "passive":
 						// terminate the goroutine

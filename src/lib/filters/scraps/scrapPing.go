@@ -1,6 +1,7 @@
 package scraps
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -11,6 +12,7 @@ type TypePingScrap struct {
 }
 
 func strToFloat64(s string) float64 {
+	fmt.Println("s is ", s)
 	r, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		panic(err)
@@ -25,6 +27,7 @@ func CLIPingScrap(s *string) (a *TypePingScrap) {
 		words := strings.Split(lines, " ")
 		if words[0] == "rtt" {
 			temp := strings.Split(words[len(words)-2], "/")
+			fmt.Println(temp)
 			a = &TypePingScrap{
 				Min:  strToFloat64(temp[0]),
 				Avg:  strToFloat64(temp[1]),

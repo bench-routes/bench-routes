@@ -44,7 +44,7 @@ func TestAppend(t *testing.T) {
 
 func TestPopPreviousNBlocks(t *testing.T) {
 	chain := chain.Init()
-	chain, err := chain.PopPreviousNBlocks(10)
+	_, err := chain.PopPreviousNBlocks(10)
 	if err != nil {
 		t.Logf(err.Error())
 	} else {

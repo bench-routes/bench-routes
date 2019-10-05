@@ -24,18 +24,21 @@ func HandlePing(urlRaw *string, packets int, tsdbNameHash string, wg *sync.WaitG
 	go utils.CLIPing(urlRaw, packets, chnl)
 	resp := <-chnl
 	result := *scrap.CLIPingScrap(resp)
-	fmt.Println(result)
-	log.Printf("writing to tsdb")
 	newBlock := createNewBlock(result)
+	urlExists := false
 	for index := range tsdb.GlobalPingChain {
-		fmt.Println(tsdb.GlobalPingChain[index].Path, "  ", tsdbNameHash)
+		fmt.Println(tsdb.GlobalPingChain[index].Path, " ", tsdbNameHash)
 		if tsdb.GlobalPingChain[index].Path == tsdbNameHash {
-			fmt.Println("match found")
+			log.Println("match found***********")
+			urlExists = true
 			tsdb.GlobalPingChain[index] = tsdb.GlobalPingChain[index].AppendPing(newBlock)
 			tsdb.GlobalPingChain[index].SavePing()
+			break
 		}
 	}
-	// tsdb.GlobalPingChain[tsdbNameHash].SavePing()
+	if !urlExists {
+		panic("faulty hashing! impossible to look for a hash match.")
+	}
 	wg.Done()
 }
 
