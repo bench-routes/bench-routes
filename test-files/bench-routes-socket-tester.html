@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+</head>
+<body>
+	<button onclick="starter()">start</button>
+	<button onclick="stopper()">stop</button>
+	<script>
+		let socket = new WebSocket("ws://localhost:9090/websocket")
+		console.warn('trying socket connection')
+
+		socket.onopen = () => {
+			console.log('connected')
+			socket.send("hi baby")
+		}
+
+		socket.onmessage = m => {
+			console.log('message received as ', m)
+		}
+
+		socket.onclose = () => {
+			console.warn("connection closed")
+		}
+		function starter() {
+			socket.send("force-start-ping")
+		}
+		function stopper() {
+			socket.send("force-stop-ping")
+		}
+	</script>
+
+</body>
+</html>
