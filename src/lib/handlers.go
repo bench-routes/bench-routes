@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"fmt"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
@@ -79,11 +78,7 @@ func HandlerPingGeneral(signal string) bool {
 					case "active":
 						var wg sync.WaitGroup
 						wg.Add(len(urlStack))
-						fmt.Println("iteration ", i)
-						fmt.Println(urlStack)
 						for u := range urlStack {
-							fmt.Println(urlHashMap)
-							fmt.Println("-> ", urlHashMap[urlStack[u]])
 							go ping.HandlePing(&urlStack[u], 10, urlHashMap[urlStack[u]], &wg)
 						}
 
