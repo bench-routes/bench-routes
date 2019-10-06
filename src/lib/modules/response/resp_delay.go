@@ -1,9 +1,10 @@
 package response
 
 import (
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"math"
 	"time"
+
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 )
 
 // Route struct
@@ -16,8 +17,9 @@ type Route struct {
 // This is the object that we return from this module
 // Contains delay in response and the response length
 type Response struct {
-	delay     int
-	resLength int64
+	delay         int
+	resLength     int64
+	resStatusCode int
 }
 
 // HandleResponseDelayForRoute is the initial entrypoint function for this module which takes
@@ -38,7 +40,7 @@ func RouteDispatcher(route Route, c chan Response) {
 	} else {
 		// Send a very large integer to automatically rule out as it
 		// is much much larger than the threshold
-		c <- Response{delay: math.MaxInt32}
+		c <- Response{delay: math.MaxInt32, resLength: 0, resStatusCode: 100}
 	}
 }
 
@@ -46,14 +48,14 @@ func RouteDispatcher(route Route, c chan Response) {
 // and after processing of each request and returns the difference
 func HandleGetRequest(url string) Response {
 	// Time init
-
 	start := time.Now().UnixNano()
 	resp := utils.SendGETRequest(url)
 	resLength := resp.ContentLength
+	respStatusCode := resp.StatusCode
 	defer resp.Body.Close()
 
 	end := time.Now().UnixNano()
 	diff := int((end - start) / int64(time.Millisecond))
 
-	return Response{delay: diff, resLength: resLength}
+	return Response{delay: diff, resLength: resLength, resStatusCode: respStatusCode}
 }
