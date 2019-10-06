@@ -20,7 +20,7 @@ var (
 		"youtube.com",
 	}
 	Configuration         utils.YAMLBenchRoutesType
-	ConfigurationFilePath = "../../../../local-config.yml"
+	ConfigurationFilePath = "../../../../storage/local-config.yml"
 	pathPing              = "../../../../storage/ping"
 	ConfigURLs            []string
 )
