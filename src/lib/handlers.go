@@ -1,8 +1,9 @@
-package lib
+package handlers
 
 import (
 	"log"
 
+	"github.com/zairza-cetb/bench-routes/src/lib/handlers"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 )
 
@@ -34,7 +35,19 @@ func HandlerPingGeneral(signal string) bool {
 
 	switch signal {
 	case "start":
-		return handlePingStart(Configuration, pingServiceState)
+		if pingServiceState == "passive" {
+
+			Configuration.Config.UtilsConf.ServicesSignal.Ping = "active"
+			_, e := Configuration.Write()
+			if e != nil {
+				panic(e)
+			}
+			go func() {
+				handlers.HandlePingStart(Configuration, pingServiceState)
+			}()
+			return true
+		}
+		// return handlePingStart(Configuration, pingServiceState)
 	case "stop":
 		Configuration.Config.UtilsConf.ServicesSignal.Ping = "passive"
 		_, e := Configuration.Write()
@@ -46,24 +59,4 @@ func HandlerPingGeneral(signal string) bool {
 		log.Fatalf("invalid signal")
 	}
 	return false
-}
-
-type testInterval struct {
-	ofType   string
-	duration int64
-}
-
-func getInterval(intervals []utils.Interval, testName string) testInterval {
-	for _, intrv := range intervals {
-		if testName == intrv.Test {
-			return testInterval{
-				ofType:   intrv.Type,
-				duration: intrv.Duration,
-			}
-		}
-	}
-
-	// if the execution reaches this then it is an error as the interval was not found in the configuration file
-	log.Panicf("interval not found in the configuration file\n")
-	return testInterval{}
 }
