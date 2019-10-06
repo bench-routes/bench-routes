@@ -10,7 +10,7 @@ import (
 const (
 	// ConfigurationFilePath is the constant path to the configuration file needed to start the application
 	// written from root file since the application starts from `make run`
-	ConfigurationFilePath = "storage/local-config.yml"
+	ConfigurationFilePath = "local-config.yml"
 	// PathPing stores the defualt address of storage directory of ping data
 	PathPing = "storage/ping"
 	// PathJitter stores the defualt address of storage directory of jitter data
