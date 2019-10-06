@@ -3,7 +3,6 @@ package tsdb
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 )
 
@@ -20,7 +19,6 @@ func loadFromStorage(raw *string) *[]BlockJSON {
 	inst := []BlockJSON{}
 	b := []byte(*raw)
 	e := json.Unmarshal(b, &inst)
-	fmt.Println(inst)
 	if e != nil {
 		panic(e)
 	}
@@ -31,7 +29,6 @@ func loadFromStoragePing(raw *string) *[]BlockPingJSON {
 	inst := []BlockPingJSON{}
 	b := []byte(*raw)
 	e := json.Unmarshal(b, &inst)
-	fmt.Println(inst)
 	if e != nil {
 		panic(e)
 	}
@@ -39,9 +36,6 @@ func loadFromStoragePing(raw *string) *[]BlockPingJSON {
 }
 
 func saveToHDD(path string, data []byte) error {
-	fmt.Println("saving as ")
-	fmt.Println("saving path is ", path)
-	fmt.Println(string(data))
 	e := ioutil.WriteFile(path, data, 0755)
 	if e != nil {
 		return e
@@ -80,8 +74,6 @@ func (p Parser) ParseToJSON(a []Block) (j []byte) {
 // ParseToJSONPing converts the ping chain into Marshallable JSON
 func (p Parser) ParseToJSONPing(a []BlockPing) (j []byte) {
 	b := []BlockPingJSON{}
-	fmt.Println("here we are")
-	fmt.Println(a)
 	for _, inst := range a {
 		t := BlockPingJSON{
 			Timestamp:      inst.Timestamp,
@@ -90,10 +82,7 @@ func (p Parser) ParseToJSONPing(a []BlockPing) (j []byte) {
 		}
 		b = append(b, t)
 	}
-	fmt.Println(b)
-	j, e := json.Marshal(b)
-	fmt.Println("after marshalled")
-	fmt.Println(string(j))
+	j, e := json.MarshalIndent(b, "", "\t")
 	if e != nil {
 		panic(e)
 	}

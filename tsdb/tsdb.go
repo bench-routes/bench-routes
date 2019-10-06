@@ -2,9 +2,9 @@ package tsdb
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"math"
+	"sync"
 	"time"
 	"unsafe"
 )
@@ -14,7 +14,8 @@ var (
 	// PingDBNames contains the name of the database corresponding to the unique config url
 	PingDBNames = make(map[string]string)
 	// GlobalPingChain contains chains of all the pings operating in bench-routes which has to be globally accessed
-	GlobalPingChain []ChainPing
+	// This is necessary as it helps to retain the parent values which are required for concurreny
+	GlobalPingChain []*ChainPing
 )
 
 // PingTSDB type for PingTSDB
@@ -71,6 +72,7 @@ type Chain struct {
 	Chain          []Block
 	LengthElements int
 	Size           uintptr
+	mux            sync.Mutex
 }
 
 // ChainPing forms chain for Ping values
@@ -79,6 +81,7 @@ type ChainPing struct {
 	Chain          []BlockPing
 	LengthElements int
 	Size           uintptr
+	mux            sync.Mutex
 }
 
 // TSDB implements the idea of tsdb
@@ -124,7 +127,9 @@ type TSDB interface {
 }
 
 // Init initialize Chain properties
-func (c Chain) Init() Chain {
+func (c *Chain) Init() *Chain {
+	c.mux.Lock()
+	defer c.mux.Unlock()
 	res, e := parse(c.Path)
 	if e != nil {
 		log.Printf("chain not found at %s. creating one ...", c.Path)
@@ -142,7 +147,9 @@ func (c Chain) Init() Chain {
 }
 
 // InitPing initialize Ping Chain properties
-func (c ChainPing) InitPing() ChainPing {
+func (c *ChainPing) InitPing() *ChainPing {
+	c.mux.Lock()
+	defer c.mux.Unlock()
 	res, e := parse(c.Path)
 	if e != nil {
 		log.Printf("chain not found at %s. creating one ...", c.Path)
@@ -222,8 +229,10 @@ func formLinkedChainFromRawBlockPing(a *[]BlockPingJSON) *[]BlockPing {
 }
 
 // Append function appends the new block in the chain
-func (c Chain) Append(b Block) Chain {
+func (c *Chain) Append(b Block) *Chain {
 
+	c.mux.Lock()
+	defer c.mux.Unlock()
 	c.Chain = append(c.Chain, b)
 	c.Size = unsafe.Sizeof(c)
 	c.LengthElements = len(c.Chain)
@@ -232,15 +241,18 @@ func (c Chain) Append(b Block) Chain {
 		c.Chain[l-2].NextBlock = &c.Chain[l-1]
 		c.Chain[l-1].PrevBlock = &c.Chain[l-2]
 		c.Chain[l-1].NextBlock = nil
+		// update normalised time
+		c.Chain[l-1].NormalizedTime = c.Chain[l-2].NormalizedTime + 1
 	}
 	return c
 
 }
 
 // AppendPing function appends the new ping block in the chain
-func (c ChainPing) AppendPing(b BlockPing) ChainPing {
+func (c *ChainPing) AppendPing(b BlockPing) *ChainPing {
 
-	fmt.Println("path hererrer is ", c.Path)
+	c.mux.Lock()
+	defer c.mux.Unlock()
 	c.Chain = append(c.Chain, b)
 	c.Size = unsafe.Sizeof(c)
 	c.LengthElements = len(c.Chain)
@@ -249,13 +261,17 @@ func (c ChainPing) AppendPing(b BlockPing) ChainPing {
 		c.Chain[l-2].NextBlock = &c.Chain[l-1]
 		c.Chain[l-1].PrevBlock = &c.Chain[l-2]
 		c.Chain[l-1].NextBlock = nil
+		// update normalised time
+		c.Chain[l-1].NormalizedTime = c.Chain[l-2].NormalizedTime + 1
 	}
 	return c
 
 }
 
 // PopPreviousNBlocks pops last n elements from chain.
-func (c Chain) PopPreviousNBlocks(n int) (Chain, error) {
+func (c *Chain) PopPreviousNBlocks(n int) (*Chain, error) {
+	c.mux.Lock()
+	defer c.mux.Unlock()
 	c.LengthElements = len(c.Chain)
 	l := c.LengthElements
 	if c.Chain[l-1].NextBlock != nil || c.Chain[0].PrevBlock != nil {
@@ -271,7 +287,9 @@ func (c Chain) PopPreviousNBlocks(n int) (Chain, error) {
 }
 
 // PopPreviousNBlocksPing pops last n elements from ping chain.
-func (c ChainPing) PopPreviousNBlocksPing(n int) (ChainPing, error) {
+func (c *ChainPing) PopPreviousNBlocksPing(n int) (*ChainPing, error) {
+	c.mux.Lock()
+	defer c.mux.Unlock()
 	c.LengthElements = len(c.Chain)
 	l := c.LengthElements
 	if c.Chain[l-1].NextBlock != nil || c.Chain[0].PrevBlock != nil {
@@ -288,7 +306,9 @@ func (c ChainPing) PopPreviousNBlocksPing(n int) (ChainPing, error) {
 
 // Save saves or commits the existing chain in the secondary memory.
 // Returns the success status
-func (c Chain) Save() bool {
+func (c *Chain) Save() bool {
+	c.mux.Lock()
+	defer c.mux.Unlock()
 	bytes := parser.ParseToJSON(c.Chain)
 	e := saveToHDD(c.Path, bytes)
 	if e != nil {
@@ -299,8 +319,10 @@ func (c Chain) Save() bool {
 
 // SavePing saves or commits the existing chain in the secondary memory.
 // Returns the success status
-func (c ChainPing) SavePing() bool {
-	fmt.Println("SAVING PATH IS ", c.Path)
+func (c *ChainPing) SavePing() bool {
+	c.mux.Lock()
+	defer c.mux.Unlock()
+	log.Printf("writing Ping chain of length %d", len(c.Chain))
 	bytes := parser.ParseToJSONPing(c.Chain)
 	e := saveToHDD(c.Path, bytes)
 	if e != nil {
@@ -310,7 +332,9 @@ func (c ChainPing) SavePing() bool {
 }
 
 // GetPositionalPointerNormalized Returns block by searching the chain for the NormalizedTime
-func (c Chain) GetPositionalPointerNormalized(n int64) (*Block, error) {
+func (c *Chain) GetPositionalPointerNormalized(n int64) (*Block, error) {
+	c.mux.Lock()
+	defer c.mux.Unlock()
 	c.LengthElements = len(c.Chain)
 	jumpSize := int(math.Floor(math.Sqrt(float64(c.LengthElements))))
 	index := jumpSize - 1
@@ -339,7 +363,9 @@ func (c Chain) GetPositionalPointerNormalized(n int64) (*Block, error) {
 }
 
 // GetPositionalPointerNormalizedPing Returns block by searching the chain for the NormalizedTime
-func (c ChainPing) GetPositionalPointerNormalizedPing(n int64) (*BlockPing, error) {
+func (c *ChainPing) GetPositionalPointerNormalizedPing(n int64) (*BlockPing, error) {
+	c.mux.Lock()
+	defer c.mux.Unlock()
 	c.LengthElements = len(c.Chain)
 	jumpSize := int(math.Floor(math.Sqrt(float64(c.LengthElements))))
 	index := jumpSize - 1

@@ -1,11 +1,9 @@
 package ping
 
 import (
-	"fmt"
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
-	"log"
 	"sync"
 	"time"
 )
@@ -16,7 +14,7 @@ const (
 )
 
 // HandlePing is the main handler for ping operations
-func HandlePing(urlRaw *string, packets int, tsdbNameHash string, wg *sync.WaitGroup) {
+func HandlePing(globalChain []*tsdb.ChainPing, urlRaw *string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
 	chnl := make(chan *string)
 
 	tsdbNameHash = PathPing + "/" + "chunk_ping_" + tsdbNameHash + ".json"
@@ -24,18 +22,19 @@ func HandlePing(urlRaw *string, packets int, tsdbNameHash string, wg *sync.WaitG
 	go utils.CLIPing(urlRaw, packets, chnl)
 	resp := <-chnl
 	result := *scrap.CLIPingScrap(resp)
-	fmt.Println(result)
-	log.Printf("writing to tsdb")
 	newBlock := createNewBlock(result)
-	for index := range tsdb.GlobalPingChain {
-		fmt.Println(tsdb.GlobalPingChain[index].Path, "  ", tsdbNameHash)
-		if tsdb.GlobalPingChain[index].Path == tsdbNameHash {
-			fmt.Println("match found")
-			tsdb.GlobalPingChain[index] = tsdb.GlobalPingChain[index].AppendPing(newBlock)
-			tsdb.GlobalPingChain[index].SavePing()
+	urlExists := false
+	for index := range globalChain {
+		if globalChain[index].Path == tsdbNameHash {
+			urlExists = true
+			globalChain[index] = globalChain[index].AppendPing(newBlock)
+			globalChain[index].SavePing()
+			break
 		}
 	}
-	// tsdb.GlobalPingChain[tsdbNameHash].SavePing()
+	if !urlExists && !isTest {
+		panic("faulty hashing! impossible to look for a hash match.")
+	}
 	wg.Done()
 }
 
