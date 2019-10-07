@@ -34,7 +34,7 @@ func sockets(w http.ResponseWriter, r *http.Request) {
 	for {
 		messageType, message, err := ws.ReadMessage()
 		if err != nil {
-			log.Fatalf("error rendering main socket %s\n", err)
+			log.Printf("connection to client lost.\n%s\n", err)
 			return
 		}
 		messageStr := string(message)

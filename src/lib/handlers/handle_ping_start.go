@@ -43,8 +43,8 @@ func doPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, pingIn
 		case "active":
 			var wg sync.WaitGroup
 			wg.Add(len(urlStack))
-			for k, u := range urlStack {
-				go ping.HandlePing(tsdb.GlobalPingChain, &u, 10, k, &wg, false)
+			for _, u := range urlStack {
+				go ping.HandlePing(tsdb.GlobalPingChain, &u, 10, u, &wg, false)
 			}
 
 			wg.Wait()

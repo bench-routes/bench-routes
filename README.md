@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.com/zairza-cetb/bench-routes.svg?branch=master)](https://travis-ci.com/zairza-cetb/bench-routes)
 
+[![Slack channel](https://img.shields.io/badge/join%20discussions%20on%20slack%20-%23benchroutes-green/)](https://zairza.slack.com/app_redirect?channel=CP3CTRS80)
 
 bench-routes is a highly scalable network benchmarking, routes performance and monitoring tool, that monitors in regular intervals the state
 of the server, running as a daemon process. For more information, read the [docs](https://docs.google.com/document/d/1jGfc2eXvToRL9anzosTLQ4zJ7fdFxMGfaiDv2BYHEvw/edit?usp=sharing)

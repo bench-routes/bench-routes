@@ -39,7 +39,7 @@ func init() {
 	}
 	// forming ping chain
 	for i, v := range ConfigURLs {
-		path := PathPing + "/" + "chunk_ping_" + tsdb.PingDBNames[v] + ".json"
+		path := PathPing + "/" + "chunk_ping_" + v + ".json"
 		inst := &tsdb.ChainPing{
 			Path:           path,
 			Chain:          []tsdb.BlockPing{},
