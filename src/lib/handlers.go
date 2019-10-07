@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"context"
 	"log"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/handlers"
@@ -27,7 +28,7 @@ var (
 )
 
 // HandlerPingGeneral handles the ping route
-func HandlerPingGeneral(signal string) bool {
+func HandlerPingGeneral(ctx context.Context, signal string) bool {
 
 	// Get latest service state settings
 	Configuration = Configuration.Refresh()
@@ -43,11 +44,10 @@ func HandlerPingGeneral(signal string) bool {
 				panic(e)
 			}
 			go func() {
-				handlers.HandlePingStart(Configuration, pingServiceState)
+				handlers.HandlePingStart(ctx, Configuration, pingServiceState)
 			}()
 			return true
 		}
-		// return handlePingStart(Configuration, pingServiceState)
 	case "stop":
 		Configuration.Config.UtilsConf.ServicesSignal.Ping = "passive"
 		_, e := Configuration.Write()

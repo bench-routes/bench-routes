@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log"
 	"sync"
 	"time"
@@ -12,7 +13,7 @@ import (
 )
 
 // HandlePingStart handle the route "start"
-func HandlePingStart(config utils.YAMLBenchRoutesType, pingServiceState string) {
+func HandlePingStart(ctx context.Context, config utils.YAMLBenchRoutesType, pingServiceState string) {
 	pingConfig := config.Config.Routes
 	pingInterval := getInterval(config.Config.Interval, "ping")
 	if pingInterval == (testInterval{}) {
@@ -30,10 +31,10 @@ func HandlePingStart(config utils.YAMLBenchRoutesType, pingServiceState string) 
 			urlStack[urlHash] = *filters.HTTPPingFilter(&url)
 		}
 	}
-	doPing(config, urlStack, pingInterval)
+	doPing(ctx, config, urlStack, pingInterval)
 }
 
-func doPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, pingInterval testInterval) {
+func doPing(ctx context.Context, config utils.YAMLBenchRoutesType, urlStack map[string]string, pingInterval testInterval) {
 	i := 0
 	for {
 		i++
@@ -44,7 +45,7 @@ func doPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, pingIn
 			var wg sync.WaitGroup
 			wg.Add(len(urlStack))
 			for _, u := range urlStack {
-				go ping.HandlePing(tsdb.GlobalPingChain, &u, 10, u, &wg, false)
+				go ping.HandlePing(ctx, tsdb.GlobalPingChain, &u, 10, u, &wg, false)
 			}
 
 			wg.Wait()

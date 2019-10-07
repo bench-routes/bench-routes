@@ -1,12 +1,15 @@
 package ping
 
 import (
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/tsdb"
+	"context"
 	"log"
 	"reflect"
 	"sync"
 	"testing"
+	"time"
+
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/tsdb"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
@@ -65,10 +68,14 @@ func TestHandlerPing(t *testing.T) {
 	initTest()
 	var wg sync.WaitGroup
 	wg.Add(len(urls))
+	ctx, cancelFunc := context.WithCancel(context.Background())
 
 	for _, inst := range urls {
-		go HandlePing(tsdb.GlobalPingChain, &inst, 10, "", &wg, true)
+		go HandlePing(ctx, tsdb.GlobalPingChain, &inst, 10, "", &wg, true)
 	}
+	<-time.After(15 * time.Second)
+	log.Println("Close context")
+	cancelFunc()
 	wg.Wait()
 }
 
