@@ -1,17 +1,19 @@
 package response
 
 import (
+	"fmt"
 	"math"
+	"sync"
 	"time"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 )
 
-// Route struct
-type Route struct {
-	url         string
-	requestType string
-}
+// Path to storage in tsdb for Req res delay
+const (
+	// PathPing stores the defualt address of storage directory of ping data
+	PathReqResDelay = "storage/req-res-delay"
+)
 
 // Response struct
 // This is the object that we return from this module
@@ -25,17 +27,21 @@ type Response struct {
 // HandleResponseDelayForRoute is the initial entrypoint function for this module which takes
 // in a Route struct and supplies it to a function in turn to handle it accordingly. We create
 // channels to run tests for each route in parallel, speeding up the process
-func HandleResponseDelayForRoute(route Route) Response {
+func HandleResponseDelayForRoute(route utils.Routes, tsdbNameHash string, wg *sync.WaitGroup) {
+	tsdbNameHash = PathReqResDelay + "/" + "chunk_req_res_" + tsdbNameHash + ".json"
 	c := make(chan Response)
 	go RouteDispatcher(route, c)
 	responseObject := <-c
-	return responseObject
+	// TODO: Do not print the responseObject but
+	// store it in the tsdb as a record
+	fmt.Println(responseObject)
+	wg.Done()
 }
 
 // RouteDispatcher dispatches a route to respective handlers based on it's request type
-func RouteDispatcher(route Route, c chan Response) {
-	if route.requestType == "GET" {
-		res := HandleGetRequest(route.url)
+func RouteDispatcher(route utils.Routes, c chan Response) {
+	if route.Method == "GET" {
+		res := HandleGetRequest(route.URL)
 		c <- res
 	} else {
 		// Send a very large integer to automatically rule out as it

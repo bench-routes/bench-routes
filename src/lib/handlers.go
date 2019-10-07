@@ -93,3 +93,37 @@ func HandlerJitterGeneral(signal string) bool {
 	}
 	return false
 }
+
+// HandleReqResGeneral is the handler for requests regarding
+// req-res delay and monitoring
+func HandleReqResGeneral(signal string) bool {
+	// Get latest service state settings
+	Configuration = Configuration.Refresh()
+	reqResMonitoringServiceState := Configuration.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring
+
+	switch signal {
+	case "start":
+		if reqResMonitoringServiceState == "passive" {
+
+			Configuration.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "active"
+			_, e := Configuration.Write()
+			if e != nil {
+				panic(e)
+			}
+			go func() {
+				handlers.HandleReqResMonitoringStart(Configuration, reqResMonitoringServiceState)
+			}()
+			return true
+		}
+	case "stop":
+		Configuration.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "passive"
+		_, e := Configuration.Write()
+		if e != nil {
+			panic(e)
+		}
+		return true
+	default:
+		log.Fatalf("invalid signal")
+	}
+	return false
+}
