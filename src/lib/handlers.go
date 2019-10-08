@@ -60,3 +60,35 @@ func HandlerPingGeneral(signal string) bool {
 	}
 	return false
 }
+
+// HandlerFloodPingGeneral handles the flood ping module
+func HandlerFloodPingGeneral(signal string) bool {
+	// Refresh configuration with latest update
+	Configuration = Configuration.Refresh()
+	serviceState := Configuration.Config.UtilsConf.ServicesSignal.FloodPing
+
+	switch signal {
+	case "start":
+		if serviceState == "passive" {
+			Configuration.Config.UtilsConf.ServicesSignal.FloodPing = "active"
+			_, e := Configuration.Write()
+			if e != nil {
+				panic(e)
+			}
+			go func() {
+				handlers.HandleFloodPingStart(Configuration, serviceState)
+			}()
+			return true
+		}
+	case "stop":
+		Configuration.Config.UtilsConf.ServicesSignal.FloodPing = "passive"
+		_, e := Configuration.Write()
+		if e != nil {
+			panic(e)
+		}
+		return true
+	default:
+		log.Fatalf("invalid signal")
+	}
+	return false
+}

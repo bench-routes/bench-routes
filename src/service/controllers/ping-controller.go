@@ -8,3 +8,8 @@ import (
 func PingController(sig string) bool {
 	return core.HandlerPingGeneral(sig)
 }
+
+// FloodPingController controls the flood ping requests and transfers it to handlers
+func FloodPingController(sig string) bool {
+	return core.HandlerFloodPingGeneral(sig)
+}

@@ -7,8 +7,10 @@
 	<title>Document</title>
 </head>
 <body>
-	<button onclick="starter()">start</button>
-	<button onclick="stopper()">stop</button>
+	<button onclick="startPing()">Ping start</button>
+	<button onclick="stopPing()">Ping stop</button>
+	<button onclick="startFloodPing()">Flood Ping start</button>
+	<button onclick="stopFloodPing()">Flood Ping stop</button>
 	<script>
 		let socket = new WebSocket("ws://localhost:9090/websocket")
 		console.warn('trying socket connection')
@@ -25,11 +27,17 @@
 		socket.onclose = () => {
 			console.warn("connection closed")
 		}
-		function starter() {
+		function startPing() {
 			socket.send("force-start-ping")
 		}
-		function stopper() {
+		function stopPing() {
 			socket.send("force-stop-ping")
+		}
+		function startFloodPing() {
+			socket.send("force-start-flood-ping")
+		}
+		function stopFloodPing() {
+			socket.send("force-stop-flood-ping")
 		}
 	</script>
 

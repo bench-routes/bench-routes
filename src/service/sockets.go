@@ -1,11 +1,12 @@
 package service
 
 import (
-	"github.com/gorilla/websocket"
-	"github.com/zairza-cetb/bench-routes/src/service/controllers"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/websocket"
+	"github.com/zairza-cetb/bench-routes/src/service/controllers"
 )
 
 var upgrader = websocket.Upgrader{
@@ -50,6 +51,17 @@ func sockets(w http.ResponseWriter, r *http.Request) {
 		case "force-stop-ping":
 			// true if success else false
 			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.PingController("stop"))))
+			if e != nil {
+				panic(e)
+			}
+		case "force-start-flood-ping":
+			// true if success else false
+			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.FloodPingController("start"))))
+			if e != nil {
+				panic(e)
+			}
+		case "force-stop-flood-ping":
+			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.FloodPingController("stop"))))
 			if e != nil {
 				panic(e)
 			}

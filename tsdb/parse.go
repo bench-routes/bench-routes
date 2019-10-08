@@ -35,6 +35,16 @@ func loadFromStoragePing(raw *string) *[]BlockPingJSON {
 	return &inst
 }
 
+func loadFromStorageFloodPing(raw *string) *[]BlockFloodPingJSON {
+	inst := []BlockFloodPingJSON{}
+	b := []byte(*raw)
+	e := json.Unmarshal(b, &inst)
+	if e != nil {
+		panic(e)
+	}
+	return &inst
+}
+
 func saveToHDD(path string, data []byte) error {
 	e := ioutil.WriteFile(path, data, 0755)
 	if e != nil {
@@ -76,6 +86,24 @@ func (p Parser) ParseToJSONPing(a []BlockPing) (j []byte) {
 	b := []BlockPingJSON{}
 	for _, inst := range a {
 		t := BlockPingJSON{
+			Timestamp:      inst.Timestamp,
+			NormalizedTime: inst.NormalizedTime,
+			Datapoint:      inst.Datapoint,
+		}
+		b = append(b, t)
+	}
+	j, e := json.MarshalIndent(b, "", "\t")
+	if e != nil {
+		panic(e)
+	}
+	return
+}
+
+// ParseToJSONFloodPing converts the flood ping chain into Marshallable JSON
+func (p Parser) ParseToJSONFloodPing(a []BlockFloodPing) (j []byte) {
+	b := []BlockFloodPingJSON{}
+	for _, inst := range a {
+		t := BlockFloodPingJSON{
 			Timestamp:      inst.Timestamp,
 			NormalizedTime: inst.NormalizedTime,
 			Datapoint:      inst.Datapoint,
