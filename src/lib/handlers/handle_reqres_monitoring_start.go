@@ -12,7 +12,7 @@ import (
 // HandleReqResMonitoringStart handle the route "start"
 func HandleReqResMonitoringStart(config utils.YAMLBenchRoutesType, reqResMonitoringServiceState string) {
 	routes := config.Config.Routes
-	monitoringInterval := getInterval(config.Config.Interval, "req-res-deplay-and-monitoring")
+	monitoringInterval := getInterval(config.Config.Interval, "req-res-delay-and-monitoring")
 	if monitoringInterval == (testInterval{}) {
 		log.Fatalf("interval not found in configuration file for req-res monitoring")
 		return

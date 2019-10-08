@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+
+	"gopkg.in/yaml.v2"
 )
 
 // YAMLParser parses the yaml configuration files which are used as a local storage
@@ -58,7 +59,7 @@ type ServiceSignals struct {
 	Ping                  string `yaml:"ping"`
 	FloodPing             string `yaml:"flood-ping"`
 	Jitter                string `yaml:"jitter"`
-	ReqResDelayMonitoring string `yaml:"req-res-deplay-or-monitoring"`
+	ReqResDelayMonitoring string `yaml:"req-res-delay-or-monitoring"`
 }
 
 // UConfig type for storing utilities in config.yml as local DB
