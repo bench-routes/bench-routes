@@ -21,12 +21,13 @@ var (
 	ConfigurationFilePath = "../../../../storage/local-config.yml"
 	pathPing              = "../../../../storage/ping"
 	pathFloodPing         = "../../../../storage/flood-ping"
-	ConfigURLs            []string
 )
 
 func initPingTest() {
 	Configuration.Address = ConfigurationFilePath
 	Configuration = *Configuration.Load()
+
+	var ConfigURLs []string
 
 	// Load and build TSDB chain
 	// searching for unique URLs
@@ -99,16 +100,16 @@ func initFloodPingTest() {
 	}
 }
 
-// func TestHandlerPing(t *testing.T) {
-// 	initPingTest()
-// 	var wg sync.WaitGroup
-// 	wg.Add(len(urls))
+func TestHandlerPing(t *testing.T) {
+	initPingTest()
+	var wg sync.WaitGroup
+	wg.Add(len(urls))
 
-// 	for _, inst := range urls {
-// 		go HandlePing(tsdb.GlobalPingChain, &inst, 10, "", &wg, true)
-// 	}
-// 	wg.Wait()
-// }
+	for _, inst := range urls {
+		go HandlePing(tsdb.GlobalPingChain, &inst, 10, "", &wg, true)
+	}
+	wg.Wait()
+}
 
 func TestHandlerFloodPing(t *testing.T) {
 	initFloodPingTest()

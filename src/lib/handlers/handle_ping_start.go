@@ -106,7 +106,7 @@ func doFloodPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, i
 			var wg sync.WaitGroup
 			wg.Add(len(urlStack))
 			for _, u := range urlStack {
-				go ping.HandleFloodPing(tsdb.GlobalFloodPingChain, &u, 100, u, &wg, false, config.Config.Password)
+				go ping.HandleFloodPing(tsdb.GlobalFloodPingChain, &u, 10000, u, &wg, false, config.Config.Password)
 			}
 
 			wg.Wait()
