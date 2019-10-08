@@ -1,18 +1,20 @@
 package response
 
 import (
-	"fmt"
+	"log"
 	"math"
 	"sync"
 	"time"
 
+	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // Path to storage in tsdb for Req res delay
 const (
 	// PathPing stores the defualt address of storage directory of ping data
-	PathReqResDelay = "storage/req-res-delay"
+	PathReqResDelay = "storage/req-res-delay-monitoring"
 )
 
 // Response struct
@@ -27,14 +29,70 @@ type Response struct {
 // HandleResponseDelayForRoute is the initial entrypoint function for this module which takes
 // in a Route struct and supplies it to a function in turn to handle it accordingly. We create
 // channels to run tests for each route in parallel, speeding up the process
-func HandleResponseDelayForRoute(route utils.Routes, tsdbNameHash string, wg *sync.WaitGroup) {
-	tsdbNameHash = PathReqResDelay + "/" + "chunk_req_res_" + tsdbNameHash + ".json"
+func HandleResponseDelayForRoute(responseChains [][]*tsdb.Chain, route utils.Routes, tsdbNameHash string, wg *sync.WaitGroup) {
+	routeSuffix := filters.RouteDestroyer(route.URL)
+	// Init paths for request-response-monitoring
+	pathDelay := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + "_delay.json"
+	pathLength := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + "_length.json"
+	pathStatusCode := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + "_status.json"
 	c := make(chan Response)
 	go RouteDispatcher(route, c)
 	responseObject := <-c
-	// TODO: Do not print the responseObject but
-	// store it in the tsdb as a record
-	fmt.Println(responseObject)
+	// Store the respective attributes of the
+	// response object in the respective TSDB
+	log.Printf("Writing responseObject to TSDB for %s", route.URL)
+
+	// Create response delay block to be
+	// saved inside TSDB
+	blockDelay := tsdb.Block{
+		NextBlock:      nil,
+		PrevBlock:      nil,
+		Datapoint:      float32(responseObject.delay),
+		Timestamp:      time.Now(),
+		NormalizedTime: 0,
+	}
+	for index := range responseChains[0] {
+		if responseChains[0][index].Path == pathDelay {
+			responseChains[0][index] = responseChains[0][index].Append(blockDelay)
+			responseChains[0][index].Save()
+			break
+		}
+	}
+
+	// Create a response length to be
+	// saved inside TSDB
+	blockLength := tsdb.Block{
+		NextBlock:      nil,
+		PrevBlock:      nil,
+		Datapoint:      float32(responseObject.resLength),
+		Timestamp:      time.Now(),
+		NormalizedTime: 0,
+	}
+	for index := range responseChains[1] {
+		if responseChains[1][index].Path == pathLength {
+			responseChains[1][index] = responseChains[1][index].Append(blockLength)
+			responseChains[1][index].Save()
+			break
+		}
+	}
+
+	// Create a response statusCode to be
+	// saved inside TSDB
+	blockStatusCode := tsdb.Block{
+		NextBlock:      nil,
+		PrevBlock:      nil,
+		Datapoint:      float32(responseObject.resStatusCode),
+		Timestamp:      time.Now(),
+		NormalizedTime: 0,
+	}
+	for index := range responseChains[2] {
+		if responseChains[2][index].Path == pathStatusCode {
+			responseChains[2][index] = responseChains[2][index].Append(blockStatusCode)
+			responseChains[2][index].Save()
+			break
+		}
+	}
+
 	wg.Done()
 }
 

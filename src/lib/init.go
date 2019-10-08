@@ -1,10 +1,11 @@
 package lib
 
 import (
+	"log"
+
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
-	"log"
 )
 
 var (
@@ -64,6 +65,43 @@ func init() {
 		tsdb.GlobalChain = append(tsdb.GlobalChain, inst)
 		tsdb.GlobalChain[i] = tsdb.GlobalChain[i].Init()
 		tsdb.GlobalChain[i].Save()
+	}
+
+	// forming req-res-delay chain
+	for i, route := range Configuration.Config.Routes {
+		path := PathReqResDelayMonitoring + "/" + "chunk_req_res_" + filters.RouteDestroyer(route.URL)
+		// Create sample chains to init in each TSDB file
+		sampleResponseDelay := &tsdb.Chain{
+			Path:           path + "_delay.json",
+			Chain:          []tsdb.Block{},
+			LengthElements: 0,
+			Size:           0,
+		}
+		sampleResponseLength := &tsdb.Chain{
+			Path:           path + "_length.json",
+			Chain:          []tsdb.Block{},
+			LengthElements: 0,
+			Size:           0,
+		}
+		sampleResponseStatusCode := &tsdb.Chain{
+			Path:           path + "_status.json",
+			Chain:          []tsdb.Block{},
+			LengthElements: 0,
+			Size:           0,
+		}
+		tsdb.GlobalResponseDelay = append(tsdb.GlobalResponseDelay, sampleResponseDelay)
+		tsdb.GlobalResponseLength = append(tsdb.GlobalResponseLength, sampleResponseLength)
+		tsdb.GlobalResponseStatusCode = append(tsdb.GlobalResponseStatusCode, sampleResponseStatusCode)
+
+		// Initiate all chains
+		tsdb.GlobalResponseDelay[i] = tsdb.GlobalResponseDelay[i].Init()
+		tsdb.GlobalResponseLength[i] = tsdb.GlobalResponseLength[i].Init()
+		tsdb.GlobalResponseStatusCode[i] = tsdb.GlobalResponseStatusCode[i].Init()
+
+		// Commit all chains to the TSDB
+		tsdb.GlobalResponseDelay[i].Save()
+		tsdb.GlobalResponseLength[i].Save()
+		tsdb.GlobalResponseStatusCode[i].Save()
 	}
 
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the

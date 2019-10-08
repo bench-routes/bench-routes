@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/zairza-cetb/bench-routes/tsdb"
+
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/response"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 )
@@ -12,8 +14,8 @@ import (
 // HandleReqResMonitoringStart handle the route "start"
 func HandleReqResMonitoringStart(config utils.YAMLBenchRoutesType, reqResMonitoringServiceState string) {
 	routes := config.Config.Routes
-	monitoringInterval := getInterval(config.Config.Interval, "req-res-delay-and-monitoring")
-	if monitoringInterval == (testInterval{}) {
+	monitoringInterval := GetInterval(config.Config.Interval, "req-res-delay-and-monitoring")
+	if monitoringInterval == (TestInterval{}) {
 		log.Fatalf("interval not found in configuration file for req-res monitoring")
 		return
 	}
@@ -24,8 +26,17 @@ func HandleReqResMonitoringStart(config utils.YAMLBenchRoutesType, reqResMonitor
 		case "active":
 			var wg sync.WaitGroup
 			wg.Add(len(routes))
+			// We send global chain arrays
+			// of response delay, length and
+			// statusCode in an array of type [][]*tsdb.Chain
 			for _, route := range routes {
-				go response.HandleResponseDelayForRoute(route, utils.GetHash(route.URL), &wg)
+				go response.HandleResponseDelayForRoute(
+					[][]*tsdb.Chain{
+						tsdb.GlobalResponseDelay,
+						tsdb.GlobalResponseLength,
+						tsdb.GlobalResponseStatusCode,
+					},
+					route, utils.GetHash(route.URL), &wg)
 			}
 			wg.Wait()
 		case "passive":
