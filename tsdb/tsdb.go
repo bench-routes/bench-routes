@@ -16,15 +16,18 @@ var (
 	// GlobalPingChain contains chains of all the pings operating in bench-routes which has to be globally accessed
 	// This is necessary as it helps to retain the parent values which are required for concurreny
 	GlobalPingChain []*ChainPing
+
+	//GlobalChain asdfafds
+	GlobalChain []*Chain
 )
 
 // PingTSDB type for PingTSDB
-type PingTSDB struct {
-	URL   string
-	Hash  string
-	Path  string
-	Chain ChainPing
-}
+// type PingTSDB struct {
+// 	URL   string
+// 	Hash  string
+// 	Path  string
+// 	Chain ChainPing
+// }
 
 // Block use case block for the TSDB chain
 type Block struct {
@@ -309,6 +312,7 @@ func (c *ChainPing) PopPreviousNBlocksPing(n int) (*ChainPing, error) {
 func (c *Chain) Save() bool {
 	c.mux.Lock()
 	defer c.mux.Unlock()
+	log.Printf("writing chain of length %d", len(c.Chain))
 	bytes := parser.ParseToJSON(c.Chain)
 	e := saveToHDD(c.Path, bytes)
 	if e != nil {

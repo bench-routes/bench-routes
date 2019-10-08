@@ -7,8 +7,12 @@
 	<title>Document</title>
 </head>
 <body>
-	<button onclick="starter()">start</button>
-	<button onclick="stopper()">stop</button>
+	<button onclick="startPing()">Start Ping</button>
+	<button onclick="stopPing()">Stop Ping</button>
+	<br>
+	<br>
+	<button onclick="startJitter()">Start Jitter</button>
+	<button onclick="stopJitter()">Stop Jitter</button>
 	<script>
 		let socket = new WebSocket("ws://localhost:9090/websocket")
 		console.warn('trying socket connection')
@@ -25,11 +29,17 @@
 		socket.onclose = () => {
 			console.warn("connection closed")
 		}
-		function starter() {
+		function startPing() {
 			socket.send("force-start-ping")
 		}
-		function stopper() {
+		function stopPing() {
 			socket.send("force-stop-ping")
+		}
+		function startJitter() {
+			socket.send("force-start-jitter")
+		}
+		function stopJitter() {
+			socket.send("force-stop-jitter")
 		}
 	</script>
 

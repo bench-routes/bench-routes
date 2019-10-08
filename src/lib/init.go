@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
@@ -39,6 +40,7 @@ func init() {
 	}
 	// forming ping chain
 	for i, v := range ConfigURLs {
+		fmt.Println("reached init go")
 		path := PathPing + "/" + "chunk_ping_" + v + ".json"
 		inst := &tsdb.ChainPing{
 			Path:           path,
@@ -50,6 +52,21 @@ func init() {
 		tsdb.GlobalPingChain = append(tsdb.GlobalPingChain, inst)
 		tsdb.GlobalPingChain[i] = tsdb.GlobalPingChain[i].InitPing()
 		tsdb.GlobalPingChain[i].SavePing()
+	}
+
+	for i, v := range ConfigURLs {
+		fmt.Println("reached jitter init go")
+		path := PathJitter + "/" + "chunk_jitter_" + v + ".json"
+		inst := &tsdb.Chain{
+			Path:           path,
+			Chain:          []tsdb.Block{},
+			LengthElements: 0,
+			Size:           0,
+		}
+		// Initiate the chain
+		tsdb.GlobalChain = append(tsdb.GlobalChain, inst)
+		tsdb.GlobalChain[i] = tsdb.GlobalChain[i].Init()
+		tsdb.GlobalChain[i].Save()
 	}
 
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
