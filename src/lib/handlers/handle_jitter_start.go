@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -13,15 +12,13 @@ import (
 )
 
 // HandleJitterStart handle the route "start"
-func HandleJitterStart(config utils.YAMLBenchRoutesType, pingServiceState string) {
+func HandleJitterStart(config utils.YAMLBenchRoutesType, jitterServiceState string) {
 	jitterConfig := config.Config.Routes
 	jitterInterval := GetInterval(config.Config.Interval, "jitter")
 	if jitterInterval == (TestInterval{}) {
 		log.Fatalf("interval not found in configuration file for jitter")
 		return
 	}
-	fmt.Println("reached here3")
-	fmt.Println("jitterInterval::::::;;", jitterInterval)
 	urlStack := make(map[string]string)
 	for _, route := range jitterConfig {
 		url := route.URL
@@ -45,11 +42,9 @@ func doJitter(config utils.YAMLBenchRoutesType, urlStack map[string]string, jitt
 		case "active":
 			var wg sync.WaitGroup
 			wg.Add(len(urlStack))
-			fmt.Println("scrapping jitter")
 			for _, u := range urlStack {
-				go jitter.HandleJitter(tsdb.GlobalChain, &u, 2, u, &wg, false)
+				go jitter.HandleJitter(tsdb.GlobalChain, &u, 10, u, &wg, false)
 			}
-
 			wg.Wait()
 		case "passive":
 			// terminate the goroutine

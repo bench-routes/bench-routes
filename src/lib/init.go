@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"fmt"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
@@ -40,7 +39,6 @@ func init() {
 	}
 	// forming ping chain
 	for i, v := range ConfigURLs {
-		fmt.Println("reached init go")
 		path := PathPing + "/" + "chunk_ping_" + v + ".json"
 		inst := &tsdb.ChainPing{
 			Path:           path,
@@ -55,7 +53,6 @@ func init() {
 	}
 
 	for i, v := range ConfigURLs {
-		fmt.Println("reached jitter init go")
 		path := PathJitter + "/" + "chunk_jitter_" + v + ".json"
 		inst := &tsdb.Chain{
 			Path:           path,

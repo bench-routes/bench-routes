@@ -1,14 +1,14 @@
 package ping
 
 import (
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/tsdb"
 	"log"
 	"reflect"
 	"sync"
 	"testing"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 )
 

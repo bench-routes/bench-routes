@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/handlers"
@@ -66,15 +65,12 @@ func HandlerPingGeneral(signal string) bool {
 func HandlerJitterGeneral(signal string) bool {
 
 	// Get latest service state settings
-	fmt.Println("reached here")
 	Configuration = Configuration.Refresh()
 	jitterServiceState := Configuration.Config.UtilsConf.ServicesSignal.Jitter
 
 	switch signal {
 	case "start":
-		fmt.Println("reached here1")
 		if jitterServiceState == "passive" {
-			fmt.Println("reached here2")
 			Configuration.Config.UtilsConf.ServicesSignal.Jitter = "active"
 			_, e := Configuration.Write()
 			if e != nil {

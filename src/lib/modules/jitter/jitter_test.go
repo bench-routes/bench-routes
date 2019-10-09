@@ -1,9 +1,9 @@
 package jitter
 
 import (
-	"testing"
-	"sync"
 	"log"
+	"sync"
+	"testing"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
@@ -49,7 +49,7 @@ func initTest() {
 
 	//initiating the jitter chain
 	for i, v := range ConfigURLs {
-		path := pathJitter + "/" + "chunk_jitter_" + v + ".json"
+		path := pathJitter + "/" + "chunk_jitter_" + tsdb.PingDBNames[v] + ".json"
 		inst := &tsdb.Chain{
 			Path:           path,
 			Chain:          []tsdb.Block{},
@@ -62,7 +62,6 @@ func initTest() {
 		tsdb.GlobalChain[i].Save()
 	}
 }
-
 
 func TestHandlerJitter(t *testing.T) {
 
