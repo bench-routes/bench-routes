@@ -2,10 +2,11 @@ package utils
 
 import (
 	"fmt"
-	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"net/http"
 	"os/exec"
 	"strconv"
+
+	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 )
 
 // cli command base
@@ -14,9 +15,6 @@ const (
 	CmdAdministrator            = "sudo"
 	CmdEcho                     = "echo"
 )
-
-//will retrieve this from a user settings file at later stages
-var password = ""
 
 // CLIPing works as an *independent subroutine*, for ping operations with the external networks
 // Takes in a pointer channel in the last params inorder to implement subroutines since the ping
@@ -36,7 +34,7 @@ func CLIPing(url *string, packets int, cliPingChannel chan *string) {
 
 // CLIFloodPing in another subroutine, for ping operation with -f flag
 // which sends multiple ping request at once i.e. floods the url with requests.
-func CLIFloodPing(url *string, packets int, cliPingChannel chan *string) {
+func CLIFloodPing(url *string, packets int, cliPingChannel chan *string, password string) {
 	url = filters.HTTPPingFilter(url)
 
 	cmd := fmt.Sprintf("%s -e \"%s\n\" | %s -S %s -f -c %s %s", CmdEcho, password, CmdAdministrator, CmdPingBasedOnPacketsNumber, strconv.Itoa(packets), *url)

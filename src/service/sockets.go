@@ -54,6 +54,17 @@ func sockets(w http.ResponseWriter, r *http.Request) {
 			if e != nil {
 				panic(e)
 			}
+		case "force-start-flood-ping":
+			// true if success else false
+			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.FloodPingController("start"))))
+			if e != nil {
+				panic(e)
+			}
+		case "force-stop-flood-ping":
+			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.FloodPingController("stop"))))
+			if e != nil {
+				panic(e)
+			}
 		case "force-start-jitter":
 			//true if success else false
 			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.JitterController("start"))))

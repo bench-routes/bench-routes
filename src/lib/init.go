@@ -8,12 +8,8 @@ import (
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
-var (
-	// ConfigURLs contains the urls in routes part of the configuration file
-	ConfigURLs []string
-)
-
 func init() {
+
 	log.SetPrefix("LOG: ")
 	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Llongfile)
 	log.Printf("initializing bench-routes ...")
@@ -21,6 +17,8 @@ func init() {
 	// load configuration file
 	Configuration.Address = ConfigurationFilePath
 	Configuration = *Configuration.Load()
+
+	var ConfigURLs []string
 
 	// Load and build TSDB chain
 	// searching for unique URLs
@@ -36,6 +34,7 @@ func init() {
 			filters.HTTPPingFilter(&r.URL)
 			ConfigURLs = append(ConfigURLs, r.URL)
 			tsdb.PingDBNames[r.URL] = utils.GetHash(r.URL)
+			tsdb.FloodPingDBNames[r.URL] = utils.GetHash(r.URL)
 		}
 	}
 	// forming ping chain
@@ -51,6 +50,21 @@ func init() {
 		tsdb.GlobalPingChain = append(tsdb.GlobalPingChain, inst)
 		tsdb.GlobalPingChain[i] = tsdb.GlobalPingChain[i].InitPing()
 		tsdb.GlobalPingChain[i].SavePing()
+	}
+
+	// forming ping chain
+	for i, v := range ConfigURLs {
+		path := PathFloodPing + "/" + "chunk_flood_ping_" + v + ".json"
+		inst := &tsdb.ChainFloodPing{
+			Path:           path,
+			Chain:          []tsdb.BlockFloodPing{},
+			LengthElements: 0,
+			Size:           0,
+		}
+		// Initiate the chain
+		tsdb.GlobalFloodPingChain = append(tsdb.GlobalFloodPingChain, inst)
+		tsdb.GlobalFloodPingChain[i] = tsdb.GlobalFloodPingChain[i].InitFloodPing()
+		tsdb.GlobalFloodPingChain[i].SaveFloodPing()
 	}
 
 	for i, v := range ConfigURLs {
