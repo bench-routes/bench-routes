@@ -13,6 +13,10 @@
 	<br>
 	<button onclick="startJitter()">Start Jitter</button>
 	<button onclick="stopJitter()">Stop Jitter</button>
+	<br>
+	<br>
+	<button onclick="startReqResMonitoring()">Start Req-Res Monitoring</button>
+	<button onclick="stopReqResMonitoring()">Stop Req-Res Monitoring</button>
 	<script>
 		let socket = new WebSocket("ws://localhost:9090/websocket")
 		console.warn('trying socket connection')
@@ -40,6 +44,12 @@
 		}
 		function stopJitter() {
 			socket.send("force-stop-jitter")
+		}
+		const startReqResMonitoring = () => {
+			socket.send("force-start-req-res-monitoring")
+		}
+		const stopReqResMonitoring = () => {
+			socket.send("force-stop-req-res-monitoring")
 		}
 	</script>
 
