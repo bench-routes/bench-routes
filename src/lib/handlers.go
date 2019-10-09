@@ -60,3 +60,36 @@ func HandlerPingGeneral(signal string) bool {
 	}
 	return false
 }
+
+//HandlerJitterGeneral handles the request to the jitter module
+func HandlerJitterGeneral(signal string) bool {
+
+	// Get latest service state settings
+	Configuration = Configuration.Refresh()
+	jitterServiceState := Configuration.Config.UtilsConf.ServicesSignal.Jitter
+
+	switch signal {
+	case "start":
+		if jitterServiceState == "passive" {
+			Configuration.Config.UtilsConf.ServicesSignal.Jitter = "active"
+			_, e := Configuration.Write()
+			if e != nil {
+				panic(e)
+			}
+			go func() {
+				handlers.HandleJitterStart(Configuration, jitterServiceState)
+			}()
+			return true
+		}
+	case "stop":
+		Configuration.Config.UtilsConf.ServicesSignal.Jitter = "passive"
+		_, e := Configuration.Write()
+		if e != nil {
+			panic(e)
+		}
+		return true
+	default:
+		log.Fatalf("invalid signal")
+	}
+	return false
+}

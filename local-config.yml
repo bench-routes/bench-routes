@@ -4,8 +4,8 @@ test_interval:
   type: sec
   duration: 3
 - test: jitter
-  type: min
-  duration: 5
+  type: sec
+  duration: 3
 - test: req-res-delay-and-monitoring
   type: sec
   duration: 15

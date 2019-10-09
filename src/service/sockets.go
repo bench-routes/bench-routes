@@ -53,6 +53,18 @@ func sockets(w http.ResponseWriter, r *http.Request) {
 			if e != nil {
 				panic(e)
 			}
+		case "force-start-jitter":
+			//true if success else false
+			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.JitterController("start"))))
+			if e != nil {
+				panic(e)
+			}
+		case "force-stop-jitter":
+			//true if success else false
+			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.JitterController("stop"))))
+			if e != nil {
+				panic(e)
+			}
 		}
 	}
 

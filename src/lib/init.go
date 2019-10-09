@@ -52,6 +52,20 @@ func init() {
 		tsdb.GlobalPingChain[i].SavePing()
 	}
 
+	for i, v := range ConfigURLs {
+		path := PathJitter + "/" + "chunk_jitter_" + v + ".json"
+		inst := &tsdb.Chain{
+			Path:           path,
+			Chain:          []tsdb.Block{},
+			LengthElements: 0,
+			Size:           0,
+		}
+		// Initiate the chain
+		tsdb.GlobalChain = append(tsdb.GlobalChain, inst)
+		tsdb.GlobalChain[i] = tsdb.GlobalChain[i].Init()
+		tsdb.GlobalChain[i].Save()
+	}
+
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
 	// required resources for the application is up and healthy
 	log.Println("Bench-routes is up and running")
