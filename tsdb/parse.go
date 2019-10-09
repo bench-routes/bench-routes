@@ -53,7 +53,10 @@ func checkAndCreatePath(path string) {
 	path = strings.Join(array, "/")
 	_, err := os.Stat(path)
 	if err != nil {
-		os.MkdirAll(path, os.ModePerm)
+		e := os.MkdirAll(path, os.ModePerm)
+		if e != nil {
+			panic(e)
+		}
 	}
 }
 
