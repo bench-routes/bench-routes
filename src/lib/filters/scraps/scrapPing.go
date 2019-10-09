@@ -21,8 +21,9 @@ func strToFloat64(s string) float64 {
 // CLIPingScrap scraps the data points for CLIPing function
 func CLIPingScrap(s *string) (a *TypePingScrap) {
 	arr := strings.Split(*s, "\n")
-	for _, lines := range arr {
-		words := strings.Split(lines, " ")
+	l := len(arr)
+	if l > 2 {
+		words := strings.Split(arr[l-2], " ")
 		if words[0] == "rtt" {
 			temp := strings.Split(words[len(words)-2], "/")
 			a = &TypePingScrap{
