@@ -86,7 +86,7 @@ func initFloodPingTest() {
 	}
 	// forming ping chain
 	for i, v := range ConfigURLs {
-		path := pathFloodPing + "/" + "chunk_flood_ping_" + v + ".json"
+		path := pathFloodPing + "/" + "chunk_flood_ping_" + tsdb.FloodPingDBNames[v] + ".json"
 		inst := &tsdb.ChainFloodPing{
 			Path:           path,
 			Chain:          []tsdb.BlockFloodPing{},
