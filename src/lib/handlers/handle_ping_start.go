@@ -14,8 +14,8 @@ import (
 // HandlePingStart handle the route "start"
 func HandlePingStart(config utils.YAMLBenchRoutesType, pingServiceState string) {
 	pingConfig := config.Config.Routes
-	pingInterval := getInterval(config.Config.Interval, "ping")
-	if pingInterval == (testInterval{}) {
+	pingInterval := GetInterval(config.Config.Interval, "ping")
+	if pingInterval == (TestInterval{}) {
 		log.Fatalf("interval not found in configuration file for ping")
 		return
 	}
@@ -33,7 +33,7 @@ func HandlePingStart(config utils.YAMLBenchRoutesType, pingServiceState string) 
 	doPing(config, urlStack, pingInterval)
 }
 
-func doPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, pingInterval testInterval) {
+func doPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, pingInterval TestInterval) {
 	i := 0
 	for {
 		i++
@@ -75,8 +75,8 @@ func doPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, pingIn
 // HandleFloodPingStart starts the flood ping service
 func HandleFloodPingStart(config utils.YAMLBenchRoutesType, floodPingServiceState string) {
 	floodPingConfig := config.Config.Routes
-	floodPingInterval := getInterval(config.Config.Interval, "ping")
-	if floodPingInterval == (testInterval{}) {
+	floodPingInterval := GetInterval(config.Config.Interval, "ping")
+	if floodPingInterval == (TestInterval{}) {
 		log.Fatalf("interval not found in configuration file for ping")
 		return
 	}
@@ -95,7 +95,7 @@ func HandleFloodPingStart(config utils.YAMLBenchRoutesType, floodPingServiceStat
 	doFloodPing(config, urlStack, floodPingInterval)
 }
 
-func doFloodPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, interval testInterval) {
+func doFloodPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, interval TestInterval) {
 	i := 0
 	for {
 		i++
@@ -134,15 +134,17 @@ func doFloodPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, i
 	}
 }
 
-type testInterval struct {
+//TestInterval stores the value of the duration and the type of test
+type TestInterval struct {
 	ofType   string
 	duration int64
 }
 
-func getInterval(intervals []utils.Interval, testName string) testInterval {
+//GetInterval extracts the interval type and value from the config file for the particular test
+func GetInterval(intervals []utils.Interval, testName string) TestInterval {
 	for _, intrv := range intervals {
 		if testName == intrv.Test {
-			return testInterval{
+			return TestInterval{
 				ofType:   intrv.Type,
 				duration: intrv.Duration,
 			}
@@ -151,5 +153,5 @@ func getInterval(intervals []utils.Interval, testName string) testInterval {
 
 	// if the execution reaches this then it is an error as the interval was not found in the configuration file
 	log.Panicf("interval not found in the configuration file\n")
-	return testInterval{}
+	return TestInterval{}
 }

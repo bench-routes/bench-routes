@@ -21,3 +21,10 @@ func HTTPPingFilter(s *string) *string {
 
 	return s
 }
+
+// RouteDestroyer causes mayhem
+func RouteDestroyer(url string) string {
+	url = strings.ReplaceAll(url, "/", "_")
+	url = strings.ReplaceAll(url, ":", "_")
+	return url
+}

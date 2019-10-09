@@ -9,8 +9,18 @@
 <body>
 	<button onclick="startPing()">Ping start</button>
 	<button onclick="stopPing()">Ping stop</button>
+	<br>
+	<br>
 	<button onclick="startFloodPing()">Flood Ping start</button>
 	<button onclick="stopFloodPing()">Flood Ping stop</button>
+	<br>
+	<br>
+	<button onclick="startJitter()">Start Jitter</button>
+	<button onclick="stopJitter()">Stop Jitter</button>
+	<br>
+	<br>
+	<button onclick="startReqResMonitoring()">Start Req-Res Monitoring</button>
+	<button onclick="stopReqResMonitoring()">Stop Req-Res Monitoring</button>
 	<script>
 		let socket = new WebSocket("ws://localhost:9090/websocket")
 		console.warn('trying socket connection')
@@ -38,6 +48,18 @@
 		}
 		function stopFloodPing() {
 			socket.send("force-stop-flood-ping")
+		}
+		function startJitter() {
+			socket.send("force-start-jitter")
+		}
+		function stopJitter() {
+			socket.send("force-stop-jitter")
+		}
+		const startReqResMonitoring = () => {
+			socket.send("force-start-req-res-monitoring")
+		}
+		const stopReqResMonitoring = () => {
+			socket.send("force-stop-req-res-monitoring")
 		}
 	</script>
 

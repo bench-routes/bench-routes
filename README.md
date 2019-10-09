@@ -1,7 +1,7 @@
 # bench-routes
 
 [![Build Status](https://travis-ci.com/zairza-cetb/bench-routes.svg?branch=master)](https://travis-ci.com/zairza-cetb/bench-routes)
-
+[![Gitter](https://img.shields.io/badge/join%20discussions%20on%20gitter-%23benchroutes-green/)](https://gitter.im/bench-routes/community#)
 
 bench-routes is a highly scalable network benchmarking, routes performance and monitoring tool, that monitors in regular intervals the state
 of the server, running as a daemon process. For more information, read the [docs](https://docs.google.com/document/d/1jGfc2eXvToRL9anzosTLQ4zJ7fdFxMGfaiDv2BYHEvw/edit?usp=sharing)
@@ -27,6 +27,15 @@ The primary goals of the project are:
 
 For installation instructions, please head-over to [INSTALL.md](https://github.com/zairza-cetb/bench-routes/blob/master/INSTALL.md).
 
+## Making Commits in bench-routes
+Bench Routes uses DCO(Developer Certificate Origin) to certify that the contributor wrote the partcular code or otherwise have the right to submit the code they are contributing to the project.For complete details on DCO  <a href="https://probot.github.io/apps/dco/" target="_blank">Click Here</a>.
+
+Follow the below `commit` syntax to cerify the code and pass the DCO test.
+```
+git commit -s -m <commit-message>
+```
+
+## Use of MakeFile in bench-routes
 We use `make` for building and executing the program.
 
 Follow the commands to make the development proces easier:

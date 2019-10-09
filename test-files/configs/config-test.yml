@@ -122,4 +122,4 @@ utils:
     ping: passive
     flood-ping: passive
     jitter: passive
-    req-res-deplay-or-monitoring: passive
+    req-res-delay-or-monitoring: passive

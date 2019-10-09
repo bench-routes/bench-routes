@@ -22,15 +22,23 @@ var (
 	// GlobalFloodPingChain contains chains of flood ping operations in bench-routes which has to be globally accessed
 	// This is necessary as it helps to retain the parent values which are required for concurreny
 	GlobalFloodPingChain []*ChainFloodPing
+	//GlobalChain asdfafds
+	GlobalChain []*Chain
+	// GlobalResponseLength contains length of all the responses from a route
+	GlobalResponseLength []*Chain
+	// GlobalResponseDelay contains the all the delays in response from a request sent from a route
+	GlobalResponseDelay []*Chain
+	// GlobalResponseStatusCode contains the status code when a request is sent from to a route
+	GlobalResponseStatusCode []*Chain
 )
 
 // PingTSDB type for PingTSDB
-type PingTSDB struct {
-	URL   string
-	Hash  string
-	Path  string
-	Chain ChainPing
-}
+// type PingTSDB struct {
+// 	URL   string
+// 	Hash  string
+// 	Path  string
+// 	Chain ChainPing
+// }
 
 // FloodPingTSDB type for PingTSDB
 type FloodPingTSDB struct {
@@ -456,6 +464,7 @@ func (c *ChainFloodPing) PopPreviousNBlocksFloodPing(n int) (*ChainFloodPing, er
 func (c *Chain) Save() bool {
 	c.mux.Lock()
 	defer c.mux.Unlock()
+	log.Printf("writing chain of length %d", len(c.Chain))
 	bytes := parser.ParseToJSON(c.Chain)
 	e := saveToHDD(c.Path, bytes)
 	if e != nil {

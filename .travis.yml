@@ -11,6 +11,9 @@ go:
   1.12.x
 
 notifications:
+  gitter:
+    on_success: always
+    on_failure: always
   email: truemac
 
 before_script:

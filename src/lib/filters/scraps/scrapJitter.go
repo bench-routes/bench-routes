@@ -6,7 +6,7 @@ import (
 )
 
 // CLIJitterScrap scraps the data points for HandleJitter function
-func CLIJitterScrap(s *string) (jitter *float64) {
+func CLIJitterScrap(s *string) (jitter float64) {
 	arr := strings.Split(*s, "\n")
 	var time []float64
 	for _, lines := range arr {
@@ -24,12 +24,11 @@ func CLIJitterScrap(s *string) (jitter *float64) {
 	return
 }
 
-func calculateJitter(timeArr []float64) (sum *float64) {
-	x := 0.0
-	sum = &x
+func calculateJitter(timeArr []float64) (sum float64) {
+	sum = 0.0
 	for i := 1; i < len(timeArr); i++ {
-		*sum += math.Abs(timeArr[i] - timeArr[i-1])
+		sum += math.Abs(timeArr[i] - timeArr[i-1])
 	}
-	*sum = *sum / float64(len(timeArr)-1)
+	sum = sum / float64(len(timeArr)-1)
 	return
 }
