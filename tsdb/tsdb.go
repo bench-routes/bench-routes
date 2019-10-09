@@ -16,9 +16,14 @@ var (
 	// GlobalPingChain contains chains of all the pings operating in bench-routes which has to be globally accessed
 	// This is necessary as it helps to retain the parent values which are required for concurreny
 	GlobalPingChain []*ChainPing
-
 	//GlobalChain asdfafds
 	GlobalChain []*Chain
+	// GlobalResponseLength contains length of all the responses from a route
+	GlobalResponseLength []*Chain
+	// GlobalResponseDelay contains the all the delays in response from a request sent from a route
+	GlobalResponseDelay []*Chain
+	// GlobalResponseStatusCode contains the status code when a request is sent from to a route
+	GlobalResponseStatusCode []*Chain
 )
 
 // PingTSDB type for PingTSDB

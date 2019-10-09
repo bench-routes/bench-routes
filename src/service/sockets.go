@@ -1,11 +1,12 @@
 package service
 
 import (
-	"github.com/gorilla/websocket"
-	"github.com/zairza-cetb/bench-routes/src/service/controllers"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/websocket"
+	"github.com/zairza-cetb/bench-routes/src/service/controllers"
 )
 
 var upgrader = websocket.Upgrader{
@@ -62,6 +63,18 @@ func sockets(w http.ResponseWriter, r *http.Request) {
 		case "force-stop-jitter":
 			//true if success else false
 			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.JitterController("stop"))))
+			if e != nil {
+				panic(e)
+			}
+		case "force-start-req-res-monitoring":
+			// true if success else false
+			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.ReqResMonitoringController("start"))))
+			if e != nil {
+				panic(e)
+			}
+		case "force-stop-req-res-monitoring":
+			// true if success else false
+			e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.ReqResMonitoringController("stop"))))
 			if e != nil {
 				panic(e)
 			}
