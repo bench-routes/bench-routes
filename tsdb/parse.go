@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"os"
+	"strings"
 )
 
 func parse(path string) (*string, error) {
@@ -45,7 +47,21 @@ func loadFromStorageFloodPing(raw *string) *[]BlockFloodPingJSON {
 	return &inst
 }
 
+func checkAndCreatePath(path string) {
+	array := strings.Split(path, "/")
+	array = array[:len(array)-1]
+	path = strings.Join(array, "/")
+	_, err := os.Stat(path)
+	if err != nil {
+		e := os.MkdirAll(path, os.ModePerm)
+		if e != nil {
+			panic(e)
+		}
+	}
+}
+
 func saveToHDD(path string, data []byte) error {
+	checkAndCreatePath(path)
 	e := ioutil.WriteFile(path, data, 0755)
 	if e != nil {
 		return e
