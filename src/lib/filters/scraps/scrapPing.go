@@ -1,9 +1,9 @@
 package scraps
 
 import (
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"strconv"
 	"strings"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 )
 
 func strToFloat64(s string) float64 {

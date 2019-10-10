@@ -95,7 +95,7 @@ func RouteDispatcher(route utils.Routes, c chan utils.Response) {
 	} else {
 		// Send a very large integer to automatically rule out as it
 		// is much much larger than the threshold
-		c <- utils.Response{Delay: math.MaxInt32,ResLength: 0,ResStatusCode: 100}
+		c <- utils.Response{Delay: math.MaxInt32, ResLength: 0, ResStatusCode: 100}
 	}
 }
 
