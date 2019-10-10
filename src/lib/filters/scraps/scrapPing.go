@@ -30,7 +30,7 @@ func CLIPingScrap(s *string) (a *TypePingScrap) {
 	if l > 2 {
 		words := strings.Split(arr[l-2], " ")
 		if words[0] == "rtt" {
-			temp := strings.Split(words[len(words)-2], "/")
+			temp := strings.Split(words[3], "/")
 			a = &TypePingScrap{
 				Min:  strToFloat64(temp[0]),
 				Avg:  strToFloat64(temp[1]),
