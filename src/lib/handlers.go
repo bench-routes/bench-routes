@@ -7,20 +7,6 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 )
 
-const (
-	// ConfigurationFilePath is the constant path to the configuration file needed to start the application
-	// written from root file since the application starts from `make run`
-	ConfigurationFilePath = "local-config.yml"
-	// PathPing stores the defualt address of storage directory of ping data
-	PathPing = "storage/ping"
-	// PathJitter stores the defualt address of storage directory of jitter data
-	PathJitter = "storage/jitter"
-	// PathFloodPing stores the defualt address of storage directory of flood ping data
-	PathFloodPing = "storage/flood-ping"
-	// PathReqResDelayMonitoring stores the defualt address of storage directory of req-res and monitoring data
-	PathReqResDelayMonitoring = "storage/req-res-delay-monitoring"
-)
-
 var (
 	// Configuration corresponds to the global use of configuration settings
 	Configuration utils.YAMLBenchRoutesType

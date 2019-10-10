@@ -14,68 +14,6 @@ type YAMLParser interface {
 	Refresh() YAMLBenchRoutesType
 }
 
-// YAMLBenchRoutesType defines the structure type for implementing the interface
-type YAMLBenchRoutesType struct {
-	Address string
-	Config  *ConfigurationBR
-}
-
-// Interval sets a type for intervals between consecutive similar tests
-type Interval struct {
-	Test     string `yaml:"test"`
-	Type     string `yaml:"type"`
-	Duration int64  `yaml:"duration"`
-}
-
-type headers struct {
-	OfType string `yaml:"type"`
-	Value  string `yaml:"value"`
-}
-
-// Params type for parameters passed along the url for specific route
-type Params struct {
-	Name  string `yaml:"name"`
-	Value string `yaml:"value"`
-}
-
-// Routes sets routes mentioned in configuration file
-type Routes struct {
-	Method string    `yaml:"method"`
-	URL    string    `yaml:"url"`
-	Route  string    `yaml:"route"`
-	Header []headers `yaml:"headers"`
-	Params []Params  `yaml:"params"`
-}
-
-// ResponseChangesConfig acts as a type for response-length configuration in config.yml
-type ResponseChangesConfig struct {
-	Mode float32 `yaml:"mode"`
-	Mean float32 `yaml:"mean"`
-}
-
-// ServiceSignals type for defining current running states of various services supported
-// by BR. Allowed only two values: `active` OR `passive`
-type ServiceSignals struct {
-	Ping                  string `yaml:"ping"`
-	FloodPing             string `yaml:"flood-ping"`
-	Jitter                string `yaml:"jitter"`
-	ReqResDelayMonitoring string `yaml:"req-res-delay-or-monitoring"`
-}
-
-// UConfig type for storing utilities in config.yml as local DB
-type UConfig struct {
-	RespChanges    ResponseChangesConfig `yaml:"response-length"`
-	ServicesSignal ServiceSignals        `yaml:"services-state"`
-}
-
-// ConfigurationBR sets a type for configuration file which also acts as a local DB
-type ConfigurationBR struct {
-	Password  string     `yaml:"password"`
-	Interval  []Interval `yaml:"test_interval"`
-	Routes    []Routes   `yaml:"routes"`
-	UtilsConf UConfig    `yaml:"utils"`
-}
-
 // Load loads the configuration file on startup
 func (inst YAMLBenchRoutesType) Load() *YAMLBenchRoutesType {
 	var yInstance ConfigurationBR
