@@ -15,7 +15,7 @@ const (
 )
 
 // HandleFloodPing is the main handler for flood ping operations
-func HandleFloodPing(globalChain []*tsdb.ChainFloodPing, urlRaw *string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool, password string) {
+func HandleFloodPing(globalChain []*tsdb.ChainFloodPing, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool, password string) {
 	chnl := make(chan *string)
 
 	tsdbNameHash = PathFloodPing + "/" + "chunk_flood_ping_" + tsdbNameHash + ".json"

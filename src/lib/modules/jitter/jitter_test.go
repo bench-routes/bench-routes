@@ -70,7 +70,7 @@ func TestHandlerJitter(t *testing.T) {
 	wg.Add(len(urls))
 
 	for _, inst := range urls {
-		go HandleJitter(tsdb.GlobalChain, &inst, 10, inst, &wg, true)
+		go HandleJitter(tsdb.GlobalChain, inst, 10, inst, &wg, true)
 	}
 
 	wg.Wait()
