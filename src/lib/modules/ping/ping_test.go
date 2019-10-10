@@ -106,7 +106,7 @@ func TestHandlerPing(t *testing.T) {
 	wg.Add(len(urls))
 
 	for _, inst := range urls {
-		go HandlePing(tsdb.GlobalPingChain, &inst, 10, "", &wg, true)
+		go HandlePing(tsdb.GlobalPingChain, inst, 10, "", &wg, true)
 	}
 	wg.Wait()
 }
@@ -117,7 +117,7 @@ func TestHandlerFloodPing(t *testing.T) {
 	wg.Add(len(urls))
 
 	for _, inst := range urls {
-		go HandleFloodPing(tsdb.GlobalFloodPingChain, &inst, 1000, "", &wg, true, Configuration.Config.Password)
+		go HandleFloodPing(tsdb.GlobalFloodPingChain, inst, 1000, "", &wg, true, Configuration.Config.Password)
 	}
 	wg.Wait()
 }
