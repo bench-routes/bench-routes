@@ -44,7 +44,7 @@ func doPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, pingIn
 			var wg sync.WaitGroup
 			wg.Add(len(urlStack))
 			for _, u := range urlStack {
-				go ping.HandlePing(tsdb.GlobalPingChain, &u, 10, u, &wg, false)
+				go ping.HandlePing(tsdb.GlobalPingChain, u, 10, u, &wg, false)
 			}
 
 			wg.Wait()
@@ -106,7 +106,7 @@ func doFloodPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, i
 			var wg sync.WaitGroup
 			wg.Add(len(urlStack))
 			for _, u := range urlStack {
-				go ping.HandleFloodPing(tsdb.GlobalFloodPingChain, &u, 10000, u, &wg, false, config.Config.Password)
+				go ping.HandleFloodPing(tsdb.GlobalFloodPingChain, u, 10000, u, &wg, false, config.Config.Password)
 			}
 
 			wg.Wait()

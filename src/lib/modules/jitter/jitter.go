@@ -14,7 +14,7 @@ const (
 )
 
 //HandleJitter handles the url and calculate the jitter for that url
-func HandleJitter(globalChain []*tsdb.Chain, url *string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
+func HandleJitter(globalChain []*tsdb.Chain, url string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
 
 	chnl := make(chan *string)
 	tsdbNameHash = PathJitter + "/" + "chunk_jitter_" + tsdbNameHash + ".json"
