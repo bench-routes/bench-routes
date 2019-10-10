@@ -14,7 +14,7 @@ const (
 )
 
 // HandlePing is the main handler for ping operations
-func HandlePing(globalChain []*tsdb.ChainPing, urlRaw *string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
+func HandlePing(globalChain []*tsdb.ChainPing, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
 	chnl := make(chan *string)
 
 	tsdbNameHash = PathPing + "/" + "chunk_ping_" + tsdbNameHash + ".json"

@@ -22,9 +22,9 @@ const (
 // Use of pointers necessary since the data received is of large size, thereby slowing the traditional
 // method of variables, as using variables require the time involved in loading into and out from cpu registers.
 // Specifying addresses directly speeds the entire process manyfolds.
-func CLIPing(url *string, packets int, cliPingChannel chan *string) {
-	url = filters.HTTPPingFilter(url)
-	cmd, err := exec.Command(CmdPingBasedOnPacketsNumber, "-c", strconv.Itoa(packets), *url).Output()
+func CLIPing(url string, packets int, cliPingChannel chan *string) {
+	url = *filters.HTTPPingFilter(&url)
+	cmd, err := exec.Command(CmdPingBasedOnPacketsNumber, "-c", strconv.Itoa(packets), url).Output()
 	if err != nil {
 		panic(err)
 	}
@@ -34,10 +34,9 @@ func CLIPing(url *string, packets int, cliPingChannel chan *string) {
 
 // CLIFloodPing in another subroutine, for ping operation with -f flag
 // which sends multiple ping request at once i.e. floods the url with requests.
-func CLIFloodPing(url *string, packets int, cliPingChannel chan *string, password string) {
-	url = filters.HTTPPingFilter(url)
-
-	cmd := fmt.Sprintf("%s -e \"%s\n\" | %s -S %s -f -c %s %s", CmdEcho, password, CmdAdministrator, CmdPingBasedOnPacketsNumber, strconv.Itoa(packets), *url)
+func CLIFloodPing(url string, packets int, cliPingChannel chan *string, password string) {
+	url = *filters.HTTPPingFilter(&url)
+	cmd := fmt.Sprintf("%s -e \"%s\n\" | %s -S %s -f -c %s %s", CmdEcho, password, CmdAdministrator, CmdPingBasedOnPacketsNumber, strconv.Itoa(packets), url)
 
 	cmdPing, err := exec.Command("bash", "-c", cmd).Output()
 	if err != nil {

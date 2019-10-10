@@ -43,7 +43,7 @@ func doJitter(config utils.YAMLBenchRoutesType, urlStack map[string]string, jitt
 			var wg sync.WaitGroup
 			wg.Add(len(urlStack))
 			for _, u := range urlStack {
-				go jitter.HandleJitter(tsdb.GlobalChain, &u, 10, u, &wg, false)
+				go jitter.HandleJitter(tsdb.GlobalChain, u, 10, u, &wg, false)
 			}
 			wg.Wait()
 		case "passive":
