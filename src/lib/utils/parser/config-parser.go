@@ -14,15 +14,6 @@ type YAMLParser interface {
 	Refresh() YAMLBenchRoutesType
 }
 
-// Response struct
-// This is the object that we return from resp_delay module
-// Contains delay in response and the response length
-type Response struct {
-	Delay         int
-	ResLength     int64
-	ResStatusCode int
-}
-
 // YAMLBenchRoutesType defines the structure type for implementing the interface
 type YAMLBenchRoutesType struct {
 	Address string

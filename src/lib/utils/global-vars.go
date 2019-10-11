@@ -23,3 +23,12 @@ type TypePingScrap struct {
 type TypeFloodPingScrap struct {
 	Min, Avg, Max, Mdev, PacketLoss float64
 }
+
+// Response struct
+// This is the object that we return from resp_delay module
+// Contains delay in response and the response length
+type Response struct {
+	Delay         int
+	ResLength     int64
+	ResStatusCode int
+}

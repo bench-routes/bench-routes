@@ -27,7 +27,7 @@ func HandleResponseDelayForRoute(responseChains [][]*tsdb.Chain, route parser.Ro
 	pathDelay := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + "_delay.json"
 	pathLength := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + "_length.json"
 	pathStatusCode := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + "_status.json"
-	c := make(chan parser.Response)
+	c := make(chan utils.Response)
 	go RouteDispatcher(route, c)
 	responseObject := <-c
 	// Store the respective attributes of the
@@ -89,20 +89,20 @@ func HandleResponseDelayForRoute(responseChains [][]*tsdb.Chain, route parser.Ro
 }
 
 // RouteDispatcher dispatches a route to respective handlers based on it's request type
-func RouteDispatcher(route parser.Routes, c chan parser.Response) {
+func RouteDispatcher(route parser.Routes, c chan utils.Response) {
 	if route.Method == "GET" {
 		res := HandleGetRequest(route.URL)
 		c <- res
 	} else {
 		// Send a very large integer to automatically rule out as it
 		// is much much larger than the threshold
-		c <- parser.Response{Delay: math.MaxInt32, ResLength: 0, ResStatusCode: 100}
+		c <- utils.Response{Delay: math.MaxInt32, ResLength: 0, ResStatusCode: 100}
 	}
 }
 
 // HandleGetRequest specifically handles routes with GET Requests. Calculates timestamp before
 // and after processing of each request and returns the difference
-func HandleGetRequest(url string) parser.Response {
+func HandleGetRequest(url string) utils.Response {
 	// Time init
 	start := time.Now().UnixNano()
 	resp := utils.SendGETRequest(url)
@@ -113,5 +113,5 @@ func HandleGetRequest(url string) parser.Response {
 	end := time.Now().UnixNano()
 	diff := int((end - start) / int64(time.Millisecond))
 
-	return parser.Response{Delay: diff, ResLength: resLength, ResStatusCode: respStatusCode}
+	return utils.Response{Delay: diff, ResLength: resLength, ResStatusCode: respStatusCode}
 }
