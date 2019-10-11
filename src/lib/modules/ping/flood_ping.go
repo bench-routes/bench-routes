@@ -9,16 +9,16 @@ import (
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
-const (
-	// PathFloodPing stores the default address of storage directory of flood ping data
-	PathFloodPing = "storage/flood-ping"
-)
+// const (
+// 	// PathFloodPing stores the default address of storage directory of flood ping data
+// 	PathFloodPing = "storage/flood-ping"
+// )
 
 // HandleFloodPing is the main handler for flood ping operations
 func HandleFloodPing(globalChain []*tsdb.ChainFloodPing, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool, password string) {
 	chnl := make(chan *string)
 
-	tsdbNameHash = PathFloodPing + "/" + "chunk_flood_ping_" + tsdbNameHash + ".json"
+	tsdbNameHash = utils.PathFloodPing + "/" + "chunk_flood_ping_" + tsdbNameHash + ".json"
 	// launch a goroutine to handle ping operations
 	go utils.CLIFloodPing(urlRaw, packets, chnl, password)
 	resp := <-chnl
@@ -39,7 +39,7 @@ func HandleFloodPing(globalChain []*tsdb.ChainFloodPing, urlRaw string, packets 
 	wg.Done()
 }
 
-func createNewBlockFloodPing(val scrap.TypeFloodPingScrap) tsdb.BlockFloodPing {
+func createNewBlockFloodPing(val utils.TypeFloodPingScrap) tsdb.BlockFloodPing {
 	return tsdb.BlockFloodPing{
 		Timestamp: time.Now(),
 		Datapoint: tsdb.FloodPingType{

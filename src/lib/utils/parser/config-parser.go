@@ -1,4 +1,4 @@
-package utils
+package parser
 
 import (
 	"io/ioutil"
@@ -27,7 +27,8 @@ type Interval struct {
 	Duration int64  `yaml:"duration"`
 }
 
-type headers struct {
+// Headers store the header values(ofType and value) from the config file
+type Headers struct {
 	OfType string `yaml:"type"`
 	Value  string `yaml:"value"`
 }
@@ -43,7 +44,7 @@ type Routes struct {
 	Method string    `yaml:"method"`
 	URL    string    `yaml:"url"`
 	Route  string    `yaml:"route"`
-	Header []headers `yaml:"headers"`
+	Header []Headers `yaml:"headers"`
 	Params []Params  `yaml:"params"`
 }
 

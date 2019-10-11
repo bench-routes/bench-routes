@@ -2,6 +2,8 @@ package scraps
 
 import (
 	"testing"
+
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 )
 
 var input = []string{`
@@ -159,7 +161,7 @@ rtt min/avg/max/mdev = 366.832/439.717/562.375/34.218 ms
 func TestCLIPingScrap(t *testing.T) {
 	for _, samples := range input {
 		a := CLIPingScrap(&samples)
-		if *a == (TypePingScrap{}) {
+		if *a == (utils.TypePingScrap{}) {
 			t.Errorf("invalid scrapping of targets for ping module")
 		}
 	}

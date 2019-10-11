@@ -1,1 +1,37 @@
-[{"datapoint":65,"normalizedTime":0,"timestamp":"2019-10-08T23:06:53.238353046+05:30"},{"datapoint":125,"normalizedTime":1,"timestamp":"2019-10-08T23:08:49.359901852+05:30"},{"datapoint":10.111111,"normalizedTime":2,"timestamp":"2019-10-10T18:00:31.30978623+05:30"},{"datapoint":152.88889,"normalizedTime":3,"timestamp":"2019-10-10T18:00:43.551549219+05:30"},{"datapoint":6,"normalizedTime":4,"timestamp":"2019-10-10T18:00:55.92596472+05:30"},{"datapoint":10.888889,"normalizedTime":5,"timestamp":"2019-10-10T18:01:08.277759978+05:30"},{"datapoint":4.7777777,"normalizedTime":6,"timestamp":"2019-10-10T18:01:20.603609934+05:30"}]
+[
+	{
+		"datapoint": 5.5555553,
+		"normalizedTime": 0,
+		"timestamp": "2019-10-11T18:52:54.222548352+05:30"
+	},
+	{
+		"datapoint": 28,
+		"normalizedTime": 1,
+		"timestamp": "2019-10-11T18:53:06.498579111+05:30"
+	},
+	{
+		"datapoint": 6.5555553,
+		"normalizedTime": 2,
+		"timestamp": "2019-10-11T18:53:18.684591393+05:30"
+	},
+	{
+		"datapoint": 7.2222223,
+		"normalizedTime": 3,
+		"timestamp": "2019-10-11T18:53:30.864677204+05:30"
+	},
+	{
+		"datapoint": 571.3333,
+		"normalizedTime": 4,
+		"timestamp": "2019-10-11T18:53:46.355577005+05:30"
+	},
+	{
+		"datapoint": 238.5,
+		"normalizedTime": 5,
+		"timestamp": "2019-10-11T18:54:03.960730869+05:30"
+	},
+	{
+		"datapoint": 69.666664,
+		"normalizedTime": 6,
+		"timestamp": "2019-10-11T18:54:50.953274986+05:30"
+	}
+]

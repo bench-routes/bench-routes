@@ -15,7 +15,7 @@ func init() {
 	log.Printf("initializing bench-routes ...")
 
 	// load configuration file
-	Configuration.Address = ConfigurationFilePath
+	Configuration.Address = utils.ConfigurationFilePath
 	Configuration = *Configuration.Load()
 
 	var ConfigURLs []string
@@ -39,7 +39,7 @@ func init() {
 	}
 	// forming ping chain
 	for i, v := range ConfigURLs {
-		path := PathPing + "/" + "chunk_ping_" + v + ".json"
+		path := utils.PathPing + "/" + "chunk_ping_" + v + ".json"
 		inst := &tsdb.ChainPing{
 			Path:           path,
 			Chain:          []tsdb.BlockPing{},
@@ -54,7 +54,7 @@ func init() {
 
 	// forming ping chain
 	for i, v := range ConfigURLs {
-		path := PathFloodPing + "/" + "chunk_flood_ping_" + v + ".json"
+		path := utils.PathFloodPing + "/" + "chunk_flood_ping_" + v + ".json"
 		inst := &tsdb.ChainFloodPing{
 			Path:           path,
 			Chain:          []tsdb.BlockFloodPing{},
@@ -68,7 +68,7 @@ func init() {
 	}
 
 	for i, v := range ConfigURLs {
-		path := PathJitter + "/" + "chunk_jitter_" + v + ".json"
+		path := utils.PathJitter + "/" + "chunk_jitter_" + v + ".json"
 		inst := &tsdb.Chain{
 			Path:           path,
 			Chain:          []tsdb.Block{},
@@ -83,7 +83,7 @@ func init() {
 
 	// forming req-res-delay chain
 	for i, route := range Configuration.Config.Routes {
-		path := PathReqResDelayMonitoring + "/" + "chunk_req_res_" + filters.RouteDestroyer(route.URL)
+		path := utils.PathReqResDelayMonitoring + "/" + "chunk_req_res_" + filters.RouteDestroyer(route.URL)
 		// Create sample chains to init in each TSDB file
 		sampleResponseDelay := &tsdb.Chain{
 			Path:           path + "_delay.json",

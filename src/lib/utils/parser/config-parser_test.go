@@ -1,11 +1,11 @@
-package utils
+package parser
 
 import (
 	"testing"
 )
 
 const (
-	path = "../../../test-files/configs/config-test.yml"
+	path = "../../../../test-files/configs/config-test.yml"
 )
 
 var (

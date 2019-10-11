@@ -7,6 +7,7 @@ import (
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
@@ -17,7 +18,7 @@ var (
 		"yahoo.com",
 		"youtube.com",
 	}
-	Configuration         utils.YAMLBenchRoutesType
+	Configuration         parser.YAMLBenchRoutesType
 	ConfigurationFilePath = "../../../../local-config.yml"
 	pathJitter            = "../../../../storage/jitter"
 	ConfigURLs            []string

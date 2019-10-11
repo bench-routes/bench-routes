@@ -8,11 +8,12 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // HandleJitterStart handle the route "start"
-func HandleJitterStart(config utils.YAMLBenchRoutesType, jitterServiceState string) {
+func HandleJitterStart(config parser.YAMLBenchRoutesType, jitterServiceState string) {
 	jitterConfig := config.Config.Routes
 	jitterInterval := GetInterval(config.Config.Interval, "jitter")
 	if jitterInterval == (TestInterval{}) {
@@ -32,7 +33,7 @@ func HandleJitterStart(config utils.YAMLBenchRoutesType, jitterServiceState stri
 	doJitter(config, urlStack, jitterInterval)
 }
 
-func doJitter(config utils.YAMLBenchRoutesType, urlStack map[string]string, jitterInterval TestInterval) {
+func doJitter(config parser.YAMLBenchRoutesType, urlStack map[string]string, jitterInterval TestInterval) {
 	i := 0
 	for {
 		i++

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
@@ -17,7 +18,7 @@ var (
 		"yahoo.com",
 		"youtube.com",
 	}
-	Configuration         utils.YAMLBenchRoutesType
+	Configuration         parser.YAMLBenchRoutesType
 	ConfigurationFilePath = "../../../../local-config.yml"
 	pathPing              = "../../../../storage/ping"
 	pathFloodPing         = "../../../../storage/flood-ping"
@@ -47,7 +48,7 @@ func initPingTest() {
 	}
 	// forming ping chain
 	for i, v := range ConfigURLs {
-		path := pathPing + "/" + "chunk_ping_" + tsdb.PingDBNames[v] + ".json"
+		path := pathPing + "/" + "chunk_ping_" + v + ".json"
 		inst := &tsdb.ChainPing{
 			Path:           path,
 			Chain:          []tsdb.BlockPing{},
@@ -86,7 +87,7 @@ func initFloodPingTest() {
 	}
 	// forming ping chain
 	for i, v := range ConfigURLs {
-		path := pathFloodPing + "/" + "chunk_flood_ping_" + tsdb.FloodPingDBNames[v] + ".json"
+		path := pathFloodPing + "/" + "chunk_flood_ping_" + v + ".json"
 		inst := &tsdb.ChainFloodPing{
 			Path:           path,
 			Chain:          []tsdb.BlockFloodPing{},
