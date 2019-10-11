@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
+	"github.com/zairza-cetb/bench-routes/tsdb"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 )
