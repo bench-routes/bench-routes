@@ -9,10 +9,11 @@ import (
 
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/response"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 )
 
 // HandleReqResMonitoringStart handle the route "start"
-func HandleReqResMonitoringStart(config utils.YAMLBenchRoutesType, reqResMonitoringServiceState string) {
+func HandleReqResMonitoringStart(config parser.YAMLBenchRoutesType, reqResMonitoringServiceState string) {
 	routes := config.Config.Routes
 	monitoringInterval := GetInterval(config.Config.Interval, "req-res-delay-and-monitoring")
 	if monitoringInterval == (TestInterval{}) {

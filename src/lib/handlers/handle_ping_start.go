@@ -8,11 +8,12 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // HandlePingStart handle the route "start"
-func HandlePingStart(config utils.YAMLBenchRoutesType, pingServiceState string) {
+func HandlePingStart(config parser.YAMLBenchRoutesType, pingServiceState string) {
 	pingConfig := config.Config.Routes
 	pingInterval := GetInterval(config.Config.Interval, "ping")
 	if pingInterval == (TestInterval{}) {
@@ -33,7 +34,7 @@ func HandlePingStart(config utils.YAMLBenchRoutesType, pingServiceState string) 
 	doPing(config, urlStack, pingInterval)
 }
 
-func doPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, pingInterval TestInterval) {
+func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingInterval TestInterval) {
 	i := 0
 	for {
 		i++
@@ -73,7 +74,7 @@ func doPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, pingIn
 }
 
 // HandleFloodPingStart starts the flood ping service
-func HandleFloodPingStart(config utils.YAMLBenchRoutesType, floodPingServiceState string) {
+func HandleFloodPingStart(config parser.YAMLBenchRoutesType, floodPingServiceState string) {
 	floodPingConfig := config.Config.Routes
 	floodPingInterval := GetInterval(config.Config.Interval, "ping")
 	if floodPingInterval == (TestInterval{}) {
@@ -95,7 +96,7 @@ func HandleFloodPingStart(config utils.YAMLBenchRoutesType, floodPingServiceStat
 	doFloodPing(config, urlStack, floodPingInterval)
 }
 
-func doFloodPing(config utils.YAMLBenchRoutesType, urlStack map[string]string, interval TestInterval) {
+func doFloodPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, interval TestInterval) {
 	i := 0
 	for {
 		i++
@@ -141,7 +142,7 @@ type TestInterval struct {
 }
 
 //GetInterval extracts the interval type and value from the config file for the particular test
-func GetInterval(intervals []utils.Interval, testName string) TestInterval {
+func GetInterval(intervals []parser.Interval, testName string) TestInterval {
 	for _, intrv := range intervals {
 		if testName == intrv.Test {
 			return TestInterval{

@@ -1,1 +1,27 @@
-[{"datapoint":678,"normalizedTime":0,"timestamp":"2019-10-09T02:36:55.289982+05:30"},{"datapoint":213,"normalizedTime":1,"timestamp":"2019-10-09T02:37:10.611536+05:30"},{"datapoint":694,"normalizedTime":2,"timestamp":"2019-10-10T18:00:23.601612478+05:30"},{"datapoint":693,"normalizedTime":3,"timestamp":"2019-10-10T18:00:39.797202715+05:30"},{"datapoint":399,"normalizedTime":4,"timestamp":"2019-10-10T18:00:55.198752808+05:30"},{"datapoint":322,"normalizedTime":5,"timestamp":"2019-10-10T18:01:10.523814094+05:30"}]
+[
+	{
+		"datapoint": 789,
+		"normalizedTime": 0,
+		"timestamp": "2019-10-11T18:52:47.044409842+05:30"
+	},
+	{
+		"datapoint": 396,
+		"normalizedTime": 1,
+		"timestamp": "2019-10-11T18:53:02.485557453+05:30"
+	},
+	{
+		"datapoint": 347,
+		"normalizedTime": 2,
+		"timestamp": "2019-10-11T18:53:17.834484265+05:30"
+	},
+	{
+		"datapoint": 377,
+		"normalizedTime": 3,
+		"timestamp": "2019-10-11T18:53:33.214000331+05:30"
+	},
+	{
+		"datapoint": 5225,
+		"normalizedTime": 4,
+		"timestamp": "2019-10-11T18:53:53.441367899+05:30"
+	}
+]

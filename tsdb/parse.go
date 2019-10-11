@@ -90,7 +90,7 @@ func (p Parser) ParseToJSON(a []Block) (j []byte) {
 		b = append(b, t)
 	}
 
-	j, e := json.Marshal(b)
+	j, e := json.MarshalIndent(b, "", "\t")
 	if e != nil {
 		panic(e)
 	}

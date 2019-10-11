@@ -1,46 +1,13 @@
 [
 	{
 		"datapoint": {
-			"Min": 61.776,
-			"Mean": 95.815,
-			"Max": 568.459,
-			"MDev": 78.524,
-			"PacketLoss": 0
+			"Min": 68.417,
+			"Mean": 1075.775,
+			"Max": 3411.81,
+			"MDev": 1324.516,
+			"PacketLoss": 32.9
 		},
 		"normalizedTime": 0,
-		"timestamp": "2019-10-10T18:00:33.747104219+05:30"
-	},
-	{
-		"datapoint": {
-			"Min": 61.006,
-			"Mean": 120.62,
-			"Max": 791.668,
-			"MDev": 137.675,
-			"PacketLoss": 0
-		},
-		"normalizedTime": 1,
-		"timestamp": "2019-10-10T18:00:50.146910402+05:30"
-	},
-	{
-		"datapoint": {
-			"Min": 61.777,
-			"Mean": 90.706,
-			"Max": 474.871,
-			"MDev": 61.317,
-			"PacketLoss": 0
-		},
-		"normalizedTime": 2,
-		"timestamp": "2019-10-10T18:01:06.686670265+05:30"
-	},
-	{
-		"datapoint": {
-			"Min": 60.296,
-			"Mean": 78.326,
-			"Max": 205.911,
-			"MDev": 14.334,
-			"PacketLoss": 0
-		},
-		"normalizedTime": 3,
-		"timestamp": "2019-10-10T18:01:23.22716994+05:30"
+		"timestamp": "2019-10-11T18:54:51.754916135+05:30"
 	}
 ]

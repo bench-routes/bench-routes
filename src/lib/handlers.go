@@ -4,12 +4,12 @@ import (
 	"log"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/handlers"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 )
 
 var (
 	// Configuration corresponds to the global use of configuration settings
-	Configuration utils.YAMLBenchRoutesType
+	Configuration parser.YAMLBenchRoutesType
 )
 
 // HandlerPingGeneral handles the ping route
