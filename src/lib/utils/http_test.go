@@ -34,7 +34,7 @@ func TestCLIPing(t *testing.T) {
 
 	// testing packets on permutative urls
 	for _, ele := range urlsPermute {
-		resp, err := CLIPing(ele, 2)
+		_, err := CLIPing(ele, 2)
 		if err != nil {
 			t.Errorf("err requesting %s\n", ele)
 		}
