@@ -32,7 +32,7 @@ func CLIPing(url string, packets int) (*string, error) {
 
 // CLIFloodPing in another subroutine, for ping operation with -f flag
 // which sends multiple ping request at once i.e. floods the url with requests.
-func CLIFloodPing(url string, packets int, password string) (*string, error){
+func CLIFloodPing(url string, packets int, password string) (*string, error) {
 	url = *filters.HTTPPingFilter(&url)
 	cmd := fmt.Sprintf("%s -e \"%s\n\" | %s -S %s -f -c %s %s", CmdEcho, password, CmdAdministrator, CmdPingBasedOnPacketsNumber, strconv.Itoa(packets), url)
 	cmdPing := exec.Command("bash", "-c", cmd)

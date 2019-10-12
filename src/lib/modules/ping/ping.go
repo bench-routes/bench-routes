@@ -4,9 +4,9 @@ import (
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
+	"log"
 	"sync"
 	"time"
-	"log"
 )
 
 // const (
