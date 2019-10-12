@@ -24,22 +24,18 @@ var (
 func TestCLIPing(t *testing.T) {
 	// testing packets on diff urls
 	for _, ele := range urlsDiff {
-		chnlCLICommunication := make(chan *string)
-		go CLIPing(ele, 2, chnlCLICommunication)
-		resp := *(<-chnlCLICommunication)
-		if len(resp) == 0 {
+		resp, err := CLIPing(ele, 2)
+		if err != nil {
 			t.Errorf("err requesting %s\n", ele)
 		} else {
-			t.Logf("%s\n", resp)
+			t.Logf("%s\n", *resp)
 		}
 	}
 
 	// testing packets on permutative urls
 	for _, ele := range urlsPermute {
-		chnlCLICommunication := make(chan *string)
-		go CLIPing(ele, 2, chnlCLICommunication)
-		resp := *(<-chnlCLICommunication)
-		if len(resp) == 0 {
+		_, err := CLIPing(ele, 2)
+		if err != nil {
 			t.Errorf("err requesting %s\n", ele)
 		}
 	}

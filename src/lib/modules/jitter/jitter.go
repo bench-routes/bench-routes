@@ -4,6 +4,7 @@ import (
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
+	"log"
 	"sync"
 	"time"
 )
@@ -15,12 +16,13 @@ const (
 
 //HandleJitter handles the url and calculate the jitter for that url
 func HandleJitter(globalChain []*tsdb.Chain, url string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
-
-	chnl := make(chan *string)
 	tsdbNameHash = PathJitter + "/" + "chunk_jitter_" + tsdbNameHash + ".json"
-	// launch a goroutine to handle ping operations
-	go utils.CLIPing(url, packets, chnl)
-	resp := <-chnl
+	resp, err := utils.CLIPing(url, packets)
+	if err != nil {
+		log.Println(*resp)
+		wg.Done()
+		return
+	}
 	result := scrap.CLIJitterScrap(resp)
 	newBlock := createNewBlock(result)
 	urlExists := false

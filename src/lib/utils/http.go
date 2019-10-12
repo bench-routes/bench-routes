@@ -22,28 +22,23 @@ const (
 // Use of pointers necessary since the data received is of large size, thereby slowing the traditional
 // method of variables, as using variables require the time involved in loading into and out from cpu registers.
 // Specifying addresses directly speeds the entire process manyfolds.
-func CLIPing(url string, packets int, cliPingChannel chan *string) {
+func CLIPing(url string, packets int) (*string, error) {
 	url = *filters.HTTPPingFilter(&url)
-	cmd, err := exec.Command(CmdPingBasedOnPacketsNumber, "-c", strconv.Itoa(packets), url).Output()
-	if err != nil {
-		panic(err)
-	}
-	cmdStr := string(cmd)
-	cliPingChannel <- &cmdStr
+	cmd := exec.Command(CmdPingBasedOnPacketsNumber, "-c", strconv.Itoa(packets), url)
+	cmdOutput, err := cmd.CombinedOutput()
+	cmdStr := string(cmdOutput)
+	return &cmdStr, err
 }
 
 // CLIFloodPing in another subroutine, for ping operation with -f flag
 // which sends multiple ping request at once i.e. floods the url with requests.
-func CLIFloodPing(url string, packets int, cliPingChannel chan *string, password string) {
+func CLIFloodPing(url string, packets int, password string) (*string, error) {
 	url = *filters.HTTPPingFilter(&url)
 	cmd := fmt.Sprintf("%s -e \"%s\n\" | %s -S %s -f -c %s %s", CmdEcho, password, CmdAdministrator, CmdPingBasedOnPacketsNumber, strconv.Itoa(packets), url)
-
-	cmdPing, err := exec.Command("bash", "-c", cmd).Output()
-	if err != nil {
-		panic(err)
-	}
-	cmdStr := string(cmdPing)
-	cliPingChannel <- &cmdStr
+	cmdPing := exec.Command("bash", "-c", cmd)
+	cmdOuput, err := cmdPing.CombinedOutput()
+	cmdStr := string(cmdOuput)
+	return &cmdStr, err
 }
 
 //SendGETRequest sends http GET request to the specified url(both resp_delay and monitor_response_status module use it)
