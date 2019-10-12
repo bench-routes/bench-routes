@@ -7,6 +7,7 @@ import (
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
+	"log"
 )
 
 // const (
@@ -16,12 +17,14 @@ import (
 
 // HandleFloodPing is the main handler for flood ping operations
 func HandleFloodPing(globalChain []*tsdb.ChainFloodPing, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool, password string) {
-	chnl := make(chan *string)
 
 	tsdbNameHash = utils.PathFloodPing + "/" + "chunk_flood_ping_" + tsdbNameHash + ".json"
-	// launch a goroutine to handle ping operations
-	go utils.CLIFloodPing(urlRaw, packets, chnl, password)
-	resp := <-chnl
+	resp, err := utils.CLIFloodPing(urlRaw, packets, password)
+	if err != nil {
+		log.Println(*resp)
+		wg.Done()
+		return
+	}
 	result := *scrap.CLIFLoodPingScrap(resp)
 	newBlock := createNewBlockFloodPing(result)
 	urlExists := false

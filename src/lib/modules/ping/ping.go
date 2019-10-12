@@ -6,6 +6,7 @@ import (
 	"github.com/zairza-cetb/bench-routes/tsdb"
 	"sync"
 	"time"
+	"log"
 )
 
 // const (
@@ -15,12 +16,14 @@ import (
 
 // HandlePing is the main handler for ping operations
 func HandlePing(globalChain []*tsdb.ChainPing, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
-	chnl := make(chan *string)
-
 	tsdbNameHash = utils.PathPing + "/" + "chunk_ping_" + tsdbNameHash + ".json"
 	// launch a goroutine to handle ping operations
-	go utils.CLIPing(urlRaw, packets, chnl)
-	resp := <-chnl
+	resp, err := utils.CLIPing(urlRaw, packets)
+	if err != nil {
+		log.Println(*resp)
+		wg.Done()
+		return
+	}
 	result := *scrap.CLIPingScrap(resp)
 	newBlock := createNewBlock(result)
 	urlExists := false
