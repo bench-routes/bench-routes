@@ -42,6 +42,11 @@ func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingI
 
 		switch config.Config.UtilsConf.ServicesSignal.Ping {
 		case "active":
+			err, _ := utils.VerifyConnection()
+			if !err {
+				log.Println("Not able to connect to externel network please check you internet connection")
+				goto sleep
+			}
 			var wg sync.WaitGroup
 			wg.Add(len(urlStack))
 			for _, u := range urlStack {
@@ -58,6 +63,7 @@ func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingI
 			return
 		}
 
+	sleep:
 		intrv := time.Duration(pingInterval.duration)
 		switch pingInterval.ofType {
 		case "hr":
