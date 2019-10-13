@@ -9,7 +9,7 @@ import (
 func VerifyConnection() (bool, int) {
 	res, err := http.Get("http://clients3.google.com/generate_204")
 	if err != nil {
-		log.Fatalf("unable to ping external network\n")
+		log.Printf("unable to ping external network\n")
 		return false, -1
 	}
 	log.Printf("external connection verified\n")
