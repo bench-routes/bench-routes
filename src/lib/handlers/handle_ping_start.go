@@ -45,15 +45,14 @@ func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingI
 			err, _ := utils.VerifyConnection()
 			if !err {
 				log.Println("Not able to connect to externel network please check you internet connection")
-				goto sleep
+			} else {
+				var wg sync.WaitGroup
+				wg.Add(len(urlStack))
+				for _, u := range urlStack {
+					go ping.HandlePing(tsdb.GlobalPingChain, u, 10, u, &wg, false)
+				}
+				wg.Wait()
 			}
-			var wg sync.WaitGroup
-			wg.Add(len(urlStack))
-			for _, u := range urlStack {
-				go ping.HandlePing(tsdb.GlobalPingChain, u, 10, u, &wg, false)
-			}
-
-			wg.Wait()
 		case "passive":
 			// terminate the goroutine
 			log.Printf("terminating ping goroutine\n")
@@ -63,7 +62,6 @@ func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingI
 			return
 		}
 
-	sleep:
 		intrv := time.Duration(pingInterval.duration)
 		switch pingInterval.ofType {
 		case "hr":
