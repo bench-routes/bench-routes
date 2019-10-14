@@ -25,7 +25,7 @@ var (
 func init() {
 
 	log.SetPrefix("LOG: ")
-	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Llongfile)
+	log.SetFlags(log.Ldate | log.Lmicroseconds | log.LstdFlags | log.Lshortfile)
 	log.Printf("initializing bench-routes ...")
 
 	// load configuration file
