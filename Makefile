@@ -4,7 +4,7 @@ update:
 
 build:
 	echo "building bench-routes ..."
-	go build src/main.go
+	go build src/*.go
 	mv main bench-routes
 
 clean:
