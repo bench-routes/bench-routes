@@ -4,7 +4,7 @@ update:
 
 build:
 	echo "building bench-routes ..."
-	go build src/*.go
+	go build src/main.go src/handlers.go
 	mv main bench-routes
 
 clean:
@@ -21,7 +21,7 @@ test_complete: build
 
 run:
 	echo "compiling go-code and executing bench-routes"
-	echo "using 9090 as default service listerner port"
+	echo "using 9090 as default service listener port"
 	go run src/*.go 9090
 
 fix:
