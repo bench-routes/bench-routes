@@ -23,7 +23,7 @@ before_script:
   - golangci-lint run
   - echo "perfect linting standards! moving ahead ..."
   - echo "checking go format ..."
-  - diff -u <(echo -n) <(gofmt -d ./)
+  - diff -u <(echo -n) <(gofmt -d ./src ./tsdb)
   - echo "perfect go format. moving ahead ..."
 
 script:

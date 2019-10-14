@@ -3,8 +3,8 @@ update:
 	go get -u ./...
 
 build:
-	echo "building bench-routes ..." 
-	go build src/main.go
+	echo "building bench-routes ..."
+	go build src/main.go src/handlers.go
 	mv main bench-routes
 
 clean:
@@ -21,8 +21,8 @@ test_complete: build
 
 run:
 	echo "compiling go-code and executing bench-routes"
-	echo "using 9090 as default service listerner port"
-	go run src/main.go 9090
+	echo "using 9090 as default service listener port"
+	go run src/*.go 9090
 
 fix:
 	go fmt ./...
