@@ -3,7 +3,7 @@ update:
 	go get -u ./...
 
 build:
-	echo "building bench-routes ..." 
+	echo "building bench-routes ..."
 	go build src/main.go
 	mv main bench-routes
 
@@ -22,7 +22,7 @@ test_complete: build
 run:
 	echo "compiling go-code and executing bench-routes"
 	echo "using 9090 as default service listerner port"
-	go run src/main.go 9090
+	go run src/*.go 9090
 
 fix:
 	go fmt ./...

@@ -68,5 +68,35 @@
 		},
 		"normalizedTime": 6,
 		"timestamp": "2019-10-11T18:54:38.493887627+05:30"
+	},
+	{
+		"datapoint": {
+			"Min": 84.32,
+			"Mean": 92.197,
+			"Max": 128.45,
+			"MDev": 12.589
+		},
+		"normalizedTime": 7,
+		"timestamp": "2019-10-14T17:33:22.376548262+05:30"
+	},
+	{
+		"datapoint": {
+			"Min": 84.311,
+			"Mean": 90.275,
+			"Max": 105.529,
+			"MDev": 7.265
+		},
+		"normalizedTime": 8,
+		"timestamp": "2019-10-14T17:33:36.571532162+05:30"
+	},
+	{
+		"datapoint": {
+			"Min": 83.952,
+			"Mean": 91.735,
+			"Max": 106.748,
+			"MDev": 7.543
+		},
+		"normalizedTime": 9,
+		"timestamp": "2019-10-14T17:33:50.401905196+05:30"
 	}
 ]
