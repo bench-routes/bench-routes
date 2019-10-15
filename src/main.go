@@ -1,15 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 	"github.com/zairza-cetb/bench-routes/tsdb"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"os/user"
 	"strconv"
+	"time"
 )
 
 var (
@@ -22,10 +26,13 @@ var (
 	configuration parser.YAMLBenchRoutesType
 )
 
-func init() {
+const (
+	logFilePrefix = "bench-route-"
+	logDirectory  = "br-logs"
+)
 
-	log.SetPrefix("LOG: ")
-	log.SetFlags(log.Ldate | log.Lmicroseconds | log.LstdFlags | log.Lshortfile)
+func init() {
+	setupLogger()
 	log.Printf("initializing bench-routes ...")
 
 	// load configuration file
@@ -220,4 +227,32 @@ func main() {
 	// launch service
 	log.Fatal(http.ListenAndServe(port, nil))
 
+}
+
+func setupLogger() {
+	currTime := time.Now()
+	currFileName := fmt.Sprint(logFilePrefix, currTime.Format("2006-01-02#15:04:05"), ".log")
+	user, err := user.Current()
+	if err != nil {
+		fmt.Printf("cannot access current user data\n")
+		return
+	}
+
+	homePath := user.HomeDir
+	logDirectoryPath := homePath + "/" + logDirectory
+	err = os.MkdirAll(logDirectoryPath, 0755)
+	if err != nil {
+		fmt.Printf("error creating log directory : %s\n", logDirectoryPath)
+		return
+	}
+	logFilePath := logDirectoryPath + "/" + currFileName
+	file, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0444)
+	if err != nil {
+		fmt.Printf("error opening log file : %s\n", logFilePath)
+		return
+	}
+	writer := io.MultiWriter(os.Stdout, file)
+	log.SetOutput(writer)
+	log.SetPrefix("LOG: ")
+	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
 }
