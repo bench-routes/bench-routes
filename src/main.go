@@ -28,6 +28,7 @@ var (
 
 const (
 	logFilePrefix = "bench-route-"
+	logDirectory  = "br-logs"
 )
 
 func init() {
@@ -236,9 +237,16 @@ func setupLogger() {
 		fmt.Printf("cannot access current user data\n")
 		return
 	}
+
 	homePath := user.HomeDir
-	logFilePath := homePath + "/" + currFileName
-	file, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	logDirectoryPath := homePath + "/" + logDirectory
+	err = os.MkdirAll(logDirectoryPath, 0755)
+	if err != nil {
+		fmt.Printf("error creating log directory : %s\n", logDirectoryPath)
+		return
+	}
+	logFilePath := logDirectoryPath + "/" + currFileName
+	file, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		fmt.Printf("error opening log file : %s\n", logFilePath)
 		return
@@ -246,5 +254,5 @@ func setupLogger() {
 	writer := io.MultiWriter(os.Stdout, file)
 	log.SetOutput(writer)
 	log.SetPrefix("LOG: ")
-	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Llongfile)
+	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
 }
