@@ -246,7 +246,7 @@ func setupLogger() {
 		return
 	}
 	logFilePath := logDirectoryPath + "/" + currFileName
-	file, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	file, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0444)
 	if err != nil {
 		fmt.Printf("error opening log file : %s\n", logFilePath)
 		return
