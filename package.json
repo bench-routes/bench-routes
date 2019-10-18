@@ -1,32 +1,40 @@
 {
-  "name": "bench-routes-electron",
-  "version": "1.0.0",
-  "description": "User interface for bench-routes",
-  "main": "main.js",
-  "scripts": {
-    "start": "electron ./app/main.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "tsc -w"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/zairza-cetb/bench-routes-electron.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/zairza-cetb/bench-routes-electron/issues"
-  },
-  "homepage": "https://github.com/zairza-cetb/bench-routes-electron#readme",
-  "devDependencies": {
-    "electron": "^6.0.10",
-    "electron-reload": "^1.5.0",
-    "typescript": "^3.6.3"
-  },
+  "name": "electron-react",
+  "version": "0.1.0",
+  "private": true,
   "dependencies": {
-    "@types/jquery": "^3.3.31",
-    "common-js": "^0.3.8",
-    "eslint": "^6.5.1",
-    "jquery": "^3.4.1"
-  }
+    "concurrently": "^5.0.0",
+    "electron": "^6.0.12",
+    "electron-builder": "^21.2.0",
+    "electron-is-dev": "^1.1.0",
+    "electron-reload": "^1.5.0",
+    "react": "^16.10.2",
+    "react-dom": "^16.10.2",
+    "react-scripts": "3.2.0",
+    "typescript": "^3.6.4",
+    "wait-on": "^3.3.0"
+  },
+  "scripts": {
+    "react-start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "start": "concurrently \"BROWSER=none npm run react-start\" \"wait-on http://localhost:3000 && electron .\""
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "main": "public/main.js"
 }
