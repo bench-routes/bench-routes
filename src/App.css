@@ -1,7 +1,3 @@
-.App {
-  text-align: center;
-}
-
 .App-logo {
   height: 40vmin;
 }
@@ -19,4 +15,15 @@
 
 .App-link {
   color: #09d3ac;
+}
+
+body {
+  background-color: transparent;
+  overflow-y: hidden;
+}
+
+.main {
+  position: absolute;
+  left: 25%;
+  width: 75%;
 }
