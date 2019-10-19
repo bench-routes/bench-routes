@@ -8,9 +8,11 @@ function App() {
   return (
     <div className="App">
       <Sidebar className="sidebar" />
-      <div className="main">
+      <div className="outer-wrapper">
         <Header />
-        <Navigator />
+        <div className='inner-component'>
+          <Navigator />
+        </div>
       </div>
     </div>
   );

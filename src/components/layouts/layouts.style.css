@@ -22,3 +22,24 @@
     font-weight: 500;
     color: black;
 }
+
+header {
+    position: absolute;
+    width: 104%;
+    height: 50%;
+    border-bottom: 1px solid #f1f1f3;
+}
+
+.logo-name {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 1% 0% 0% 2%;
+    font-family: 'Open Sans';
+}
+
+.notification-icon {
+    position: absolute;
+    right: 2%;
+    top: 4%;
+    height: 28px;
+}

@@ -22,8 +22,13 @@ body {
   overflow-y: hidden;
 }
 
-.main {
+.outer-wrapper {
   position: absolute;
-  left: 25%;
+  left: 22%;
   width: 75%;
+}
+
+.inner-component {
+  margin-top: 7%;
+  margin-left: 2%;
 }
