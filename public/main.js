@@ -3,15 +3,16 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 
 const path = require('path');
-const url = require('url');
 const isDev = require('electron-is-dev');
+
+require('electron-reload')(__dirname);
 
 let mainWindow;
 
 function createWindow() {
 
     mainWindow = new BrowserWindow({
-        minWidth: 800,
+        minWidth: 1000,
         minHeight: 600,
         center: true,
         title: 'Bench-Routes - Mark your routes',
@@ -19,13 +20,14 @@ function createWindow() {
           nodeIntegration: true
         },
         hasShadow: true,
-        autoHideMenuBar: true
-    })
+        autoHideMenuBar: true,
+        transparent: true
+    });
 
     mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
 
     mainWindow.webContents.openDevTools();
-    
+
     mainWindow.on('closed', () => mainWindow = null);
 
 }
