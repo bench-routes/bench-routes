@@ -1,6 +1,8 @@
+/* eslint-disable no-return-assign */
 const electron = require('electron');
-const app = electron.app;
-const BrowserWindow = electron.BrowserWindow;
+
+const { app } = electron;
+const { BrowserWindow } = electron;
 
 const path = require('path');
 const isDev = require('electron-is-dev');
@@ -10,26 +12,23 @@ require('electron-reload')(__dirname);
 let mainWindow;
 
 function createWindow() {
+  mainWindow = new BrowserWindow({
+    minWidth: 1000,
+    minHeight: 600,
+    center: true,
+    title: 'Bench-Routes - Mark your routes',
+    webPreferences: {
+      nodeIntegration: true,
+    },
+    hasShadow: true,
+    autoHideMenuBar: true,
+    transparent: false,
+  });
 
-    mainWindow = new BrowserWindow({
-        minWidth: 1000,
-        minHeight: 600,
-        center: true,
-        title: 'Bench-Routes - Mark your routes',
-        webPreferences: {
-          nodeIntegration: true
-        },
-        hasShadow: true,
-        autoHideMenuBar: true,
-        transparent: false
-    });
+  mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
 
-    mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
-
-    mainWindow.webContents.openDevTools();
-
-    mainWindow.on('closed', () => mainWindow = null);
-
+  mainWindow.webContents.openDevTools();
+  mainWindow.on('closed', () => mainWindow = null);
 }
 
 app.on('ready', createWindow);

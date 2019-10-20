@@ -21,7 +21,12 @@ export default class Notification extends React.Component {
   render() {
     return (
       <div>
-        <div className="notification-icon">
+        <div
+          className="notification-icon"
+          style={{
+            cursor: 'pointer',
+          }}
+        >
           <img
             src="assets/icons/notify-icon.svg"
             alt="notification"
@@ -40,6 +45,7 @@ export default class Notification extends React.Component {
               padding: '1% 0% 3% 2%',
               borderBottom: '1px solid #fff',
               width: '100%',
+              cursor: 'pointer',
             }}
           >
             <img
