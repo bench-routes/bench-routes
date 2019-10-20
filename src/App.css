@@ -20,6 +20,7 @@
 body {
   background-color: transparent;
   overflow-y: hidden;
+  overflow-x: hidden;
 }
 
 .outer-wrapper {

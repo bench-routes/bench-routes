@@ -35,11 +35,21 @@ header {
     font-weight: 600;
     margin: 1% 0% 0% 2%;
     font-family: 'Open Sans';
+    color: rgb(115, 115, 168);
 }
 
 .notification-icon {
     position: absolute;
-    right: 2%;
+    right: 1%;
     top: 4%;
-    height: 28px;
+    height: 30px;
+}
+
+.notification-screen {
+    position: absolute;
+    background-color: #f1f1f3;
+    height: 100vh;
+    transition: width 0.8s;
+    width: 0%;
+    right: -4%;
 }
