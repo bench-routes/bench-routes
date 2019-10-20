@@ -14,7 +14,7 @@ function App() {
       <div className="outer-wrapper">
         <Header />
         <Notification />
-        <div className='inner-component'>
+        <div className="inner-component">
           <Navigator />
         </div>
       </div>
