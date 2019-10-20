@@ -24,7 +24,39 @@
     ],
     "rules": {
         "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
-        "react/prefer-stateless-function": [0, { "ignorePureComponents": false }]
+        "react/prefer-stateless-function": [0, { "ignorePureComponents": false }],
+        "indent": [
+            "error",
+            2
+        ],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "quotes": [
+            "error",
+            "single"
+        ],
+        "semi": [
+            "error",
+            "always"
+        ],
+        "no-console": ["error", { "allow": ["error"] }],
+        "no-dupe-args": "error",
+        "no-dupe-keys": "error",
+        "no-empty": "error",
+        "no-extra-semi": "error",
+        "no-func-assign": "error",
+        "no-irregular-whitespace": "error",
+        "no-sparse-arrays": "error",
+        "no-unexpected-multiline": "error",
+       "no-unreachable": "error",
+        "class-methods-use-this": "error",
+        "curly": "error",
+        "eqeqeq": "error",
+        "no-invalid-this": "error",
+        "keyword-spacing": "error",
+        "space-before-blocks": "error"
     },
     "overrides": [
         {

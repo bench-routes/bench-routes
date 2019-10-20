@@ -3,7 +3,6 @@ import React from 'react';
 
 export default class Notification extends React.Component {
   componentDidMount() {
-    console.log('called');
     if (global.showNotificationScreen) {
       document.getElementById('notification').style.width = '40%';
       document.getElementById('notification').style.display = 'block';
@@ -11,9 +10,7 @@ export default class Notification extends React.Component {
   }
 
   updateShowNotificationsScreen = () => {
-    console.log('updating');
     global.showNotificationSection = !global.showNotificationSection;
-    console.log(global.showNotificationSection);
     if (global.showNotificationSection) {
       document.getElementById('notification').style.width = '40%';
     } else {
