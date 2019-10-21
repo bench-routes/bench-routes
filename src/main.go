@@ -24,33 +24,6 @@ var (
 		WriteBufferSize: 4048,
 	}
 	configuration parser.YAMLBenchRoutesType
-
-	// initiating variables for ping chain
-	pingPath = utils.PathPing + "/" + "chunk_ping_" + ".json"
-	pingInst = &tsdb.ChainPing{
-		Path:           pingPath,
-		Chain:          []tsdb.BlockPing{},
-		LengthElements: 0,
-		Size:           0,
-	}
-
-	// initiating variables for flood-ping chain
-	floodPingPath = utils.PathFloodPing + "/" + "chunk_flood_ping_" + ".json"
-	floodPingInst = &tsdb.ChainFloodPing{
-		Path:           floodPingPath,
-		Chain:          []tsdb.BlockFloodPing{},
-		LengthElements: 0,
-		Size:           0,
-	}
-
-	// initiating variables for jitter chain
-	jitterPath = utils.PathJitter + "/" + "chunk_jitter_" + ".json"
-	jitterInst = &tsdb.Chain{
-		Path:           jitterPath,
-		Chain:          []tsdb.Block{},
-		LengthElements: 0,
-		Size:           0,
-	}
 )
 
 const (
@@ -85,42 +58,48 @@ func init() {
 			tsdb.FloodPingDBNames[r.URL] = utils.GetHash(r.URL)
 		}
 	}
-	// forming ping, flood ping and jitter chain
+	// forming ping chain
 	for i, v := range ConfigURLs {
-
-		/** Ping
-		**/
-		// changing values of parameters for different URLs in ping chain
-		pingPath = utils.PathPing + "/" + "chunk_ping_" + v + ".json"
-		pingInst.Path = pingPath
-
-		// Initiate the ping chain
-		tsdb.GlobalPingChain = append(tsdb.GlobalPingChain, pingInst)
+		path := utils.PathPing + "/" + "chunk_ping_" + v + ".json"
+		inst := &tsdb.ChainPing{
+			Path:           path,
+			Chain:          []tsdb.BlockPing{},
+			LengthElements: 0,
+			Size:           0,
+		}
+		// Initiate the chain
+		tsdb.GlobalPingChain = append(tsdb.GlobalPingChain, inst)
 		tsdb.GlobalPingChain[i] = tsdb.GlobalPingChain[i].InitPing()
 		tsdb.GlobalPingChain[i].SavePing()
+	}
 
-		/** Flood Ping
-		**/
-		// changing values of parameters for different URLs in flood-ping chain
-		floodPingPath = utils.PathFloodPing + "/" + "chunk_flood_ping_" + v + ".json"
-		floodPingInst.Path = floodPingPath
-
-		// Initiate the flood ping chain
-		tsdb.GlobalFloodPingChain = append(tsdb.GlobalFloodPingChain, floodPingInst)
+	// forming ping chain
+	for i, v := range ConfigURLs {
+		path := utils.PathFloodPing + "/" + "chunk_flood_ping_" + v + ".json"
+		inst := &tsdb.ChainFloodPing{
+			Path:           path,
+			Chain:          []tsdb.BlockFloodPing{},
+			LengthElements: 0,
+			Size:           0,
+		}
+		// Initiate the chain
+		tsdb.GlobalFloodPingChain = append(tsdb.GlobalFloodPingChain, inst)
 		tsdb.GlobalFloodPingChain[i] = tsdb.GlobalFloodPingChain[i].InitFloodPing()
 		tsdb.GlobalFloodPingChain[i].SaveFloodPing()
+	}
 
-		/** Jitter
-		**/
-		// initializing parameters for jitter chain
-		jitterPath = utils.PathJitter + "/" + "chunk_jitter_" + v + ".json"
-		jitterInst.Path = jitterPath
-
-		// Initiate the jitter chain
-		tsdb.GlobalChain = append(tsdb.GlobalChain, jitterInst)
+	for i, v := range ConfigURLs {
+		path := utils.PathJitter + "/" + "chunk_jitter_" + v + ".json"
+		inst := &tsdb.Chain{
+			Path:           path,
+			Chain:          []tsdb.Block{},
+			LengthElements: 0,
+			Size:           0,
+		}
+		// Initiate the chain
+		tsdb.GlobalChain = append(tsdb.GlobalChain, inst)
 		tsdb.GlobalChain[i] = tsdb.GlobalChain[i].Init()
 		tsdb.GlobalChain[i].Save()
-
 	}
 
 	// forming req-res-delay chain
