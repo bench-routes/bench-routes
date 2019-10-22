@@ -6,11 +6,7 @@
     "noImplicitAny": false,
     "removeComments": true,
     "noLib": false,
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -23,11 +19,6 @@
     "noEmit": true,
     "jsx": "react"
   },
-  "include": [
-    "**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts"
-  ]
+  "include": ["**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }

@@ -1,55 +1,100 @@
 .sidebar {
-    padding-top: 2%;;
-    position: absolute;
-    left: 0%;
-    width: 20%;
-    line-height: 160%;
-    padding-left: 2%;
-    background-color: #f1f1f3;
-    height: 100%;
-    overflow-y: hidden;
-    background-image: url('wall.png');
-    background-position: bottom;
-    background-repeat: no-repeat;
+  padding: 10px 15px;
+  min-width: max-content;
+  width: 20%;
+  line-height: 160%;
+  background-color: #f1f1f3;
+  height: 100vh;
+  background-image: url("wall.png");
+  background-position: bottom;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-inner {
-    display: inline-flex;
+  display: inline-flex;
 }
 
 .sidebar-head {
-    padding-left: 10%;
-    font-weight: 500;
-    color: black;
+  padding-left: 10%;
+  font-weight: 500;
+  color: black;
+}
+
+.sidebar-content {
+  height: 60%;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #282c34;
+}
+
+.sidebar-bottom-links{
+  bottom: 0;
+  position: absolute;
 }
 
 header {
-    position: absolute;
-    width: 104%;
-    height: 50%;
-    border-bottom: 1px solid #f1f1f3;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #f1f1f3;
+  justify-content: space-between;
 }
 
 .logo-name {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 1% 0% 0% 2%;
-    font-family: 'Open Sans';
-    color: rgb(115, 115, 168);
+  font-size: 20px;
+  font-weight: 600;
+  font-family: "Open Sans";
+  padding: 10px 15px;
 }
 
 .notification-icon {
-    position: absolute;
-    right: 1%;
-    top: 4%;
-    height: 30px;
+  height: 28px;
+  padding: 10px 15px;
 }
 
-.notification-screen {
-    position: absolute;
-    background-color: #f1f1f3;
-    height: 100vh;
-    transition: width 0.8s;
-    width: 0%;
-    right: -4%;
+.notification {
+  position: absolute;
+  height: 100vh;
+  width: 600px;
+  right: -610px;
+  box-shadow: 2px 2px 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.notification-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 15px;
+  border-bottom: 1px solid gray;
+}
+
+.notification-body {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 15px;
+}
+
+.display-notification {
+  right: -600px;
+  background: white;
+  animation: slideIn 0.2s ease-in-out forwards;
+}
+
+@keyframes slideIn {
+  0% {
+    right: -600px;
+  }
+  90% {
+    width: 605px;
+    right: 5px;
+  }
+  100% {
+    width: 600px;
+    right: 0;
+  }
 }

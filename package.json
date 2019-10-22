@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@types/node": "^12.11.1",
+    "@types/react": "^16.9.9",
+    "@types/react-router-dom": "^5.1.0",
     "concurrently": "^5.0.0",
     "electron": "^7.0.0-beta.7",
     "electron-builder": "^21.2.0",
@@ -58,4 +61,3 @@
     }
   }
 }
-
