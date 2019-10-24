@@ -7,7 +7,9 @@ import Navigator from './router/Navigation';
 function App() {
   return (
     <div className="App">
-      <Sidebar className="sidebar" />
+      <div className="sidebar">
+        <Sidebar />
+      </div>
       <div className="inner-component">
         <Header />
         <Navigator />

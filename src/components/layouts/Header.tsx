@@ -17,18 +17,22 @@ export default function Header() {
       />
       <header>
         <div className="logo-name">Bench-routes</div>
-        <div className="notification-icon">
-          <img
-            src="assets/icons/notify-icon.svg"
-            alt="notification"
-            onClick={() => updateShowNotificationsScreen()}
-            onKeyDown={(e) => {
-              if (e.keyCode === 13) {
-                updateShowNotificationsScreen();
-              }
-            }}
-          />
-        </div>
+        {!showNotification ? (
+          <div className="notification-icon">
+            <img
+              src="assets/icons/notify-icon.svg"
+              alt="notification"
+              onClick={() => updateShowNotificationsScreen()}
+              onKeyDown={(e) => {
+                if (e.keyCode === 13) {
+                  updateShowNotificationsScreen();
+                }
+              }}
+            />
+          </div>
+        ) : (
+          <div />
+        )}
       </header>
     </>
   );

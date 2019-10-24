@@ -39,6 +39,7 @@ header {
   flex-direction: row;
   border-bottom: 1px solid #f1f1f3;
   justify-content: space-between;
+  height: 6%;
 }
 
 .logo-name {
@@ -59,6 +60,7 @@ header {
   width: 600px;
   right: -610px;
   box-shadow: 2px 2px 6px 8px rgba(0, 0, 0, 0.2);
+  opacity: 0.8;
 }
 
 .notification-content {
@@ -71,6 +73,7 @@ header {
   justify-content: space-between;
   padding: 10px 15px;
   border-bottom: 1px solid gray;
+  height: 6;
 }
 
 .notification-body {
@@ -82,7 +85,13 @@ header {
 .display-notification {
   right: -600px;
   background: white;
-  animation: slideIn 0.2s ease-in-out forwards;
+  animation: slideIn 0.8s ease-in-out forwards;
+}
+
+.close-notification {
+  right: 0px;
+  background: white;
+  animation: slideOut 0.8s forwards;
 }
 
 @keyframes slideIn {
@@ -90,11 +99,26 @@ header {
     right: -600px;
   }
   90% {
-    width: 605px;
+    width: 30%;
     right: 5px;
   }
   100% {
-    width: 600px;
+    width: 30%;
     right: 0;
   }
+}
+
+@keyframes slideOut {
+  0% {
+    width: 30%;
+    right: 0;
+  }
+  10% {
+    width: 30%;
+    right: 5px;
+  }
+  100% {
+    right: -600px;
+  }
+
 }

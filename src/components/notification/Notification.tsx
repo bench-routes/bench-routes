@@ -9,7 +9,7 @@ export default class Notification extends React.Component<{
     return (
       <div
         className={`notification ${
-          this.props.showNotification ? "display-notification" : ""
+          this.props.showNotification ? "display-notification" : "close-notification"
         }`}
       >
         <div className="notification-content">
