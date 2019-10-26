@@ -1,16 +1,33 @@
 import React from 'react';
 
-export default class Submenu extends React.Component<{
+interface SubmenuPropsTypes {
   module: string,
   submodule: string,
   getAddress: (sAddress: string) => void
-}> {
-  state = {
-    module: '',
-    urlSlot: '',
-    methodSlot: '',
-    routeSlot: '',
-    paramSlot: ''
+}
+
+interface SubmenuStateTypes {
+  module: string,
+  urlSlot: string,
+  methodSlot: string,
+  routeSlot: string,
+  paramSlot: string
+}
+
+export default class Submenu extends React.Component<
+  SubmenuPropsTypes,
+  SubmenuStateTypes
+> {
+  constructor(props: SubmenuPropsTypes) {
+    super(props);
+
+    this.state = {
+      module: '',
+      urlSlot: '',
+      methodSlot: '',
+      routeSlot: '',
+      paramSlot: ''
+    }
   }
 
   sendAddress = () => {

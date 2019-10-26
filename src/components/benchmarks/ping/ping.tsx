@@ -1,14 +1,27 @@
 import React from 'react';
 import Submenu from '../../layouts/Submenu';
 
-export default class PingModule extends React.Component {
-  state = {
-    // submenu ddress
-    sAddress: ''
+interface PingModulePropsTypes {}
+
+interface PingModuleStateTypes {
+  sAddress: string
+}
+
+export default class PingModule extends React.Component<
+  PingModulePropsTypes,
+  PingModuleStateTypes
+> {
+  constructor(props: PingModulePropsTypes){
+    super(props);
+
+    this.state = {
+      // submenu ddress
+      sAddress: ''
+    }
   }
 
-  getAddressSubmenu = (sAddress: string) => {
-    this.state.sAddress = sAddress;
+  getAddressSubmenu = (sAddressParam: string) => {
+    this.setState({sAddress: sAddressParam})
   }
 
   render() {

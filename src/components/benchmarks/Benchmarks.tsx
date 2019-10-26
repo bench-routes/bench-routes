@@ -1,9 +1,22 @@
 import React from 'react';
 import Submenu from '../layouts/Submenu';
 
-export default class Benchmarks extends React.Component {
-  state = {
-    addressSubmenu: ''
+interface BenchmarksPropsTypes {}
+
+interface BenchmarksStateTypes {
+  addressSubmenu: string
+}
+
+export default class Benchmarks extends React.Component<
+  BenchmarksPropsTypes,
+  BenchmarksStateTypes
+> {
+  constructor(props: BenchmarksPropsTypes) {
+    super(props);
+
+    this.state = {
+      addressSubmenu: ''
+    }
   }
 
   getAddressSubmenu = (s: string) => {
