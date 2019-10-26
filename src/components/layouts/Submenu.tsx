@@ -1,17 +1,17 @@
 import React from 'react';
 
 interface SubmenuPropsTypes {
-  module: string,
-  submodule: string,
-  getAddress: (sAddress: string) => void
+  module: string;
+  submodule: string;
+  getAddress: (sAddress: string) => void;
 }
 
 interface SubmenuStateTypes {
-  module: string,
-  urlSlot: string,
-  methodSlot: string,
-  routeSlot: string,
-  paramSlot: string
+  module: string;
+  urlSlot: string;
+  methodSlot: string;
+  routeSlot: string;
+  paramSlot: string;
 }
 
 export default class Submenu extends React.Component<
@@ -22,37 +22,45 @@ export default class Submenu extends React.Component<
     super(props);
 
     this.state = {
-      module: '',
-      urlSlot: '',
       methodSlot: '',
+      module: '',
+      paramSlot: '',
       routeSlot: '',
-      paramSlot: ''
-    }
+      urlSlot: ''
+    };
   }
 
-  sendAddress = () => {
-    this.props.getAddress(this.state.urlSlot + '/' + this.state.methodSlot + '/' + this.state.routeSlot + '/' + this.state.paramSlot);
+  public sendAddress = () => {
+    this.props.getAddress(
+      this.state.urlSlot +
+        '/' +
+        this.state.methodSlot +
+        '/' +
+        this.state.routeSlot +
+        '/' +
+        this.state.paramSlot
+    );
+  };
+
+  public componentDidMount() {
+    this.setState({ module: this.props.module });
   }
 
-  componentDidMount() {
-    this.setState({module: this.props.module})
-  }
-
-  render() {
+  public render() {
     return (
       <>
         {/* submenu container */}
-        <div className='submenu-container'>
+        <div className="submenu-container">
           {/* Drop-down components */}
           <div>
             <div>
               {/* IP / Domain */}
-              {
-                this.props.module === 'benchmark' && this.props.submodule.length === 0
-                ?
+              {this.props.module === 'benchmark' &&
+              this.props.submodule.length === 0 ? (
                 <div>
-                  <select className='submenu-style-general'
-                    onChange={(e) => this.setState({urlSlot: e.target.value})}
+                  <select
+                    className="submenu-style-general"
+                    onChange={e => this.setState({ urlSlot: e.target.value })}
                   >
                     <option></option>
                     <option>google.co.in</option>
@@ -60,15 +68,14 @@ export default class Submenu extends React.Component<
                     <option>yahoo.com</option>
                   </select>
                 </div>
-                : null
-              }
+              ) : null}
             </div>
           </div>
 
-          <div className='float-right'>
+          <div className="float-right">
             <button
               onClick={this.sendAddress}
-              className='submenu-show-graph btn-primary'
+              className="submenu-show-graph btn-primary"
             >
               Show
             </button>

@@ -4,7 +4,7 @@ import Submenu from '../layouts/Submenu';
 interface BenchmarksPropsTypes {}
 
 interface BenchmarksStateTypes {
-  addressSubmenu: string
+  addressSubmenu: string;
 }
 
 export default class Benchmarks extends React.Component<
@@ -16,19 +16,21 @@ export default class Benchmarks extends React.Component<
 
     this.state = {
       addressSubmenu: ''
-    }
+    };
   }
 
-  getAddressSubmenu = (s: string) => {
-    console.log('here')
-    this.setState({addressSubmenu: s});
-    console.log(this.state.addressSubmenu)
-  }
+  public getAddressSubmenu = (s: string) => {
+    this.setState({ addressSubmenu: s });
+  };
 
-  render() {
+  public render() {
     return (
       <>
-        <Submenu module='benchmark' submodule='' getAddress={this.getAddressSubmenu} />
+        <Submenu
+          module="benchmark"
+          submodule=""
+          getAddress={this.getAddressSubmenu}
+        />
         This is Benchmarking
       </>
     );

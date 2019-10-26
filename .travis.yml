@@ -3,7 +3,7 @@ sudo: false
 os:
   - linux
   - osx
-  
+
 language: node_js
 
 node_js:
@@ -17,10 +17,12 @@ before_install:
   - npm install -g npm@latest
   - npm install --dev
   - npm install
-  - npm install -g eslint electron electron-packager
+  - npm install -g eslint electron electron-packager tslint prettier
 
 script:
   - eslint .
+  - tslint .
+  - prettier '**/*.tsx' --list-different
   - npm run react-test
   - npm run react-build
   - npm run build

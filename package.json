@@ -25,7 +25,10 @@
     "build": "electron-packager . bench-routes-electron",
     "eject": "react-scripts eject",
     "lint": "eslint . --fix",
-    "start": "concurrently \"BROWSER=none npm run react-start\" \"wait-on http://localhost:3000 && electron .\""
+    "tlint": "tslint --fix --project ./tsconfig.json -e src/*.js public/*.js",
+    "start": "concurrently \"BROWSER=none npm run react-start\" \"wait-on http://localhost:3000 && electron .\"",
+    "prettier": "prettier --write '**/*.tsx'",
+    "prim-tests": "npm run prettier && npm run lint && npm run tlint"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -53,11 +56,13 @@
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-react": "^7.16.0",
     "eslint-plugin-react-hooks": "^1.7.0",
-    "husky": "^3.0.9"
+    "husky": "^3.0.9",
+    "prettier": "^1.18.2",
+    "tslint": "^5.20.0"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run lint"
+      "pre-commit": "npm run prettier && npm run lint && npm run tlint"
     }
   }
 }

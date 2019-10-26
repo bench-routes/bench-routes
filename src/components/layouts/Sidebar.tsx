@@ -1,14 +1,14 @@
-import React from "react";
-import "./layouts.style.css";
-import { HashRouter as Router, Link } from "react-router-dom";
+import React from 'react';
+import { HashRouter as Router, Link } from 'react-router-dom';
+import './layouts.style.css';
 
 export default class Sidebar extends React.Component<{}> {
-  render() {
+  public render() {
     return (
       <Router>
         <div className="sidebar">
           <div className="sidebar-content">
-            <Link to="/" style={{ textDecoration: "none" }}>
+            <Link to="/" style={{ textDecoration: 'none' }}>
               <div>
                 <div className="sidebar-inner">
                   <img
@@ -20,7 +20,7 @@ export default class Sidebar extends React.Component<{}> {
                 </div>
               </div>
             </Link>
-            <Link to="/monitoring" style={{ textDecoration: "none" }}>
+            <Link to="/monitoring" style={{ textDecoration: 'none' }}>
               <div>
                 <div className="sidebar-inner">
                   <img
@@ -32,7 +32,7 @@ export default class Sidebar extends React.Component<{}> {
                 </div>
               </div>
             </Link>
-            <Link to="/benchmarks" style={{ textDecoration: "none" }}>
+            <Link to="/benchmarks" style={{ textDecoration: 'none' }}>
               <div>
                 <div className="sidebar-inner">
                   <img
@@ -45,19 +45,19 @@ export default class Sidebar extends React.Component<{}> {
               </div>
             </Link>
             <div className="sidebar-bottom-links">
-            <Link to="/settings" style={{ textDecoration: "none" }}>
-              <div>
-                <div className="sidebar-inner">
-                  <img
-                    src="assets/icons/settings-icon.svg"
-                    className="sidebar-inner"
-                    alt="settings"
-                  />
-                  <div className="sidebar-head sidebar-inner">Settings</div>
+              <Link to="/settings" style={{ textDecoration: 'none' }}>
+                <div>
+                  <div className="sidebar-inner">
+                    <img
+                      src="assets/icons/settings-icon.svg"
+                      className="sidebar-inner"
+                      alt="settings"
+                    />
+                    <div className="sidebar-head sidebar-inner">Settings</div>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          </div>
+              </Link>
+            </div>
           </div>
         </div>
       </Router>

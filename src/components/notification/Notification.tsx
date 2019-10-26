@@ -1,15 +1,17 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-import React from "react";
+import React from 'react';
 
 export default class Notification extends React.Component<{
   showNotification: boolean;
   updateShowNotificationsScreen: () => void;
 }> {
-  render() {
+  public render() {
     return (
       <div
         className={`notification ${
-          this.props.showNotification ? "display-notification" : "close-notification"
+          this.props.showNotification
+            ? 'display-notification'
+            : 'close-notification'
         }`}
       >
         <div className="notification-content">

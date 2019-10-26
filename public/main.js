@@ -1,4 +1,5 @@
 /* eslint-disable no-return-assign */
+/* tslint:disable */
 const electron = require('electron');
 
 const { app } = electron;
@@ -13,9 +14,9 @@ let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    minWidth: 1000,
-    minHeight: 600,
     center: true,
+    minHeight: 600,
+    minWidth: 1000,
     title: 'Bench-Routes - Mark your routes',
     webPreferences: {
       nodeIntegration: true,
