@@ -18,6 +18,7 @@ export default class Notification extends React.Component<{
             <img
               src="assets/icons/cross.svg"
               alt="collapse notifications"
+              className="notification-close"
               onClick={() => this.props.updateShowNotificationsScreen()}
               onKeyDown={e => {
                 if (e.keyCode === 13) {

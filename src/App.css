@@ -30,3 +30,7 @@ body {
 .inner-component {
   margin-left: 2%;
 }
+
+.notification-close {
+  cursor: pointer;
+}
