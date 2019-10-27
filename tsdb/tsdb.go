@@ -3,7 +3,6 @@ package tsdb
 import (
 	"errors"
 	"log"
-	"math"
 	"sync"
 	"time"
 	"unsafe"
@@ -506,30 +505,26 @@ func (c *Chain) GetPositionalPointerNormalized(n int64) (*Block, error) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	c.LengthElements = len(c.Chain)
-	jumpSize := int(math.Floor(math.Sqrt(float64(c.LengthElements))))
-	index := jumpSize - 1
-
 	if c.Chain[c.LengthElements-1].NormalizedTime < n || c.Chain[0].NormalizedTime > n {
 		return nil, errors.New("Normalized time not in Chain range")
 	}
+	l, r, m := 0, c.LengthElements, 0
 
-	for n > c.Chain[index].NormalizedTime && index < c.LengthElements-jumpSize {
-		index += jumpSize
+	for l <= r {
+		m = l + (r-l)/2
+		if c.Chain[m].NormalizedTime == n {
+			return &c.Chain[m], nil
+		}
+
+		if c.Chain[m].NormalizedTime < n {
+			l = m + 1
+		} else {
+			r = m - 1
+		}
+
 	}
 
-	for c.Chain[index].NormalizedTime < n {
-		index++
-	}
-
-	for c.Chain[index].NormalizedTime > n {
-		index--
-	}
-
-	if c.Chain[index].NormalizedTime != n {
-		return nil, errors.New("Normalized time not found in chain")
-	}
-
-	return &c.Chain[index], nil
+	return nil, errors.New("Normalized time not found in chain")
 }
 
 // GetPositionalPointerNormalizedPing Returns block by searching the chain for the NormalizedTime
@@ -537,30 +532,27 @@ func (c *ChainPing) GetPositionalPointerNormalizedPing(n int64) (*BlockPing, err
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	c.LengthElements = len(c.Chain)
-	jumpSize := int(math.Floor(math.Sqrt(float64(c.LengthElements))))
-	index := jumpSize - 1
 
 	if c.Chain[c.LengthElements-1].NormalizedTime < n || c.Chain[0].NormalizedTime > n {
 		return nil, errors.New("Normalized time not in Chain range")
 	}
+	l, r, m := 0, c.LengthElements, 0
 
-	for n > c.Chain[index].NormalizedTime && index < c.LengthElements-jumpSize {
-		index += jumpSize
+	for l <= r {
+		m = l + (r-l)/2
+		if c.Chain[m].NormalizedTime == n {
+			return &c.Chain[m], nil
+		}
+
+		if c.Chain[m].NormalizedTime < n {
+			l = m + 1
+		} else {
+			r = m - 1
+		}
+
 	}
 
-	for c.Chain[index].NormalizedTime < n {
-		index++
-	}
-
-	for c.Chain[index].NormalizedTime > n {
-		index--
-	}
-
-	if c.Chain[index].NormalizedTime != n {
-		return nil, errors.New("Normalized time not found in chain")
-	}
-
-	return &c.Chain[index], nil
+	return nil, errors.New("Normalized time not found in chain")
 }
 
 // GetPositionalPointerNormalizedFloodPing Returns block by searching the chain for the NormalizedTime
@@ -568,28 +560,24 @@ func (c *ChainFloodPing) GetPositionalPointerNormalizedFloodPing(n int64) (*Bloc
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	c.LengthElements = len(c.Chain)
-	jumpSize := int(math.Floor(math.Sqrt(float64(c.LengthElements))))
-	index := jumpSize - 1
-
 	if c.Chain[c.LengthElements-1].NormalizedTime < n || c.Chain[0].NormalizedTime > n {
 		return nil, errors.New("Normalized time not in Chain range")
 	}
+	l, r, m := 0, c.LengthElements, 0
 
-	for n > c.Chain[index].NormalizedTime && index < c.LengthElements-jumpSize {
-		index += jumpSize
+	for l <= r {
+		m = l + (r-l)/2
+		if c.Chain[m].NormalizedTime == n {
+			return &c.Chain[m], nil
+		}
+
+		if c.Chain[m].NormalizedTime < n {
+			l = m + 1
+		} else {
+			r = m - 1
+		}
+
 	}
 
-	for c.Chain[index].NormalizedTime < n {
-		index++
-	}
-
-	for c.Chain[index].NormalizedTime > n {
-		index--
-	}
-
-	if c.Chain[index].NormalizedTime != n {
-		return nil, errors.New("Normalized time not found in chain")
-	}
-
-	return &c.Chain[index], nil
+	return nil, errors.New("Normalized time not found in chain")
 }
