@@ -5,7 +5,7 @@ environment.
 
 ### Docker
 
-1. Make sure [docker](https://www.docker.com/) is installed.
+1. Make sure [docker](https://www.docker.com/) is installed, and your user is in the docker group.
 2. Run `docker build -t bench-routes .`
 3. Run `docker run -p 9090:9090 -it bench-routes`
 
