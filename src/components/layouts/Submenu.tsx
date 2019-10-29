@@ -55,7 +55,7 @@ export default class Submenu extends React.Component<
           <div>
             <div>
               {/* IP / Domain */}
-              {this.props.module === 'benchmark' &&
+              {this.props.module === 'ping' &&
               this.props.submodule.length === 0 ? (
                 <div>
                   <select

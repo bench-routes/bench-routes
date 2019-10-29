@@ -5,7 +5,7 @@
   line-height: 160%;
   background-color: #f1f1f3;
   height: 100vh;
-  background-image: url("wall.png");
+  background-image: url('wall.png');
   background-position: bottom;
   background-repeat: no-repeat;
   display: flex;
@@ -28,7 +28,7 @@
   border-bottom: 1px solid #282c34;
 }
 
-.sidebar-bottom-links{
+.sidebar-bottom-links {
   bottom: 0;
   position: absolute;
 }
@@ -45,7 +45,7 @@ header {
 .logo-name {
   font-size: 20px;
   font-weight: 600;
-  font-family: "Open Sans";
+  font-family: 'Open Sans';
   padding: 10px 15px;
 }
 
@@ -93,6 +93,19 @@ header {
   right: 0px;
   background: white;
   animation: slideOut 0.8s forwards;
+}
+
+.benchmark-submenu {
+  padding-left: 20px;
+}
+
+.sidebar-submenu-inner {
+  display: inline-flex;
+  height: 20px;
+}
+
+.benchmarking {
+  cursor: pointer;
 }
 
 @keyframes slideIn {

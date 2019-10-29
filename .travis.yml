@@ -7,11 +7,11 @@ os:
 language: node_js
 
 node_js:
-- '8'
+  - '8'
 
 cache:
   directories:
-  - node_modules
+    - node_modules
 
 before_install:
   - npm install -g npm@latest
@@ -20,8 +20,8 @@ before_install:
   - npm install -g eslint electron electron-packager tslint prettier
 
 script:
-  - eslint .
-  - tslint .
+  - npm run lint
+  - npm run tlint
   - prettier '**/*.tsx' --list-different
   - npm run react-test
   - npm run react-build

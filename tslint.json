@@ -1,36 +1,36 @@
 {
-    "defaultSeverity": "error",
-    "extends": [
-        "tslint:recommended"
-    ],
-    "jsRules": {},
-    "rules": {
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended", "tslint-react"],
+  "jsRules": {},
+  "rules": {
     "arrow-parens": false,
     "adjacent-overload-signatures": true,
     "array-type": {
-        "options": ["array"]
+      "options": ["array"]
     },
     "ban-types": {
-        "options": [
-            ["Object", "Avoid using the `Object` type. Did you mean `object`?"],
-            [
-                "Function",
-                "Avoid using the `Function` type. Prefer a specific function type, like `() => void`."
-            ],
-            ["Boolean", "Avoid using the `Boolean` type. Did you mean `boolean`?"],
-            ["Number", "Avoid using the `Number` type. Did you mean `number`?"],
-            ["String", "Avoid using the `String` type. Did you mean `string`?"],
-            ["Symbol", "Avoid using the `Symbol` type. Did you mean `symbol`?"]
-        ]
+      "options": [
+        ["Object", "Avoid using the `Object` type. Did you mean `object`?"],
+        [
+          "Function",
+          "Avoid using the `Function` type. Prefer a specific function type, like `() => void`."
+        ],
+        ["Boolean", "Avoid using the `Boolean` type. Did you mean `boolean`?"],
+        ["Number", "Avoid using the `Number` type. Did you mean `number`?"],
+        ["String", "Avoid using the `String` type. Did you mean `string`?"],
+        ["Symbol", "Avoid using the `Symbol` type. Did you mean `symbol`?"]
+      ]
     },
     "callable-types": true,
     "class-name": true,
     "comment-format": {
-        "options": ["check-space"]
+      "options": ["check-space"]
     },
     "cyclomatic-complexity": true,
     "forin": true,
     "jsdoc-format": true,
+    "jsx-no-lambda": false,
+    "jsx-no-multiline-js": false,
     "label-position": true,
     "max-classes-per-file": { "options": 1 },
     "new-parens": true,
@@ -67,11 +67,17 @@
     "object-literal-shorthand": true,
     "one-variable-per-declaration": { "options": ["ignore-for-loop"] },
     "only-arrow-functions": {
-        "options": ["allow-declarations", "allow-named-functions"]
+      "options": ["allow-declarations", "allow-named-functions"]
     },
     "prefer-const": true,
     "prefer-for-of": true,
-    "quotemark": [true, "single", "jsx-double", "avoid-escape", "avoid-template"],
+    "quotemark": [
+      true,
+      "single",
+      "jsx-double",
+      "avoid-escape",
+      "avoid-template"
+    ],
     "radix": true,
     "triple-equals": { "options": ["allow-null-check"] },
     "typedef": false,
@@ -79,12 +85,17 @@
     "unified-signatures": true,
     "use-isnan": true,
     "variable-name": {
-        "options": ["allow-leading-underscore", "ban-keywords", "check-format", "allow-pascal-case"]
+      "options": [
+        "allow-leading-underscore",
+        "ban-keywords",
+        "check-format",
+        "allow-pascal-case"
+      ]
     },
     "interface-name": false,
     "member-access": true,
     "trailing-comma": false,
     "semicolon": [true, "always", "ignore-bound-class-methods"]
-    },
-    "rulesDirectory": []
+  },
+  "rulesDirectory": []
 }
