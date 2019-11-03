@@ -2,11 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/websocket"
-	"github.com/zairza-cetb/bench-routes/src/lib/filters"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 	"io"
 	"log"
 	"net/http"
@@ -14,6 +9,12 @@ import (
 	"os/user"
 	"strconv"
 	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/zairza-cetb/bench-routes/src/lib/filters"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
+	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 var (
@@ -174,9 +175,7 @@ func main() {
 			// ping
 			case "force-start-ping":
 				// true if success else false
-				// e := ws.WriteMessage(1, []byte(strconv.FormatBool(controllers.PingController("start"))))
-				e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerPingGeneral("start"))))
-				if e != nil {
+				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerPingGeneral("start")))); e != nil {
 					panic(e)
 				}
 			case "force-stop-ping":
@@ -187,37 +186,38 @@ func main() {
 
 				// flood-ping
 			case "force-start-flood-ping":
-				e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerFloodPingGeneral("start"))))
-				if e != nil {
+				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerFloodPingGeneral("start")))); e != nil {
 					panic(e)
 				}
 			case "force-stop-flood-ping":
-				e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerFloodPingGeneral("stop"))))
-				if e != nil {
+				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerFloodPingGeneral("stop")))); e != nil {
 					panic(e)
 				}
 
 				// jitter
 			case "force-start-jitter":
-				e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerJitterGeneral("start"))))
-				if e != nil {
+				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerJitterGeneral("start")))); e != nil {
 					panic(e)
 				}
 			case "force-stop-jitter":
-				e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerJitterGeneral("stop"))))
-				if e != nil {
+				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerJitterGeneral("stop")))); e != nil {
 					panic(e)
 				}
 
 				// request-response-monitoring
 			case "force-start-req-res-monitoring":
-				e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandleReqResGeneral("start"))))
-				if e != nil {
+				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandleReqResGeneral("start")))); e != nil {
 					panic(e)
 				}
 			case "force-stop-req-res-monitoring":
-				e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandleReqResGeneral("stop"))))
-				if e != nil {
+				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandleReqResGeneral("stop")))); e != nil {
+					panic(e)
+				}
+
+				// Get config routes details
+			case "route-details":
+				m := configuration.Config.Routes
+				if e := ws.WriteMessage(1, filters.RouteYAMLtoJSONParser(m)); e != nil {
 					panic(e)
 				}
 			}

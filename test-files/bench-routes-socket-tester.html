@@ -21,6 +21,9 @@
 	<br>
 	<button onclick="startReqResMonitoring()">Start Req-Res Monitoring</button>
 	<button onclick="stopReqResMonitoring()">Stop Req-Res Monitoring</button>
+	<br>
+	<br>
+	<button onclick="routeDetails()">Get route details</button>
 	<script>
 		let socket = new WebSocket("ws://localhost:9090/websocket")
 		console.warn('trying socket connection')
@@ -54,6 +57,9 @@
 		}
 		function stopJitter() {
 			socket.send("force-stop-jitter")
+		}
+		function routeDetails() {
+			socket.send("route-details")
 		}
 		const startReqResMonitoring = () => {
 			socket.send("force-start-req-res-monitoring")
