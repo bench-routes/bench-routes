@@ -4,6 +4,7 @@ import Submenu from '../layouts/Submenu';
 interface PingModulePropsTypes {}
 
 interface PingModuleStateTypes {
+  routes: object;
   sAddress: string;
 }
 
@@ -16,6 +17,7 @@ export default class PingModule extends React.Component<
 
     this.state = {
       // submenu address
+      routes: {},
       sAddress: ''
     };
   }

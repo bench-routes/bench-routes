@@ -6,11 +6,13 @@
     "@types/node": "^12.11.7",
     "@types/react": "^16.9.9",
     "@types/react-router-dom": "^5.1.0",
+    "@types/websocket": "^1.0.0",
     "electron": "^7.0.0-beta.7",
     "electron-is-dev": "^1.1.0",
     "electron-reload": "^1.5.0",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
+    "react-motion-ui-pack": "^0.10.3",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.2.0",
     "wait-on": "^3.3.0"

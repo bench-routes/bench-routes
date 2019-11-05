@@ -1,7 +1,7 @@
 import React from 'react';
+import Transition from 'react-motion-ui-pack';
 import { HashRouter as Router, Link } from 'react-router-dom';
 import './layouts.style.css';
-
 export default class Sidebar extends React.Component<{}> {
   public state = {
     showBenchmarkSubmenu: false
@@ -66,46 +66,60 @@ export default class Sidebar extends React.Component<{}> {
 
             <div className="benchmark-submenu">
               {this.state.showBenchmarkSubmenu ? (
-                <div>
-                  <Link to="/ping" style={{ textDecoration: 'none' }}>
-                    <div>
-                      <div className="sidebar-inner">
-                        <img
-                          src="assets/icons/ping-meter.svg"
-                          className="sidebar-submenu-inner"
-                          alt="Benchmarks"
-                        />
-                        <div className="sidebar-head sidebar-inner">Ping</div>
-                      </div>
-                    </div>
-                  </Link>
-                  <Link to="/floodping" style={{ textDecoration: 'none' }}>
-                    <div>
-                      <div className="sidebar-inner">
-                        {/* <img
+                <Transition
+                  component="div"
+                  measure={false}
+                  enter={{
+                    opacity: 1,
+                    scale: 1
+                  }}
+                  leave={{
+                    opacity: 0
+                  }}
+                >
+                  <div>
+                    <Link to="/ping" style={{ textDecoration: 'none' }}>
+                      <div>
+                        <div className="sidebar-inner">
+                          <img
                             src="assets/icons/ping-meter.svg"
                             className="sidebar-submenu-inner"
                             alt="Benchmarks"
-                        /> */}
-                        <div className="sidebar-head sidebar-inner">
-                          FloodPing
+                          />
+                          <div className="sidebar-head sidebar-inner">Ping</div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                  <Link to="/jitter" style={{ textDecoration: 'none' }}>
-                    <div>
-                      <div className="sidebar-inner">
-                        {/* <img
-                            src="assets/icons/bench-icon.svg"
-                            className="sidebar-submenu-inner"
-                            alt="Benchmarks"
-                        /> */}
-                        <div className="sidebar-head sidebar-inner">Jitter</div>
+                    </Link>
+                    <Link to="/floodping" style={{ textDecoration: 'none' }}>
+                      <div>
+                        <div className="sidebar-inner">
+                          {/* <img
+                              src="assets/icons/ping-meter.svg"
+                              className="sidebar-submenu-inner"
+                              alt="Benchmarks"
+                          /> */}
+                          <div className="sidebar-head sidebar-inner">
+                            FloodPing
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                </div>
+                    </Link>
+                    <Link to="/jitter" style={{ textDecoration: 'none' }}>
+                      <div>
+                        <div className="sidebar-inner">
+                          {/* <img
+                              src="assets/icons/bench-icon.svg"
+                              className="sidebar-submenu-inner"
+                              alt="Benchmarks"
+                          /> */}
+                          <div className="sidebar-head sidebar-inner">
+                            Jitter
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </Transition>
               ) : (
                 <div />
               )}
