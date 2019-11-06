@@ -36,10 +36,6 @@ export default class PingModule extends React.Component<
   };
 
   public initialiseChartProps = () => {
-    console.warn('reached here');
-    // this.state.chart.xAxisValues = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
-    // this.state.chart.yAxisValues = [65, 59, 80, 81, 56, 55, 40];
-    // this.state.chart.label = 'Ping time series performance';
     const chartOpts: BRChartOpts[] = [
       {
         backgroundColor: 'rgba(75,192,192,0.4)',
