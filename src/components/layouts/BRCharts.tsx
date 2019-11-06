@@ -93,7 +93,6 @@ export class BRCharts extends React.Component<BRChartProps, BRChartState> {
   }
 
   private formatProps = (inst: BRChartOpts[]) => {
-    const inFormatOpts: BRChartOptionsFormated[] = [];
     const data: Datasets[] = [];
     for (const i of inst) {
       const tmp: Datasets = {
