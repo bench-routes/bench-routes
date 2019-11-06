@@ -31,14 +31,6 @@ var (
 	GlobalResponseStatusCode []*Chain
 )
 
-// PingTSDB type for PingTSDB
-// type PingTSDB struct {
-// 	URL   string
-// 	Hash  string
-// 	Path  string
-// 	Chain ChainPing
-// }
-
 // FloodPingTSDB type for PingTSDB
 type FloodPingTSDB struct {
 	URL   string

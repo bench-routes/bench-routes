@@ -220,6 +220,14 @@ func main() {
 				if e := ws.WriteMessage(1, filters.RouteYAMLtoJSONParser(m)); e != nil {
 					panic(e)
 				}
+
+				// Queries
+			case "Qping-route":
+				if _, b, err := ws.ReadMessage(); err != nil {
+					url := string(b)
+					ql := getQuerier(ws, "ping", url, "")
+					go ql.FetchAllSeries()
+				}
 			}
 		}
 	})
@@ -255,4 +263,14 @@ func setupLogger() {
 	log.SetOutput(writer)
 	log.SetPrefix("LOG: ")
 	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
+}
+
+func getQuerier(conn *websocket.Conn, serviceName, d, suff string) (inst tsdb.BRQuerier) {
+	inst = tsdb.BRQuerier{
+		ServiceName: serviceName,
+		DomainIP:    d,
+		Suffix:      suff,
+		Connection:  conn,
+	}
+	return
 }
