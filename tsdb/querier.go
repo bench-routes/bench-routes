@@ -8,8 +8,8 @@ import (
 
 const (
 	directory = "storage/"
-	prefix = "chunk_"
-	format = ".json"
+	prefix    = "chunk_"
+	format    = ".json"
 )
 
 // BRQuerier is a querier for querying over the time-series stored in the tsdb
