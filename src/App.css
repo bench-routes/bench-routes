@@ -34,3 +34,12 @@ body {
 .notification-close {
   cursor: pointer;
 }
+
+canvas {
+  height: 100% !important;
+}
+
+.canvas-chart-wrapper {
+  width: 90%;
+  overflow-x: scroll;
+}
