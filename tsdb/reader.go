@@ -1,6 +1,8 @@
 package tsdb
 
 import (
+	"errors"
+	"io/ioutil"
 	"sync"
 )
 
@@ -16,10 +18,11 @@ func (r *Reader) open(service, path string) (string, error) {
 	r.mux.RLock()
 	defer r.mux.RUnlock()
 
-	b, err := parse(path)
+	res, err := ioutil.ReadFile(path)
 	if err != nil {
-		return "", err
+		return "", errors.New("db not existing at the specified path: " + path)
 	}
+	str := string(res)
 
-	return *b, nil
+	return str, nil
 }

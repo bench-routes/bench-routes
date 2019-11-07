@@ -1,13 +1,13 @@
 package tsdb
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"sync"
 )
 
 const (
+	directory = "storage/"
 	prefix = "chunk_"
 	format = ".json"
 )
@@ -47,8 +47,6 @@ func (bq *BRQuerier) FetchAllSeries() {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("series fetched as below")
-		fmt.Println(series)
 		if err := bq.Connection.WriteMessage(1, []byte(series)); err != nil {
 			panic(err)
 		}
@@ -59,13 +57,13 @@ func (bq *BRQuerier) FetchAllSeries() {
 func (bq *BRQuerier) fetchTSStorageAddress() (address string) {
 	switch bq.ServiceName {
 	case "ping":
-		address = prefix + bq.ServiceName + *filters.HTTPPingFilter(&bq.DomainIP) + format
+		address = directory + "ping/" + prefix + bq.ServiceName + "_" + *filters.HTTPPingFilter(&bq.DomainIP) + format
 	case "jitter":
-		address = prefix + bq.ServiceName + *filters.HTTPPingFilter(&bq.DomainIP) + format
+		address = directory + "jitter/" + prefix + bq.ServiceName + "_" + *filters.HTTPPingFilter(&bq.DomainIP) + format
 	case "flood-ping":
-		address = prefix + "flood_ping_" + *filters.HTTPPingFilter(&bq.DomainIP) + format
+		address = directory + "flood-ping/" + prefix + "flood_ping_" + *filters.HTTPPingFilter(&bq.DomainIP) + format
 	case "req-res-delay":
-		address = prefix + "req_res_" + filters.RouteDestroyer(bq.DomainIP) + format
+		address = directory + "req-res-delay-monitoring/" + prefix + "req_res_" + filters.RouteDestroyer(bq.DomainIP) + format
 	}
 	return
 }

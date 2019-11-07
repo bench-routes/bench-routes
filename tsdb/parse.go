@@ -90,7 +90,7 @@ func (p Parser) ParseToJSON(a []Block) (j []byte) {
 		b = append(b, t)
 	}
 
-	j, e := json.MarshalIndent(b, "", "\t")
+	j, e := json.Marshal(b)
 	if e != nil {
 		panic(e)
 	}
@@ -108,7 +108,7 @@ func (p Parser) ParseToJSONPing(a []BlockPing) (j []byte) {
 		}
 		b = append(b, t)
 	}
-	j, e := json.MarshalIndent(b, "", "\t")
+	j, e := json.Marshal(b)
 	if e != nil {
 		panic(e)
 	}
@@ -126,7 +126,7 @@ func (p Parser) ParseToJSONFloodPing(a []BlockFloodPing) (j []byte) {
 		}
 		b = append(b, t)
 	}
-	j, e := json.MarshalIndent(b, "", "\t")
+	j, e := json.Marshal(b)
 	if e != nil {
 		panic(e)
 	}

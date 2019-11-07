@@ -24,6 +24,9 @@
 	<br>
 	<br>
 	<button onclick="routeDetails()">Get route details</button>
+	<br>
+	<br>
+	<button onclick="Qping()">Query-Ping-Route</button>
 	<script>
 		let socket = new WebSocket("ws://localhost:9090/websocket")
 		console.warn('trying socket connection')
@@ -60,6 +63,12 @@
 		}
 		function routeDetails() {
 			socket.send("route-details")
+		}
+		function Qping() {
+			let url = {
+				url: "google.co.in"
+			};
+			socket.send("Qping-route " + JSON.stringify(url));
 		}
 		const startReqResMonitoring = () => {
 			socket.send("force-start-req-res-monitoring")
