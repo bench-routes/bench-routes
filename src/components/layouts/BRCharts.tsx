@@ -72,8 +72,6 @@ interface BRChartState {
 export class BRCharts extends React.Component<BRChartProps, BRChartState> {
   constructor(props: BRChartProps) {
     super(props);
-    console.log('props is');
-    console.log(this.props.opts);
     this.state = {
       chartJSOpts: null,
       wrapperClassName: 'canvas-chart-wrapper'
