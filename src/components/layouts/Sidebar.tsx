@@ -68,7 +68,6 @@ export default class Sidebar extends React.Component<{}> {
               {this.state.showBenchmarkSubmenu ? (
                 <Transition
                   component="div"
-                  measure={false}
                   enter={{
                     opacity: 1,
                     scale: 1
@@ -77,7 +76,8 @@ export default class Sidebar extends React.Component<{}> {
                     opacity: 0
                   }}
                 >
-                  <div>
+                  {/* Each transition child element should have a unique key */}
+                  <div key="compulsory_transition_key">
                     <Link to="/ping" style={{ textDecoration: 'none' }}>
                       <div>
                         <div className="sidebar-inner">
