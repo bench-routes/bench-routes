@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"os/user"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -160,6 +162,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("error using upgrader %s\n", err)
 		}
+
 		// capture client request for enabling series of responses unless its killed
 		for {
 			messageType, message, err := ws.ReadMessage()
@@ -167,11 +170,21 @@ func main() {
 				log.Printf("connection to client lost.\n%s\n", err)
 				return
 			}
-			messageStr := string(message)
-			log.Printf("type: %d\n message: %s \n", messageType, messageStr)
+
+			// In order to support compound signals, we aim to format the messages as:
+			// <signal-name> <[optional] data>
+			// The first param refers to the signal for the operation to be carried out.
+			// The second param [optional] is a JSON object (stringified) which would be used for
+			// general communication with the UI.
+			// For example: > Qping-route {"url": "https://www.google.co.in"}		(compound signal)
+			// 				> force-start-ping										(simple signal)
+			inStream := strings.Split(string(message), " ")
+
+			sig := inStream[0] // Signal
+			log.Printf("type: %d\n message: %s \n", messageType, sig)
 
 			// generate appropriate signals from incoming messages
-			switch messageStr {
+			switch sig {
 			// ping
 			case "force-start-ping":
 				// true if success else false
@@ -220,6 +233,19 @@ func main() {
 				if e := ws.WriteMessage(1, filters.RouteYAMLtoJSONParser(m)); e != nil {
 					panic(e)
 				}
+
+				// Queries
+			case "Qping-route":
+				compMessage := getMessageFromCompoundSignal(inStream[1:])
+				inst := qPingRoute{}
+				e := json.Unmarshal(compMessage, &inst)
+				if e != nil {
+					panic(e)
+				}
+
+				url := inst.URL
+				ql := getQuerier(ws, "ping", url, "")
+				go ql.FetchAllSeries()
 			}
 		}
 	})
@@ -255,4 +281,18 @@ func setupLogger() {
 	log.SetOutput(writer)
 	log.SetPrefix("LOG: ")
 	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
+}
+
+func getQuerier(conn *websocket.Conn, serviceName, d, suff string) (inst tsdb.BRQuerier) {
+	inst = tsdb.BRQuerier{
+		ServiceName: serviceName,
+		DomainIP:    d,
+		Suffix:      suff,
+		Connection:  conn,
+	}
+	return
+}
+
+func getMessageFromCompoundSignal(arg []string) []byte {
+	return []byte(strings.Join(arg, " "))
 }

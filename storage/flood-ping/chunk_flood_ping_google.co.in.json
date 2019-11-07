@@ -1,13 +1,1 @@
-[
-	{
-		"datapoint": {
-			"Min": 88.312,
-			"Mean": 1061.238,
-			"Max": 3388.1,
-			"MDev": 1314.709,
-			"PacketLoss": 34.27
-		},
-		"normalizedTime": 0,
-		"timestamp": "2019-10-11T18:54:51.680315118+05:30"
-	}
-]
+[{"datapoint":{"Min":88.312,"Mean":1061.238,"Max":3388.1,"MDev":1314.709,"PacketLoss":34.27},"normalizedTime":0,"timestamp":"2019-10-11T18:54:51.680315118+05:30"}]
