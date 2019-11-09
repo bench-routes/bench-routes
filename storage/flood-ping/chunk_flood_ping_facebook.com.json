@@ -1,1 +1,1 @@
-[{"datapoint":{"Min":69.06,"Mean":1050.06,"Max":3318.126,"MDev":1316.015,"PacketLoss":34.42},"normalizedTime":0,"timestamp":"2019-10-11T18:54:52.156816817+05:30"}]
+[{"datapoint":{"Min":63.01,"Mean":2779.259,"Max":10356.162,"MDev":2381.486,"PacketLoss":2.96},"normalizedTime":0,"timestamp":"2019-11-09T23:31:41.499613086+05:30"},{"datapoint":{"Min":59.995,"Mean":2428.672,"Max":9857.731,"MDev":2771.56,"PacketLoss":2.8},"normalizedTime":1,"timestamp":"2019-11-09T23:35:02.367573802+05:30"}]
