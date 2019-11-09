@@ -50,6 +50,15 @@ func (bq *BRQuerier) FetchAllSeries() {
 		if err := bq.Connection.WriteMessage(1, []byte(series)); err != nil {
 			panic(err)
 		}
+	case "flood-ping":
+		series, err := bq.reader.open(bq.ServiceName, bq.fetchTSStorageAddress())
+		if err != nil {
+			panic(err)
+		}
+		if err := bq.Connection.WriteMessage(1, []byte(series)); err != nil {
+			panic(err)
+		}
+
 	}
 }
 
