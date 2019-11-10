@@ -1,9 +1,10 @@
 package tsdb
 
 import (
+	"sync"
+
 	"github.com/gorilla/websocket"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
-	"sync"
 )
 
 const (
@@ -66,7 +67,14 @@ func (bq *BRQuerier) FetchAllSeries() {
 		if err := bq.Connection.WriteMessage(1, []byte(series)); err != nil {
 			panic(err)
 		}
-
+	case "req-res-delay":
+		series, err := bq.reader.open(bq.ServiceName, bq.fetchTSStorageAddress())
+		if err != nil {
+			panic(err)
+		}
+		if err := bq.Connection.WriteMessage(1, []byte(series)); err != nil {
+			panic(err)
+		}
 	}
 }
 

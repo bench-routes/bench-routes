@@ -270,6 +270,22 @@ func main() {
 				url := inst.URL
 				ql := getQuerier(ws, "flood-ping", url, "")
 				go ql.FetchAllSeries()
+
+			// Querrier signal for Request-response delay
+			case "Qrequest-response-delay":
+				compMessage := getMessageFromCompoundSignal(inStream[1:])
+				inst := qReqResDelayRoute{}
+				e := json.Unmarshal(compMessage, &inst)
+				if e != nil {
+					panic(e)
+				}
+
+				url := inst.URL
+				// method := inst.Method
+				// Gets the Querrier for request-response delay
+				// TODO: Send the method along with URL
+				ql := getQuerier(ws, "req-res-delay", url, "")
+				go ql.FetchAllSeries()
 			}
 		}
 	})
