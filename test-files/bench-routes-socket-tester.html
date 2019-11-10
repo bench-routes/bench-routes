@@ -27,6 +27,9 @@
 	<br>
 	<br>
 	<button onclick="Qping()">Query-Ping-Route</button>
+	<br>
+	<br>
+	<button onclick="Qjitter()">Query-Jitter-Route</button>
 	<script>
 		let socket = new WebSocket("ws://localhost:9090/websocket")
 		console.warn('trying socket connection')
@@ -69,6 +72,12 @@
 				url: "google.co.in"
 			};
 			socket.send("Qping-route " + JSON.stringify(url));
+		}
+		function Qjitter() {
+			let url = {
+				url: "google.co.in"
+			};
+			socket.send("Qjitter-route " + JSON.stringify(url));
 		}
 		const startReqResMonitoring = () => {
 			socket.send("force-start-req-res-monitoring")

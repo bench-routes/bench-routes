@@ -10,6 +10,10 @@ type qPingRoute struct {
 	URL string `json:"url"`
 }
 
+type qJitterRoute struct {
+	URL string `json:"url"`
+}
+
 // HandlerPingGeneral handles the ping route
 func HandlerPingGeneral(signal string) bool {
 
