@@ -258,6 +258,18 @@ func main() {
 				url := inst.URL
 				ql := getQuerier(ws, "jitter", url, "")
 				go ql.FetchAllSeries()
+
+			case "Qflood-ping-route":
+				compMessage := getMessageFromCompoundSignal(inStream[1:])
+				inst := qFloodPingRoute{}
+				e := json.Unmarshal(compMessage, &inst)
+				if e != nil {
+					panic(e)
+				}
+
+				url := inst.URL
+				ql := getQuerier(ws, "flood-ping", url, "")
+				go ql.FetchAllSeries()
 			}
 		}
 	})

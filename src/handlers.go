@@ -10,6 +10,10 @@ type qPingRoute struct {
 	URL string `json:"url"`
 }
 
+type qFloodPingRoute struct {
+	URL string `json:"url"`
+}
+
 type qJitterRoute struct {
 	URL string `json:"url"`
 }

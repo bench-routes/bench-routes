@@ -29,6 +29,9 @@
 	<button onclick="Qping()">Query-Ping-Route</button>
 	<br>
 	<br>
+	<button onclick="QFloodPing()">Query-Flood-Ping-Route</button>
+	<br>
+	<br>
 	<button onclick="Qjitter()">Query-Jitter-Route</button>
 	<script>
 		let socket = new WebSocket("ws://localhost:9090/websocket")
@@ -72,6 +75,12 @@
 				url: "google.co.in"
 			};
 			socket.send("Qping-route " + JSON.stringify(url));
+		}
+		function QFloodPing() {
+			let url = {
+				url: "google.co.in"
+			};
+			socket.send("Qflood-ping-route " + JSON.stringify(url));
 		}
 		function Qjitter() {
 			let url = {
