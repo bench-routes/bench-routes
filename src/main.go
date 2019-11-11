@@ -244,7 +244,7 @@ func main() {
 				}
 
 				url := inst.URL
-				ql := getQuerier(ws, "ping", url, "")
+				ql := getQuerier(ws, "ping", url, "", "")
 				go ql.FetchAllSeries()
 
 			case "Qjitter-route":
@@ -256,7 +256,7 @@ func main() {
 				}
 
 				url := inst.URL
-				ql := getQuerier(ws, "jitter", url, "")
+				ql := getQuerier(ws, "jitter", url, "", "")
 				go ql.FetchAllSeries()
 
 			case "Qflood-ping-route":
@@ -268,7 +268,7 @@ func main() {
 				}
 
 				url := inst.URL
-				ql := getQuerier(ws, "flood-ping", url, "")
+				ql := getQuerier(ws, "flood-ping", url, "", "")
 				go ql.FetchAllSeries()
 
 			// Querrier signal for Request-response delay
@@ -281,10 +281,10 @@ func main() {
 				}
 
 				url := inst.URL
-				// method := inst.Method
+				method := inst.Method
 				// Gets the Querrier for request-response delay
 				// TODO: Send the method along with URL
-				ql := getQuerier(ws, "req-res-delay", url, "")
+				ql := getQuerier(ws, "req-res-delay", url, method, "_delay")
 				go ql.FetchAllSeries()
 			}
 		}
@@ -323,10 +323,10 @@ func setupLogger() {
 	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
 }
 
-func getQuerier(conn *websocket.Conn, serviceName, d, suff string) (inst tsdb.BRQuerier) {
+func getQuerier(conn *websocket.Conn, serviceName, d, method, suff string) (inst tsdb.BRQuerier) {
 	inst = tsdb.BRQuerier{
 		ServiceName: serviceName,
-		DomainIP:    d,
+		Route:       tsdb.BQRoute{DomainIP: d, Method: method},
 		Suffix:      suff,
 		Connection:  conn,
 	}
