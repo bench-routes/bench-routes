@@ -182,7 +182,7 @@ func main() {
 
 			sig := inStream[0] // Signal
 			log.Printf("type: %d\n message: %s \n", messageType, sig)
-
+			fmt.Println("asdfa:::", sig)
 			// generate appropriate signals from incoming messages
 			switch sig {
 			// ping
@@ -284,7 +284,9 @@ func main() {
 				method := inst.Method
 				// Gets the Querrier for request-response delay
 				// TODO: Send the method along with URL
+				fmt.Println("Reached1")
 				ql := getQuerier(ws, "req-res-delay", url, method, "_delay")
+				fmt.Println("Reached")
 				go ql.FetchAllSeries()
 			}
 		}

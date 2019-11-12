@@ -93,10 +93,10 @@
 		}
 		const Qreqresdelay = () => {
 			let route = {
-				url: "google.co.in",
+				url: "https://www.google.co.in",
 				method: "GET"
 			};
-			socket.send("Qrequest-response-delay"+ JSON.stringify(route))
+			socket.send("Qrequest-response-delay "+ JSON.stringify(route))
 		}
 		const startReqResMonitoring = () => {
 			socket.send("force-start-req-res-monitoring")

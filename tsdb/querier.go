@@ -95,7 +95,7 @@ func (bq *BRQuerier) fetchTSStorageAddress() (address string) {
 	case "flood-ping":
 		address = directory + "flood-ping/" + prefix + "flood_ping_" + *filters.HTTPPingFilter(&bq.Route.DomainIP) + format
 	case "req-res-delay":
-		address = directory + "req-res-delay-monitoring/" + prefix + "req_res_" + filters.RouteDestroyer(bq.Route.DomainIP) + format
+		address = directory + "req-res-delay-monitoring/" + prefix + "req_res_" + filters.RouteDestroyer(bq.Route.DomainIP) + "_delay" + format
 	}
 	return
 }
