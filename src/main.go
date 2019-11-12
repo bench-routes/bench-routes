@@ -44,6 +44,9 @@ func init() {
 
 	var ConfigURLs []string
 
+	//function to initialize the service state before starting
+	initializeState(&configuration)
+
 	// Load and build TSDB chain
 	// searching for unique URLs
 	for _, r := range configuration.Config.Routes {
@@ -319,4 +322,17 @@ func getQuerier(conn *websocket.Conn, serviceName, d, suff string) (inst tsdb.BR
 
 func getMessageFromCompoundSignal(arg []string) []byte {
 	return []byte(strings.Join(arg, " "))
+}
+
+//initializing all the service states to passives
+func initializeState(configuration *parser.YAMLBenchRoutesType) {
+	configuration.Config.UtilsConf.ServicesSignal.Ping = "passive"
+	configuration.Config.UtilsConf.ServicesSignal.Jitter = "passive"
+	configuration.Config.UtilsConf.ServicesSignal.FloodPing = "passive"
+	configuration.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "passive"
+	_, e := configuration.Write()
+	if e != nil {
+		panic(e)
+	}
+
 }
