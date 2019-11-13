@@ -33,6 +33,9 @@
 	<br>
 	<br>
 	<button onclick="Qjitter()">Query-Jitter-Route</button>
+	<br>
+	<br>
+	<button onclick="Qreqresdelay()">Query-Request-Response-Delay</button>
 	<script>
 		let socket = new WebSocket("ws://localhost:9090/websocket")
 		console.warn('trying socket connection')
@@ -87,6 +90,13 @@
 				url: "google.co.in"
 			};
 			socket.send("Qjitter-route " + JSON.stringify(url));
+		}
+		const Qreqresdelay = () => {
+			let route = {
+				url: "https://www.google.co.in",
+				method: "GET"
+			};
+			socket.send("Qrequest-response-delay "+ JSON.stringify(route))
 		}
 		const startReqResMonitoring = () => {
 			socket.send("force-start-req-res-monitoring")
