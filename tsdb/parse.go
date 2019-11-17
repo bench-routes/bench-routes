@@ -27,6 +27,35 @@ func loadFromStorage(raw *string) *[]BlockJSON {
 	return &inst
 }
 
+func formLinkedChainFromRawBlock(a *[]BlockJSON) *[]Block {
+	r := *a
+	l := len(r)
+	arr := []Block{}
+	for i := 0; i < l; i++ {
+		inst := Block{
+			Timestamp:      r[i].Timestamp,
+			NormalizedTime: r[i].NormalizedTime,
+			Datapoint:      r[i].Datapoint,
+		}
+		arr = append(arr, inst)
+	}
+
+	// form doubly linked list
+	for i := 0; i < l; i++ {
+		if i == 0 {
+			arr[i].PrevBlock = nil
+		} else {
+			arr[i].PrevBlock = &arr[i-1]
+		}
+		if i == l-1 {
+			arr[i].NextBlock = nil
+		} else {
+			arr[i].NextBlock = &arr[i+1]
+		}
+	}
+	return &arr
+}
+
 func loadFromStoragePing(raw *string) *[]BlockPingJSON {
 	inst := []BlockPingJSON{}
 	b := []byte(*raw)
