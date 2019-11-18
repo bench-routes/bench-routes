@@ -2,21 +2,14 @@ package ping
 
 import (
 	"sync"
-	"time"
-
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 	"log"
 )
 
-// const (
-// 	// PathFloodPing stores the default address of storage directory of flood ping data
-// 	PathFloodPing = "storage/flood-ping"
-// )
-
 // HandleFloodPing is the main handler for flood ping operations
-func HandleFloodPing(globalChain []*tsdb.ChainFloodPing, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool, password string) {
+func HandleFloodPing(globalChain []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool, password string) {
 
 	tsdbNameHash = utils.PathFloodPing + "/" + "chunk_flood_ping_" + tsdbNameHash + ".json"
 	resp, err := utils.CLIFloodPing(urlRaw, packets, password)
@@ -26,13 +19,13 @@ func HandleFloodPing(globalChain []*tsdb.ChainFloodPing, urlRaw string, packets 
 		return
 	}
 	result := *scrap.CLIFLoodPingScrap(resp)
-	newBlock := createNewBlockFloodPing(result)
+	block := *tsdb.GetNewBlock("flood-ping", getNormalizedBlockStringFlood(result))
 	urlExists := false
 	for index := range globalChain {
 		if globalChain[index].Path == tsdbNameHash {
 			urlExists = true
-			globalChain[index] = globalChain[index].AppendFloodPing(newBlock)
-			globalChain[index].SaveFloodPing()
+			globalChain[index] = globalChain[index].Append(block)
+			globalChain[index].Save()
 			break
 		}
 	}
@@ -42,15 +35,7 @@ func HandleFloodPing(globalChain []*tsdb.ChainFloodPing, urlRaw string, packets 
 	wg.Done()
 }
 
-func createNewBlockFloodPing(val utils.TypeFloodPingScrap) tsdb.BlockFloodPing {
-	return tsdb.BlockFloodPing{
-		Timestamp: time.Now(),
-		Datapoint: tsdb.FloodPingType{
-			Min:        val.Min,
-			Mean:       val.Avg,
-			Max:        val.Max,
-			MDev:       val.Mdev,
-			PacketLoss: val.PacketLoss,
-		},
-	}
+func getNormalizedBlockStringFlood(v utils.TypeFloodPingScrap) string {
+	return fToS(v.Min) + tsdb.BlockDataSeparator + fToS(v.Avg) + tsdb.BlockDataSeparator +
+		fToS(v.Max) + tsdb.BlockDataSeparator + fToS(v.Mdev) + tsdb.BlockDataSeparator + fToS(v.PacketLoss)
 }
