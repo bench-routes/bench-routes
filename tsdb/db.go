@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 	"sync"
-	"time"
 	"unsafe"
 )
 
@@ -16,11 +15,11 @@ var (
 	FloodPingDBNames = make(map[string]string)
 	// GlobalPingChain contains chains of all the pings operating in bench-routes which has to be globally accessed
 	// This is necessary as it helps to retain the parent values which are required for concurreny
-	GlobalPingChain []*ChainPing
+	GlobalPingChain []*Chain
 
 	// GlobalFloodPingChain contains chains of flood ping operations in bench-routes which has to be globally accessed
 	// This is necessary as it helps to retain the parent values which are required for concurreny
-	GlobalFloodPingChain []*ChainFloodPing
+	GlobalFloodPingChain []*Chain
 	//GlobalChain asdfafds
 	GlobalChain []*Chain
 	// GlobalResponseLength contains length of all the responses from a route
@@ -44,12 +43,24 @@ type Block struct {
 	Timestamp      string
 }
 
+// Decode decodes the structure and marshals into a string
+func (b Block) Decode() interface{} {
+	t := b.Type
+
+	log.Printf("decoding block type %s normalized as %s\n", t, b.NormalizedTime)
+	switch(t) {
+	case "req-res":
+		
+	}
+	return ""
+}
+
 // BlockJSON helps refer Block as JSON
 type BlockJSON struct {
-	Datapoint      float32   `json:"datapoint"`
+	Datapoint      string   `json:"datapoint"`
 	NormalizedTime int64     `json:"normalizedTime"`
-	Timestamp      time.Time `json:"timestamp"`
 	Type           string    `json:"type"`
+	Timestamp      string `json:"timestamp"`
 }
 
 // Chain contains Blocks arranged as a chain
@@ -91,10 +102,21 @@ type TSDB interface {
 	Save() bool
 }
 
+// GetNewBlock creates and returns a new block with the specified type.
+func GetNewBlock(blockType string) Block {
+	return Block{
+		Timestamp: GetTimeStamp(),
+		NormalizedTime: GetNormalizedTime(),
+		Datapoint: "",
+		Type: blockType,
+	}
+}
+
 // Init initialize Chain properties
 func (c *Chain) Init() *Chain {
 	c.mux.Lock()
 	defer c.mux.Unlock()
+
 	res, e := parse(c.Path)
 	if e != nil {
 		log.Printf("chain not found at %s. creating one ...", c.Path)
@@ -113,21 +135,20 @@ func (c *Chain) Init() *Chain {
 
 // Append function appends the new block in the chain
 func (c *Chain) Append(b Block) *Chain {
-
 	c.mux.Lock()
 	defer c.mux.Unlock()
+
 	c.Chain = append(c.Chain, b)
 	c.Size = unsafe.Sizeof(c)
 	c.LengthElements = len(c.Chain)
-	l := c.LengthElements
 	return c
-
 }
 
 // PopPreviousNBlocks pops last n elements from chain.
 func (c *Chain) PopPreviousNBlocks(n int) (*Chain, error) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
+
 	c.LengthElements = len(c.Chain)
 	l := c.LengthElements
 	c.Chain = c.Chain[:len(c.Chain)-n]
@@ -141,6 +162,7 @@ func (c *Chain) PopPreviousNBlocks(n int) (*Chain, error) {
 func (c *Chain) Save() bool {
 	c.mux.Lock()
 	defer c.mux.Unlock()
+
 	log.Printf("writing chain of length %d", len(c.Chain))
 	bytes := parser.ParseToJSON(c.Chain)
 	e := saveToHDD(c.Path, bytes)
@@ -154,6 +176,7 @@ func (c *Chain) Save() bool {
 func (c *Chain) GetPositionalPointerNormalized(n int64) (*Block, error) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
+
 	c.LengthElements = len(c.Chain)
 	if c.Chain[c.LengthElements-1].NormalizedTime < n || c.Chain[0].NormalizedTime > n {
 		return nil, errors.New("Normalized time not in Chain range")

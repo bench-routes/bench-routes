@@ -18,6 +18,15 @@ const (
 	PathReqResDelay = "storage/req-res-delay-monitoring"
 )
 
+// Response struct
+// This is the object that we return from resp_delay module
+// Contains delay in response and the response length
+type Response struct {
+	Delay         int
+	ResLength     int64
+	ResStatusCode int
+}
+
 // HandleResponseDelayForRoute is the initial entrypoint function for this module which takes
 // in a Route struct and supplies it to a function in turn to handle it accordingly. We create
 // channels to run tests for each route in parallel, speeding up the process
@@ -27,7 +36,7 @@ func HandleResponseDelayForRoute(responseChains [][]*tsdb.Chain, route parser.Ro
 	pathDelay := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + "_delay.json"
 	pathLength := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + "_length.json"
 	pathStatusCode := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + "_status.json"
-	c := make(chan utils.Response)
+	c := make(chan Response)
 	go RouteDispatcher(route, c)
 	responseObject := <-c
 	// Store the respective attributes of the
@@ -37,12 +46,14 @@ func HandleResponseDelayForRoute(responseChains [][]*tsdb.Chain, route parser.Ro
 	// Create response delay block to be
 	// saved inside TSDB
 	blockDelay := tsdb.Block{
-		NextBlock:      nil,
-		PrevBlock:      nil,
-		Datapoint:      float32(responseObject.Delay),
+		Datapoint:      responseObject.Delay,
 		Timestamp:      time.Now(),
 		NormalizedTime: 0,
 	}
+
+	block := tsdb.GetNewBlock("req-res")
+	block.Datapoint = 
+
 	for index := range responseChains[0] {
 		if responseChains[0][index].Path == pathDelay {
 			responseChains[0][index] = responseChains[0][index].Append(blockDelay)
@@ -89,7 +100,7 @@ func HandleResponseDelayForRoute(responseChains [][]*tsdb.Chain, route parser.Ro
 }
 
 // RouteDispatcher dispatches a route to respective handlers based on it's request type
-func RouteDispatcher(route parser.Routes, c chan utils.Response) {
+func RouteDispatcher(route parser.Routes, c chan Response) {
 	if route.Method == "GET" {
 		res := HandleGetRequest(route.URL)
 		c <- res
@@ -102,7 +113,7 @@ func RouteDispatcher(route parser.Routes, c chan utils.Response) {
 
 // HandleGetRequest specifically handles routes with GET Requests. Calculates timestamp before
 // and after processing of each request and returns the difference
-func HandleGetRequest(url string) utils.Response {
+func HandleGetRequest(url string) Response {
 	// Time init
 	start := time.Now().UnixNano()
 	resp := utils.SendGETRequest(url)
@@ -114,4 +125,8 @@ func HandleGetRequest(url string) utils.Response {
 	diff := int((end - start) / int64(time.Millisecond))
 
 	return utils.Response{Delay: diff, ResLength: resLength, ResStatusCode: respStatusCode}
+}
+
+func normalizedBlockString(b Response) string {
+	return 
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"time"
 	"strings"
 )
 
@@ -15,87 +16,6 @@ func parse(path string) (*string, error) {
 	}
 	str := string(res)
 	return &str, nil
-}
-
-func loadFromStorage(raw *string) *[]BlockJSON {
-	inst := []BlockJSON{}
-	b := []byte(*raw)
-	e := json.Unmarshal(b, &inst)
-	if e != nil {
-		panic(e)
-	}
-	return &inst
-}
-
-func formLinkedChainFromRawBlock(a *[]BlockJSON) *[]Block {
-	r := *a
-	l := len(r)
-	arr := []Block{}
-	for i := 0; i < l; i++ {
-		inst := Block{
-			Timestamp:      r[i].Timestamp,
-			NormalizedTime: r[i].NormalizedTime,
-			Datapoint:      r[i].Datapoint,
-		}
-		arr = append(arr, inst)
-	}
-
-	// form doubly linked list
-	for i := 0; i < l; i++ {
-		if i == 0 {
-			arr[i].PrevBlock = nil
-		} else {
-			arr[i].PrevBlock = &arr[i-1]
-		}
-		if i == l-1 {
-			arr[i].NextBlock = nil
-		} else {
-			arr[i].NextBlock = &arr[i+1]
-		}
-	}
-	return &arr
-}
-
-func loadFromStoragePing(raw *string) *[]BlockPingJSON {
-	inst := []BlockPingJSON{}
-	b := []byte(*raw)
-	e := json.Unmarshal(b, &inst)
-	if e != nil {
-		panic(e)
-	}
-	return &inst
-}
-
-func loadFromStorageFloodPing(raw *string) *[]BlockFloodPingJSON {
-	inst := []BlockFloodPingJSON{}
-	b := []byte(*raw)
-	e := json.Unmarshal(b, &inst)
-	if e != nil {
-		panic(e)
-	}
-	return &inst
-}
-
-func checkAndCreatePath(path string) {
-	array := strings.Split(path, "/")
-	array = array[:len(array)-1]
-	path = strings.Join(array, "/")
-	_, err := os.Stat(path)
-	if err != nil {
-		e := os.MkdirAll(path, os.ModePerm)
-		if e != nil {
-			panic(e)
-		}
-	}
-}
-
-func saveToHDD(path string, data []byte) error {
-	checkAndCreatePath(path)
-	e := ioutil.WriteFile(path, data, 0755)
-	if e != nil {
-		return e
-	}
-	return nil
 }
 
 // Parser type for accessing parsing functions
@@ -126,38 +46,71 @@ func (p Parser) ParseToJSON(a []Block) (j []byte) {
 	return
 }
 
-// ParseToJSONPing converts the ping chain into Marshallable JSON
-func (p Parser) ParseToJSONPing(a []BlockPing) (j []byte) {
-	b := []BlockPingJSON{}
-	for _, inst := range a {
-		t := BlockPingJSON{
-			Timestamp:      inst.Timestamp,
-			NormalizedTime: inst.NormalizedTime,
-			Datapoint:      inst.Datapoint,
-		}
-		b = append(b, t)
-	}
-	j, e := json.Marshal(b)
+func loadFromStorage(raw *string) *[]BlockJSON {
+	inst := []BlockJSON{}
+	b := []byte(*raw)
+	e := json.Unmarshal(b, &inst)
 	if e != nil {
 		panic(e)
 	}
-	return
+	return &inst
 }
 
-// ParseToJSONFloodPing converts the flood ping chain into Marshallable JSON
-func (p Parser) ParseToJSONFloodPing(a []BlockFloodPing) (j []byte) {
-	b := []BlockFloodPingJSON{}
-	for _, inst := range a {
-		t := BlockFloodPingJSON{
-			Timestamp:      inst.Timestamp,
-			NormalizedTime: inst.NormalizedTime,
-			Datapoint:      inst.Datapoint,
+func formLinkedChainFromRawBlock(a *[]BlockJSON) *[]Block {
+	r := *a
+	l := len(r)
+	arr := []Block{}
+	for i := 0; i < l; i++ {
+		inst := Block{
+			Timestamp:      r[i].Timestamp,
+			NormalizedTime: r[i].NormalizedTime,
+			Datapoint:      r[i].Datapoint,
 		}
-		b = append(b, t)
+		arr = append(arr, inst)
 	}
-	j, e := json.Marshal(b)
+
+	return &arr
+}
+
+func checkAndCreatePath(path string) {
+	array := strings.Split(path, "/")
+	array = array[:len(array)-1]
+	path = strings.Join(array, "/")
+	_, err := os.Stat(path)
+	if err != nil {
+		e := os.MkdirAll(path, os.ModePerm)
+		if e != nil {
+			panic(e)
+		}
+	}
+}
+
+func saveToHDD(path string, data []byte) error {
+	checkAndCreatePath(path)
+	e := ioutil.WriteFile(path, data, 0755)
 	if e != nil {
-		panic(e)
+		return e
 	}
-	return
+	return nil
+}
+
+// GetTimeStamp returns the timestamp
+func GetTimeStamp() string {
+	t := time.Now()
+
+	return s(t.Year()) + "|" + s(t.Month()) + "|" + s(t.Day()) + "|" + s(t.Hour()) + "|" +
+			s(t.Minute()) + "|" + s(t.Second()) + "#" + s(milliSeconds())
+}
+
+// GetNormalizedTime returns the UnixNano time as normalized time.
+func GetNormalizedTime() int64 {
+	return time.Now().UnixNano()
+}
+
+func s(st interface{}) string {
+	return st.(string)
+}
+
+func milliSeconds() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }
