@@ -32,12 +32,10 @@ func HandleReqResMonitoringStart(config parser.YAMLBenchRoutesType, reqResMonito
 			// statusCode in an array of type [][]*tsdb.Chain
 			for _, route := range routes {
 				go response.HandleResponseDelayForRoute(
-					[][]*tsdb.Chain{
-						tsdb.GlobalResponseDelay,
-						tsdb.GlobalResponseLength,
-						tsdb.GlobalResponseStatusCode,
-					},
-					route, utils.GetHash(route.URL), &wg)
+					utils.GlobalReqResDelChain,
+					route,
+					utils.GetHash(route.URL),
+					&wg)
 			}
 			wg.Wait()
 		case "passive":

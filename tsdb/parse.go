@@ -18,16 +18,8 @@ func parse(path string) (*string, error) {
 	return &str, nil
 }
 
-// Parser type for accessing parsing functions
-type Parser struct{}
-
-// Parse acts as an global interface for converting different types into the required structure
-type Parse interface {
-	ParseToJSON(a []Block) []byte
-}
-
-// ParseToJSON converts the chain into Marshallable JSON
-func (p Parser) ParseToJSON(a []Block) (j []byte) {
+// parseToJSON converts the chain into Marshallable JSON
+func parseToJSON(a []Block) (j []byte) {
 	b := []BlockJSON{}
 
 	for _, inst := range a {

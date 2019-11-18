@@ -39,20 +39,10 @@ func HandleResponseDelayForRoute(responseChains [][]*tsdb.Chain, route parser.Ro
 	c := make(chan Response)
 	go RouteDispatcher(route, c)
 	responseObject := <-c
-	// Store the respective attributes of the
-	// response object in the respective TSDB
+
 	log.Printf("Writing responseObject to TSDB for %s", route.URL)
 
-	// Create response delay block to be
-	// saved inside TSDB
-	blockDelay := tsdb.Block{
-		Datapoint:      responseObject.Delay,
-		Timestamp:      time.Now(),
-		NormalizedTime: 0,
-	}
-
-	block := tsdb.GetNewBlock("req-res")
-	block.Datapoint = 
+	block := *tsdb.GetNewBlock("req-res", getNormalizedBlockString(responseObject))
 
 	for index := range responseChains[0] {
 		if responseChains[0][index].Path == pathDelay {
@@ -127,6 +117,8 @@ func HandleGetRequest(url string) Response {
 	return utils.Response{Delay: diff, ResLength: resLength, ResStatusCode: respStatusCode}
 }
 
-func normalizedBlockString(b Response) string {
-	return 
+// returns the stringified form of the combined data
+func getNormalizedBlockString(b Response) string {
+	return string(b.Delay) + tsdb.BlockDataSeparator + string(b.ResLength) + tsdb.BlockDataSeparator +
+		string(b.ResStatusCode)
 }

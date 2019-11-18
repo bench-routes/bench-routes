@@ -4,55 +4,42 @@ import (
 	"errors"
 	"log"
 	"sync"
+	"encoding/json"
 	"unsafe"
 )
 
-var (
-	parser Parser
-	// PingDBNames contains the name of the database corresponding to the unique config url
-	PingDBNames = make(map[string]string)
-	// FloodPingDBNames contains the name of the flood ping corresponding to the unique config url
-	FloodPingDBNames = make(map[string]string)
-	// GlobalPingChain contains chains of all the pings operating in bench-routes which has to be globally accessed
-	// This is necessary as it helps to retain the parent values which are required for concurreny
-	GlobalPingChain []*Chain
-
-	// GlobalFloodPingChain contains chains of flood ping operations in bench-routes which has to be globally accessed
-	// This is necessary as it helps to retain the parent values which are required for concurreny
-	GlobalFloodPingChain []*Chain
-	//GlobalChain asdfafds
-	GlobalChain []*Chain
-	// GlobalResponseLength contains length of all the responses from a route
-	GlobalResponseLength []*Chain
-	// GlobalResponseDelay contains the all the delays in response from a request sent from a route
-	GlobalResponseDelay []*Chain
-	// GlobalResponseStatusCode contains the status code when a request is sent from to a route
-	GlobalResponseStatusCode []*Chain
-)
-
 const (
-	// BlockSeparation sets a separator for block datavalue
-	BlockSeparation = "|"
+	// BlockDataSeparator sets a separator for block datavalue
+	BlockDataSeparator = "|"
 )
 
 // Block use case block for the TSDB chain
 type Block struct {
-	Datapoint      string // complex data would be decoded by using a blockSeparator
-	NormalizedTime int64  // based on time.Unixnano()
-	Type           string // would be used to decide the marshalling struct
-	Timestamp      string
+	Datapoint      string  `json:"datapoint"` // complex data would be decoded by using a blockSeparator
+	NormalizedTime int64  `json:"normalized-time"` // based on time.Unixnano()
+	Type           string  `json:"type"` // would be used to decide the marshalling struct
+	Timestamp      string  `json:"timestamp"`
 }
 
-// Decode decodes the structure and marshals into a string
-func (b Block) Decode() interface{} {
-	t := b.Type
-
-	log.Printf("decoding block type %s normalized as %s\n", t, b.NormalizedTime)
-	switch(t) {
-	case "req-res":
-		
+// Encode decodes the structure and marshals into a string
+func (b Block) Encode() string {
+	log.Printf("decoding block type %s normalized as %s\n", b.Type, b.NormalizedTime)
+	bbyte, err := json.Marshal(b)
+	if err != nil {
+		panic(err)
 	}
-	return ""
+
+	return string(bbyte)
+}
+
+// GetNewBlock creates and returns a new block with the specified type.
+func GetNewBlock(blockType, value string) *Block {
+	return &Block{
+		Timestamp: GetTimeStamp(),
+		NormalizedTime: GetNormalizedTime(),
+		Datapoint: value,
+		Type: blockType,
+	}
 }
 
 // BlockJSON helps refer Block as JSON
@@ -100,16 +87,6 @@ type TSDB interface {
 
 	// Save saves or commits the chain in storage and returns success status.
 	Save() bool
-}
-
-// GetNewBlock creates and returns a new block with the specified type.
-func GetNewBlock(blockType string) Block {
-	return Block{
-		Timestamp: GetTimeStamp(),
-		NormalizedTime: GetNormalizedTime(),
-		Datapoint: "",
-		Type: blockType,
-	}
 }
 
 // Init initialize Chain properties
@@ -164,7 +141,7 @@ func (c *Chain) Save() bool {
 	defer c.mux.Unlock()
 
 	log.Printf("writing chain of length %d", len(c.Chain))
-	bytes := parser.ParseToJSON(c.Chain)
+	bytes := parseToJSON(c.Chain)
 	e := saveToHDD(c.Path, bytes)
 	if e != nil {
 		panic(e)

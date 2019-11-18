@@ -1,7 +1,7 @@
 // contains the required struct types for the project in order to marshal and unmarshal
 // the general tsdb block
 
-package tsdb
+package utils
 
 // Ping type for storing Ping values in TSDB
 type Ping struct {
