@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"reflect"
 )
 
 func parse(path string) (*string, error) {
@@ -38,8 +39,8 @@ func parseToJSON(a []Block) (j []byte) {
 	return
 }
 
-func loadFromStorage(raw *string) *[]BlockJSON {
-	inst := []BlockJSON{}
+func loadFromStorage(raw *string) *[]Block {
+	inst := []Block{}
 	b := []byte(*raw)
 	e := json.Unmarshal(b, &inst)
 	if e != nil {
@@ -100,7 +101,7 @@ func GetNormalizedTime() int64 {
 }
 
 func s(st interface{}) string {
-	return st.(string)
+
 }
 
 func milliSeconds() int64 {

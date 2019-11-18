@@ -55,7 +55,7 @@ utils:
     mode: 0
     mean: 0
   services-state:
-    ping: passive
+    ping: active
     flood-ping: passive
     jitter: passive
     req-res-delay-or-monitoring: passive

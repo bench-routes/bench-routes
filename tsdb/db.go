@@ -104,7 +104,7 @@ func (c *Chain) Init() *Chain {
 	}
 
 	raw := loadFromStorage(res)
-	c.Chain = *formLinkedChainFromRawBlock(raw)
+	c.Chain = *raw
 	c.LengthElements = len(c.Chain)
 	c.Size = unsafe.Sizeof(c)
 	return c
