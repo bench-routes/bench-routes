@@ -1,11 +1,11 @@
 package ping
 
 import (
-	"sync"
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 	"log"
+	"sync"
 )
 
 // HandleFloodPing is the main handler for flood ping operations

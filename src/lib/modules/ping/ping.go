@@ -5,8 +5,8 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 	"log"
-	"sync"
 	"strconv"
+	"sync"
 )
 
 // HandlePing is the main handler for ping operations

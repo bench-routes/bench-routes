@@ -57,41 +57,39 @@ func init() {
 		if !found {
 			filters.HTTPPingFilter(&r.URL)
 			ConfigURLs = append(ConfigURLs, r.URL)
-			tsdb.PingDBNames[r.URL] = utils.GetHash(r.URL)
-			tsdb.FloodPingDBNames[r.URL] = utils.GetHash(r.URL)
+			utils.PingDBNames[r.URL] = utils.GetHash(r.URL)
+			utils.FloodPingDBNames[r.URL] = utils.GetHash(r.URL)
 		}
 	}
 	// forming ping chain
-	for i, v := range ConfigURLs {
+	for _, v := range ConfigURLs {
 		path := utils.PathPing + "/" + "chunk_ping_" + v + ".json"
-		inst := &tsdb.ChainPing{
+		inst := &tsdb.Chain{
 			Path:           path,
-			Chain:          []tsdb.BlockPing{},
+			Chain:          []tsdb.Block{},
 			LengthElements: 0,
 			Size:           0,
 		}
+		inst.Init().Save()
 		// Initiate the chain
-		tsdb.GlobalPingChain = append(tsdb.GlobalPingChain, inst)
-		tsdb.GlobalPingChain[i] = tsdb.GlobalPingChain[i].InitPing()
-		tsdb.GlobalPingChain[i].SavePing()
+		utils.GlobalPingChain = append(utils.GlobalPingChain, inst)
 	}
 
-	// forming ping chain
-	for i, v := range ConfigURLs {
+	// forming flood-ping chain
+	for _, v := range ConfigURLs {
 		path := utils.PathFloodPing + "/" + "chunk_flood_ping_" + v + ".json"
-		inst := &tsdb.ChainFloodPing{
+		inst := &tsdb.Chain{
 			Path:           path,
-			Chain:          []tsdb.BlockFloodPing{},
+			Chain:          []tsdb.Block{},
 			LengthElements: 0,
 			Size:           0,
 		}
+		inst.Init().Save()
 		// Initiate the chain
-		tsdb.GlobalFloodPingChain = append(tsdb.GlobalFloodPingChain, inst)
-		tsdb.GlobalFloodPingChain[i] = tsdb.GlobalFloodPingChain[i].InitFloodPing()
-		tsdb.GlobalFloodPingChain[i].SaveFloodPing()
+		utils.GlobalFloodPingChain = append(utils.GlobalFloodPingChain, inst)
 	}
 
-	for i, v := range ConfigURLs {
+	for _, v := range ConfigURLs {
 		path := utils.PathJitter + "/" + "chunk_jitter_" + v + ".json"
 		inst := &tsdb.Chain{
 			Path:           path,
@@ -99,47 +97,23 @@ func init() {
 			LengthElements: 0,
 			Size:           0,
 		}
+		inst.Init().Save()
 		// Initiate the chain
-		tsdb.GlobalChain = append(tsdb.GlobalChain, inst)
-		tsdb.GlobalChain[i] = tsdb.GlobalChain[i].Init()
-		tsdb.GlobalChain[i].Save()
+		utils.GlobalChain = append(utils.GlobalChain, inst)
 	}
 
 	// forming req-res-delay chain
-	for i, route := range configuration.Config.Routes {
+	for _, route := range configuration.Config.Routes {
 		path := utils.PathReqResDelayMonitoring + "/" + "chunk_req_res_" + filters.RouteDestroyer(route.URL)
 		// Create sample chains to init in each TSDB file
-		sampleResponseDelay := &tsdb.Chain{
-			Path:           path + "_delay.json",
+		resp := &tsdb.Chain{
+			Path:           path + ".json",
 			Chain:          []tsdb.Block{},
 			LengthElements: 0,
 			Size:           0,
 		}
-		sampleResponseLength := &tsdb.Chain{
-			Path:           path + "_length.json",
-			Chain:          []tsdb.Block{},
-			LengthElements: 0,
-			Size:           0,
-		}
-		sampleResponseStatusCode := &tsdb.Chain{
-			Path:           path + "_status.json",
-			Chain:          []tsdb.Block{},
-			LengthElements: 0,
-			Size:           0,
-		}
-		tsdb.GlobalResponseDelay = append(tsdb.GlobalResponseDelay, sampleResponseDelay)
-		tsdb.GlobalResponseLength = append(tsdb.GlobalResponseLength, sampleResponseLength)
-		tsdb.GlobalResponseStatusCode = append(tsdb.GlobalResponseStatusCode, sampleResponseStatusCode)
-
-		// Initiate all chains
-		tsdb.GlobalResponseDelay[i] = tsdb.GlobalResponseDelay[i].Init()
-		tsdb.GlobalResponseLength[i] = tsdb.GlobalResponseLength[i].Init()
-		tsdb.GlobalResponseStatusCode[i] = tsdb.GlobalResponseStatusCode[i].Init()
-
-		// Commit all chains to the TSDB
-		tsdb.GlobalResponseDelay[i].Save()
-		tsdb.GlobalResponseLength[i].Save()
-		tsdb.GlobalResponseStatusCode[i].Save()
+		resp.Init().Save()
+		utils.GlobalReqResDelChain = append(utils.GlobalReqResDelChain, resp)
 	}
 
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the

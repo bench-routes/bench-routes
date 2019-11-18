@@ -1,10 +1,10 @@
 package tsdb
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"sync"
-	"encoding/json"
 	"unsafe"
 )
 
@@ -15,10 +15,10 @@ const (
 
 // Block use case block for the TSDB chain
 type Block struct {
-	Datapoint      string  `json:"datapoint"` // complex data would be decoded by using a blockSeparator
+	Datapoint      string `json:"datapoint"`       // complex data would be decoded by using a blockSeparator
 	NormalizedTime int64  `json:"normalized-time"` // based on time.Unixnano()
-	Type           string  `json:"type"` // would be used to decide the marshalling struct
-	Timestamp      string  `json:"timestamp"`
+	Type           string `json:"type"`            // would be used to decide the marshalling struct
+	Timestamp      string `json:"timestamp"`
 }
 
 // Encode decodes the structure and marshals into a string
@@ -35,18 +35,18 @@ func (b Block) Encode() string {
 // GetNewBlock creates and returns a new block with the specified type.
 func GetNewBlock(blockType, value string) *Block {
 	return &Block{
-		Timestamp: GetTimeStamp(),
+		Timestamp:      GetTimeStamp(),
 		NormalizedTime: GetNormalizedTime(),
-		Datapoint: value,
-		Type: blockType,
+		Datapoint:      value,
+		Type:           blockType,
 	}
 }
 
 // BlockJSON helps refer Block as JSON
 type BlockJSON struct {
-	Datapoint      string   `json:"datapoint"`
-	NormalizedTime int64     `json:"normalizedTime"`
-	Type           string    `json:"type"`
+	Datapoint      string `json:"datapoint"`
+	NormalizedTime int64  `json:"normalizedTime"`
+	Type           string `json:"type"`
 	Timestamp      string `json:"timestamp"`
 }
 

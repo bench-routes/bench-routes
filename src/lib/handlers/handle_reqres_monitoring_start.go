@@ -5,8 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zairza-cetb/bench-routes/tsdb"
-
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/response"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"

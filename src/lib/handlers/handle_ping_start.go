@@ -9,7 +9,6 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // HandlePingStart handle the route "start"
@@ -49,7 +48,7 @@ func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingI
 				var wg sync.WaitGroup
 				wg.Add(len(urlStack))
 				for _, u := range urlStack {
-					go ping.HandlePing(tsdb.GlobalPingChain, u, 10, u, &wg, false)
+					go ping.HandlePing(utils.GlobalPingChain, u, 10, u, &wg, false)
 				}
 				wg.Wait()
 			}
@@ -111,7 +110,7 @@ func doFloodPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, 
 			var wg sync.WaitGroup
 			wg.Add(len(urlStack))
 			for _, u := range urlStack {
-				go ping.HandleFloodPing(tsdb.GlobalFloodPingChain, u, 10000, u, &wg, false, config.Config.Password)
+				go ping.HandleFloodPing(utils.GlobalFloodPingChain, u, 10000, u, &wg, false, config.Config.Password)
 			}
 
 			wg.Wait()

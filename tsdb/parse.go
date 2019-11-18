@@ -5,8 +5,8 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"time"
 	"strings"
+	"time"
 )
 
 func parse(path string) (*string, error) {
@@ -91,7 +91,7 @@ func GetTimeStamp() string {
 	t := time.Now()
 
 	return s(t.Year()) + "|" + s(t.Month()) + "|" + s(t.Day()) + "|" + s(t.Hour()) + "|" +
-			s(t.Minute()) + "|" + s(t.Second()) + "#" + s(milliSeconds())
+		s(t.Minute()) + "|" + s(t.Second()) + "#" + s(milliSeconds())
 }
 
 // GetNormalizedTime returns the UnixNano time as normalized time.
