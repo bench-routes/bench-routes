@@ -42,14 +42,6 @@ func GetNewBlock(blockType, value string) *Block {
 	}
 }
 
-// BlockJSON helps refer Block as JSON
-type BlockJSON struct {
-	Datapoint      string `json:"datapoint"`
-	NormalizedTime int64  `json:"normalizedTime"`
-	Type           string `json:"type"`
-	Timestamp      string `json:"timestamp"`
-}
-
 // Chain contains Blocks arranged as a chain
 type Chain struct {
 	Path           string

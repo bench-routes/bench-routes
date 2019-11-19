@@ -1,6 +1,7 @@
 package response
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"sync"
@@ -39,8 +40,10 @@ func HandleResponseDelayForRoute(responseChains []*tsdb.Chain, route parser.Rout
 	responseObject := <-c
 
 	log.Printf("Writing responseObject to TSDB for %s", route.URL)
-
-	block := *tsdb.GetNewBlock("req-res", getNormalizedBlockString(responseObject))
+	fmt.Println(responseObject)
+	g := getNormalizedBlockString(responseObject)
+	fmt.Printf("g is %s\n", g)
+	block := *tsdb.GetNewBlock("req-res", g)
 
 	for index := range responseChains {
 		if responseChains[index].Path == path {
@@ -70,13 +73,16 @@ func RouteDispatcher(route parser.Routes, c chan Response) {
 func HandleGetRequest(url string) Response {
 	// Time init
 	start := time.Now().UnixNano()
-	resp := utils.SendGETRequest(url)
+	resp := *utils.SendGETRequest(url)
+
 	resLength := resp.ContentLength
 	respStatusCode := resp.StatusCode
-	defer resp.Body.Close()
 
 	end := time.Now().UnixNano()
 	diff := int((end - start) / int64(time.Millisecond))
+	if err := resp.Body.Close(); err != nil {
+		panic(err)
+	}
 
 	return Response{Delay: diff, ResLength: resLength, ResStatusCode: respStatusCode}
 }

@@ -3,11 +3,11 @@ package tsdb
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 	"time"
-	"reflect"
 )
 
 func parse(path string) (*string, error) {
@@ -21,18 +21,7 @@ func parse(path string) (*string, error) {
 
 // parseToJSON converts the chain into Marshallable JSON
 func parseToJSON(a []Block) (j []byte) {
-	b := []BlockJSON{}
-
-	for _, inst := range a {
-		t := BlockJSON{
-			Timestamp:      inst.Timestamp,
-			NormalizedTime: inst.NormalizedTime,
-			Datapoint:      inst.Datapoint,
-		}
-		b = append(b, t)
-	}
-
-	j, e := json.Marshal(b)
+	j, e := json.Marshal(a)
 	if e != nil {
 		panic(e)
 	}
@@ -47,22 +36,6 @@ func loadFromStorage(raw *string) *[]Block {
 		panic(e)
 	}
 	return &inst
-}
-
-func formLinkedChainFromRawBlock(a *[]BlockJSON) *[]Block {
-	r := *a
-	l := len(r)
-	arr := []Block{}
-	for i := 0; i < l; i++ {
-		inst := Block{
-			Timestamp:      r[i].Timestamp,
-			NormalizedTime: r[i].NormalizedTime,
-			Datapoint:      r[i].Datapoint,
-		}
-		arr = append(arr, inst)
-	}
-
-	return &arr
 }
 
 func checkAndCreatePath(path string) {
@@ -101,7 +74,7 @@ func GetNormalizedTime() int64 {
 }
 
 func s(st interface{}) string {
-
+	return fmt.Sprintf("%v", st)
 }
 
 func milliSeconds() int64 {

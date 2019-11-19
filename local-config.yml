@@ -1,4 +1,4 @@
-password: your password
+password: hsinghbb
 test_interval:
 - test: ping
   type: sec
@@ -55,7 +55,7 @@ utils:
     mode: 0
     mean: 0
   services-state:
-    ping: active
-    flood-ping: passive
-    jitter: passive
-    req-res-delay-or-monitoring: passive
+    ping: passive
+    flood-ping: active
+    jitter: active
+    req-res-delay-or-monitoring: active
