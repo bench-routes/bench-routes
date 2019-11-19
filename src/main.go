@@ -44,6 +44,9 @@ func init() {
 
 	var ConfigURLs []string
 
+	//function to initialize the service state before starting
+	initializeState(&configuration)
+
 	// Load and build TSDB chain
 	// searching for unique URLs
 	for _, r := range configuration.Config.Routes {
@@ -156,7 +159,6 @@ func main() {
 
 			sig := inStream[0] // Signal
 			log.Printf("type: %d\n message: %s \n", messageType, sig)
-
 			// generate appropriate signals from incoming messages
 			switch sig {
 			// ping
@@ -218,7 +220,7 @@ func main() {
 				}
 
 				url := inst.URL
-				ql := getQuerier(ws, "ping", url, "")
+				ql := getQuerier(ws, "ping", url, "", "")
 				go ql.FetchAllSeries()
 
 			case "Qjitter-route":
@@ -230,7 +232,35 @@ func main() {
 				}
 
 				url := inst.URL
-				ql := getQuerier(ws, "jitter", url, "")
+				ql := getQuerier(ws, "jitter", url, "", "")
+				go ql.FetchAllSeries()
+
+			case "Qflood-ping-route":
+				compMessage := getMessageFromCompoundSignal(inStream[1:])
+				inst := qFloodPingRoute{}
+				e := json.Unmarshal(compMessage, &inst)
+				if e != nil {
+					panic(e)
+				}
+
+				url := inst.URL
+				ql := getQuerier(ws, "flood-ping", url, "", "")
+				go ql.FetchAllSeries()
+
+			// Querrier signal for Request-response delay
+			case "Qrequest-response-delay":
+				compMessage := getMessageFromCompoundSignal(inStream[1:])
+				inst := qReqResDelayRoute{}
+				e := json.Unmarshal(compMessage, &inst)
+				if e != nil {
+					panic(e)
+				}
+
+				url := inst.URL
+				method := inst.Method
+				// Gets the Querrier for request-response delay
+				// TODO: Send the method along with URL
+				ql := getQuerier(ws, "req-res-delay", url, method, "_delay")
 				go ql.FetchAllSeries()
 			}
 		}
@@ -269,10 +299,10 @@ func setupLogger() {
 	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
 }
 
-func getQuerier(conn *websocket.Conn, serviceName, d, suff string) (inst tsdb.BRQuerier) {
+func getQuerier(conn *websocket.Conn, serviceName, d, method, suff string) (inst tsdb.BRQuerier) {
 	inst = tsdb.BRQuerier{
 		ServiceName: serviceName,
-		DomainIP:    d,
+		Route:       tsdb.BQRoute{DomainIP: d, Method: method},
 		Suffix:      suff,
 		Connection:  conn,
 	}
@@ -281,4 +311,17 @@ func getQuerier(conn *websocket.Conn, serviceName, d, suff string) (inst tsdb.BR
 
 func getMessageFromCompoundSignal(arg []string) []byte {
 	return []byte(strings.Join(arg, " "))
+}
+
+//initializing all the service states to passives
+func initializeState(configuration *parser.YAMLBenchRoutesType) {
+	configuration.Config.UtilsConf.ServicesSignal.Ping = "passive"
+	configuration.Config.UtilsConf.ServicesSignal.Jitter = "passive"
+	configuration.Config.UtilsConf.ServicesSignal.FloodPing = "passive"
+	configuration.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "passive"
+	_, e := configuration.Write()
+	if e != nil {
+		panic(e)
+	}
+
 }

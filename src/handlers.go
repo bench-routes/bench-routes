@@ -10,8 +10,17 @@ type qPingRoute struct {
 	URL string `json:"url"`
 }
 
+type qFloodPingRoute struct {
+	URL string `json:"url"`
+}
+
 type qJitterRoute struct {
 	URL string `json:"url"`
+}
+
+type qReqResDelayRoute struct {
+	URL    string `json:"url"`
+	Method string `json:"method"`
 }
 
 // HandlerPingGeneral handles the ping route
