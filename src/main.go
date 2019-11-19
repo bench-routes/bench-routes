@@ -32,6 +32,7 @@ var (
 const (
 	logFilePrefix = "bench-route-"
 	logDirectory  = "br-logs"
+	testFilesDir  = "test-files/"
 )
 
 func init() {
@@ -133,6 +134,9 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("ping from %s, sent pong in response\n", r.RemoteAddr)
 	})
+	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, testFilesDir+"bench-routes-socket-tester.html")
+	})
 	http.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		ws, err := upgrader.Upgrade(w, r, nil)
@@ -214,8 +218,7 @@ func main() {
 			case "Qping-route":
 				compMessage := getMessageFromCompoundSignal(inStream[1:])
 				inst := qPingRoute{}
-				e := json.Unmarshal(compMessage, &inst)
-				if e != nil {
+				if e := json.Unmarshal(compMessage, &inst); e != nil {
 					panic(e)
 				}
 
@@ -226,8 +229,7 @@ func main() {
 			case "Qjitter-route":
 				compMessage := getMessageFromCompoundSignal(inStream[1:])
 				inst := qJitterRoute{}
-				e := json.Unmarshal(compMessage, &inst)
-				if e != nil {
+				if e := json.Unmarshal(compMessage, &inst); e != nil {
 					panic(e)
 				}
 
@@ -238,8 +240,7 @@ func main() {
 			case "Qflood-ping-route":
 				compMessage := getMessageFromCompoundSignal(inStream[1:])
 				inst := qFloodPingRoute{}
-				e := json.Unmarshal(compMessage, &inst)
-				if e != nil {
+				if e := json.Unmarshal(compMessage, &inst); e != nil {
 					panic(e)
 				}
 
@@ -251,8 +252,7 @@ func main() {
 			case "Qrequest-response-delay":
 				compMessage := getMessageFromCompoundSignal(inStream[1:])
 				inst := qReqResDelayRoute{}
-				e := json.Unmarshal(compMessage, &inst)
-				if e != nil {
+				if e := json.Unmarshal(compMessage, &inst); e != nil {
 					panic(e)
 				}
 

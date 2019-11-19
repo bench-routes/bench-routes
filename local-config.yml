@@ -8,7 +8,7 @@ test_interval:
   duration: 3
 - test: req-res-delay-and-monitoring
   type: sec
-  duration: 15
+  duration: 5
 routes:
 - method: GET
   url: https://www.google.co.in
@@ -56,6 +56,6 @@ utils:
     mean: 0
   services-state:
     ping: passive
-    flood-ping: active
-    jitter: active
-    req-res-delay-or-monitoring: active
+    flood-ping: passive
+    jitter: passive
+    req-res-delay-or-monitoring: passive

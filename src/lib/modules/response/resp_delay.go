@@ -6,6 +6,7 @@ import (
 	"math"
 	"sync"
 	"time"
+	"strconv"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
@@ -36,8 +37,7 @@ func HandleResponseDelayForRoute(responseChains []*tsdb.Chain, route parser.Rout
 	// Init paths for request-response-monitoring
 	path := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + ".json"
 	c := make(chan Response)
-	go RouteDispatcher(route, c)
-	responseObject := <-c
+	responseObject := RouteDispatcher(route, c)
 
 	log.Printf("Writing responseObject to TSDB for %s", route.URL)
 	fmt.Println(responseObject)
@@ -57,15 +57,14 @@ func HandleResponseDelayForRoute(responseChains []*tsdb.Chain, route parser.Rout
 }
 
 // RouteDispatcher dispatches a route to respective handlers based on it's request type
-func RouteDispatcher(route parser.Routes, c chan Response) {
+func RouteDispatcher(route parser.Routes, c chan Response) Response {
 	if route.Method == "GET" {
-		res := HandleGetRequest(route.URL)
-		c <- res
-	} else {
-		// Send a very large integer to automatically rule out as it
-		// is much much larger than the threshold
-		c <- Response{Delay: math.MaxInt32, ResLength: 0, ResStatusCode: 100}
+		return HandleGetRequest(route.URL)
 	}
+	// If fail, then
+	// send a very large integer to automatically rule out as it
+	// is much much larger than the threshold
+	return Response{Delay: math.MaxInt32, ResLength: 0, ResStatusCode: 100}
 }
 
 // HandleGetRequest specifically handles routes with GET Requests. Calculates timestamp before
@@ -89,6 +88,6 @@ func HandleGetRequest(url string) Response {
 
 // returns the stringified form of the combined data
 func getNormalizedBlockString(b Response) string {
-	return string(b.Delay) + tsdb.BlockDataSeparator + string(b.ResLength) + tsdb.BlockDataSeparator +
-		string(b.ResStatusCode)
+	return strconv.Itoa(b.Delay) + tsdb.BlockDataSeparator + strconv.FormatInt(b.ResLength, 10) + tsdb.BlockDataSeparator +
+		strconv.Itoa(b.ResStatusCode)
 }
