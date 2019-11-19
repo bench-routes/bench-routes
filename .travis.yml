@@ -2,10 +2,14 @@ os:
   - linux
   - mac
 
+addons:
+  chrome: stable
+
 sudo: required
 
 language:
   - go
+  - node
 
 go:
   1.12.x
@@ -29,4 +33,5 @@ before_script:
 script:
   - make build
   - make test
+  - xvfb-run -s "-screen 0 1920x1080x16" -a make test-services
   - make test_complete
