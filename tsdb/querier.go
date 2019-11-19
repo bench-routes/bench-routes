@@ -51,7 +51,7 @@ func (bq *BRQuerier) FetchAllSeries() {
 
 	switch bq.ServiceName {
 	case "ping":
-		series, err := bq.reader.open(bq.ServiceName, bq.fetchTSStorageAddress())
+		series, err := bq.reader.open(bq.fetchTSStorageAddress())
 		if err != nil {
 			panic(err)
 		}
@@ -59,7 +59,7 @@ func (bq *BRQuerier) FetchAllSeries() {
 			panic(err)
 		}
 	case "flood-ping":
-		series, err := bq.reader.open(bq.ServiceName, bq.fetchTSStorageAddress())
+		series, err := bq.reader.open(bq.fetchTSStorageAddress())
 		if err != nil {
 			panic(err)
 		}
@@ -67,7 +67,7 @@ func (bq *BRQuerier) FetchAllSeries() {
 			panic(err)
 		}
 	case "jitter":
-		series, err := bq.reader.open(bq.ServiceName, bq.fetchTSStorageAddress())
+		series, err := bq.reader.open(bq.fetchTSStorageAddress())
 		if err != nil {
 			panic(err)
 		}
@@ -75,7 +75,7 @@ func (bq *BRQuerier) FetchAllSeries() {
 			panic(err)
 		}
 	case "req-res-delay":
-		series, err := bq.reader.open(bq.ServiceName, bq.fetchTSStorageAddress())
+		series, err := bq.reader.open(bq.fetchTSStorageAddress())
 		if err != nil {
 			panic(err)
 		}
