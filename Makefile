@@ -22,8 +22,7 @@ test-services: build
 
 test_complete: build
 	./shell/go-build-all.sh
-	echo "test success! cleaning ..."
-	make clean
+	echo "test success!"
 
 run:
 	echo "compiling go-code and executing bench-routes"
