@@ -23,13 +23,18 @@ type Block struct {
 
 // Encode decodes the structure and marshals into a string
 func (b Block) Encode() string {
-	log.Printf("decoding block type %s normalized as %s\n", b.Type, b.NormalizedTime)
+	log.Printf("decoding block type %s normalized as %d\n", b.Type, b.NormalizedTime)
 	bbyte, err := json.Marshal(b)
 	if err != nil {
 		panic(err)
 	}
 
 	return string(bbyte)
+}
+
+// GetType returns the type of the block
+func (b Block) GetType() string {
+	return b.Type
 }
 
 // GetNewBlock creates and returns a new block with the specified type.
@@ -77,8 +82,8 @@ type TSDB interface {
 	// GetChain returns the positional pointer address of the first element of the chain.
 	GetChain() *[]Block
 
-	// Save saves or commits the chain in storage and returns success status.
-	Save() bool
+	// Commit saves or commits the chain in storage and returns success status.
+	Commit() bool
 }
 
 // Init initialize Chain properties
@@ -126,9 +131,9 @@ func (c *Chain) PopPreviousNBlocks(n int) (*Chain, error) {
 	return c, nil
 }
 
-// Save saves or commits the existing chain in the secondary memory.
+// Commit saves or commits the existing chain in the secondary memory.
 // Returns the success status
-func (c *Chain) Save() bool {
+func (c *Chain) Commit() bool {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 

@@ -43,22 +43,21 @@ func initPingTest() {
 		if !found {
 			filters.HTTPPingFilter(&r.URL)
 			ConfigURLs = append(ConfigURLs, r.URL)
-			tsdb.PingDBNames[r.URL] = utils.GetHash(r.URL)
+			utils.PingDBNames[r.URL] = utils.GetHash(r.URL)
 		}
 	}
 	// forming ping chain
-	for i, v := range ConfigURLs {
+	for _, v := range ConfigURLs {
 		path := pathPing + "/" + "chunk_ping_" + v + ".json"
-		inst := &tsdb.ChainPing{
+		inst := &tsdb.Chain{
 			Path:           path,
-			Chain:          []tsdb.BlockPing{},
+			Chain:          []tsdb.Block{},
 			LengthElements: 0,
 			Size:           0,
 		}
+		inst.Init().Commit()
 		// Initiate the chain
-		tsdb.GlobalPingChain = append(tsdb.GlobalPingChain, inst)
-		tsdb.GlobalPingChain[i] = tsdb.GlobalPingChain[i].InitPing()
-		tsdb.GlobalPingChain[i].SavePing()
+		utils.GlobalPingChain = append(utils.GlobalPingChain, inst)
 	}
 }
 
@@ -82,22 +81,21 @@ func initFloodPingTest() {
 		if !found {
 			filters.HTTPPingFilter(&r.URL)
 			ConfigURLs = append(ConfigURLs, r.URL)
-			tsdb.FloodPingDBNames[r.URL] = utils.GetHash(r.URL)
+			utils.FloodPingDBNames[r.URL] = utils.GetHash(r.URL)
 		}
 	}
 	// forming ping chain
-	for i, v := range ConfigURLs {
+	for _, v := range ConfigURLs {
 		path := pathFloodPing + "/" + "chunk_flood_ping_" + v + ".json"
-		inst := &tsdb.ChainFloodPing{
+		inst := &tsdb.Chain{
 			Path:           path,
-			Chain:          []tsdb.BlockFloodPing{},
+			Chain:          []tsdb.Block{},
 			LengthElements: 0,
 			Size:           0,
 		}
+		inst.Init().Commit()
 		// Initiate the chain
-		tsdb.GlobalFloodPingChain = append(tsdb.GlobalFloodPingChain, inst)
-		tsdb.GlobalFloodPingChain[i] = tsdb.GlobalFloodPingChain[i].InitFloodPing()
-		tsdb.GlobalFloodPingChain[i].SaveFloodPing()
+		utils.GlobalFloodPingChain = append(utils.GlobalFloodPingChain, inst)
 	}
 }
 
@@ -107,7 +105,7 @@ func TestHandlerPing(t *testing.T) {
 	wg.Add(len(urls))
 
 	for _, inst := range urls {
-		go HandlePing(tsdb.GlobalPingChain, inst, 10, "", &wg, true)
+		go HandlePing(utils.GlobalPingChain, inst, 10, "", &wg, true)
 	}
 	wg.Wait()
 }
@@ -118,7 +116,7 @@ func TestHandlerFloodPing(t *testing.T) {
 	wg.Add(len(urls))
 
 	for _, inst := range urls {
-		go HandleFloodPing(tsdb.GlobalFloodPingChain, inst, 1000, "", &wg, true, Configuration.Config.Password)
+		go HandleFloodPing(utils.GlobalFloodPingChain, inst, 1000, "", &wg, true, Configuration.Config.Password)
 	}
 	wg.Wait()
 }

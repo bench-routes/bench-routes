@@ -74,7 +74,7 @@ func init() {
 			LengthElements: 0,
 			Size:           0,
 		}
-		inst.Init().Save()
+		inst.Init().Commit()
 		// Initiate the chain
 		utils.GlobalPingChain = append(utils.GlobalPingChain, inst)
 	}
@@ -88,7 +88,7 @@ func init() {
 			LengthElements: 0,
 			Size:           0,
 		}
-		inst.Init().Save()
+		inst.Init().Commit()
 		// Initiate the chain
 		utils.GlobalFloodPingChain = append(utils.GlobalFloodPingChain, inst)
 	}
@@ -101,7 +101,7 @@ func init() {
 			LengthElements: 0,
 			Size:           0,
 		}
-		inst.Init().Save()
+		inst.Init().Commit()
 		// Initiate the chain
 		utils.GlobalChain = append(utils.GlobalChain, inst)
 	}
@@ -116,7 +116,7 @@ func init() {
 			LengthElements: 0,
 			Size:           0,
 		}
-		resp.Init().Save()
+		resp.Init().Commit()
 		utils.GlobalReqResDelChain = append(utils.GlobalReqResDelChain, resp)
 	}
 

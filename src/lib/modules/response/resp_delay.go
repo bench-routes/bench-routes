@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strconv"
 	"sync"
 	"time"
-	"strconv"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
@@ -48,7 +48,7 @@ func HandleResponseDelayForRoute(responseChains []*tsdb.Chain, route parser.Rout
 	for index := range responseChains {
 		if responseChains[index].Path == path {
 			responseChains[index] = responseChains[index].Append(block)
-			responseChains[index].Save()
+			responseChains[index].Commit()
 			break
 		}
 	}

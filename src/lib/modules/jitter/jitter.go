@@ -30,7 +30,7 @@ func HandleJitter(globalChain []*tsdb.Chain, url string, packets int, tsdbNameHa
 		if globalChain[index].Path == tsdbNameHash {
 			urlExists = true
 			globalChain[index] = globalChain[index].Append(newBlock)
-			globalChain[index].Save()
+			globalChain[index].Commit()
 			break
 		}
 	}

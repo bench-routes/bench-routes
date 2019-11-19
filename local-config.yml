@@ -5,7 +5,7 @@ test_interval:
   duration: 3
 - test: jitter
   type: sec
-  duration: 3
+  duration: 0
 - test: req-res-delay-and-monitoring
   type: sec
   duration: 5

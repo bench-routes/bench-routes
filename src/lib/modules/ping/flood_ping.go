@@ -25,7 +25,7 @@ func HandleFloodPing(globalChain []*tsdb.Chain, urlRaw string, packets int, tsdb
 		if globalChain[index].Path == tsdbNameHash {
 			urlExists = true
 			globalChain[index] = globalChain[index].Append(block)
-			globalChain[index].Save()
+			globalChain[index].Commit()
 			break
 		}
 	}

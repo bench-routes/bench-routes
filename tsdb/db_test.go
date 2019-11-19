@@ -3,12 +3,11 @@ package tsdb
 import (
 	"fmt"
 	"testing"
-	"time"
 )
 
 var (
 	chain = Chain{
-		Path:           "../test-files/loadFromStorage_testdata/test1.json",
+		Path:           "../test-files/loadFromStorage_testdata/test-chunk.json",
 		LengthElements: 0,
 		Chain:          []Block{},
 		Size:           0,
@@ -27,17 +26,11 @@ func TestInit(t *testing.T) {
 
 func TestAppend(t *testing.T) {
 	chain := chain.Init()
-	b := Block{
-		PrevBlock:      nil,
-		NextBlock:      nil,
-		Timestamp:      time.Now(),
-		NormalizedTime: 1568705420,
-		Datapoint:      20,
-	}
+	b := *GetNewBlock("", "20")
 
 	c := chain.Append(b)
 	fmt.Println(c.Chain[len(c.Chain)-1].Datapoint)
-	if c.Chain[len(c.Chain)-1].Datapoint == 20 {
+	if c.Chain[len(c.Chain)-1].Datapoint == "20" {
 		t.Logf("Block Append Successful")
 	} else {
 		t.Errorf("Block Append Unsuccessful")
@@ -56,7 +49,7 @@ func TestPopPreviousNBlocks(t *testing.T) {
 
 func TestGetPositionalPointerNormalized(t *testing.T) {
 	chain := chain.Init()
-	var normalizedTime int64 = 1568705425
+	var normalizedTime int64 = 1574178672171188578
 	var outOfRangeTime int64 = 21568705425
 	var notFoundTime int64 = 1568705420
 
@@ -80,30 +73,20 @@ func TestGetPositionalPointerNormalized(t *testing.T) {
 
 func TestSave(t *testing.T) {
 	chain := chain.Init()
-	if chain.Save() {
-		t.Logf("tsdb Save works as expected")
+	if chain.Commit() {
+		t.Logf("tsdb Commit works as expected")
 	}
 }
 
-func TestChainTraversal(t *testing.T) {
+func TestChainSequence(t *testing.T) {
 	chain := chain.Init()
 	c := chain.Chain
-	node := c[0]
-	if node.PrevBlock != nil {
-		t.Errorf("corrupted chain")
-	}
-	count := 1
-	for {
-		node = *node.NextBlock
-		if node.NextBlock == nil {
-			break
+	var last int64
+	for i := 0; i < len(c)-1; i++ {
+		if c[i].NormalizedTime > last {
+			last = c[i].NormalizedTime
+		} else {
+			t.Errorf("Wrong chain sequence")
 		}
-		count++
-	}
-
-	if count == len(c) {
-		t.Errorf("corrupted chain")
-	} else {
-		t.Logf("Succesful traversal")
 	}
 }

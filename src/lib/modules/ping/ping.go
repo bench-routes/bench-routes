@@ -26,7 +26,7 @@ func HandlePing(chain []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash st
 		if chain[index].Path == tsdbNameHash {
 			urlExists = true
 			chain[index] = chain[index].Append(newBlock)
-			chain[index].Save()
+			chain[index].Commit()
 			break
 		}
 	}
