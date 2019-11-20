@@ -44,11 +44,33 @@ export default class BRConnect {
     return this.sendAndReceiveMessage('Qping-route ' + JSON.stringify(inst));
   }
 
+  public signalJitterRouteFetchAllTimeSeries(route: string): Promise<any> {
+    const inst: RouteFetchAll = {
+      url: route
+    };
+    return this.sendAndReceiveMessage('Qjitter-route ' + JSON.stringify(inst));
+  }
+
+  public signalFloodPingRouteFetchAllTimeSeries(route: string): Promise<any> {
+    const inst: RouteFetchAll = {
+      url: route
+    };
+    return this.sendAndReceiveMessage('Qflood-ping-route ' + JSON.stringify(inst));
+  }
+
+  public signalReqResDelayRouteFetchAllTimeSeries(route: string): Promise<any> {
+    const inst: RouteFetchAll = {
+      url: route
+    };
+    return this.sendAndReceiveMessage('Qrequest-response-delay ' + JSON.stringify(inst));
+  }
+
   private sendAndReceiveMessage(message: string): Promise<any> {
     return new Promise((res: any, rej: any) => {
       this.socketConn.send(message);
       this.socketConn.onmessage = (m: any) => {
         res(m);
+        console.log("M:::", m)
       };
       this.socketConn.onerror = (e: any) => {
         rej(e);
