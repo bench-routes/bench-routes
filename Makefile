@@ -14,10 +14,15 @@ test: build
 	go clean -testcache
 	go test -v ./...
 
+test-services: build
+	./bench-routes &
+	cd tests && npm install
+	npm install -g mocha
+	mocha tests/browser.js
+
 test_complete: build
 	./shell/go-build-all.sh
-	echo "test success! cleaning ..."
-	make clean
+	echo "test success!"
 
 run:
 	echo "compiling go-code and executing bench-routes"

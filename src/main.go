@@ -32,6 +32,7 @@ var (
 const (
 	logFilePrefix = "bench-route-"
 	logDirectory  = "br-logs"
+	testFilesDir  = "tests/"
 )
 
 func init() {
@@ -158,6 +159,9 @@ func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("ping from %s, sent pong in response\n", r.RemoteAddr)
+	})
+	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, testFilesDir+"bench-routes-socket-tester.html")
 	})
 	http.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }

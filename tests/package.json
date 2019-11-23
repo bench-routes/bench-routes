@@ -1,0 +1,24 @@
+{
+  "name": "bench-routes-service-tests-js",
+  "version": "1.0.0",
+  "description": "Testing the bench-routes service by launching each service via a headless chrome browser",
+  "main": "browser.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zairza-cetb/bench-routes.git"
+  },
+  "author": "team-zairza",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zairza-cetb/bench-routes/issues"
+  },
+  "homepage": "https://github.com/zairza-cetb/bench-routes#readme",
+  "dependencies": {
+    "chromedriver": "^78.0.1",
+    "mocha": "^6.2.2",
+    "selenium-webdriver": "^4.0.0-alpha.5"
+  }
+}
