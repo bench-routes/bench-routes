@@ -11,6 +11,7 @@ import (
 type YAMLParser interface {
 	Load() (bool, error)
 	Write() (bool, error)
+	Validate() bool
 	Refresh() YAMLBenchRoutesType
 }
 
@@ -112,4 +113,95 @@ func (inst YAMLBenchRoutesType) Write() (bool, error) {
 // Refresh refreshes the Configuration settings
 func (inst YAMLBenchRoutesType) Refresh() YAMLBenchRoutesType {
 	return *inst.Load()
+}
+
+// ValidateRoutesProp validates the `routes` property
+// in the configuration file.
+func ValidateRoutesProp(routes []Routes) {
+	if len(routes) == 0 {
+		log.Fatalf("`routes` property is missing.")
+	} else {
+		for i, route := range routes {
+			if route.Method == "" {
+				log.Fatalf("`method` property for route #%d is missing.\n", i)
+			}
+			if route.Route == "" {
+				log.Fatalf("`route` property for route #%d is missing.\n", i)
+			}
+			if route.URL == "" {
+				log.Fatalf("`url` property for route #%d is missing.\n", i)
+			}
+			if len(route.Header) != 0 {
+				for i, header := range route.Header {
+					if header.OfType == "" {
+						log.Fatalf("`type` property for %s routes header #%d is missing.\n", route.Route, i+1)
+					}
+					if header.Value == "" {
+						log.Fatalf("`value` property for %s routes header #%d is missing.\n", route.Route, i+1)
+					}
+				}
+			}
+			if len(route.Params) != 0 {
+				for i, param := range route.Params {
+					if param.Name == "" {
+						log.Fatalf("`name` property for %s routes param #%d is missing.\n", route.Route, i+1)
+					}
+					if param.Value == "" {
+						log.Fatalf("`value` property for %s routes param #%d is missing.\n", route.Route, i+1)
+					}
+				}
+			}
+		}
+	}
+}
+
+// ValidateIntervalProp validates the `test_interval` property
+// in the configuration file.
+func ValidateIntervalProp(intervals []Interval) {
+	if len(intervals) == 0 {
+		log.Fatalf("`test_interval` property is missing.")
+	} else {
+		for i, interval := range intervals {
+			if interval.Test == "" {
+				log.Fatalf("`test` property for interval #%d is missing.\n", i)
+			}
+			if interval.Type == "" {
+				log.Fatalf("`type` property for interval #%d is missing.\n", i)
+			}
+			if interval.Duration == 0 {
+				log.Fatalf("`duration` property for interval #%d is missing.\n", i)
+			}
+		}
+	}
+}
+
+// ValidateUtilsConf validates the `utils` property
+// in the configuration file.
+func ValidateUtilsConf(config *UConfig) {
+	if config.ServicesSignal.FloodPing == "" {
+		log.Fatalf("`flood-ping property` is missing.")
+	}
+	if config.ServicesSignal.Jitter == "" {
+		log.Fatalf("`jitter` property is missing.")
+	}
+	if config.ServicesSignal.Ping == "" {
+		log.Fatalf("`ping` property is missing.")
+	}
+	if config.ServicesSignal.ReqResDelayMonitoring == "" {
+		log.Fatalf("`req-res-delay-or-monitoring` property is missing.")
+	}
+}
+
+// Validate validates the config file.
+func (inst YAMLBenchRoutesType) Validate() bool {
+	var config = *inst.Config
+
+	if len(config.Password) == 0 {
+		log.Fatalf("`password` property is missing.")
+	}
+
+	ValidateRoutesProp(config.Routes)
+	ValidateIntervalProp(config.Interval)
+	ValidateUtilsConf(&config.UtilsConf)
+	return true
 }
