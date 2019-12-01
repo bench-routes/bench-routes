@@ -2,13 +2,13 @@ password: your password
 test_interval:
 - test: ping
   type: sec
-  duration: 3
+  duration: 0
 - test: jitter
   type: sec
-  duration: 3
+  duration: 0
 - test: req-res-delay-and-monitoring
   type: sec
-  duration: 15
+  duration: 0
 routes:
 - method: GET
   url: https://www.google.co.in
