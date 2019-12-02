@@ -1,11 +1,11 @@
-password: hsinghbb
+password: your password
 test_interval:
 - test: ping
   type: sec
   duration: 0
 - test: jitter
   type: sec
-  duration: 0
+  duration: 3
 - test: req-res-delay-and-monitoring
   type: sec
   duration: 0
