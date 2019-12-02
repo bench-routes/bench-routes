@@ -70,7 +70,7 @@ export default class BRConnect {
       this.socketConn.send(message);
       this.socketConn.onmessage = (m: any) => {
         res(m);
-        console.log("M:::", m)
+        console.log("M:::", m);
       };
       this.socketConn.onerror = (e: any) => {
         rej(e);

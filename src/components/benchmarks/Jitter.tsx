@@ -45,9 +45,8 @@ export default class Jitter extends Component<
         const norTime: number[] = [];
         const timeStamp: string[] = [];
 
-        // tslint:disable-next-line: prefer-for-of
-        for (let i = 0; i < data.length; i++) {
-          const inst: any = data[i];
+        let inst;
+        for (inst of data) {
           jitter.push(inst.datapoint);
           norTime.push(inst.normalizedTime);
           timeStamp.push(inst.timestamp);
