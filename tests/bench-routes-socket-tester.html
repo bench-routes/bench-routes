@@ -28,7 +28,7 @@
 					</div>
 					<!-- FloodPing controls -->
 					<div class="btn-group" role="group">
-							<button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<button id="btnGroupDrop2" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							  FloodPing controls
 							</button>
 							<div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
@@ -38,7 +38,7 @@
 						  </div>
 					<!-- Jitter controls -->
 					<div class="btn-group" role="group">
-							<button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<button id="btnGroupDrop3" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							  Jitter controls
 							</button>
 							<div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
@@ -48,7 +48,7 @@
 						  </div>
 					<!-- Req res controls -->
 					<div class="btn-group" role="group">
-							<button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<button id="btnGroupDrop4" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							  Req-res controls
 							</button>
 							<div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
@@ -62,7 +62,7 @@
 			<div class="btn-group controls" role="group" aria-label="Button group with nested dropdown">  
 					<!-- Get route details -->
 					<div class="btn-group" role="group">
-					  <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					  <button id="btnGroupDrop5" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						Route details
 					  </button>
 					  <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
@@ -75,7 +75,7 @@
 			<div class="btn-group controls" role="group" aria-label="Button group with nested dropdown">  
 					<!-- Ping Querrier -->
 					<div class="btn-group" role="group">
-					  <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					  <button id="btnGroupDrop6" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						Ping Querier
 					  </button>
 					  <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
@@ -84,7 +84,7 @@
 					</div>
 					<!-- Flood Ping querier -->
 					<div class="btn-group" role="group">
-							<button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<button id="btnGroupDrop7" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							  Flood Ping Querier
 							</button>
 							<div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
@@ -93,7 +93,7 @@
 						  </div>
 					<!-- Jitter querier -->
 					<div class="btn-group" role="group">
-							<button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<button id="btnGroupDrop8" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							  Jitter Querier
 							</button>
 							<div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
@@ -102,7 +102,7 @@
 						  </div>
 					<!-- Req res querier -->
 					<div class="btn-group" role="group">
-							<button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<button id="btnGroupDrop9" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							  Req res Querier
 							</button>
 							<div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
@@ -195,14 +195,10 @@
 			stopService("request-response module")
 			socket.send("force-stop-req-res-monitoring")
 		}
-		
-		// Get route details
 		function routeDetails() {
 			log("Getting route details for you...")
 			socket.send("route-details")
 		}
-		
-		// Querier handlers
 		function Qping() {
 			log("Querying for ping data...")
 			let url = {
