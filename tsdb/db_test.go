@@ -53,18 +53,18 @@ func TestGetPositionalPointerNormalized(t *testing.T) {
 	var outOfRangeTime int64 = 21568705425
 	var notFoundTime int64 = 1568705420
 
-	_, errOutOfRange := chain.GetPositionalPointerNormalized(outOfRangeTime)
+	_, errOutOfRange := chain.GetPositionalIndexNormalized(outOfRangeTime)
 	if errOutOfRange != nil {
 		t.Logf("Out of range value check works")
 	}
 
-	_, errNotFound := chain.GetPositionalPointerNormalized(notFoundTime)
+	_, errNotFound := chain.GetPositionalIndexNormalized(notFoundTime)
 	if errNotFound != nil {
 		t.Logf("Check for element not found works")
 	}
 
-	block, _ := chain.GetPositionalPointerNormalized(normalizedTime)
-	x := *block
+	index, _ := chain.GetPositionalIndexNormalized(normalizedTime)
+	x := chain.Chain[index]
 	if x.NormalizedTime == normalizedTime {
 		t.Logf("Block found")
 		t.Log(x)

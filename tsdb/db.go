@@ -70,10 +70,10 @@ type TSDB interface {
 	// the last location) of the chain. Returns success status.
 	Append(b Block) bool
 
-	// GetPositionalPointerNormalized accepts the normalized time, searches for the block with that time
+	// GetPositionalIndexNormalized accepts the normalized time, searches for the block with that time
 	// using jump search, and returns the address of the block having the specified normalized
 	// time.
-	GetPositionalPointerNormalized(n int64) (*Block, error)
+	GetPositionalIndexNormalized(n int64) (int, error)
 
 	// PopPreviousNBlocks pops or removes **n** previous blocks from the chain and returns
 	// success status.
@@ -146,21 +146,21 @@ func (c *Chain) Commit() bool {
 	return true
 }
 
-// GetPositionalPointerNormalized Returns block by searching the chain for the NormalizedTime
-func (c *Chain) GetPositionalPointerNormalized(n int64) (*Block, error) {
+// GetPositionalIndexNormalized Returns block by searching the chain for the NormalizedTime
+func (c *Chain) GetPositionalIndexNormalized(n int64) (int, error) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
 	c.LengthElements = len(c.Chain)
 	if c.Chain[c.LengthElements-1].NormalizedTime < n || c.Chain[0].NormalizedTime > n {
-		return nil, errors.New("Normalized time not in Chain range")
+		return 0, errors.New("Normalized time not in Chain range")
 	}
 	l, r, m := 0, c.LengthElements, 0
 
 	for l <= r {
 		m = l + (r-l)/2
 		if c.Chain[m].NormalizedTime == n {
-			return &c.Chain[m], nil
+			return m, nil
 		}
 
 		if c.Chain[m].NormalizedTime < n {
@@ -170,5 +170,5 @@ func (c *Chain) GetPositionalPointerNormalized(n int64) (*Block, error) {
 		}
 	}
 
-	return nil, errors.New("Normalized time not found in chain")
+	return 0, errors.New("Normalized time not found in chain")
 }
