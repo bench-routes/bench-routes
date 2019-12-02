@@ -41,6 +41,9 @@ type BRQuerier struct {
 	// Connection helps the querier to respond to the requests directly without
 	// worrying about the goroutines.
 	Connection *websocket.Conn
+
+	// Complete address of the persistent blocks.
+	Address string
 }
 
 // FetchAllSeries returns all the series from the particular chunk. It is go-routine safe and
@@ -95,7 +98,13 @@ func (bq *BRQuerier) fetchTSStorageAddress() (address string) {
 	case "flood-ping":
 		address = directory + "flood-ping/" + prefix + "flood_ping_" + *filters.HTTPPingFilter(&bq.Route.DomainIP) + format
 	case "req-res-delay":
-		address = directory + "req-res-delay-monitoring/" + prefix + "req_res_" + filters.RouteDestroyer(bq.Route.DomainIP) + "_delay" + format
+		address = directory + "req-res-delay-monitoring/" + prefix + "req_res_" + filters.RouteDestroyer(bq.Route.DomainIP) + format
 	}
+	bq.Address = address
 	return
+}
+
+// GetAddress returns the address of the persistent blocks in the db.
+func (bq *BRQuerier) GetAddress() string {
+	return bq.Address
 }
