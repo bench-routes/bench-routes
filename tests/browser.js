@@ -34,8 +34,9 @@ describe('launch services via virtual browser test', function() {
         });
     });
     it('check if test page loaded', (done) => {
-        driver.findElement(By.xpath('/html/body/button[1]')).then(() => {
-            driver.findElement(By.xpath('/html/body/button[5]')).then(() => {
+        // Starts ping and jitter using startPing and startJitter
+        driver.findElement(By.xpath('/html/body/div/div[1]/div[1]/div/button[1]')).then(() => {
+            driver.findElement(By.xpath('/html/body/div/div[1]/div[3]/div/button[1]')).then(() => {
                 done();
             }).catch(e => {
                 throw e;
@@ -47,64 +48,66 @@ describe('launch services via virtual browser test', function() {
     describe('trigger services', function() {
         this.timeout(50000);
         it('ping', done => {
-            driver.findElement(By.xpath('/html/body/button[1]')).click().then(() => {
+            // starts services again
+            driver.findElement(By.xpath('/html/body/div/div[1]/div[1]/div/button[1]')).click().then(() => {
                 done();
             }).catch(e => {
                 throw e;
             });
         });
         it('flood-ping', done => {
-            driver.findElement(By.xpath('/html/body/button[3]')).click().then(() => {
+            driver.findElement(By.xpath('/html/body/div/div[1]/div[2]/div/button[1]')).click().then(() => {
                 done();
             }).catch(e => {
                 throw e;
             });
         });
         it('jitter', done => {
-            driver.findElement(By.xpath('/html/body/button[5]')).click().then(() => {
+            driver.findElement(By.xpath('/html/body/div/div[1]/div[3]/div/button[1]')).click().then(() => {
                 done();
             }).catch(e => {
                 throw e;
             });
         });
         it('req-res-delay', done => {
-            driver.findElement(By.xpath('/html/body/button[7]')).click().then(() => {
+            driver.findElement(By.xpath('/html/body/div/div[1]/div[4]/div/button[1]')).click().then(() => {
                 done();
             }).catch(e => {
                 throw e;
             });
         });
 
+        // Get route details
         it('get-route-details', done => {
-            driver.findElement(By.xpath('/html/body/button[9]')).click().then(() => {
+            driver.findElement(By.xpath('/html/body/div/div[2]/div/div/button')).click().then(() => {
                 done();
             }).catch(e => {
                 throw e;
             });
         });
         it('flood-ping', done => {
-            driver.findElement(By.xpath('/html/body/button[10]')).click().then(() => {
+            driver.findElement(By.xpath('/html/body/div/div[3]/div[1]/div/button')).click().then(() => {
                 done();
             }).catch(e => {
                 throw e;
             });
         });
         it('jitter', done => {
-            driver.findElement(By.xpath('/html/body/button[11]')).click().then(() => {
+            driver.findElement(By.xpath('/html/body/div/div[3]/div[2]/div/button')).click().then(() => {
                 done();
             }).catch(e => {
                 throw e;
             });
         });
         it('req-res-delay', done => {
-            driver.findElement(By.xpath('/html/body/button[12]')).click().then(() => {
+            driver.findElement(By.xpath('/html/body/div/div[3]/div[3]/div/button')).click().then(() => {
                 done();
             }).catch(e => {
                 throw e;
             });
         });
         it('jitter', done => {
-            driver.findElement(By.xpath('/html/body/button[13]')).click().then(() => {
+            driver.findElement(By.xpath('/html/body/div/div[3]/div[4]/div/button')).click().then(() => {
                 setTimeout(() => {
                     done();
                 }, 10000);
@@ -116,28 +119,28 @@ describe('launch services via virtual browser test', function() {
     describe('shutting down services', function() {
         this.timeout(50000);
         it('ping', done => {
-            driver.findElement(By.xpath('/html/body/button[2]')).click().then(() => {
+            driver.findElement(By.xpath('/html/body/div/div[1]/div[1]/div/button[2]')).click().then(() => {
                 done();
             }).catch(e => {
                 throw e;
             });
         });
         it('flood-ping', done => {
-            driver.findElement(By.xpath('/html/body/button[4]')).click().then(() => {
+            driver.findElement(By.xpath('/html/body/div/div[1]/div[2]/div/button[2]')).click().then(() => {
                 done();
             }).catch(e => {
                 throw e;
             });
         });
         it('jitter', done => {
-            driver.findElement(By.xpath('/html/body/button[6]')).click().then(() => {
+            driver.findElement(By.xpath('/html/body/div/div[1]/div[3]/div/button[2]')).click().then(() => {
                 done();
             }).catch(e => {
                 throw e;
             });
         });
         it('req-res-delay', done => {
-            driver.findElement(By.xpath('/html/body/button[8]')).click().then(() => {
+            driver.findElement(By.xpath('/html/body/div/div[1]/div[4]/div/button[2]')).click().then(() => {
                 done();
             }).catch(e => {
                 throw e;
