@@ -2,3 +2,4 @@ build/
 src/build/
 bench-routes
 glide.lock
+tests/node_modules

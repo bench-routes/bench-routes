@@ -7,7 +7,7 @@ import (
 
 var (
 	chain = Chain{
-		Path:           "../test-files/loadFromStorage_testdata/test-chunk.json",
+		Path:           "../tests/loadFromStorage_testdata/test1.json",
 		LengthElements: 0,
 		Chain:          []Block{},
 		Size:           0,

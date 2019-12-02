@@ -14,7 +14,7 @@ type Reader struct {
 }
 
 // Open opens a reader with the default byte data stream on the specified path.
-func (r *Reader) open(service, path string) (string, error) {
+func (r *Reader) open(path string) (string, error) {
 	r.mux.RLock()
 	defer r.mux.RUnlock()
 

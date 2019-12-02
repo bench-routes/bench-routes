@@ -32,7 +32,7 @@ var (
 const (
 	logFilePrefix = "bench-route-"
 	logDirectory  = "br-logs"
-	testFilesDir  = "test-files/"
+	testFilesDir  = "tests/"
 )
 
 func init() {

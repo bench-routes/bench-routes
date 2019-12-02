@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	path = "../../../../test-files/configs/config-test.yml"
+	path = "../../../../tests/configs/config-test.yml"
 )
 
 var (

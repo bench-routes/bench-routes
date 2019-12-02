@@ -2,13 +2,13 @@ password: hsinghbb
 test_interval:
 - test: ping
   type: sec
-  duration: 3
+  duration: 0
 - test: jitter
   type: sec
   duration: 0
 - test: req-res-delay-and-monitoring
   type: sec
-  duration: 5
+  duration: 0
 routes:
 - method: GET
   url: https://www.google.co.in
@@ -55,7 +55,7 @@ utils:
     mode: 0
     mean: 0
   services-state:
-    ping: passive
-    flood-ping: passive
-    jitter: passive
-    req-res-delay-or-monitoring: passive
+    ping: active
+    flood-ping: active
+    jitter: active
+    req-res-delay-or-monitoring: active
