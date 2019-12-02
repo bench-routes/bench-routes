@@ -37,6 +37,12 @@ func (b Block) GetType() string {
 	return b.Type
 }
 
+// GetDatapointEnc returns the datapoint to the caller.
+// The encoded refers to the combined _(containing *|*)_ values in stringified form.
+func (b Block) GetDatapointEnc() string {
+	return b.Datapoint
+}
+
 // GetNewBlock creates and returns a new block with the specified type.
 func GetNewBlock(blockType, value string) *Block {
 	return &Block{
