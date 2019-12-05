@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 import BRConnect from '../../utils/connection';
-import { BRChartOpts, BRCharts, chartDefaultOptValues } from '../layouts/BRCharts';
+import {
+  BRChartOpts,
+  BRCharts,
+  chartDefaultOptValues
+} from '../layouts/BRCharts';
 import Submenu from '../layouts/Submenu';
 
 interface FPingModulePropsTypes {}
@@ -126,7 +130,7 @@ export default class FloodPing extends Component<
             pRadius: 1,
             xAxisValues: norTime,
             yAxisValues: yMdev
-          },
+          }
         ];
 
         const packetLossChartOptions: BRChartOpts[] = [
@@ -149,7 +153,11 @@ export default class FloodPing extends Component<
           }
         ];
 
-        this.setState({ chartOpts: chartOptions, packetLossChartOpts: packetLossChartOptions, showChart: true});
+        this.setState({
+          chartOpts: chartOptions,
+          packetLossChartOpts: packetLossChartOptions,
+          showChart: true
+        });
       });
   };
 
@@ -162,7 +170,7 @@ export default class FloodPing extends Component<
           getAddress={this.getAddressSubmenu}
         />
         {this.state.showChart ? (
-          <div style={{'overflow' : 'auto'}}>
+          <div style={{ overflow: 'auto' }}>
             <div>
               <BRCharts opts={this.state.chartOpts} />
             </div>
