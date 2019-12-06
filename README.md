@@ -6,6 +6,8 @@
 bench-routes is a highly scalable network benchmarking, routes performance and monitoring tool, that monitors in regular intervals the state
 of the server, running as a daemon process. For more information, read the [docs](https://docs.google.com/document/d/1jGfc2eXvToRL9anzosTLQ4zJ7fdFxMGfaiDv2BYHEvw/edit?usp=sharing)
 
+### Read the complete idea and approach [here](https://github.com/zairza-cetb/bench-routes/blob/master/approach.md).
+
 Monitoring has been tough and with the increase in the routes used in any sophisticated project, the performance and metrics of an application are seriously affected.
 With an increase in server computational models, the probability of a complete request-response cycle without any throws is nowhere close to 1. 
 
