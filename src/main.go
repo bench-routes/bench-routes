@@ -224,8 +224,36 @@ func main() {
 
 				url := inst.URL
 				ql := getQuerier(ws, "ping", url, "", "")
-				go ql.FetchAllSeries()
-
+				raw := inBlocks(ql.FetchAllSeriesStringified())
+				var response []utils.PingResp
+				for i, b := range raw {
+					decRaw := utils.Decode(b)
+					dec, ok := decRaw.(utils.Ping)
+					if !ok {
+						panic("invalid interface type")
+					}
+					fmt.Println("dec is")
+					fmt.Println(dec)
+					tmp := utils.PingResp{
+						Min:            dec.Min,
+						Mean:           dec.Mean,
+						Max:            dec.Max,
+						MDev:           dec.MDev,
+						NormalizedTime: b.GetNormalizedTime(),
+						Timestamp:      b.GetTimeStamp(),
+						Relative:       (i),
+					}
+					response = append(response, tmp)
+				}
+				fmt.Println("response is ")
+				fmt.Println(response)
+				js, err := json.Marshal(response)
+				if err != nil {
+					panic(err)
+				}
+				if e := ws.WriteMessage(1, js); e != nil {
+					panic(e)
+				}
 			case "Qjitter-route":
 				compMessage := getMessageFromCompoundSignal(inStream[1:])
 				inst := qJitterRoute{}
@@ -235,7 +263,7 @@ func main() {
 
 				url := inst.URL
 				ql := getQuerier(ws, "jitter", url, "", "")
-				go ql.FetchAllSeries()
+				go ql.FetchAllSeriesStringified()
 
 			case "Qflood-ping-route":
 				compMessage := getMessageFromCompoundSignal(inStream[1:])
@@ -246,7 +274,7 @@ func main() {
 
 				url := inst.URL
 				ql := getQuerier(ws, "flood-ping", url, "", "")
-				go ql.FetchAllSeries()
+				go ql.FetchAllSeriesStringified()
 
 			// Querrier signal for Request-response delay
 			case "Qrequest-response-delay":
@@ -261,7 +289,7 @@ func main() {
 				// Gets the Querrier for request-response delay
 				// TODO: Send the method along with URL
 				ql := getQuerier(ws, "req-res-delay", url, method, "_delay")
-				go ql.FetchAllSeries()
+				go ql.FetchAllSeriesStringified()
 			}
 		}
 	})
@@ -324,4 +352,11 @@ func initializeState(configuration *parser.YAMLBenchRoutesType) {
 		panic(e)
 	}
 
+}
+
+func inBlocks(s string) (tmp []tsdb.Block) {
+	if err := json.Unmarshal([]byte(s), &tmp); err != nil {
+		panic(err)
+	}
+	return
 }

@@ -43,11 +43,26 @@ func (b Block) GetDatapointEnc() string {
 	return b.Datapoint
 }
 
+// GetNormalizedTimeStringified returns the normalized time of the block.
+func (b Block) GetNormalizedTimeStringified() string {
+	return string(b.NormalizedTime)
+}
+
+// GetNormalizedTime returns the normalized time of the block.
+func (b Block) GetNormalizedTime() int64 {
+	return b.NormalizedTime
+}
+
+// GetTimeStamp returns thetimestamp of the block.
+func (b Block) GetTimeStamp() string {
+	return b.Timestamp
+}
+
 // GetNewBlock creates and returns a new block with the specified type.
 func GetNewBlock(blockType, value string) *Block {
 	return &Block{
-		Timestamp:      GetTimeStamp(),
-		NormalizedTime: GetNormalizedTime(),
+		Timestamp:      GetTimeStampCalc(),
+		NormalizedTime: GetNormalizedTimeCalc(),
 		Datapoint:      value,
 		Type:           blockType,
 	}

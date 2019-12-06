@@ -46,47 +46,18 @@ type BRQuerier struct {
 	Address string
 }
 
-// FetchAllSeries returns all the series from the particular chunk.
+// FetchAllSeriesStringified returns all the series from the particular chunk.
 // It does not do any processing, rather just a plain simple fetch and return the fetched samples.
 // It is go-routine safe and respond to multiple same series requests.
-func (bq *BRQuerier) FetchAllSeries() {
+func (bq *BRQuerier) FetchAllSeriesStringified() string {
 	bq.mux.RLock()
 	defer bq.mux.RUnlock()
 
-	switch bq.ServiceName {
-	case "ping":
-		series, err := bq.reader.open(bq.fetchTSStorageAddress())
-		if err != nil {
-			panic(err)
-		}
-		if err := bq.Connection.WriteMessage(1, []byte(series)); err != nil {
-			panic(err)
-		}
-	case "flood-ping":
-		series, err := bq.reader.open(bq.fetchTSStorageAddress())
-		if err != nil {
-			panic(err)
-		}
-		if err := bq.Connection.WriteMessage(1, []byte(series)); err != nil {
-			panic(err)
-		}
-	case "jitter":
-		series, err := bq.reader.open(bq.fetchTSStorageAddress())
-		if err != nil {
-			panic(err)
-		}
-		if err := bq.Connection.WriteMessage(1, []byte(series)); err != nil {
-			panic(err)
-		}
-	case "req-res-delay":
-		series, err := bq.reader.open(bq.fetchTSStorageAddress())
-		if err != nil {
-			panic(err)
-		}
-		if err := bq.Connection.WriteMessage(1, []byte(series)); err != nil {
-			panic(err)
-		}
+	seriesRaw, err := bq.reader.open(bq.fetchTSStorageAddress())
+	if err != nil {
+		panic(err)
 	}
+	return seriesRaw
 }
 
 // Fetch time-series storage address
