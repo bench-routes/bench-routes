@@ -1,4 +1,4 @@
-password: your password
+password: "1234"
 test_interval:
 - test: ping
   type: sec
@@ -28,11 +28,6 @@ routes:
   params:
   - name: q
     value: bench-routes
-- method: GET
-  url: https://www.facebook.com
-  route: ""
-  headers: []
-  params: []
 - method: GET
   url: https://in.search.yahoo.com
   route: search
