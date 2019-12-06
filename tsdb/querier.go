@@ -46,8 +46,9 @@ type BRQuerier struct {
 	Address string
 }
 
-// FetchAllSeries returns all the series from the particular chunk. It is go-routine safe and
-// respond to multiple same series requests.
+// FetchAllSeries returns all the series from the particular chunk.
+// It does not do any processing, rather just a plain simple fetch and return the fetched samples.
+// It is go-routine safe and respond to multiple same series requests.
 func (bq *BRQuerier) FetchAllSeries() {
 	bq.mux.RLock()
 	defer bq.mux.RUnlock()

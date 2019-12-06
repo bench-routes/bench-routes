@@ -27,6 +27,8 @@ var (
 	// This is necessary as it helps to retain the parent values which are required for concurreny
 	GlobalPingChain []*tsdb.Chain
 
+	// GlobalChain is the global chain array which can be used to maintain a list of chains that represent
+	// the time-series values
 	GlobalChain []*tsdb.Chain
 
 	// GlobalFloodPingChain contains chains of flood ping operations in bench-routes which has to be globally accessed

@@ -20,15 +20,6 @@ const (
 	PathReqResDelay = "storage/req-res-delay-monitoring"
 )
 
-// Response struct
-// This is the object that we return from resp_delay module
-// Contains delay in response and the response length
-type Response struct {
-	Delay         int
-	ResLength     int64
-	ResStatusCode int
-}
-
 // HandleResponseDelayForRoute is the initial entrypoint function for this module which takes
 // in a Route struct and supplies it to a function in turn to handle it accordingly. We create
 // channels to run tests for each route in parallel, speeding up the process
@@ -57,19 +48,19 @@ func HandleResponseDelayForRoute(responseChains []*tsdb.Chain, route parser.Rout
 }
 
 // RouteDispatcher dispatches a route to respective handlers based on it's request type
-func RouteDispatcher(route parser.Routes, c chan Response) Response {
+func RouteDispatcher(route parser.Routes, c chan utils.Response) utils.Response {
 	if route.Method == "GET" {
 		return HandleGetRequest(route.URL)
 	}
 	// If fail, then
 	// send a very large integer to automatically rule out as it
 	// is much much larger than the threshold
-	return Response{Delay: math.MaxInt32, ResLength: 0, ResStatusCode: 100}
+	return utils.Response{Delay: math.MaxInt32, ResLength: 0, ResStatusCode: 100}
 }
 
 // HandleGetRequest specifically handles routes with GET Requests. Calculates timestamp before
 // and after processing of each request and returns the difference
-func HandleGetRequest(url string) Response {
+func HandleGetRequest(url string) utils.Response {
 	// Time init
 	start := time.Now().UnixNano()
 	resp := *utils.SendGETRequest(url)
@@ -83,11 +74,11 @@ func HandleGetRequest(url string) Response {
 		panic(err)
 	}
 
-	return Response{Delay: diff, ResLength: resLength, ResStatusCode: respStatusCode}
+	return utils.Response{Delay: diff, ResLength: resLength, ResStatusCode: respStatusCode}
 }
 
 // returns the stringified form of the combined data
-func getNormalizedBlockString(b Response) string {
+func getNormalizedBlockString(b utils.Response) string {
 	return strconv.Itoa(b.Delay) + tsdb.BlockDataSeparator + strconv.FormatInt(b.ResLength, 10) + tsdb.BlockDataSeparator +
 		strconv.Itoa(b.ResStatusCode)
 }

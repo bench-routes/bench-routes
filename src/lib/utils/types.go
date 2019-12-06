@@ -35,3 +35,12 @@ type BlockFloodPing struct {
 	Datapoint      FloodPing
 	NormalizedTime int64
 }
+
+// Response struct
+// This is the object that we return from resp_delay module
+// Contains delay in response and the response length
+type Response struct {
+	Delay         int
+	ResLength     int64
+	ResStatusCode int
+}

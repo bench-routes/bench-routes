@@ -33,6 +33,22 @@ func Decode(b tsdb.Block) interface{} {
 		}
 	case "jitter":
 		return sTof(b.GetDatapointEnc())
+	case "flood-ping":
+		arr := strings.Split(b.GetDatapointEnc(), tsdb.BlockDataSeparator)
+		return FloodPing{
+			Min: sTof(arr[0]),
+			Mean: sTof(arr[1]),
+			Max: sTof(arr[2]),
+			MDev: sTof(arr[3]),
+			PacketLoss: sTof(arr[4]),
+		}
+	case "req-res":
+		arr := strings.Split(b.GetDatapointEnc(), tsdb.BlockDataSeparator)
+		return Response{
+			Delay: sToI(arr[0]),
+			ResLength: sToI64(arr[1]),
+			ResStatusCode: sToI(arr[2]),
+		}
 	}
 	return errors.New("type does not match")
 }
@@ -43,4 +59,20 @@ func sTof(s string) float64 {
 		panic(err)
 	}
 	return f
+}
+
+func sToI(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+func sToI64(s string) int64 {
+	i, err := strconv.ParseInt(s,10, 64)
+	if err != nil {
+		panic(err)
+	}
+	return i
 }
