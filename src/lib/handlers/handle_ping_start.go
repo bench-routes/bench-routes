@@ -151,7 +151,7 @@ func GetInterval(intervals []parser.Interval, testName string) TestInterval {
 		if testName == intrv.Test {
 			return TestInterval{
 				ofType:   intrv.Type,
-				duration: intrv.Duration,
+				duration: *intrv.Duration,
 			}
 		}
 	}
