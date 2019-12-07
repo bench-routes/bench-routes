@@ -5,19 +5,14 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 	"log"
+	"strconv"
 	"sync"
-	"time"
 )
 
-// const (
-// 	// PathPing stores the defualt address of storage directory of ping data
-// 	PathPing = "storage/ping"
-// )
-
 // HandlePing is the main handler for ping operations
-func HandlePing(globalChain []*tsdb.ChainPing, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
+func HandlePing(chain []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
 	tsdbNameHash = utils.PathPing + "/" + "chunk_ping_" + tsdbNameHash + ".json"
-	// launch a goroutine to handle ping operations
+
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {
 		log.Println(*resp)
@@ -25,13 +20,13 @@ func HandlePing(globalChain []*tsdb.ChainPing, urlRaw string, packets int, tsdbN
 		return
 	}
 	result := *scrap.CLIPingScrap(resp)
-	newBlock := createNewBlock(result)
+	newBlock := *tsdb.GetNewBlock("ping", getNormalizedBlockString(result))
 	urlExists := false
-	for index := range globalChain {
-		if globalChain[index].Path == tsdbNameHash {
+	for index := range chain {
+		if chain[index].Path == tsdbNameHash {
 			urlExists = true
-			globalChain[index] = globalChain[index].AppendPing(newBlock)
-			globalChain[index].SavePing()
+			chain[index] = chain[index].Append(newBlock)
+			chain[index].Commit()
 			break
 		}
 	}
@@ -41,14 +36,11 @@ func HandlePing(globalChain []*tsdb.ChainPing, urlRaw string, packets int, tsdbN
 	wg.Done()
 }
 
-func createNewBlock(val utils.TypePingScrap) tsdb.BlockPing {
-	return tsdb.BlockPing{
-		Timestamp: time.Now(),
-		Datapoint: tsdb.PingType{
-			Min:  val.Min,
-			Mean: val.Avg,
-			Max:  val.Max,
-			MDev: val.Mdev,
-		},
-	}
+func getNormalizedBlockString(v utils.TypePingScrap) string {
+	return fToS(v.Min) + tsdb.BlockDataSeparator + fToS(v.Avg) +
+		tsdb.BlockDataSeparator + fToS(v.Max) + tsdb.BlockDataSeparator + fToS(v.Mdev)
+}
+
+func fToS(v float64) string {
+	return strconv.FormatFloat(v, 'f', 6, 64)
 }

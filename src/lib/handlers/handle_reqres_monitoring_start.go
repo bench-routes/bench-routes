@@ -5,8 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zairza-cetb/bench-routes/tsdb"
-
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/response"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
@@ -32,12 +30,10 @@ func HandleReqResMonitoringStart(config parser.YAMLBenchRoutesType, reqResMonito
 			// statusCode in an array of type [][]*tsdb.Chain
 			for _, route := range routes {
 				go response.HandleResponseDelayForRoute(
-					[][]*tsdb.Chain{
-						tsdb.GlobalResponseDelay,
-						tsdb.GlobalResponseLength,
-						tsdb.GlobalResponseStatusCode,
-					},
-					route, utils.GetHash(route.URL), &wg)
+					utils.GlobalReqResDelChain,
+					route,
+					utils.GetHash(route.URL),
+					&wg)
 			}
 			wg.Wait()
 		case "passive":

@@ -5,8 +5,8 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 	"log"
+	"strconv"
 	"sync"
-	"time"
 )
 
 const (
@@ -24,13 +24,13 @@ func HandleJitter(globalChain []*tsdb.Chain, url string, packets int, tsdbNameHa
 		return
 	}
 	result := scrap.CLIJitterScrap(resp)
-	newBlock := createNewBlock(result)
+	newBlock := *tsdb.GetNewBlock("jitter", fToS(result))
 	urlExists := false
 	for index := range globalChain {
 		if globalChain[index].Path == tsdbNameHash {
 			urlExists = true
 			globalChain[index] = globalChain[index].Append(newBlock)
-			globalChain[index].Save()
+			globalChain[index].Commit()
 			break
 		}
 	}
@@ -40,9 +40,6 @@ func HandleJitter(globalChain []*tsdb.Chain, url string, packets int, tsdbNameHa
 	wg.Done()
 }
 
-func createNewBlock(val float64) tsdb.Block {
-	return tsdb.Block{
-		Timestamp: time.Now(),
-		Datapoint: float32(val),
-	}
+func fToS(v float64) string {
+	return strconv.FormatFloat(v, 'f', 6, 64)
 }

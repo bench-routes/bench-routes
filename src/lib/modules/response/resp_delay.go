@@ -1,8 +1,10 @@
 package response
 
 import (
+	"fmt"
 	"log"
 	"math"
+	"strconv"
 	"sync"
 	"time"
 
@@ -21,66 +23,23 @@ const (
 // HandleResponseDelayForRoute is the initial entrypoint function for this module which takes
 // in a Route struct and supplies it to a function in turn to handle it accordingly. We create
 // channels to run tests for each route in parallel, speeding up the process
-func HandleResponseDelayForRoute(responseChains [][]*tsdb.Chain, route parser.Routes, tsdbNameHash string, wg *sync.WaitGroup) {
+func HandleResponseDelayForRoute(responseChains []*tsdb.Chain, route parser.Routes, tsdbNameHash string, wg *sync.WaitGroup) {
 	routeSuffix := filters.RouteDestroyer(route.URL)
 	// Init paths for request-response-monitoring
-	pathDelay := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + "_delay.json"
-	pathLength := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + "_length.json"
-	pathStatusCode := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + "_status.json"
+	path := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + ".json"
 	c := make(chan utils.Response)
-	go RouteDispatcher(route, c)
-	responseObject := <-c
-	// Store the respective attributes of the
-	// response object in the respective TSDB
+	responseObject := RouteDispatcher(route, c)
+
 	log.Printf("Writing responseObject to TSDB for %s", route.URL)
+	fmt.Println(responseObject)
+	g := getNormalizedBlockString(responseObject)
+	fmt.Printf("g is %s\n", g)
+	block := *tsdb.GetNewBlock("req-res", g)
 
-	// Create response delay block to be
-	// saved inside TSDB
-	blockDelay := tsdb.Block{
-		NextBlock:      nil,
-		PrevBlock:      nil,
-		Datapoint:      float32(responseObject.Delay),
-		Timestamp:      time.Now(),
-		NormalizedTime: 0,
-	}
-	for index := range responseChains[0] {
-		if responseChains[0][index].Path == pathDelay {
-			responseChains[0][index] = responseChains[0][index].Append(blockDelay)
-			responseChains[0][index].Save()
-			break
-		}
-	}
-
-	// Create a response length to be
-	// saved inside TSDB
-	blockLength := tsdb.Block{
-		NextBlock:      nil,
-		PrevBlock:      nil,
-		Datapoint:      float32(responseObject.ResLength),
-		Timestamp:      time.Now(),
-		NormalizedTime: 0,
-	}
-	for index := range responseChains[1] {
-		if responseChains[1][index].Path == pathLength {
-			responseChains[1][index] = responseChains[1][index].Append(blockLength)
-			responseChains[1][index].Save()
-			break
-		}
-	}
-
-	// Create a response statusCode to be
-	// saved inside TSDB
-	blockStatusCode := tsdb.Block{
-		NextBlock:      nil,
-		PrevBlock:      nil,
-		Datapoint:      float32(responseObject.ResStatusCode),
-		Timestamp:      time.Now(),
-		NormalizedTime: 0,
-	}
-	for index := range responseChains[2] {
-		if responseChains[2][index].Path == pathStatusCode {
-			responseChains[2][index] = responseChains[2][index].Append(blockStatusCode)
-			responseChains[2][index].Save()
+	for index := range responseChains {
+		if responseChains[index].Path == path {
+			responseChains[index] = responseChains[index].Append(block)
+			responseChains[index].Commit()
 			break
 		}
 	}
@@ -89,15 +48,14 @@ func HandleResponseDelayForRoute(responseChains [][]*tsdb.Chain, route parser.Ro
 }
 
 // RouteDispatcher dispatches a route to respective handlers based on it's request type
-func RouteDispatcher(route parser.Routes, c chan utils.Response) {
+func RouteDispatcher(route parser.Routes, c chan utils.Response) utils.Response {
 	if route.Method == "GET" {
-		res := HandleGetRequest(route.URL)
-		c <- res
-	} else {
-		// Send a very large integer to automatically rule out as it
-		// is much much larger than the threshold
-		c <- utils.Response{Delay: math.MaxInt32, ResLength: 0, ResStatusCode: 100}
+		return HandleGetRequest(route.URL)
 	}
+	// If fail, then
+	// send a very large integer to automatically rule out as it
+	// is much much larger than the threshold
+	return utils.Response{Delay: math.MaxInt32, ResLength: 0, ResStatusCode: 100}
 }
 
 // HandleGetRequest specifically handles routes with GET Requests. Calculates timestamp before
@@ -105,13 +63,22 @@ func RouteDispatcher(route parser.Routes, c chan utils.Response) {
 func HandleGetRequest(url string) utils.Response {
 	// Time init
 	start := time.Now().UnixNano()
-	resp := utils.SendGETRequest(url)
+	resp := *utils.SendGETRequest(url)
+
 	resLength := resp.ContentLength
 	respStatusCode := resp.StatusCode
-	defer resp.Body.Close()
 
 	end := time.Now().UnixNano()
 	diff := int((end - start) / int64(time.Millisecond))
+	if err := resp.Body.Close(); err != nil {
+		panic(err)
+	}
 
 	return utils.Response{Delay: diff, ResLength: resLength, ResStatusCode: respStatusCode}
+}
+
+// returns the stringified form of the combined data
+func getNormalizedBlockString(b utils.Response) string {
+	return strconv.Itoa(b.Delay) + tsdb.BlockDataSeparator + strconv.FormatInt(b.ResLength, 10) + tsdb.BlockDataSeparator +
+		strconv.Itoa(b.ResStatusCode)
 }

@@ -41,48 +41,23 @@ type BRQuerier struct {
 	// Connection helps the querier to respond to the requests directly without
 	// worrying about the goroutines.
 	Connection *websocket.Conn
+
+	// Complete address of the persistent blocks.
+	Address string
 }
 
-// FetchAllSeries returns all the series from the particular chunk. It is go-routine safe and
-// respond to multiple same series requests.
-func (bq *BRQuerier) FetchAllSeries() {
+// FetchAllSeriesStringified returns all the series from the particular chunk.
+// It does not do any processing, rather just a plain simple fetch and return the fetched samples.
+// It is go-routine safe and respond to multiple same series requests.
+func (bq *BRQuerier) FetchAllSeriesStringified() string {
 	bq.mux.RLock()
 	defer bq.mux.RUnlock()
 
-	switch bq.ServiceName {
-	case "ping":
-		series, err := bq.reader.open(bq.fetchTSStorageAddress())
-		if err != nil {
-			panic(err)
-		}
-		if err := bq.Connection.WriteMessage(1, []byte(series)); err != nil {
-			panic(err)
-		}
-	case "flood-ping":
-		series, err := bq.reader.open(bq.fetchTSStorageAddress())
-		if err != nil {
-			panic(err)
-		}
-		if err := bq.Connection.WriteMessage(1, []byte(series)); err != nil {
-			panic(err)
-		}
-	case "jitter":
-		series, err := bq.reader.open(bq.fetchTSStorageAddress())
-		if err != nil {
-			panic(err)
-		}
-		if err := bq.Connection.WriteMessage(1, []byte(series)); err != nil {
-			panic(err)
-		}
-	case "req-res-delay":
-		series, err := bq.reader.open(bq.fetchTSStorageAddress())
-		if err != nil {
-			panic(err)
-		}
-		if err := bq.Connection.WriteMessage(1, []byte(series)); err != nil {
-			panic(err)
-		}
+	seriesRaw, err := bq.reader.open(bq.fetchTSStorageAddress())
+	if err != nil {
+		panic(err)
 	}
+	return seriesRaw
 }
 
 // Fetch time-series storage address
@@ -95,7 +70,13 @@ func (bq *BRQuerier) fetchTSStorageAddress() (address string) {
 	case "flood-ping":
 		address = directory + "flood-ping/" + prefix + "flood_ping_" + *filters.HTTPPingFilter(&bq.Route.DomainIP) + format
 	case "req-res-delay":
-		address = directory + "req-res-delay-monitoring/" + prefix + "req_res_" + filters.RouteDestroyer(bq.Route.DomainIP) + "_delay" + format
+		address = directory + "req-res-delay-monitoring/" + prefix + "req_res_" + filters.RouteDestroyer(bq.Route.DomainIP) + format
 	}
+	bq.Address = address
 	return
+}
+
+// GetAddress returns the address of the persistent blocks in the db.
+func (bq *BRQuerier) GetAddress() string {
+	return bq.Address
 }

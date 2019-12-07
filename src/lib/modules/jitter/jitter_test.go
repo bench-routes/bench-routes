@@ -44,23 +44,22 @@ func initTest() {
 		if !found {
 			filters.HTTPPingFilter(&r.URL)
 			ConfigURLs = append(ConfigURLs, r.URL)
-			tsdb.PingDBNames[r.URL] = utils.GetHash(r.URL)
+			utils.PingDBNames[r.URL] = utils.GetHash(r.URL)
 		}
 	}
 
 	//initiating the jitter chain
-	for i, v := range ConfigURLs {
-		path := pathJitter + "/" + "chunk_jitter_" + tsdb.PingDBNames[v] + ".json"
+	for _, v := range ConfigURLs {
+		path := pathJitter + "/" + "chunk_jitter_" + utils.PingDBNames[v] + ".json"
 		inst := &tsdb.Chain{
 			Path:           path,
 			Chain:          []tsdb.Block{},
 			LengthElements: 0,
 			Size:           0,
 		}
+		inst.Init().Commit()
 		// Initiate the chain
-		tsdb.GlobalChain = append(tsdb.GlobalChain, inst)
-		tsdb.GlobalChain[i] = tsdb.GlobalChain[i].Init()
-		tsdb.GlobalChain[i].Save()
+		utils.GlobalChain = append(utils.GlobalChain, inst)
 	}
 }
 
@@ -71,7 +70,7 @@ func TestHandlerJitter(t *testing.T) {
 	wg.Add(len(urls))
 
 	for _, inst := range urls {
-		go HandleJitter(tsdb.GlobalChain, inst, 10, inst, &wg, true)
+		go HandleJitter(utils.GlobalChain, inst, 10, inst, &wg, true)
 	}
 
 	wg.Wait()

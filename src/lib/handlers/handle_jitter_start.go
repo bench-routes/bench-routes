@@ -9,7 +9,6 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // HandleJitterStart handle the route "start"
@@ -44,7 +43,7 @@ func doJitter(config parser.YAMLBenchRoutesType, urlStack map[string]string, jit
 			var wg sync.WaitGroup
 			wg.Add(len(urlStack))
 			for _, u := range urlStack {
-				go jitter.HandleJitter(tsdb.GlobalChain, u, 10, u, &wg, false)
+				go jitter.HandleJitter(utils.GlobalChain, u, 10, u, &wg, false)
 			}
 			wg.Wait()
 		case "passive":

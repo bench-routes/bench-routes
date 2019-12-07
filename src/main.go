@@ -62,41 +62,39 @@ func init() {
 		if !found {
 			filters.HTTPPingFilter(&r.URL)
 			ConfigURLs = append(ConfigURLs, r.URL)
-			tsdb.PingDBNames[r.URL] = utils.GetHash(r.URL)
-			tsdb.FloodPingDBNames[r.URL] = utils.GetHash(r.URL)
+			utils.PingDBNames[r.URL] = utils.GetHash(r.URL)
+			utils.FloodPingDBNames[r.URL] = utils.GetHash(r.URL)
 		}
 	}
 	// forming ping chain
-	for i, v := range ConfigURLs {
+	for _, v := range ConfigURLs {
 		path := utils.PathPing + "/" + "chunk_ping_" + v + ".json"
-		inst := &tsdb.ChainPing{
+		inst := &tsdb.Chain{
 			Path:           path,
-			Chain:          []tsdb.BlockPing{},
+			Chain:          []tsdb.Block{},
 			LengthElements: 0,
 			Size:           0,
 		}
+		inst.Init().Commit()
 		// Initiate the chain
-		tsdb.GlobalPingChain = append(tsdb.GlobalPingChain, inst)
-		tsdb.GlobalPingChain[i] = tsdb.GlobalPingChain[i].InitPing()
-		tsdb.GlobalPingChain[i].SavePing()
+		utils.GlobalPingChain = append(utils.GlobalPingChain, inst)
 	}
 
-	// forming ping chain
-	for i, v := range ConfigURLs {
+	// forming flood-ping chain
+	for _, v := range ConfigURLs {
 		path := utils.PathFloodPing + "/" + "chunk_flood_ping_" + v + ".json"
-		inst := &tsdb.ChainFloodPing{
+		inst := &tsdb.Chain{
 			Path:           path,
-			Chain:          []tsdb.BlockFloodPing{},
+			Chain:          []tsdb.Block{},
 			LengthElements: 0,
 			Size:           0,
 		}
+		inst.Init().Commit()
 		// Initiate the chain
-		tsdb.GlobalFloodPingChain = append(tsdb.GlobalFloodPingChain, inst)
-		tsdb.GlobalFloodPingChain[i] = tsdb.GlobalFloodPingChain[i].InitFloodPing()
-		tsdb.GlobalFloodPingChain[i].SaveFloodPing()
+		utils.GlobalFloodPingChain = append(utils.GlobalFloodPingChain, inst)
 	}
 
-	for i, v := range ConfigURLs {
+	for _, v := range ConfigURLs {
 		path := utils.PathJitter + "/" + "chunk_jitter_" + v + ".json"
 		inst := &tsdb.Chain{
 			Path:           path,
@@ -104,47 +102,23 @@ func init() {
 			LengthElements: 0,
 			Size:           0,
 		}
+		inst.Init().Commit()
 		// Initiate the chain
-		tsdb.GlobalChain = append(tsdb.GlobalChain, inst)
-		tsdb.GlobalChain[i] = tsdb.GlobalChain[i].Init()
-		tsdb.GlobalChain[i].Save()
+		utils.GlobalChain = append(utils.GlobalChain, inst)
 	}
 
 	// forming req-res-delay chain
-	for i, route := range configuration.Config.Routes {
+	for _, route := range configuration.Config.Routes {
 		path := utils.PathReqResDelayMonitoring + "/" + "chunk_req_res_" + filters.RouteDestroyer(route.URL)
 		// Create sample chains to init in each TSDB file
-		sampleResponseDelay := &tsdb.Chain{
-			Path:           path + "_delay.json",
+		resp := &tsdb.Chain{
+			Path:           path + ".json",
 			Chain:          []tsdb.Block{},
 			LengthElements: 0,
 			Size:           0,
 		}
-		sampleResponseLength := &tsdb.Chain{
-			Path:           path + "_length.json",
-			Chain:          []tsdb.Block{},
-			LengthElements: 0,
-			Size:           0,
-		}
-		sampleResponseStatusCode := &tsdb.Chain{
-			Path:           path + "_status.json",
-			Chain:          []tsdb.Block{},
-			LengthElements: 0,
-			Size:           0,
-		}
-		tsdb.GlobalResponseDelay = append(tsdb.GlobalResponseDelay, sampleResponseDelay)
-		tsdb.GlobalResponseLength = append(tsdb.GlobalResponseLength, sampleResponseLength)
-		tsdb.GlobalResponseStatusCode = append(tsdb.GlobalResponseStatusCode, sampleResponseStatusCode)
-
-		// Initiate all chains
-		tsdb.GlobalResponseDelay[i] = tsdb.GlobalResponseDelay[i].Init()
-		tsdb.GlobalResponseLength[i] = tsdb.GlobalResponseLength[i].Init()
-		tsdb.GlobalResponseStatusCode[i] = tsdb.GlobalResponseStatusCode[i].Init()
-
-		// Commit all chains to the TSDB
-		tsdb.GlobalResponseDelay[i].Save()
-		tsdb.GlobalResponseLength[i].Save()
-		tsdb.GlobalResponseStatusCode[i].Save()
+		resp.Init().Commit()
+		utils.GlobalReqResDelChain = append(utils.GlobalReqResDelChain, resp)
 	}
 
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
@@ -245,45 +219,95 @@ func main() {
 			case "Qping-route":
 				compMessage := getMessageFromCompoundSignal(inStream[1:])
 				inst := qPingRoute{}
-				e := json.Unmarshal(compMessage, &inst)
-				if e != nil {
+				if e := json.Unmarshal(compMessage, &inst); e != nil {
 					panic(e)
 				}
 
 				url := inst.URL
 				ql := getQuerier(ws, "ping", url, "", "")
-				go ql.FetchAllSeries()
+				raw := inBlocks(ql.FetchAllSeriesStringified())
+				var response []utils.PingResp
+				for i, b := range raw {
+					decRaw := utils.Decode(b)
+					dec, ok := decRaw.(utils.Ping)
+					if !ok {
+						panic("invalid interface type")
+					}
+					tmp := utils.PingResp{
+						Min:            dec.Min,
+						Mean:           dec.Mean,
+						Max:            dec.Max,
+						MDev:           dec.MDev,
+						NormalizedTime: b.GetNormalizedTime(),
+						Timestamp:      b.GetTimeStamp(),
+						Relative:       i,
+					}
+					response = append(response, tmp)
+				}
+				respond(ws, response)
 
 			case "Qjitter-route":
 				compMessage := getMessageFromCompoundSignal(inStream[1:])
 				inst := qJitterRoute{}
-				e := json.Unmarshal(compMessage, &inst)
-				if e != nil {
+				if e := json.Unmarshal(compMessage, &inst); e != nil {
 					panic(e)
 				}
 
 				url := inst.URL
 				ql := getQuerier(ws, "jitter", url, "", "")
-				go ql.FetchAllSeries()
+				raw := inBlocks(ql.FetchAllSeriesStringified())
+				var response []utils.JitterResp
+				for i, b := range raw {
+					decRaw, ok := utils.Decode(b).(float64)
+					if !ok {
+						panic("invalid interface type")
+					}
+					tmp := utils.JitterResp{
+						Datapoint:      decRaw,
+						NormalizedTime: b.GetNormalizedTime(),
+						Timestamp:      b.GetTimeStamp(),
+						Relative:       i,
+					}
+					response = append(response, tmp)
+				}
+				respond(ws, response)
 
 			case "Qflood-ping-route":
 				compMessage := getMessageFromCompoundSignal(inStream[1:])
 				inst := qFloodPingRoute{}
-				e := json.Unmarshal(compMessage, &inst)
-				if e != nil {
+				if e := json.Unmarshal(compMessage, &inst); e != nil {
 					panic(e)
 				}
 
 				url := inst.URL
 				ql := getQuerier(ws, "flood-ping", url, "", "")
-				go ql.FetchAllSeries()
+				raw := inBlocks(ql.FetchAllSeriesStringified())
+				var response []utils.FloodPingResp
+				for i, b := range raw {
+					dec, ok := utils.Decode(b).(utils.FloodPing)
+					if !ok {
+						panic("invalid interface type")
+					}
+					tmp := utils.FloodPingResp{
+						Min:            dec.Min,
+						Mean:           dec.Mean,
+						Max:            dec.Max,
+						MDev:           dec.MDev,
+						PacketLoss:     dec.PacketLoss,
+						NormalizedTime: b.GetNormalizedTime(),
+						Timestamp:      b.GetTimeStamp(),
+						Relative:       i,
+					}
+					response = append(response, tmp)
+				}
+				respond(ws, response)
 
+			// TODO just like flood-ping, jitter, ping
 			// Querrier signal for Request-response delay
 			case "Qrequest-response-delay":
 				compMessage := getMessageFromCompoundSignal(inStream[1:])
 				inst := qReqResDelayRoute{}
-				e := json.Unmarshal(compMessage, &inst)
-				if e != nil {
+				if e := json.Unmarshal(compMessage, &inst); e != nil {
 					panic(e)
 				}
 
@@ -292,7 +316,7 @@ func main() {
 				// Gets the Querrier for request-response delay
 				// TODO: Send the method along with URL
 				ql := getQuerier(ws, "req-res-delay", url, method, "_delay")
-				go ql.FetchAllSeries()
+				go ql.FetchAllSeriesStringified()
 			}
 		}
 	})
@@ -354,5 +378,21 @@ func initializeState(configuration *parser.YAMLBenchRoutesType) {
 	if e != nil {
 		panic(e)
 	}
+}
 
+func inBlocks(s string) (tmp []tsdb.Block) {
+	if err := json.Unmarshal([]byte(s), &tmp); err != nil {
+		panic(err)
+	}
+	return
+}
+
+func respond(ws *websocket.Conn, inf interface{}) {
+	js, err := json.Marshal(inf)
+	if err != nil {
+		panic(err)
+	}
+	if e := ws.WriteMessage(1, js); e != nil {
+		panic(e)
+	}
 }
