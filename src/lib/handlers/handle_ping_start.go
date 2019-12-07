@@ -110,7 +110,7 @@ func doFloodPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, 
 			var wg sync.WaitGroup
 			wg.Add(len(urlStack))
 			for _, u := range urlStack {
-				go ping.HandleFloodPing(utils.GlobalFloodPingChain, u, 10000, u, &wg, false, config.Config.Password)
+				go ping.HandleFloodPing(utils.GlobalFloodPingChain, u, 500, u, &wg, false, config.Config.Password)
 			}
 
 			wg.Wait()

@@ -45,7 +45,7 @@ type FloodPingResp struct {
 	Mean           float64 `json:"Mean"`
 	Max            float64 `json:"Max"`
 	MDev           float64 `json:"MDev"`
-	PacketLoss     float64 `json:Packetloss`
+	PacketLoss     float64 `json:"PacketLoss"`
 	NormalizedTime int64   `json:"NormalizedTime"`
 	Timestamp      string  `json:"Timestamp"`
 	Relative       int     `json:"relative"`

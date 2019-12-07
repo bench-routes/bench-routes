@@ -1,4 +1,4 @@
-password: your password
+password: hsinghbb
 test_interval:
 - test: ping
   type: sec
