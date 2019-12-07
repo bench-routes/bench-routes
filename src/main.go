@@ -232,8 +232,6 @@ func main() {
 					if !ok {
 						panic("invalid interface type")
 					}
-					fmt.Println("dec is")
-					fmt.Println(dec)
 					tmp := utils.PingResp{
 						Min:            dec.Min,
 						Mean:           dec.Mean,
@@ -241,19 +239,12 @@ func main() {
 						MDev:           dec.MDev,
 						NormalizedTime: b.GetNormalizedTime(),
 						Timestamp:      b.GetTimeStamp(),
-						Relative:       (i),
+						Relative:       i,
 					}
 					response = append(response, tmp)
 				}
-				fmt.Println("response is ")
-				fmt.Println(response)
-				js, err := json.Marshal(response)
-				if err != nil {
-					panic(err)
-				}
-				if e := ws.WriteMessage(1, js); e != nil {
-					panic(e)
-				}
+				respond(ws, response)
+
 			case "Qjitter-route":
 				compMessage := getMessageFromCompoundSignal(inStream[1:])
 				inst := qJitterRoute{}
@@ -263,7 +254,22 @@ func main() {
 
 				url := inst.URL
 				ql := getQuerier(ws, "jitter", url, "", "")
-				go ql.FetchAllSeriesStringified()
+				raw := inBlocks(ql.FetchAllSeriesStringified())
+				var response []utils.JitterResp
+				for i, b := range raw {
+					decRaw, ok := utils.Decode(b).(float64)
+					if !ok {
+						panic("invalid interface type")
+					}
+					tmp := utils.JitterResp{
+						Datapoint:      decRaw,
+						NormalizedTime: b.GetNormalizedTime(),
+						Timestamp:      b.GetTimeStamp(),
+						Relative:       i,
+					}
+					response = append(response, tmp)
+				}
+				respond(ws, response)
 
 			case "Qflood-ping-route":
 				compMessage := getMessageFromCompoundSignal(inStream[1:])
@@ -274,8 +280,28 @@ func main() {
 
 				url := inst.URL
 				ql := getQuerier(ws, "flood-ping", url, "", "")
-				go ql.FetchAllSeriesStringified()
+				raw := inBlocks(ql.FetchAllSeriesStringified())
+				var response []utils.FloodPingResp
+				for i, b := range raw {
+					dec, ok := utils.Decode(b).(utils.FloodPing)
+					if !ok {
+						panic("invalid interface type")
+					}
+					tmp := utils.FloodPingResp{
+						Min:            dec.Min,
+						Mean:           dec.Mean,
+						Max:            dec.Max,
+						MDev:           dec.MDev,
+						PacketLoss:     dec.PacketLoss,
+						NormalizedTime: b.GetNormalizedTime(),
+						Timestamp:      b.GetTimeStamp(),
+						Relative:       i,
+					}
+					response = append(response, tmp)
+				}
+				respond(ws, response)
 
+			// TODO just like flood-ping, jitter, ping
 			// Querrier signal for Request-response delay
 			case "Qrequest-response-delay":
 				compMessage := getMessageFromCompoundSignal(inStream[1:])
@@ -351,7 +377,6 @@ func initializeState(configuration *parser.YAMLBenchRoutesType) {
 	if e != nil {
 		panic(e)
 	}
-
 }
 
 func inBlocks(s string) (tmp []tsdb.Block) {
@@ -359,4 +384,14 @@ func inBlocks(s string) (tmp []tsdb.Block) {
 		panic(err)
 	}
 	return
+}
+
+func respond(ws *websocket.Conn, inf interface{}) {
+	js, err := json.Marshal(inf)
+	if err != nil {
+		panic(err)
+	}
+	if e := ws.WriteMessage(1, js); e != nil {
+		panic(e)
+	}
 }

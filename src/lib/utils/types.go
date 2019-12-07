@@ -22,6 +22,14 @@ type PingResp struct {
 	Relative       int     `json:"relative"`
 }
 
+// JitterResp type for storing Ping values in TSDB
+type JitterResp struct {
+	Datapoint      float64 `json:"datapoint"`
+	NormalizedTime int64   `json:"NormalizedTime"`
+	Timestamp      string  `json:"Timestamp"`
+	Relative       int     `json:"relative"`
+}
+
 // FloodPing type for storing Ping values in TSDB
 type FloodPing struct {
 	Min        float64
