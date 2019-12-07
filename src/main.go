@@ -42,6 +42,7 @@ func init() {
 	// load configuration file
 	configuration.Address = utils.ConfigurationFilePath
 	configuration = *configuration.Load()
+	configuration.Validate()
 
 	var ConfigURLs []string
 

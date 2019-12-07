@@ -11,6 +11,7 @@ import (
 type YAMLParser interface {
 	Load() (bool, error)
 	Write() (bool, error)
+	Validate() bool
 	Refresh() YAMLBenchRoutesType
 }
 
@@ -24,7 +25,7 @@ type YAMLBenchRoutesType struct {
 type Interval struct {
 	Test     string `yaml:"test"`
 	Type     string `yaml:"type"`
-	Duration int64  `yaml:"duration"`
+	Duration *int64 `yaml:"duration"`
 }
 
 // Headers store the header values(ofType and value) from the config file
@@ -50,8 +51,8 @@ type Routes struct {
 
 // ResponseChangesConfig acts as a type for response-length configuration in config.yml
 type ResponseChangesConfig struct {
-	Mode float32 `yaml:"mode"`
-	Mean float32 `yaml:"mean"`
+	Mode *float32 `yaml:"mode"`
+	Mean *float32 `yaml:"mean"`
 }
 
 // ServiceSignals type for defining current running states of various services supported
