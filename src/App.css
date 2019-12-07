@@ -43,3 +43,14 @@ canvas {
   width: 90%;
   overflow-x: scroll;
 }
+
+.button-operations {
+  font-size: x-small;
+  padding: 3px 5px 3px 5px;
+  margin: 4px;
+}
+
+.btn-layout {
+  margin-bottom: 4px;
+  border-bottom: 1px solid #f3f3f3;
+}

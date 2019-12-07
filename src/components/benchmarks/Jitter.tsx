@@ -48,7 +48,7 @@ export default class Jitter extends Component<
         let inst;
         for (inst of data) {
           jitter.push(inst.datapoint);
-          norTime.push(inst.normalizedTime);
+          norTime.push(inst.relative);
           timeStamp.push(inst.timestamp);
         }
 
@@ -83,6 +83,11 @@ export default class Jitter extends Component<
   public render() {
     return (
       <>
+        <div className="btn-layout">
+          {/* operations */}
+          <button className="button-operations btn btn-success">Start</button>
+          <button className="button-operations btn btn-danger">Stop</button>
+        </div>
         <Submenu
           module="jitter"
           submodule=""

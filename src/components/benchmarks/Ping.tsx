@@ -50,11 +50,11 @@ export default class PingModule extends React.Component<
 
         let inst;
         for (inst of data) {
-          yMin.push(inst.datapoint.Min);
-          yMean.push(inst.datapoint.Mean);
-          yMax.push(inst.datapoint.Max);
-          yMdev.push(inst.datapoint.Mdev);
-          norTime.push(inst.normalizedTime);
+          yMin.push(inst.Min);
+          yMean.push(inst.Mean);
+          yMax.push(inst.Max);
+          yMdev.push(inst.Mdev);
+          norTime.push(inst.relative);
           timeStamp.push(inst.timestamp);
         }
 
@@ -133,21 +133,34 @@ export default class PingModule extends React.Component<
       });
   };
 
+  public opts(operation: string): void {
+    switch (operation) {
+      case 'start':
+    }
+  }
+
   public render() {
     return (
       <>
-        <Submenu
-          module="ping"
-          submodule=""
-          getAddress={this.getAddressSubmenu}
-        />
-        {this.state.showChart ? (
-          <div>
-            <BRCharts opts={this.state.chartOpts} />
-          </div>
-        ) : (
-          <div>Chart not available</div>
-        )}
+        <div className="btn-layout">
+          {/* operations */}
+          <button className="button-operations btn btn-success">Start</button>
+          <button className="button-operations btn btn-danger">Stop</button>
+        </div>
+        <div>
+          <Submenu
+            module="ping"
+            submodule=""
+            getAddress={this.getAddressSubmenu}
+          />
+          {this.state.showChart ? (
+            <div>
+              <BRCharts opts={this.state.chartOpts} />
+            </div>
+          ) : (
+            <div>Chart not available</div>
+          )}
+        </div>
       </>
     );
   }

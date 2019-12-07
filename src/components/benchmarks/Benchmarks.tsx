@@ -26,6 +26,11 @@ export default class Benchmarks extends React.Component<
   public render() {
     return (
       <>
+        <div className="btn-layout">
+          {/* operations */}
+          <button className="button-operations btn btn-success">Start</button>
+          <button className="button-operations btn btn-danger">Stop</button>
+        </div>
         <Submenu
           module="benchmark"
           submodule=""
