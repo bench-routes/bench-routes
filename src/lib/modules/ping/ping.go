@@ -12,10 +12,9 @@ import (
 // HandlePing is the main handler for ping operations
 func HandlePing(chain []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
 	tsdbNameHash = utils.PathPing + "/" + "chunk_ping_" + tsdbNameHash + ".json"
-
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {
-		log.Println(*resp)
+		log.Printf("Failure occured for %s", urlRaw)
 		wg.Done()
 		return
 	}
