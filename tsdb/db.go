@@ -6,6 +6,8 @@ import (
 	"log"
 	"sync"
 	"unsafe"
+	"os/exec"
+	"strings"
 )
 
 const (
@@ -107,6 +109,11 @@ type TSDB interface {
 	Commit() bool
 }
 
+// GetName returns the name of the chain as an absolute address.
+func (c *Chain) GetName() string {
+	return c.Path
+}
+
 // Init initialize Chain properties
 func (c *Chain) Init() *Chain {
 	c.mux.Lock()
@@ -192,4 +199,37 @@ func (c *Chain) GetPositionalIndexNormalized(n int64) (int, error) {
 	}
 
 	return 0, errors.New("Normalized time not found in chain")
+}
+
+func checkGZipPresence() bool {
+	b, err := exec.Command("gzip").Output()
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(b), "command not found")
+}
+
+// Compress compresses the chain file `.json` based on the given Type.
+func (c *Chain) Compress(Type string) {
+	if checkGZipPresence() {
+		log.Printf("gzip not found. compression not possible.\n")
+		return
+	}
+	switch Type {
+	case "no-delete":
+		if _, err := exec.Command("gzip", "-k", c.GetName()).Output(); err != nil {
+			panic(err)
+		}
+	case "delete":
+		if _, err := exec.Command("gzip", c.GetName()).Output(); err != nil {
+			panic((err))
+		}
+	case "init-post-delete":
+		if _, err := exec.Command("gzip", c.GetName()).Output(); err != nil {
+			panic(err)
+		}
+		c.Init()
+	default:
+		log.Fatalf("invalid type for compression. type: %s.\n", Type)
+	}
 }
