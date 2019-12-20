@@ -3,3 +3,5 @@ src/build/
 bench-routes
 glide.lock
 tests/node_modules
+dashboard/package-lock.json
+dashboard/node_modules

@@ -1,0 +1,160 @@
+.sidebar {
+  padding: 10px 15px;
+  min-width: max-content;
+  width: 20%;
+  line-height: 160%;
+  background-color: #f1f1f3;
+  height: 100vh;
+  background-image: url('wall.png');
+  background-position: bottom;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-inner {
+  display: inline-flex;
+}
+
+.sidebar-head {
+  padding-left: 10%;
+  font-weight: 500;
+  color: black;
+}
+
+.sidebar-content {
+  height: 60%;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #282c34;
+}
+
+.sidebar-bottom-links {
+  bottom: 0;
+  position: absolute;
+}
+
+header {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #f1f1f3;
+  justify-content: space-between;
+  height: 6%;
+}
+
+.logo-name {
+  font-size: 20px;
+  font-weight: 600;
+  font-family: 'Open Sans';
+  padding: 10px 15px;
+}
+
+.notification-icon {
+  height: 28px;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
+.notification {
+  position: absolute;
+  height: 100vh;
+  width: 600px;
+  right: -610px;
+  box-shadow: 2px 2px 6px 8px rgba(0, 0, 0, 0.2);
+  opacity: 0.8;
+}
+
+.notification-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 15px;
+  border-bottom: 1px solid gray;
+  height: 6;
+}
+
+.notification-body {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 15px;
+}
+
+.display-notification {
+  right: -600px;
+  background: white;
+  animation: slideIn 0.8s ease-in-out forwards;
+}
+
+.close-notification {
+  right: 0px;
+  background: white;
+  animation: slideOut 0.8s forwards;
+}
+
+.benchmark-submenu {
+  padding-left: 20px;
+}
+
+.sidebar-submenu-inner {
+  display: inline-flex;
+  height: 20px;
+}
+
+.benchmarking {
+  cursor: pointer;
+}
+
+@keyframes slideIn {
+  0% {
+    right: -600px;
+  }
+  90% {
+    width: 30%;
+    right: 5px;
+  }
+  100% {
+    width: 30%;
+    right: 0;
+  }
+}
+
+@keyframes slideOut {
+  0% {
+    width: 30%;
+    right: 0;
+  }
+  10% {
+    width: 30%;
+    right: 5px;
+  }
+  100% {
+    right: -600px;
+  }
+}
+
+.submenu-style-general {
+  background-color: #fff;
+  padding: 5px 4px 5px 4px;
+  font-weight: 600;
+  margin: 3px 0px 3px 5px;
+  border-radius: 7px;
+  font-size: 10px;
+}
+
+.submenu-show-graph {
+  padding: 2px;
+  position: relative;
+  margin: 3px 0px 3px 5px;
+  font-size: 10px;
+  right: 1%;
+  border-radius: 5px;
+  box-shadow: none;
+}
+
+.submenu-container {
+  display: inline-flex;
+}

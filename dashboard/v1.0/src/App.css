@@ -1,0 +1,56 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow-y: hidden;
+}
+
+.App {
+  display: flex;
+  flex-direction: row;
+}
+
+.inner-component {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+body {
+  background-color: transparent;
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+
+.outer-wrapper {
+  position: absolute;
+  left: 22%;
+  width: 75%;
+}
+
+.inner-component {
+  margin-left: 2%;
+}
+
+.notification-close {
+  cursor: pointer;
+}
+
+canvas {
+  height: 100% !important;
+}
+
+.canvas-chart-wrapper {
+  width: 90%;
+  overflow-x: scroll;
+}
+
+.button-operations {
+  font-size: x-small;
+  padding: 3px 5px 3px 5px;
+  margin: 4px;
+}
+
+.btn-layout {
+  margin-bottom: 4px;
+  border-bottom: 1px solid #f3f3f3;
+}
