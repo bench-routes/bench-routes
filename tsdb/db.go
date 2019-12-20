@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"sync"
-	"unsafe"
 	"os/exec"
 	"strings"
+	"sync"
+	"unsafe"
 )
 
 const (
