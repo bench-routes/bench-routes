@@ -12,7 +12,7 @@ environment.
 ### Local machine
 
 1. Install Golang +1.10.x (assuming `git` is already installed).
-2. Make a default repository for cloing the project. This should be strictly inside the `GOPATH`. Paste this instruction in your terminal to get started.
+2. Make a default repository for cloning the project. This should be strictly inside the `GOPATH`. Paste this instruction in your terminal to get started.
 `mkdir -p $GOPATH/src/github.com/zairza-cetb/`.
 3. Navigate to the directory via `cd $GOPATH/src/github.com/zairza-cetb`.
 4. Clone the repository via `git clone https://github.com/zairza-cetb/bench-routes.git`.
