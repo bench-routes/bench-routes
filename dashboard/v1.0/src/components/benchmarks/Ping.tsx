@@ -133,19 +133,42 @@ export default class PingModule extends React.Component<
       });
   };
 
-  public opts(operation: string): void {
+  public opts = (operation: string) => {
     switch (operation) {
       case 'start':
+        this.connection.signalPingStart().then(res => {
+          if (res.data) {
+            alert('Ping routine started');
+          }
+        });
+        break;
+      case 'stop':
+        this.connection.signalPingStop().then(res => {
+          if (res.data) {
+            alert('Ping routine stopped');
+          }
+        });
+        break;
     }
-  }
+  };
 
   public render() {
     return (
       <>
         <div className="btn-layout">
           {/* operations */}
-          <button className="button-operations btn btn-success">Start</button>
-          <button className="button-operations btn btn-danger">Stop</button>
+          <button
+            className="button-operations btn btn-success"
+            onClick={() => this.opts('start')}
+          >
+            Start
+          </button>
+          <button
+            className="button-operations btn btn-danger"
+            onClick={() => this.opts('stop')}
+          >
+            Stop
+          </button>
         </div>
         <div>
           <Submenu

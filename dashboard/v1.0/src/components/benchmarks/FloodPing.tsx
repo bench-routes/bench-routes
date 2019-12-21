@@ -161,13 +161,42 @@ export default class FloodPing extends Component<
       });
   };
 
+  public opts = (operation: string) => {
+    switch (operation) {
+      case 'start':
+        this.connection.signalFloodPingStart().then(res => {
+          if (res.data) {
+            alert('Flood Ping routine started');
+          }
+        });
+        break;
+      case 'stop':
+        this.connection.signalFloodPingStop().then(res => {
+          if (res.data) {
+            alert('Flood Ping routine stopped');
+          }
+        });
+        break;
+    }
+  };
+
   public render() {
     return (
       <>
         <div className="btn-layout">
           {/* operations */}
-          <button className="button-operations btn btn-success">Start</button>
-          <button className="button-operations btn btn-danger">Stop</button>
+          <button
+            className="button-operations btn btn-success"
+            onClick={() => this.opts('start')}
+          >
+            Start
+          </button>
+          <button
+            className="button-operations btn btn-danger"
+            onClick={() => this.opts('start')}
+          >
+            Stop
+          </button>
         </div>
         <Submenu
           module="ping"

@@ -7,7 +7,7 @@ export default class Sidebar extends React.Component<{}> {
     showBenchmarkSubmenu: false
   };
 
-  public BenchmarkSubmenu = () => {
+  public toggleBenchmarkSubmenu = () => {
     if (this.state.showBenchmarkSubmenu) {
       this.setState({
         showBenchmarkSubmenu: false
@@ -51,7 +51,7 @@ export default class Sidebar extends React.Component<{}> {
 
             <div
               onClick={() => {
-                this.BenchmarkSubmenu();
+                this.toggleBenchmarkSubmenu();
               }}
             >
               <div className="sidebar-inner benchmarking">

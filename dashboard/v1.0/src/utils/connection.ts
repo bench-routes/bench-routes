@@ -3,7 +3,7 @@ export interface RouteFetchAll {
 }
 
 interface StoreType {
-    routeDetails: any;
+  routeDetails: any;
 }
 
 export default class BRConnect {
@@ -30,11 +30,27 @@ export default class BRConnect {
   }
 
   public signalPingStart(): Promise<any> {
-    return this.sendMessage('force-start-ping');
+    return this.sendMessageOperateModule('force-start-ping');
   }
 
   public signalPingStop(): Promise<any> {
-    return this.sendMessage('force-stop-ping');
+    return this.sendMessageOperateModule('force-stop-ping');
+  }
+
+  public signalJitterStart(): Promise<any> {
+    return this.sendMessageOperateModule('force-start-jitter');
+  }
+
+  public signalJitterStop(): Promise<any> {
+    return this.sendMessageOperateModule('force-stop-jitter');
+  }
+
+  public signalFloodPingStart(): Promise<any> {
+    return this.sendMessageOperateModule('force-start-flood-ping');
+  }
+
+  public signalFloodPingStop(): Promise<any> {
+    return this.sendMessageOperateModule('force-stop-flood-ping');
   }
 
   public signalPingRouteFetchAllTimeSeries(route: string): Promise<any> {
@@ -55,14 +71,18 @@ export default class BRConnect {
     const inst: RouteFetchAll = {
       url: route
     };
-    return this.sendAndReceiveMessage('Qflood-ping-route ' + JSON.stringify(inst));
+    return this.sendAndReceiveMessage(
+      'Qflood-ping-route ' + JSON.stringify(inst)
+    );
   }
 
   public signalReqResDelayRouteFetchAllTimeSeries(route: string): Promise<any> {
     const inst: RouteFetchAll = {
       url: route
     };
-    return this.sendAndReceiveMessage('Qrequest-response-delay ' + JSON.stringify(inst));
+    return this.sendAndReceiveMessage(
+      'Qrequest-response-delay ' + JSON.stringify(inst)
+    );
   }
 
   private sendAndReceiveMessage(message: string): Promise<any> {
@@ -70,12 +90,23 @@ export default class BRConnect {
       this.socketConn.send(message);
       this.socketConn.onmessage = (m: any) => {
         res(m);
-        console.log("M:::", m);
       };
       this.socketConn.onerror = (e: any) => {
         rej(e);
       };
-  });
+    });
+  }
+
+  private sendMessageOperateModule(message: string): Promise<any> {
+    return new Promise((res: any, rej: any) => {
+      this.socketConn.send(message);
+      this.socketConn.onmessage = (m: any) => {
+        res(m);
+      };
+      this.socketConn.onerror = (e: any) => {
+        rej(e);
+      };
+    });
   }
 
   private sendMessage(message: string): Promise<any> {
@@ -95,12 +126,12 @@ export default class BRConnect {
           this.socketConn.send('hi from br-e2');
           this.socketConn.send(message);
           this.socketConn.onmessage = (m: any) => {
-              const data: string = m.data;
-              const dataJSON: object = JSON.parse(data);
-              res(dataJSON);
+            const data: string = m.data;
+            const dataJSON: object = JSON.parse(data);
+            res(dataJSON);
           };
           this.socketConn.onerror = (e: any) => {
-              rej(e);
+            rej(e);
           };
         };
       }
