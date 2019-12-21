@@ -169,7 +169,6 @@ func main() {
 			// ping
 			case "force-start-ping":
 				// true if success else false
-				fmt.Printf("receiving\n")
 				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerPingGeneral("start")))); e != nil {
 					panic(e)
 				}
@@ -211,7 +210,6 @@ func main() {
 
 				// Get config routes details
 			case "route-details":
-				fmt.Printf("Receiving Route details")
 				m := configuration.Config.Routes
 				if e := ws.WriteMessage(1, filters.RouteYAMLtoJSONParser(m)); e != nil {
 					panic(e)
