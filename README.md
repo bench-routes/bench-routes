@@ -1,9 +1,9 @@
-# bench-routes
+# Bench-routes
 
 [![Build Status](https://travis-ci.com/zairza-cetb/bench-routes.svg?branch=master)](https://travis-ci.com/zairza-cetb/bench-routes)
 [![Gitter](https://img.shields.io/badge/join%20discussions%20on%20gitter-%23benchroutes-green/)](https://gitter.im/bench-routes/community#)
 
-bench-routes is a highly scalable network benchmarking, routes performance and monitoring tool, that monitors in regular intervals the state
+Bench-routes is a highly scalable network benchmarking, routes performance and monitoring tool, that monitors in regular intervals the state
 of the server, running as a daemon process. For more information, read the [docs](https://docs.google.com/document/d/1jGfc2eXvToRL9anzosTLQ4zJ7fdFxMGfaiDv2BYHEvw/edit?usp=sharing)
 
 ### Read the complete idea and approach [here](https://github.com/zairza-cetb/bench-routes/blob/master/approach.md).
