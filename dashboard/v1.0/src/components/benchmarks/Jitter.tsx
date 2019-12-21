@@ -76,17 +76,42 @@ export default class Jitter extends Component<
       });
   };
 
-  // public getAddressSubmenu = (sAddressParam: string) => {
-  //   this.setState({ sAddress: sAddressParam });
-  // };
+  public opts = (operation: string) => {
+    switch (operation) {
+      case 'start':
+        this.connection.signalJitterStart().then(res => {
+          if (res.data) {
+            alert('Jitter routine started');
+          }
+        });
+        break;
+      case 'stop':
+        this.connection.signalJitterStop().then(res => {
+          if (res.data) {
+            alert('Jitter routine stopped');
+          }
+        });
+        break;
+    }
+  };
 
   public render() {
     return (
       <>
         <div className="btn-layout">
           {/* operations */}
-          <button className="button-operations btn btn-success">Start</button>
-          <button className="button-operations btn btn-danger">Stop</button>
+          <button
+            className="button-operations btn btn-success"
+            onClick={() => this.opts('start')}
+          >
+            Start
+          </button>
+          <button
+            className="button-operations btn btn-danger"
+            onClick={() => this.opts('stop')}
+          >
+            Stop
+          </button>
         </div>
         <Submenu
           module="jitter"
