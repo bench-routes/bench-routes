@@ -75,7 +75,7 @@ func init() {
 		chainInitialiser(&utils.GlobalPingChain, ConfigURLs, utils.PathPing, "ping")
 		wg.Done()
 	}()
-	
+
 	go func() {
 		chainInitialiser(&utils.GlobalFloodPingChain, ConfigURLs, utils.PathFloodPing, "flood_ping")
 		wg.Done()
@@ -92,7 +92,7 @@ func init() {
 	}()
 
 	wg.Wait()
-	log.Printf("initial chain formation time: %s\n", time.Now().Sub(p).String())
+	log.Printf("initial chain formation time: %s\n", time.Since(p).String())
 
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
 	// required resources for the application is up and healthy
@@ -305,7 +305,7 @@ func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type str
 	if ok {
 		for _, v := range config {
 			path := basePath + "/chunk_" + Type + "_" + v + ".json"
-			
+
 			resp := &tsdb.Chain{
 				Path:           path,
 				Chain:          []tsdb.Block{},
@@ -320,7 +320,7 @@ func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type str
 	if ok {
 		for _, v := range configRes {
 			path := basePath + "/chunk_" + Type + "_" + filters.RouteDestroyer(v.URL) + ".json"
-			
+
 			resp := &tsdb.Chain{
 				Path:           path,
 				Chain:          []tsdb.Block{},
@@ -331,7 +331,7 @@ func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type str
 			*chain = append(*chain, resp)
 		}
 	}
-	
+
 	log.Printf("finished %s chain\n", Type)
 }
 
@@ -380,9 +380,9 @@ func getMessageFromCompoundSignal(arg []string) []byte {
 //initializing all the service states to passives
 func initializeState(configuration *parser.YAMLBenchRoutesType) {
 	configuration.Config.UtilsConf.ServicesSignal = parser.ServiceSignals{
-		Ping: "passive",
-		Jitter: "passive",
-		FloodPing: "passive",
+		Ping:                  "passive",
+		Jitter:                "passive",
+		FloodPing:             "passive",
 		ReqResDelayMonitoring: "passive",
 	}
 	if _, e := configuration.Write(); e != nil {
