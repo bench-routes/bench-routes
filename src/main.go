@@ -10,6 +10,7 @@ import (
 	"os/user"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -36,7 +37,7 @@ const (
 )
 
 func init() {
-	setupLogger()
+	go setupLogger()
 	log.Printf("initializing bench-routes ...")
 
 	// load configuration file
@@ -66,60 +67,32 @@ func init() {
 			utils.FloodPingDBNames[r.URL] = utils.GetHash(r.URL)
 		}
 	}
-	// forming ping chain
-	for _, v := range ConfigURLs {
-		path := utils.PathPing + "/" + "chunk_ping_" + v + ".json"
-		inst := &tsdb.Chain{
-			Path:           path,
-			Chain:          []tsdb.Block{},
-			LengthElements: 0,
-			Size:           0,
-		}
-		inst.Init().Commit()
-		// Initiate the chain
-		utils.GlobalPingChain = append(utils.GlobalPingChain, inst)
-	}
+	var wg sync.WaitGroup
+	p := time.Now()
+	wg.Add(4)
 
-	// forming flood-ping chain
-	for _, v := range ConfigURLs {
-		path := utils.PathFloodPing + "/" + "chunk_flood_ping_" + v + ".json"
-		inst := &tsdb.Chain{
-			Path:           path,
-			Chain:          []tsdb.Block{},
-			LengthElements: 0,
-			Size:           0,
-		}
-		inst.Init().Commit()
-		// Initiate the chain
-		utils.GlobalFloodPingChain = append(utils.GlobalFloodPingChain, inst)
-	}
+	go func() {
+		chainInitialiser(&utils.GlobalPingChain, ConfigURLs, utils.PathPing, "ping")
+		wg.Done()
+	}()
+	
+	go func() {
+		chainInitialiser(&utils.GlobalFloodPingChain, ConfigURLs, utils.PathFloodPing, "flood_ping")
+		wg.Done()
+	}()
 
-	for _, v := range ConfigURLs {
-		path := utils.PathJitter + "/" + "chunk_jitter_" + v + ".json"
-		inst := &tsdb.Chain{
-			Path:           path,
-			Chain:          []tsdb.Block{},
-			LengthElements: 0,
-			Size:           0,
-		}
-		inst.Init().Commit()
-		// Initiate the chain
-		utils.GlobalChain = append(utils.GlobalChain, inst)
-	}
+	go func() {
+		chainInitialiser(&utils.GlobalChain, ConfigURLs, utils.PathJitter, "jitter")
+		wg.Done()
+	}()
 
-	// forming req-res-delay chain
-	for _, route := range configuration.Config.Routes {
-		path := utils.PathReqResDelayMonitoring + "/" + "chunk_req_res_" + filters.RouteDestroyer(route.URL)
-		// Create sample chains to init in each TSDB file
-		resp := &tsdb.Chain{
-			Path:           path + ".json",
-			Chain:          []tsdb.Block{},
-			LengthElements: 0,
-			Size:           0,
-		}
-		resp.Init().Commit()
-		utils.GlobalReqResDelChain = append(utils.GlobalReqResDelChain, resp)
-	}
+	go func() {
+		chainInitialiser(&utils.GlobalReqResDelChain, configuration.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
+		wg.Done()
+	}()
+
+	wg.Wait()
+	log.Printf("initial chain formation time: %s\n", time.Now().Sub(p).String())
 
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
 	// required resources for the application is up and healthy
@@ -326,6 +299,42 @@ func main() {
 
 }
 
+func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
+	log.Printf("forming %s chain ... \n", Type)
+	config, ok := conf.([]string)
+	if ok {
+		for _, v := range config {
+			path := basePath + "/chunk_" + Type + "_" + v + ".json"
+			
+			resp := &tsdb.Chain{
+				Path:           path,
+				Chain:          []tsdb.Block{},
+				LengthElements: 0,
+				Size:           0,
+			}
+			resp.Init().Commit()
+			*chain = append(*chain, resp)
+		}
+	}
+	configRes, ok := conf.([]parser.Routes)
+	if ok {
+		for _, v := range configRes {
+			path := basePath + "/chunk_" + Type + "_" + filters.RouteDestroyer(v.URL) + ".json"
+			
+			resp := &tsdb.Chain{
+				Path:           path,
+				Chain:          []tsdb.Block{},
+				LengthElements: 0,
+				Size:           0,
+			}
+			resp.Init().Commit()
+			*chain = append(*chain, resp)
+		}
+	}
+	
+	log.Printf("finished %s chain\n", Type)
+}
+
 func setupLogger() {
 	currTime := time.Now()
 	currFileName := fmt.Sprint(logFilePrefix, currTime.Format("2006-01-02#15:04:05"), ".log")
@@ -370,12 +379,13 @@ func getMessageFromCompoundSignal(arg []string) []byte {
 
 //initializing all the service states to passives
 func initializeState(configuration *parser.YAMLBenchRoutesType) {
-	configuration.Config.UtilsConf.ServicesSignal.Ping = "passive"
-	configuration.Config.UtilsConf.ServicesSignal.Jitter = "passive"
-	configuration.Config.UtilsConf.ServicesSignal.FloodPing = "passive"
-	configuration.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "passive"
-	_, e := configuration.Write()
-	if e != nil {
+	configuration.Config.UtilsConf.ServicesSignal = parser.ServiceSignals{
+		Ping: "passive",
+		Jitter: "passive",
+		FloodPing: "passive",
+		ReqResDelayMonitoring: "passive",
+	}
+	if _, e := configuration.Write(); e != nil {
 		panic(e)
 	}
 }
