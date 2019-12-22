@@ -42,7 +42,7 @@ before_script:
   - npm install -g eslint electron electron-packager tslint prettier
 
 script:
-  - alias c = "cd dashboard/v1.0/"
+  - alias c="cd dashboard/v1.0/"
   - c && npm run lint
   - c && npm run tlint
   - c && prettier '**/*.tsx' --list-different
