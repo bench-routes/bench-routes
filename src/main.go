@@ -92,7 +92,7 @@ func init() {
 	}()
 
 	wg.Wait()
-	log.Printf("initial chain formation time: %s\n", time.Now().Sub(p).String())
+	log.Printf("initial chain formation time: %s\n", time.Since(p).String())
 
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
 	// required resources for the application is up and healthy
