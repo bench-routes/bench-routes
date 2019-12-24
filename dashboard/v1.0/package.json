@@ -16,7 +16,7 @@
     "react-dom": "^16.10.2",
     "react-motion-ui-pack": "^0.10.3",
     "react-router-dom": "^5.1.2",
-    "react-scripts": "3.2.0",
+    "react-scripts": "^3.3.0",
     "wait-on": "^3.3.0"
   },
   "scripts": {
