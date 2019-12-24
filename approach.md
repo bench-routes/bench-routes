@@ -21,22 +21,22 @@ Outline
 6. **6.**** High-level Model**
 7. **7.**** Basic Idea Explanation**
 8. **8.**** Methods**
-9. **9.**** Detailed Proposal**
-  1. **a.**** Ping**
-  2. **b.**** Monitoring**
-  3. **c.**** Report Changes**
-  4. **d.**** Request-Response delay**
-  5. **e.**** Network Congestion / Bottlenecking**
+9. **9.**** Detailed Proposal**-
+   **9.a.**** Ping**
+   **9.b.**** Monitoring**
+   **9.c.**** Report Changes**
+   **9.d.**** Request-Response delay**
+   **9.e.**** Network Congestion / Bottlenecking**
 10. **10.**** Data Flow**
 11. **11.**** Implementation Brief**
 12. **12.**** Queries**
 
 Resources
 
-1. Golang
-  1. Beginner level [link](https://youtu.be/SqrbIlUwR0U) (excludes goroutines)
-  2. Standard [link](https://youtu.be/YS4e4q9oBaU) (nearly everything)
-  3. Benchmarks of golang vs other languages [link](https://github.com/kostya/benchmarks)
+1. Golang-
+  1.a. Beginner level [link](https://youtu.be/SqrbIlUwR0U) (excludes goroutines)
+  1.b. Standard [link](https://youtu.be/YS4e4q9oBaU) (nearly everything)
+  1.c. Benchmarks of golang vs other languages [link](https://github.com/kostya/benchmarks)
 2. Native ping support Linux kernel [link](https://www.sanfoundry.com/10-ping-command-usage-examples-linux/)
 3. Jitter [link](https://www.pingman.com/kb/article/what-is-jitter-57.html)
 4. Run go scripts on system Ctrl+C call (or SIGINT) [link](https://stackoverflow.com/questions/11268943/is-it-possible-to-capture-a-ctrlc-signal-and-run-a-cleanup-function-in-a-defe)
