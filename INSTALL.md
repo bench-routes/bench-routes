@@ -34,4 +34,4 @@ golangci-lint run
 2. Scanning your `.go` files for linting issues using `golangci-lint`
 
 
-Please feel free to open any issue in case you encounter any issues while setting up the development environment.
+Please feel free to open any [new-issue](https://github.com/zairza-cetb/bench-routes/issues/new/choose) in case you encounter with any issues while setting up the development environment.
