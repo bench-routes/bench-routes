@@ -201,18 +201,6 @@ func main() {
 			// TODO just like flood-ping, jitter, ping
 			// Querrier signal for Request-response delay
 			case "Qrequest-response-delay-route":
-				// compMessage := getMessageFromCompoundSignal(inStream[1:])
-				// inst := qReqResDelayRoute{}
-				// if e := json.Unmarshal(compMessage, &inst); e != nil {
-				// 	panic(e)
-				// }
-
-				// url := inst.URL
-				// method := inst.Method
-				// // Gets the Querrier for request-response delay
-				// // TODO: Send the method along with URL
-				// ql := getQuerier(ws, "req-res-delay", url, method, "_delay")
-				// go ql.FetchAllSeriesStringified()
 				querier(ws, inStream, qReqResDelayRoute{})
 			}
 		}
