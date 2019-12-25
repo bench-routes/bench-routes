@@ -20,7 +20,7 @@ routes:
   - name: q
     value: bench-routes
 - method: GET
-  url: https://www.bing.com
+  url: https://www.facebook.com
   route: search
   headers:
   - type: Content-Type
