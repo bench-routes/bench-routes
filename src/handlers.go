@@ -108,7 +108,7 @@ func HandleReqResGeneral(signal string) bool {
 				panic(e)
 			}
 			go func() {
-				handlers.HandleReqResMonitoringStart(configuration, reqResMonitoringServiceState)
+				handlers.HandleReqResMonitoringStart(&configuration, reqResMonitoringServiceState)
 			}()
 			return true
 		}

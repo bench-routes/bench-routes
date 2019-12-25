@@ -51,6 +51,7 @@ export default class Submenu extends React.Component<
   }
 
   public sendAddress = () => {
+    console.warn('inside sendAddress');
     switch (this.props.module) {
       case 'ping':
         this.props.getAddress(this.state.urlSlot);
