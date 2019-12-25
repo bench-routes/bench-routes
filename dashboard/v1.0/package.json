@@ -68,10 +68,5 @@
     "tslint-react": "^4.1.0",
     "concurrently": "^5.0.0",
     "typescript": "^3.6.4"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run prettier && npm run lint && npm run tlint"
-    }
   }
 }
