@@ -76,6 +76,13 @@ export default class BRConnect {
     );
   }
 
+  public signalRequestResponseRouteFetchAllTimeSeries(route: string): Promise<any> {
+    const inst: RouteFetchAll = {
+      url: route
+    };
+    return this.sendAndReceiveMessage('Qrequest-response-delay-route ' + JSON.stringify(inst));
+  }
+
   public signalReqResDelayRouteFetchAllTimeSeries(route: string): Promise<any> {
     const inst: RouteFetchAll = {
       url: route
@@ -89,6 +96,7 @@ export default class BRConnect {
     return new Promise((res: any, rej: any) => {
       this.socketConn.send(message);
       this.socketConn.onmessage = (m: any) => {
+        console.warn(m);
         res(m);
       };
       this.socketConn.onerror = (e: any) => {

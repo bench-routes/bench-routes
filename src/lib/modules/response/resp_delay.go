@@ -2,7 +2,6 @@ package response
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"strconv"
 	"sync"
@@ -29,16 +28,16 @@ func HandleResponseDelayForRoute(responseChains []*tsdb.Chain, route parser.Rout
 	path := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + ".json"
 	c := make(chan utils.Response)
 	responseObject := RouteDispatcher(route, c)
-
-	log.Printf("Writing responseObject to TSDB for %s", route.URL)
-	fmt.Println(responseObject)
 	g := getNormalizedBlockString(responseObject)
-	fmt.Printf("g is %s\n", g)
 	block := *tsdb.GetNewBlock("req-res", g)
-
+	fmt.Println("here 1")
 	for index := range responseChains {
+		fmt.Println("here 2")
 		if responseChains[index].Path == path {
+			fmt.Println("here 3")
 			responseChains[index] = responseChains[index].Append(block)
+			fmt.Println(("chain is "))
+			fmt.Println(responseChains[index])
 			responseChains[index].Commit()
 			break
 		}

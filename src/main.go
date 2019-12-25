@@ -190,106 +190,30 @@ func main() {
 
 				// Queries
 			case "Qping-route":
-				compMessage := getMessageFromCompoundSignal(inStream[1:])
-				inst := qPingRoute{}
-				if e := json.Unmarshal(compMessage, &inst); e != nil {
-					panic(e)
-				}
-
-				url := inst.URL
-				ql := getQuerier(ws, "ping", url, "", "")
-				raw := inBlocks(ql.FetchAllSeriesStringified())
-				var response []utils.PingResp
-				for i, b := range raw {
-					decRaw := utils.Decode(b)
-					dec, ok := decRaw.(utils.Ping)
-					if !ok {
-						panic("invalid interface type")
-					}
-					tmp := utils.PingResp{
-						Min:            dec.Min,
-						Mean:           dec.Mean,
-						Max:            dec.Max,
-						MDev:           dec.MDev,
-						NormalizedTime: b.GetNormalizedTime(),
-						Timestamp:      b.GetTimeStamp(),
-						Relative:       i,
-					}
-					response = append(response, tmp)
-				}
-				respond(ws, response)
+				querier(ws, inStream, qPingRoute{})
 
 			case "Qjitter-route":
-				compMessage := getMessageFromCompoundSignal(inStream[1:])
-				inst := qJitterRoute{}
-				if e := json.Unmarshal(compMessage, &inst); e != nil {
-					panic(e)
-				}
-
-				url := inst.URL
-				ql := getQuerier(ws, "jitter", url, "", "")
-				raw := inBlocks(ql.FetchAllSeriesStringified())
-				var response []utils.JitterResp
-				for i, b := range raw {
-					decRaw, ok := utils.Decode(b).(float64)
-					if !ok {
-						panic("invalid interface type")
-					}
-					tmp := utils.JitterResp{
-						Datapoint:      decRaw,
-						NormalizedTime: b.GetNormalizedTime(),
-						Timestamp:      b.GetTimeStamp(),
-						Relative:       i,
-					}
-					response = append(response, tmp)
-				}
-				respond(ws, response)
+				querier(ws, inStream, qJitterRoute{})
 
 			case "Qflood-ping-route":
-				compMessage := getMessageFromCompoundSignal(inStream[1:])
-				inst := qFloodPingRoute{}
-				if e := json.Unmarshal(compMessage, &inst); e != nil {
-					panic(e)
-				}
-
-				url := inst.URL
-				ql := getQuerier(ws, "flood-ping", url, "", "")
-				raw := inBlocks(ql.FetchAllSeriesStringified())
-				var response []utils.FloodPingResp
-				for i, b := range raw {
-					dec, ok := utils.Decode(b).(utils.FloodPing)
-					if !ok {
-						panic("invalid interface type")
-					}
-					tmp := utils.FloodPingResp{
-						Min:            dec.Min,
-						Mean:           dec.Mean,
-						Max:            dec.Max,
-						MDev:           dec.MDev,
-						PacketLoss:     dec.PacketLoss,
-						NormalizedTime: b.GetNormalizedTime(),
-						Timestamp:      b.GetTimeStamp(),
-						Relative:       i,
-					}
-					response = append(response, tmp)
-				}
-				respond(ws, response)
+				querier(ws, inStream, qFloodPingRoute{})
 
 			// TODO just like flood-ping, jitter, ping
 			// Querrier signal for Request-response delay
-			case "Qrequest-response-delay":
-				compMessage := getMessageFromCompoundSignal(inStream[1:])
-				inst := qReqResDelayRoute{}
-				if e := json.Unmarshal(compMessage, &inst); e != nil {
-					panic(e)
-				}
+			case "Qrequest-response-delay-route":
+				// compMessage := getMessageFromCompoundSignal(inStream[1:])
+				// inst := qReqResDelayRoute{}
+				// if e := json.Unmarshal(compMessage, &inst); e != nil {
+				// 	panic(e)
+				// }
 
-				url := inst.URL
-				method := inst.Method
-				// Gets the Querrier for request-response delay
-				// TODO: Send the method along with URL
-				ql := getQuerier(ws, "req-res-delay", url, method, "_delay")
-				go ql.FetchAllSeriesStringified()
+				// url := inst.URL
+				// method := inst.Method
+				// // Gets the Querrier for request-response delay
+				// // TODO: Send the method along with URL
+				// ql := getQuerier(ws, "req-res-delay", url, method, "_delay")
+				// go ql.FetchAllSeriesStringified()
+				querier(ws, inStream, qReqResDelayRoute{})
 			}
 		}
 	})
@@ -319,7 +243,8 @@ func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type str
 	configRes, ok := conf.([]parser.Routes)
 	if ok {
 		for _, v := range configRes {
-			path := basePath + "/chunk_" + Type + "_" + filters.RouteDestroyer(v.URL) + ".json"
+			fmt.Println(v.URL + v.Route)
+			path := basePath + "/chunk_" + Type + "_" + filters.RouteDestroyer(v.URL+"_"+v.Route) + ".json"
 
 			resp := &tsdb.Chain{
 				Path:           path,
@@ -333,6 +258,108 @@ func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type str
 	}
 
 	log.Printf("finished %s chain\n", Type)
+}
+
+func querier(ws *websocket.Conn, inComingStream []string, route interface{}) {
+	message := getMessageFromCompoundSignal(inComingStream[1:])
+	var response []interface{}
+	switch route.(type) {
+	case qPingRoute:
+		inst := qPingRoute{}
+		if e := json.Unmarshal(message, &inst); e != nil {
+			panic(e)
+		}
+
+		raw := getInBlocks(ws, "ping", inst.URL)
+		for i, b := range raw {
+			decRaw := utils.Decode(b)
+			dec, ok := decRaw.(utils.Ping)
+			if !ok {
+				panic("invalid interface type")
+			}
+			response = append(response, utils.PingResp{
+				Min:            dec.Min,
+				Mean:           dec.Mean,
+				Max:            dec.Max,
+				MDev:           dec.MDev,
+				NormalizedTime: b.GetNormalizedTime(),
+				Timestamp:      b.GetTimeStamp(),
+				Relative:       i,
+			})
+		}
+
+	case qJitterRoute:
+		inst := qJitterRoute{}
+		if e := json.Unmarshal(message, &inst); e != nil {
+			panic(e)
+		}
+
+		raw := getInBlocks(ws, "jitter", inst.URL)
+		for i, b := range raw {
+			decRaw, ok := utils.Decode(b).(float64)
+			if !ok {
+				panic("invalid interface type")
+			}
+			response = append(response, utils.JitterResp{
+				Datapoint:      decRaw,
+				NormalizedTime: b.GetNormalizedTime(),
+				Timestamp:      b.GetTimeStamp(),
+				Relative:       i,
+			})
+		}
+
+	case qFloodPingRoute:
+		inst := qFloodPingRoute{}
+		if e := json.Unmarshal(message, &inst); e != nil {
+			panic(e)
+		}
+
+		raw := getInBlocks(ws, "flood-ping", inst.URL)
+		for i, b := range raw {
+			dec, ok := utils.Decode(b).(utils.FloodPing)
+			if !ok {
+				panic("invalid interface type")
+			}
+			response = append(response, utils.FloodPingResp{
+				Min:            dec.Min,
+				Mean:           dec.Mean,
+				Max:            dec.Max,
+				MDev:           dec.MDev,
+				PacketLoss:     dec.PacketLoss,
+				NormalizedTime: b.GetNormalizedTime(),
+				Timestamp:      b.GetTimeStamp(),
+				Relative:       i,
+			})
+		}
+
+	case qReqResDelayRoute:
+		inst := qReqResDelayRoute{}
+		if e := json.Unmarshal(message, &inst); e != nil {
+			panic(e)
+		}
+
+		raw := getInBlocks(ws, "req-res-delay", inst.URL)
+		for i, b := range raw {
+			dec, ok := utils.Decode(b).(utils.Response)
+			if !ok {
+				panic("invalid interface type")
+			}
+			response = append(response, utils.ResponseResp{
+				ResLength:      dec.ResLength,
+				ResStatusCode:  dec.ResStatusCode,
+				Delay:          dec.Delay,
+				NormalizedTime: b.GetNormalizedTime(),
+				Timestamp:      b.GetTimeStamp(),
+				Relative:       i,
+			})
+		}
+	}
+	respond(ws, response)
+}
+
+func getInBlocks(ws *websocket.Conn, Type, URL string) []tsdb.Block {
+	ql := getQuerier(ws, Type, URL, "", "")
+	return inBlocks(ql.FetchAllSeriesStringified())
 }
 
 func setupLogger() {

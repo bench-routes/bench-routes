@@ -7,6 +7,9 @@ build:
 	go build src/main.go src/handlers.go
 	mv main bench-routes
 
+view:
+	cd dashboard/v1.0/ && sudo npm start
+
 test-views:
 	cd dashboard/v1.0/ && npm install
 	cd dashboard/v1.0/ && npm run lint
