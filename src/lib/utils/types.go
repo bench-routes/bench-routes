@@ -51,22 +51,6 @@ type FloodPingResp struct {
 	Relative       int     `json:"relative"`
 }
 
-// BlockPing block for ping case
-type BlockPing struct {
-	PrevBlock      *BlockPing
-	NextBlock      *BlockPing
-	Datapoint      Ping
-	NormalizedTime int64
-}
-
-// BlockFloodPing block for ping case
-type BlockFloodPing struct {
-	PrevBlock      *BlockFloodPing
-	NextBlock      *BlockFloodPing
-	Datapoint      FloodPing
-	NormalizedTime int64
-}
-
 // Response struct
 // This is the object that we return from resp_delay module
 // Contains delay in response and the response length
@@ -74,4 +58,14 @@ type Response struct {
 	Delay         int
 	ResLength     int64
 	ResStatusCode int
+}
+
+// ResponseResp for responding the querier.
+type ResponseResp struct {
+	Delay          int    `json:"delay"`
+	ResLength      int64  `json:"resLength"`
+	ResStatusCode  int    `json:"resStatusCode"`
+	NormalizedTime int64  `json:"NormalizedTime"`
+	Timestamp      string `json:"Timestamp"`
+	Relative       int    `json:"relative"`
 }

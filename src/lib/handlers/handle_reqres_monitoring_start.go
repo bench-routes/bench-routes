@@ -11,16 +11,16 @@ import (
 )
 
 // HandleReqResMonitoringStart handle the route "start"
-func HandleReqResMonitoringStart(config parser.YAMLBenchRoutesType, reqResMonitoringServiceState string) {
+func HandleReqResMonitoringStart(config *parser.YAMLBenchRoutesType, reqResMonitoringServiceState string) {
 	routes := config.Config.Routes
-	monitoringInterval := GetInterval(config.Config.Interval, "req-res-delay-and-monitoring")
-	if monitoringInterval == (TestInterval{}) {
-		log.Fatalf("interval not found in configuration file for req-res monitoring")
-		return
-	}
 
 	for {
-		config = config.Refresh()
+		*config = (*config).Refresh()
+		monitoringInterval := GetInterval(config.Config.Interval, "req-res-delay-and-monitoring")
+		if monitoringInterval == (TestInterval{}) {
+			log.Fatalf("interval not found in configuration file for req-res monitoring")
+			return
+		}
 		switch config.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring {
 		case "active":
 			var wg sync.WaitGroup
