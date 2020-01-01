@@ -14,6 +14,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
@@ -37,7 +38,7 @@ const (
 func init() {
 	// go setupLogger()
 	// log.Printf("initializing bench-routes ...")
-	utils.LogT("initializing bench-routes ...")
+	logger.LogTerminalandFile("initializing bench-routes ...")
 
 	// load configuration file
 	configuration.Address = utils.ConfigurationFilePath

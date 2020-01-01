@@ -1,4 +1,4 @@
-package utils
+package logger
 
 import (
 	"fmt"
@@ -9,9 +9,9 @@ import (
 	"time"
 )
 
-var GeneralLogger *log.Logger
+var FileLogger *log.Logger
 
-var TerminalLogger *log.Logger
+var TerminalFileLogger *log.Logger
 
 const (
 	logFilePrefix = "bench-route-"
@@ -45,17 +45,17 @@ func init() {
 	generalWriter := io.Writer(file)
 	terminalWriter := io.MultiWriter(os.Stdout, file)
 
-	GeneralLogger = log.New(generalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
-	TerminalLogger = log.New(terminalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
+	FileLogger = log.New(generalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
+	TerminalFileLogger = log.New(terminalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
 
 }
 
-// LogT logs into terminal and file
-func LogT(msg string) {
-	TerminalLogger.Printf(msg)
+// LogTerminalandFile logs into terminal and file
+func LogTerminalandFile(msg string) {
+	TerminalFileLogger.Printf(msg)
 }
 
-// LogG logs into file
-func LogG(msg string) {
-	GeneralLogger.Printf(msg)
+// LogFile logs into file
+func LogFile(msg string) {
+	FileLogger.Printf(msg)
 }
