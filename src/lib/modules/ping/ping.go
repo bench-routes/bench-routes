@@ -1,12 +1,13 @@
 package ping
 
 import (
-	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/tsdb"
-	"log"
 	"strconv"
 	"sync"
+
+	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
+	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // HandlePing is the main handler for ping operations
@@ -14,7 +15,7 @@ func HandlePing(chain []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash st
 	tsdbNameHash = utils.PathPing + "/" + "chunk_ping_" + tsdbNameHash + ".json"
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {
-		log.Printf("Failure occured for %s", urlRaw)
+		logger.TerminalandFileLogger.Printf("Failure occured for %s", urlRaw)
 		wg.Done()
 		return
 	}

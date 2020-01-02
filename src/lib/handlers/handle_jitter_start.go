@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"log"
 	"sync"
 	"time"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 )
 
@@ -16,7 +16,7 @@ func HandleJitterStart(config parser.YAMLBenchRoutesType, jitterServiceState str
 	jitterConfig := config.Config.Routes
 	jitterInterval := GetInterval(config.Config.Interval, "jitter")
 	if jitterInterval == (TestInterval{}) {
-		log.Fatalf("interval not found in configuration file for jitter")
+		logger.TerminalandFileLogger.Fatalf("interval not found in configuration file for jitter")
 		return
 	}
 	urlStack := make(map[string]string)
@@ -48,10 +48,10 @@ func doJitter(config parser.YAMLBenchRoutesType, urlStack map[string]string, jit
 			wg.Wait()
 		case "passive":
 			// terminate the goroutine
-			log.Printf("terminating jitter goroutine\n")
+			logger.TerminalandFileLogger.Printf("terminating jitter goroutine\n")
 			return
 		default:
-			log.Fatalf("invalid service-state value of jitter\n")
+			logger.TerminalandFileLogger.Fatalf("invalid service-state value of jitter\n")
 			return
 		}
 
@@ -64,7 +64,7 @@ func doJitter(config parser.YAMLBenchRoutesType, urlStack map[string]string, jit
 		case "sec":
 			time.Sleep(intrv * time.Second)
 		default:
-			log.Fatalf("invalid interval-type for jitter\n")
+			logger.TerminalandFileLogger.Fatalf("invalid interval-type for jitter\n")
 			return
 		}
 	}

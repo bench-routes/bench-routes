@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -207,12 +206,12 @@ func main() {
 	})
 
 	// launch service
-	log.Fatal(http.ListenAndServe(port, nil))
+	logger.TerminalandFileLogger.Fatal(http.ListenAndServe(port, nil))
 
 }
 
 func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
-	log.Printf("forming %s chain ... \n", Type)
+	logger.TerminalandFileLogger.Printf("forming %s chain ... \n", Type)
 	config, ok := conf.([]string)
 	if ok {
 		for _, v := range config {
@@ -245,7 +244,7 @@ func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type str
 		}
 	}
 
-	log.Printf("finished %s chain\n", Type)
+	logger.TerminalandFileLogger.Printf("finished %s chain\n", Type)
 }
 
 func querier(ws *websocket.Conn, inComingStream []string, route interface{}) {

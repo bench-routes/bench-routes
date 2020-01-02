@@ -3,9 +3,10 @@ package tsdb
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"sync"
 	"unsafe"
+
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 )
 
 const (
@@ -23,7 +24,7 @@ type Block struct {
 
 // Encode decodes the structure and marshals into a string
 func (b Block) Encode() string {
-	log.Printf("decoding block type %s normalized as %d\n", b.Type, b.NormalizedTime)
+	logger.FileLogger.Printf("decoding block type %s normalized as %d\n", b.Type, b.NormalizedTime)
 	bbyte, err := json.Marshal(b)
 	if err != nil {
 		panic(err)
@@ -114,7 +115,7 @@ func (c *Chain) Init() *Chain {
 
 	res, e := parse(c.Path)
 	if e != nil {
-		log.Printf("chain not found at %s. creating one ...", c.Path)
+		logger.FileLogger.Printf("chain not found at %s. creating one ...", c.Path)
 		c.LengthElements = 0
 		c.Size = unsafe.Sizeof(c)
 		c.Chain = []Block{}
@@ -158,7 +159,7 @@ func (c *Chain) Commit() bool {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
-	log.Printf("writing chain of length %d", len(c.Chain))
+	logger.FileLogger.Printf("writing chain of length %d", len(c.Chain))
 	bytes := parseToJSON(c.Chain)
 	e := saveToHDD(c.Path, bytes)
 	if e != nil {

@@ -1,16 +1,17 @@
 package notify
 
 import (
-	"log"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 )
 
 func TestSendNotification(t *testing.T) {
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		logger.TerminalandFileLogger.Fatal(err)
 	}
 	substr := "/bench-routes/"
 	c := strings.Index(dir, substr)
