@@ -38,7 +38,7 @@ const (
 func init() {
 	// go setupLogger()
 	// log.Printf("initializing bench-routes ...")
-	logger.LogTerminalandFile("initializing bench-routes ...")
+	logger.TerminalandFileLogger.Printf("initializing bench-routes ...")
 
 	// load configuration file
 	configuration.Address = utils.ConfigurationFilePath
@@ -92,11 +92,11 @@ func init() {
 	}()
 
 	wg.Wait()
-	log.Printf("initial chain formation time: %s\n", time.Since(p).String())
+	logger.TerminalandFileLogger.Printf("initial chain formation time: %s\n", time.Since(p).String())
 
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
 	// required resources for the application is up and healthy
-	log.Printf("Bench-routes is up and running\n")
+	logger.TerminalandFileLogger.Printf("Bench-routes is up and running\n")
 }
 
 func main() {
@@ -106,7 +106,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("ping from %s, sent pong in response\n", r.RemoteAddr)
+		logger.TerminalandFileLogger.Printf("ping from %s, sent pong in response\n", r.RemoteAddr)
 	})
 	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, testFilesDir+"bench-routes-socket-tester.html")
@@ -115,14 +115,14 @@ func main() {
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			log.Fatalf("error using upgrader %s\n", err)
+			logger.TerminalandFileLogger.Fatalf("error using upgrader %s\n", err)
 		}
 
 		// capture client request for enabling series of responses unless its killed
 		for {
 			messageType, message, err := ws.ReadMessage()
 			if err != nil {
-				log.Printf("connection to client lost.\n%s\n", err)
+				logger.TerminalandFileLogger.Printf("connection to client lost.\n%s\n", err)
 				return
 			}
 
@@ -136,7 +136,7 @@ func main() {
 			inStream := strings.Split(string(message), " ")
 
 			sig := inStream[0] // Signal
-			log.Printf("type: %d\n message: %s \n", messageType, sig)
+			logger.TerminalandFileLogger.Printf("type: %d\n message: %s \n", messageType, sig)
 			// generate appropriate signals from incoming messages
 			switch sig {
 			// ping

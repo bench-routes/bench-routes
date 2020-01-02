@@ -9,9 +9,11 @@ import (
 	"time"
 )
 
+// FileLogger Logs into the secondary storage file
 var FileLogger *log.Logger
 
-var TerminalFileLogger *log.Logger
+// TerminalandFileLogger Logs into the secondary storage file and terminal
+var TerminalandFileLogger *log.Logger
 
 const (
 	logFilePrefix = "bench-route-"
@@ -46,16 +48,6 @@ func init() {
 	terminalWriter := io.MultiWriter(os.Stdout, file)
 
 	FileLogger = log.New(generalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
-	TerminalFileLogger = log.New(terminalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
+	TerminalandFileLogger = log.New(terminalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
 
-}
-
-// LogTerminalandFile logs into terminal and file
-func LogTerminalandFile(msg string) {
-	TerminalFileLogger.Printf(msg)
-}
-
-// LogFile logs into file
-func LogFile(msg string) {
-	FileLogger.Printf(msg)
 }
