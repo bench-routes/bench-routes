@@ -10,9 +10,9 @@ import (
 func VerifyConnection() (bool, int) {
 	res, err := http.Get("http://clients3.google.com/generate_204")
 	if err != nil {
-		logger.TerminalandFileLogger.Printf("unable to ping external network\n")
+		logger.Terminal("unable to ping external network", "p")
 		return false, -1
 	}
-	logger.TerminalandFileLogger.Printf("external connection verified\n")
+	logger.Terminal("external connection verified", "p")
 	return true, res.StatusCode
 }

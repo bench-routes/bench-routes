@@ -20,7 +20,8 @@ func HandleJitter(globalChain []*tsdb.Chain, url string, packets int, tsdbNameHa
 	tsdbNameHash = PathJitter + "/" + "chunk_jitter_" + tsdbNameHash + ".json"
 	resp, err := utils.CLIPing(url, packets)
 	if err != nil {
-		logger.TerminalandFileLogger.Printf("Failure occured for %s", url)
+		msg := "Failure occured for" + url
+		logger.Terminal(msg, "p")
 		wg.Done()
 		return
 	}

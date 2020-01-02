@@ -98,7 +98,7 @@ func (inst YAMLBenchRoutesType) Write() (bool, error) {
 	config := *inst.Config
 	r, e := yaml.Marshal(config)
 	if e != nil {
-		logger.TerminalandFileLogger.Fatalf("%s\n", e)
+		logger.Terminal(e.Error(), "f")
 		return false, e
 	}
 

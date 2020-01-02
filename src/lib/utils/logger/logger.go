@@ -9,11 +9,11 @@ import (
 	"time"
 )
 
-// FileLogger Logs into the secondary storage file
-var FileLogger *log.Logger
+// fileLogger logs to the secondary storage file
+var fileLogger *log.Logger
 
-// TerminalandFileLogger Logs into the secondary storage file and terminal
-var TerminalandFileLogger *log.Logger
+// terminalandFileLogger logs to the secondary storage file and terminal
+var terminalandFileLogger *log.Logger
 
 const (
 	logFilePrefix = "bench-route-"
@@ -21,44 +21,73 @@ const (
 )
 
 func init() {
-	file, ok := SetupLogger()
-	if !ok {
-		fmt.Println("Error setting up logger")
-		return
+	file, err := setupLogger()
+	if err != nil {
+		panic(err)
 	}
 
 	generalWriter := io.Writer(file)
 	terminalWriter := io.MultiWriter(os.Stdout, file)
 
-	FileLogger = log.New(generalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
-	TerminalandFileLogger = log.New(terminalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
+	fileLogger = log.New(generalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
+	terminalandFileLogger = log.New(terminalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
 
 }
 
-// SetupLogger sets up files for logging
-func SetupLogger() (fp *os.File, ok bool) {
+// setupLogger sets up files for logging
+func setupLogger() (fp *os.File, err error) {
 	currTime := time.Now()
 	currFileName := fmt.Sprint(logFilePrefix, currTime.Format("2006-01-02#15:04:05"), ".log")
 	user, err := user.Current()
 	if err != nil {
-		fmt.Printf("Cannot access current user data\n")
-		return nil, false
+		return nil, err
 	}
 
 	homePath := user.HomeDir
 	logDirectoryPath := homePath + "/" + logDirectory
 	err = os.MkdirAll(logDirectoryPath, 0755)
 	if err != nil {
-		fmt.Printf("error creating log directory : %s\n", logDirectoryPath)
-		return nil, false
+		return nil, err
 	}
 	logFilePath := logDirectoryPath + "/" + currFileName
 	file, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		fmt.Println("Error: ", err)
-		fmt.Printf("error opening log file : %s\n", logFilePath)
-		return nil, false
+		return nil, err
 	}
 
-	return file, true
+	return file, nil
+}
+
+// File logs to the secondary storage.
+// *code*:
+// "p" -> Println()
+// "f" -> Fatalln()
+func File(msg string, code string) {
+	switch code {
+	case "p":
+		fileLogger.Println(msg)
+
+	case "f":
+		fileLogger.Fatalln(msg)
+
+	case "pa":
+		fileLogger.Panicln(msg)
+	}
+}
+
+// Terminal logs to the secondary storage and the terminal.
+// *code*:
+// "p" -> Println()
+// "f" -> Fatalln()
+func Terminal(msg string, code string) {
+	switch code {
+	case "p":
+		terminalandFileLogger.Println(msg)
+
+	case "f":
+		terminalandFileLogger.Fatalln(msg)
+
+	case "pa":
+		terminalandFileLogger.Panicln(msg)
+	}
 }

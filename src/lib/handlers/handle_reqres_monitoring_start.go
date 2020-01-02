@@ -18,7 +18,7 @@ func HandleReqResMonitoringStart(config *parser.YAMLBenchRoutesType, reqResMonit
 		*config = (*config).Refresh()
 		monitoringInterval := GetInterval(config.Config.Interval, "req-res-delay-and-monitoring")
 		if monitoringInterval == (TestInterval{}) {
-			logger.TerminalandFileLogger.Fatalf("interval not found in configuration file for req-res monitoring")
+			logger.Terminal("interval not found in configuration file for req-res monitoring", "f")
 			return
 		}
 		switch config.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring {
@@ -38,10 +38,10 @@ func HandleReqResMonitoringStart(config *parser.YAMLBenchRoutesType, reqResMonit
 			wg.Wait()
 		case "passive":
 			// terminate the goroutine
-			logger.TerminalandFileLogger.Printf("terminating req-res monitoring goroutine\n")
+			logger.Terminal("terminating req-res monitoring goroutine", "p")
 			return
 		default:
-			logger.TerminalandFileLogger.Fatalf("invalid service-state value of req-res monitoring\n")
+			logger.Terminal("invalid service-state value of req-res monitoring", "f")
 			return
 		}
 
@@ -54,7 +54,7 @@ func HandleReqResMonitoringStart(config *parser.YAMLBenchRoutesType, reqResMonit
 		case "sec":
 			time.Sleep(intrv * time.Second)
 		default:
-			logger.TerminalandFileLogger.Fatalf("invalid interval-type for req-res monitoring\n")
+			logger.Terminal("invalid interval-type for req-res monitoring", "f")
 			return
 		}
 	}

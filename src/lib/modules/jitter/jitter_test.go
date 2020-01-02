@@ -25,7 +25,7 @@ var (
 )
 
 func initTest() {
-	logger.TerminalandFileLogger.Printf("Testing jitter")
+	logger.Terminal("Testing jitter", "p")
 
 	// load configuration file
 	Configuration.Address = ConfigurationFilePath

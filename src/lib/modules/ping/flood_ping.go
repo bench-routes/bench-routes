@@ -15,7 +15,7 @@ func HandleFloodPing(globalChain []*tsdb.Chain, urlRaw string, packets int, tsdb
 	tsdbNameHash = utils.PathFloodPing + "/" + "chunk_flood_ping_" + tsdbNameHash + ".json"
 	resp, err := utils.CLIFloodPing(urlRaw, packets, password)
 	if err != nil {
-		logger.FileLogger.Println(*resp)
+		logger.File(*resp, "p")
 		wg.Done()
 		return
 	}

@@ -52,7 +52,7 @@ func HandlerPingGeneral(signal string) bool {
 		}
 		return true
 	default:
-		logger.TerminalandFileLogger.Fatalf("invalid signal")
+		logger.Terminal("invalid signal", "f")
 	}
 	return false
 }
@@ -85,7 +85,7 @@ func HandlerJitterGeneral(signal string) bool {
 		}
 		return true
 	default:
-		logger.TerminalandFileLogger.Fatalf("invalid signal")
+		logger.Terminal("invalid signal", "f")
 	}
 	return false
 }
@@ -119,7 +119,7 @@ func HandleReqResGeneral(signal string) bool {
 		}
 		return true
 	default:
-		logger.TerminalandFileLogger.Fatalf("invalid signal")
+		logger.Terminal("invalid signal", "f")
 	}
 	return false
 }
@@ -151,7 +151,7 @@ func HandlerFloodPingGeneral(signal string) bool {
 		}
 		return true
 	default:
-		logger.TerminalandFileLogger.Fatalf("invalid signal")
+		logger.Terminal("invalid signal", "f")
 	}
 	return false
 }

@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"strconv"
+
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 )
 
@@ -8,35 +10,42 @@ import (
 // in the configuration file.
 func ValidateRoutesProp(routes []Routes) {
 	if len(routes) == 0 {
-		logger.TerminalandFileLogger.Fatalf("`routes` property is missing.")
+		logger.Terminal("`routes` property is missing.", "f")
 	} else {
 		for i, route := range routes {
 			if route.Method == "" {
-				logger.TerminalandFileLogger.Fatalf("`method` property for route #%d is missing.", i+1)
+				msg := "`method` property for route #" + strconv.Itoa(i+1) + " is missing."
+				logger.Terminal(msg, "f")
 			}
 			if route.Route == "" {
-				logger.TerminalandFileLogger.Fatalf("`route` property for route #%d is missing.", i+1)
+				msg := "`route` property for route #" + strconv.Itoa(i+1) + " is missing."
+				logger.Terminal(msg, "f")
 			}
 			if route.URL == "" {
-				logger.TerminalandFileLogger.Fatalf("`url` property for route #%d is missing.", i+1)
+				msg := "`url` property for route #" + strconv.Itoa(i+1) + " is missing."
+				logger.Terminal(msg, "f")
 			}
 			if len(route.Header) != 0 {
 				for j, header := range route.Header {
 					if header.OfType == "" {
-						logger.TerminalandFileLogger.Fatalf("`type` property for header #%d of route `%s` is missing.", j+1, route.Route)
+						msg := "`type` property for header #" + strconv.Itoa(j+1) + " of route " + route.Route + "is missing"
+						logger.Terminal(msg, "f")
 					}
 					if header.Value == "" {
-						logger.TerminalandFileLogger.Fatalf("`value` property for header #%d of route `%s` is missing.", j+1, route.Route)
+						msg := "`value` property for header #" + strconv.Itoa(j+1) + " of route " + route.Route + "is missing"
+						logger.Terminal(msg, "f")
 					}
 				}
 			}
 			if len(route.Params) != 0 {
 				for j, param := range route.Params {
 					if param.Name == "" {
-						logger.TerminalandFileLogger.Fatalf("`name` property for param #%d of route `%s` is missing.", j+1, route.Route)
+						msg := "`name` property for param #" + strconv.Itoa(j+1) + " of route " + route.Route + "is missing"
+						logger.Terminal(msg, "f")
 					}
 					if param.Value == "" {
-						logger.TerminalandFileLogger.Fatalf("`value` property for param #%d of route `%s` is missing.", j+1, route.Route)
+						msg := "`value` property for param #" + strconv.Itoa(j+1) + " of route " + route.Route + "is missing"
+						logger.Terminal(msg, "f")
 					}
 				}
 			}
@@ -48,17 +57,20 @@ func ValidateRoutesProp(routes []Routes) {
 // in the configuration file.
 func ValidateIntervalProp(intervals []Interval) {
 	if len(intervals) == 0 {
-		logger.TerminalandFileLogger.Fatalf("`test_interval` property is missing.")
+		logger.Terminal("`test_interval` property is missing.", "f")
 	} else {
 		for i, interval := range intervals {
 			if interval.Test == "" {
-				logger.TerminalandFileLogger.Fatalf("`test` property for interval #%d is missing.", i+1)
+				msg := "`test` property for interval #" + strconv.Itoa(i+1) + " is missing."
+				logger.Terminal(msg, "f")
 			}
 			if interval.Type == "" {
-				logger.TerminalandFileLogger.Fatalf("`type` property for interval #%d is missing.", i+1)
+				msg := "`type` property for interval #" + strconv.Itoa(i+1) + " is missing."
+				logger.Terminal(msg, "f")
 			}
 			if interval.Duration == nil {
-				logger.TerminalandFileLogger.Fatalf("`duration` property for interval #%d is missing.", i+1)
+				msg := "`duration` property for interval #" + strconv.Itoa(i+1) + " is missing."
+				logger.Terminal(msg, "f")
 			}
 		}
 	}
@@ -68,22 +80,22 @@ func ValidateIntervalProp(intervals []Interval) {
 // in the configuration file.
 func ValidateUtilsConf(config *UConfig) {
 	if config.RespChanges.Mean == nil {
-		logger.TerminalandFileLogger.Fatalf("`mean` property under `response-length` is missing.")
+		logger.Terminal("`mean` property under `response-length` is missing.", "f")
 	}
 	if config.RespChanges.Mode == nil {
-		logger.TerminalandFileLogger.Fatalf("`mode` property under `response-length` is missing.")
+		logger.Terminal("`mode` property under `response-length` is missing.", "f")
 	}
 	if config.ServicesSignal.FloodPing == "" {
-		logger.TerminalandFileLogger.Fatalf("`flood-ping` property under `services-state` is missing.")
+		logger.Terminal("`flood-ping` property under `services-state` is missing.", "f")
 	}
 	if config.ServicesSignal.Jitter == "" {
-		logger.TerminalandFileLogger.Fatalf("`jitter` property under `services-state` is missing.")
+		logger.Terminal("`jitter` property under `services-state` is missing.", "f")
 	}
 	if config.ServicesSignal.Ping == "" {
-		logger.TerminalandFileLogger.Fatalf("`ping` property under `services-state` is missing.")
+		logger.Terminal("`ping` property under `services-state` is missing.", "f")
 	}
 	if config.ServicesSignal.ReqResDelayMonitoring == "" {
-		logger.TerminalandFileLogger.Fatalf("`req-res-delay-or-monitoring` property under `services-state` is missing.")
+		logger.Terminal("`req-res-delay-or-monitoring` property under `services-state` is missing.", "f")
 	}
 }
 
@@ -91,7 +103,7 @@ func ValidateUtilsConf(config *UConfig) {
 // the configuration file.
 func ValidatePasswordProp(password string) {
 	if password == "" {
-		logger.TerminalandFileLogger.Fatalf("`password` property is missing.")
+		logger.Terminal("`password` property is missing.", "f")
 	}
 }
 

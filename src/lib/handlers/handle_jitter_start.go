@@ -16,7 +16,7 @@ func HandleJitterStart(config parser.YAMLBenchRoutesType, jitterServiceState str
 	jitterConfig := config.Config.Routes
 	jitterInterval := GetInterval(config.Config.Interval, "jitter")
 	if jitterInterval == (TestInterval{}) {
-		logger.TerminalandFileLogger.Fatalf("interval not found in configuration file for jitter")
+		logger.Terminal("interval not found in configuration file for jitter", "f")
 		return
 	}
 	urlStack := make(map[string]string)
@@ -48,10 +48,10 @@ func doJitter(config parser.YAMLBenchRoutesType, urlStack map[string]string, jit
 			wg.Wait()
 		case "passive":
 			// terminate the goroutine
-			logger.TerminalandFileLogger.Printf("terminating jitter goroutine\n")
+			logger.Terminal("terminating jitter goroutine", "p")
 			return
 		default:
-			logger.TerminalandFileLogger.Fatalf("invalid service-state value of jitter\n")
+			logger.Terminal("invalid service-state value of jitter", "p")
 			return
 		}
 
@@ -64,7 +64,7 @@ func doJitter(config parser.YAMLBenchRoutesType, urlStack map[string]string, jit
 		case "sec":
 			time.Sleep(intrv * time.Second)
 		default:
-			logger.TerminalandFileLogger.Fatalf("invalid interval-type for jitter\n")
+			logger.Terminal("invalid interval-type for jitter", "f")
 			return
 		}
 	}

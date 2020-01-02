@@ -11,7 +11,7 @@ import (
 func TestSendNotification(t *testing.T) {
 	dir, err := os.Getwd()
 	if err != nil {
-		logger.TerminalandFileLogger.Fatal(err)
+		logger.Terminal(err.Error(), "f")
 	}
 	substr := "/bench-routes/"
 	c := strings.Index(dir, substr)

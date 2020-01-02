@@ -15,7 +15,8 @@ func HandlePing(chain []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash st
 	tsdbNameHash = utils.PathPing + "/" + "chunk_ping_" + tsdbNameHash + ".json"
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {
-		logger.TerminalandFileLogger.Printf("Failure occured for %s", urlRaw)
+		msg := "Failure occured for " + urlRaw
+		logger.Terminal(msg, "p")
 		wg.Done()
 		return
 	}

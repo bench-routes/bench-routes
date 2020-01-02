@@ -5,8 +5,8 @@ import (
 )
 
 func TestLogger(t *testing.T) {
-	file, ok := SetupLogger()
-	if !ok {
+	file, err := setupLogger()
+	if err != nil {
 		t.Errorf("Setting up the logger failed")
 	} else {
 		t.Logf("Logger file created")

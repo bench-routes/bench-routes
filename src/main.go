@@ -33,7 +33,7 @@ const (
 )
 
 func init() {
-	logger.TerminalandFileLogger.Printf("initializing bench-routes ...")
+	logger.Terminal("initializing bench-routes ...", "p")
 
 	// load configuration file
 	configuration.Address = utils.ConfigurationFilePath
@@ -87,11 +87,12 @@ func init() {
 	}()
 
 	wg.Wait()
-	logger.TerminalandFileLogger.Printf("initial chain formation time: %s\n", time.Since(p).String())
+	msg := "initial chain formation time: " + time.Since(p).String()
+	logger.Terminal(msg, "p")
 
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
 	// required resources for the application is up and healthy
-	logger.TerminalandFileLogger.Printf("Bench-routes is up and running\n")
+	logger.Terminal("Bench-routes is up and running", "p")
 }
 
 func main() {
@@ -101,7 +102,8 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		logger.TerminalandFileLogger.Printf("ping from %s, sent pong in response\n", r.RemoteAddr)
+		msg := "ping from " + r.RemoteAddr + ", sent pong in response"
+		logger.Terminal(msg, "p")
 	})
 	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, testFilesDir+"bench-routes-socket-tester.html")
@@ -110,14 +112,16 @@ func main() {
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			logger.TerminalandFileLogger.Fatalf("error using upgrader %s\n", err)
+			msg := "error using upgrader" + err.Error()
+			logger.Terminal(msg, "f")
 		}
 
 		// capture client request for enabling series of responses unless its killed
 		for {
 			messageType, message, err := ws.ReadMessage()
 			if err != nil {
-				logger.TerminalandFileLogger.Printf("connection to client lost.\n%s\n", err)
+				logger.Terminal("connection to the terminal lost.", "p")
+				logger.Terminal(err.Error(), "p")
 				return
 			}
 
@@ -131,7 +135,8 @@ func main() {
 			inStream := strings.Split(string(message), " ")
 
 			sig := inStream[0] // Signal
-			logger.TerminalandFileLogger.Printf("type: %d\n message: %s \n", messageType, sig)
+			msg := "type: " + strconv.Itoa(messageType) + " \n message: " + sig
+			logger.Terminal(msg, "p")
 			// generate appropriate signals from incoming messages
 			switch sig {
 			// ping
@@ -202,12 +207,13 @@ func main() {
 	})
 
 	// launch service
-	logger.TerminalandFileLogger.Fatal(http.ListenAndServe(port, nil))
+	logger.Terminal(http.ListenAndServe(port, nil).Error(), "f")
 
 }
 
 func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
-	logger.TerminalandFileLogger.Printf("forming %s chain ... \n", Type)
+	msg := "forming " + Type + " chain ... "
+	logger.Terminal(msg, "p")
 	config, ok := conf.([]string)
 	if ok {
 		for _, v := range config {
@@ -240,7 +246,7 @@ func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type str
 		}
 	}
 
-	logger.TerminalandFileLogger.Printf("finished %s chain\n", Type)
+	logger.Terminal("finished "+Type+" chain", "p")
 }
 
 func querier(ws *websocket.Conn, inComingStream []string, route interface{}) {
