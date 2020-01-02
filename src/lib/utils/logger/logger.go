@@ -21,26 +21,9 @@ const (
 )
 
 func init() {
-	fmt.Println("Initializing logger")
-	currTime := time.Now()
-	currFileName := fmt.Sprint(logFilePrefix, currTime.Format("2006-01-02#15:04:05"), ".log")
-	user, err := user.Current()
-	if err != nil {
-		fmt.Printf("Cannot access current user data\n")
-		return
-	}
-
-	homePath := user.HomeDir
-	logDirectoryPath := homePath + "/" + logDirectory
-	err = os.MkdirAll(logDirectoryPath, 0755)
-	if err != nil {
-		fmt.Printf("error creating log directory : %s\n", logDirectoryPath)
-		return
-	}
-	logFilePath := logDirectoryPath + "/" + currFileName
-	file, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0444)
-	if err != nil {
-		fmt.Printf("error opening log file : %s\n", logFilePath)
+	file, ok := SetupLogger()
+	if !ok {
+		fmt.Println("Error setting up logger")
 		return
 	}
 
@@ -50,4 +33,32 @@ func init() {
 	FileLogger = log.New(generalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
 	TerminalandFileLogger = log.New(terminalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
 
+}
+
+// SetupLogger sets up files for logging
+func SetupLogger() (fp *os.File, ok bool) {
+	currTime := time.Now()
+	currFileName := fmt.Sprint(logFilePrefix, currTime.Format("2006-01-02#15:04:05"), ".log")
+	user, err := user.Current()
+	if err != nil {
+		fmt.Printf("Cannot access current user data\n")
+		return nil, false
+	}
+
+	homePath := user.HomeDir
+	logDirectoryPath := homePath + "/" + logDirectory
+	err = os.MkdirAll(logDirectoryPath, 0755)
+	if err != nil {
+		fmt.Printf("error creating log directory : %s\n", logDirectoryPath)
+		return nil, false
+	}
+	logFilePath := logDirectoryPath + "/" + currFileName
+	file, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		fmt.Printf("error opening log file : %s\n", logFilePath)
+		return nil, false
+	}
+
+	return file, true
 }

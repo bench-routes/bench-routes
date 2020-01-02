@@ -35,8 +35,6 @@ const (
 )
 
 func init() {
-	// go setupLogger()
-	// log.Printf("initializing bench-routes ...")
 	logger.TerminalandFileLogger.Printf("initializing bench-routes ...")
 
 	// load configuration file
@@ -348,34 +346,6 @@ func getInBlocks(ws *websocket.Conn, Type, URL string) []tsdb.Block {
 	ql := getQuerier(ws, Type, URL, "", "")
 	return inBlocks(ql.FetchAllSeriesStringified())
 }
-
-// func setupLogger() {
-// 	currTime := time.Now()
-// 	currFileName := fmt.Sprint(logFilePrefix, currTime.Format("2006-01-02#15:04:05"), ".log")
-// 	user, err := user.Current()
-// 	if err != nil {
-// 		fmt.Printf("cannot access current user data\n")
-// 		return
-// 	}
-
-// 	homePath := user.HomeDir
-// 	logDirectoryPath := homePath + "/" + logDirectory
-// 	err = os.MkdirAll(logDirectoryPath, 0755)
-// 	if err != nil {
-// 		fmt.Printf("error creating log directory : %s\n", logDirectoryPath)
-// 		return
-// 	}
-// 	logFilePath := logDirectoryPath + "/" + currFileName
-// 	file, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0444)
-// 	if err != nil {
-// 		fmt.Printf("error opening log file : %s\n", logFilePath)
-// 		return
-// 	}
-// 	writer := io.MultiWriter(os.Stdout, file)
-// 	log.SetOutput(writer)
-// 	log.SetPrefix("LOG: ")
-// 	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
-// }
 
 func getQuerier(conn *websocket.Conn, serviceName, d, method, suff string) (inst tsdb.BRQuerier) {
 	inst = tsdb.BRQuerier{
