@@ -1,7 +1,6 @@
 package response
 
 import (
-	
 	"math"
 	"strconv"
 	"sync"
@@ -23,11 +22,10 @@ const (
 // channels to run tests for each route in parallel, speeding up the process
 func HandleResponseDelayForRoute(responseChains []*tsdb.Chain, route parser.Routes, tsdbNameHash string, wg *sync.WaitGroup) {
 	// routeSuffix := filters.RouteDestroyer(route.URL + "_" + route.Route)
-	
-	
+
 	// Init paths for request-response-monitoring
 	path := PathReqResDelay + "/" + "chunk_req_res_" + tsdbNameHash[12:len(tsdbNameHash)] + ".json"
-	
+
 	c := make(chan utils.Response)
 	responseObject := RouteDispatcher(route, c)
 	g := getNormalizedBlockString(responseObject)

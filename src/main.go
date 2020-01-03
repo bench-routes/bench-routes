@@ -326,7 +326,7 @@ func querier(ws *websocket.Conn, inComingStream []string, route interface{}) {
 		if e := json.Unmarshal(message, &inst); e != nil {
 			panic(e)
 		}
-		
+
 		raw := getInBlocks(ws, "req-res-delay", inst.URL)
 		for i, b := range raw {
 			dec, ok := utils.Decode(b).(utils.Response)
