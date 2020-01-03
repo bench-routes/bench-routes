@@ -6,6 +6,9 @@ import (
 	"log"
 	"os"
 	"os/user"
+	"runtime"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -29,8 +32,8 @@ func init() {
 	generalWriter := io.Writer(file)
 	terminalWriter := io.MultiWriter(os.Stdout, file)
 
-	fileLogger = log.New(generalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
-	terminalandFileLogger = log.New(terminalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds|log.Lshortfile)
+	fileLogger = log.New(generalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds)
+	terminalandFileLogger = log.New(terminalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds)
 
 }
 
@@ -58,6 +61,27 @@ func setupLogger() (fp *os.File, err error) {
 	return file, nil
 }
 
+func chopPath(original string) string {
+	i := strings.LastIndex(original, "/")
+	if i == -1 {
+		return original
+	} else {
+		return original[i+1:]
+	}
+}
+
+func logLocater(depthList ...int) string {
+	var depth int
+	if depthList == nil {
+		depth = 1
+	} else {
+		depth = depthList[0]
+	}
+	_, file, line, _ := runtime.Caller(depth)
+	location := chopPath(file) + ":" + strconv.Itoa(line)
+	return location
+}
+
 // File logs to the secondary storage.
 // *code*:
 // "p" -> Println()
@@ -65,13 +89,16 @@ func setupLogger() (fp *os.File, err error) {
 func File(msg string, code string) {
 	switch code {
 	case "p":
-		fileLogger.Println(msg)
+		logMessage := logLocater(2) + " " + msg
+		fileLogger.Println(logMessage)
 
 	case "f":
-		fileLogger.Fatalln(msg)
+		logMessage := logLocater(2) + " " + msg
+		fileLogger.Fatalln(logMessage)
 
 	case "pa":
-		fileLogger.Panicln(msg)
+		logMessage := logLocater(2) + " " + msg
+		fileLogger.Panicln(logMessage)
 	}
 }
 
@@ -82,12 +109,15 @@ func File(msg string, code string) {
 func Terminal(msg string, code string) {
 	switch code {
 	case "p":
-		terminalandFileLogger.Println(msg)
+		logMessage := logLocater(2) + " " + msg
+		terminalandFileLogger.Println(logMessage)
 
 	case "f":
-		terminalandFileLogger.Fatalln(msg)
+		logMessage := logLocater(2) + " " + msg
+		terminalandFileLogger.Fatalln(logMessage)
 
 	case "pa":
-		terminalandFileLogger.Panicln(msg)
+		logMessage := logLocater(2) + " " + msg
+		terminalandFileLogger.Panicln(logMessage)
 	}
 }
