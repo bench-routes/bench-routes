@@ -87,7 +87,7 @@ func init() {
 	}()
 
 	go func() {
-		chainInitialiser(&utils.GlobalReqResDelChain, configuration.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
+		chainInitialiser(&utils.GlobalReqResDelChain, ConfigURLs, utils.PathReqResDelayMonitoring, "req_res")
 		wg.Done()
 	}()
 
@@ -322,10 +322,11 @@ func querier(ws *websocket.Conn, inComingStream []string, route interface{}) {
 
 	case qReqResDelayRoute:
 		inst := qReqResDelayRoute{}
+
 		if e := json.Unmarshal(message, &inst); e != nil {
 			panic(e)
 		}
-
+		
 		raw := getInBlocks(ws, "req-res-delay", inst.URL)
 		for i, b := range raw {
 			dec, ok := utils.Decode(b).(utils.Response)

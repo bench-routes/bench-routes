@@ -1,16 +1,18 @@
 package ping
 
 import (
-	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 	"log"
 	"strconv"
 	"sync"
+
+	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // HandlePing is the main handler for ping operations
 func HandlePing(chain []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
+
 	tsdbNameHash = utils.PathPing + "/" + "chunk_ping_" + tsdbNameHash + ".json"
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {

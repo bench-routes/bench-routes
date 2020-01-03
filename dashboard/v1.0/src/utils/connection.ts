@@ -53,6 +53,14 @@ export default class BRConnect {
     return this.sendMessageOperateModule('force-stop-flood-ping');
   }
 
+  public signalRequestResponseMonitoringStart(): Promise<any> {
+    return this.sendMessageOperateModule('force-start-req-res-monitoring');
+  }
+
+  public signalRequestResponseMonitoringStop(): Promise<any> {
+    return this.sendMessageOperateModule('force-stop-req-res-monitoring');
+  }
+
   public signalPingRouteFetchAllTimeSeries(route: string): Promise<any> {
     const inst: RouteFetchAll = {
       url: route

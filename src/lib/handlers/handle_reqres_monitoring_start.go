@@ -32,7 +32,7 @@ func HandleReqResMonitoringStart(config *parser.YAMLBenchRoutesType, reqResMonit
 				go response.HandleResponseDelayForRoute(
 					utils.GlobalReqResDelChain,
 					route,
-					utils.GetHash(route.URL),
+					route.URL,
 					&wg)
 			}
 			wg.Wait()
