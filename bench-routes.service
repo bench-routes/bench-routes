@@ -1,0 +1,12 @@
+#Service script for bench-route
+
+[Unit]
+Description= Systemd bench-routes service
+After=network-online.target network.target
+Requires=network-online.target network.target
+
+[Service]
+Type=simple
+RemainAfterExit=yes
+ExecStart=/home/ps/bench-routes 9090 start > /dev/null  2>&1
+ExecStop=/home/ps/bench-routes 9090 stop   > /dev/null  2>&1
