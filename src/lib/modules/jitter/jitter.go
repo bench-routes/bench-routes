@@ -1,12 +1,13 @@
 package jitter
 
 import (
-	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/tsdb"
-	"log"
 	"strconv"
 	"sync"
+
+	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
+	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 const (
@@ -19,7 +20,8 @@ func HandleJitter(globalChain []*tsdb.Chain, url string, packets int, tsdbNameHa
 	tsdbNameHash = PathJitter + "/" + "chunk_jitter_" + tsdbNameHash + ".json"
 	resp, err := utils.CLIPing(url, packets)
 	if err != nil {
-		log.Printf("Failure occured for %s", url)
+		msg := "Failure occured for" + url
+		logger.Terminal(msg, "p")
 		wg.Done()
 		return
 	}

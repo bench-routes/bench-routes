@@ -3,11 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"os"
-	"os/user"
 	"strconv"
 	"strings"
 	"sync"
@@ -16,6 +13,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
@@ -31,14 +29,11 @@ var (
 )
 
 const (
-	logFilePrefix = "bench-route-"
-	logDirectory  = "br-logs"
-	testFilesDir  = "tests/"
+	testFilesDir = "tests/"
 )
 
 func init() {
-	go setupLogger()
-	log.Printf("initializing bench-routes ...")
+	logger.Terminal("initializing bench-routes ...", "p")
 
 	// load configuration file
 	configuration.Address = utils.ConfigurationFilePath
@@ -92,11 +87,12 @@ func init() {
 	}()
 
 	wg.Wait()
-	log.Printf("initial chain formation time: %s\n", time.Since(p).String())
+	msg := "initial chain formation time: " + time.Since(p).String()
+	logger.Terminal(msg, "p")
 
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
 	// required resources for the application is up and healthy
-	log.Printf("Bench-routes is up and running\n")
+	logger.Terminal("Bench-routes is up and running", "p")
 }
 
 func main() {
@@ -106,7 +102,8 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("ping from %s, sent pong in response\n", r.RemoteAddr)
+		msg := "ping from " + r.RemoteAddr + ", sent pong in response"
+		logger.Terminal(msg, "p")
 	})
 	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, testFilesDir+"bench-routes-socket-tester.html")
@@ -115,14 +112,16 @@ func main() {
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			log.Fatalf("error using upgrader %s\n", err)
+			msg := "error using upgrader" + err.Error()
+			logger.Terminal(msg, "f")
 		}
 
 		// capture client request for enabling series of responses unless its killed
 		for {
 			messageType, message, err := ws.ReadMessage()
 			if err != nil {
-				log.Printf("connection to client lost.\n%s\n", err)
+				logger.Terminal("connection to the terminal lost.", "p")
+				logger.Terminal(err.Error(), "p")
 				return
 			}
 
@@ -136,7 +135,8 @@ func main() {
 			inStream := strings.Split(string(message), " ")
 
 			sig := inStream[0] // Signal
-			log.Printf("type: %d\n message: %s \n", messageType, sig)
+			msg := "type: " + strconv.Itoa(messageType) + " \n message: " + sig
+			logger.Terminal(msg, "p")
 			// generate appropriate signals from incoming messages
 			switch sig {
 			// ping
@@ -207,12 +207,13 @@ func main() {
 	})
 
 	// launch service
-	log.Fatal(http.ListenAndServe(port, nil))
+	logger.Terminal(http.ListenAndServe(port, nil).Error(), "f")
 
 }
 
 func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
-	log.Printf("forming %s chain ... \n", Type)
+	msg := "forming " + Type + " chain ... "
+	logger.Terminal(msg, "p")
 	config, ok := conf.([]string)
 	if ok {
 		for _, v := range config {
@@ -245,7 +246,7 @@ func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type str
 		}
 	}
 
-	log.Printf("finished %s chain\n", Type)
+	logger.Terminal("finished "+Type+" chain", "p")
 }
 
 func querier(ws *websocket.Conn, inComingStream []string, route interface{}) {
@@ -348,34 +349,6 @@ func querier(ws *websocket.Conn, inComingStream []string, route interface{}) {
 func getInBlocks(ws *websocket.Conn, Type, URL string) []tsdb.Block {
 	ql := getQuerier(ws, Type, URL, "", "")
 	return inBlocks(ql.FetchAllSeriesStringified())
-}
-
-func setupLogger() {
-	currTime := time.Now()
-	currFileName := fmt.Sprint(logFilePrefix, currTime.Format("2006-01-02#15:04:05"), ".log")
-	user, err := user.Current()
-	if err != nil {
-		fmt.Printf("cannot access current user data\n")
-		return
-	}
-
-	homePath := user.HomeDir
-	logDirectoryPath := homePath + "/" + logDirectory
-	err = os.MkdirAll(logDirectoryPath, 0755)
-	if err != nil {
-		fmt.Printf("error creating log directory : %s\n", logDirectoryPath)
-		return
-	}
-	logFilePath := logDirectoryPath + "/" + currFileName
-	file, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0444)
-	if err != nil {
-		fmt.Printf("error opening log file : %s\n", logFilePath)
-		return
-	}
-	writer := io.MultiWriter(os.Stdout, file)
-	log.SetOutput(writer)
-	log.SetPrefix("LOG: ")
-	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
 }
 
 func getQuerier(conn *websocket.Conn, serviceName, d, method, suff string) (inst tsdb.BRQuerier) {

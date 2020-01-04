@@ -1,11 +1,12 @@
 package ping
 
 import (
+	"sync"
+
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 	"github.com/zairza-cetb/bench-routes/tsdb"
-	"log"
-	"sync"
 )
 
 // HandleFloodPing is the main handler for flood ping operations
@@ -14,7 +15,7 @@ func HandleFloodPing(globalChain []*tsdb.Chain, urlRaw string, packets int, tsdb
 	tsdbNameHash = utils.PathFloodPing + "/" + "chunk_flood_ping_" + tsdbNameHash + ".json"
 	resp, err := utils.CLIFloodPing(urlRaw, packets, password)
 	if err != nil {
-		log.Println(*resp)
+		logger.File(*resp, "p")
 		wg.Done()
 		return
 	}

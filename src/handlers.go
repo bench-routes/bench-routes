@@ -1,9 +1,8 @@
 package main
 
 import (
-	"log"
-
 	"github.com/zairza-cetb/bench-routes/src/lib/handlers"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 )
 
 type qPingRoute struct {
@@ -53,7 +52,7 @@ func HandlerPingGeneral(signal string) bool {
 		}
 		return true
 	default:
-		log.Fatalf("invalid signal")
+		logger.Terminal("invalid signal", "f")
 	}
 	return false
 }
@@ -86,7 +85,7 @@ func HandlerJitterGeneral(signal string) bool {
 		}
 		return true
 	default:
-		log.Fatalf("invalid signal")
+		logger.Terminal("invalid signal", "f")
 	}
 	return false
 }
@@ -120,7 +119,7 @@ func HandleReqResGeneral(signal string) bool {
 		}
 		return true
 	default:
-		log.Fatalf("invalid signal")
+		logger.Terminal("invalid signal", "f")
 	}
 	return false
 }
@@ -152,7 +151,7 @@ func HandlerFloodPingGeneral(signal string) bool {
 		}
 		return true
 	default:
-		log.Fatalf("invalid signal")
+		logger.Terminal("invalid signal", "f")
 	}
 	return false
 }

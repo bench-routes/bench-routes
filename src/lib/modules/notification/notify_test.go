@@ -10,7 +10,7 @@ import (
 func TestSendNotification(t *testing.T) {
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err.Error())
 	}
 	substr := "/bench-routes/"
 	c := strings.Index(dir, substr)

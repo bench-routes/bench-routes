@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"log"
 	"sync"
 	"time"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 )
 
@@ -16,7 +16,7 @@ func HandlePingStart(config parser.YAMLBenchRoutesType, pingServiceState string)
 	pingConfig := config.Config.Routes
 	pingInterval := GetInterval(config.Config.Interval, "ping")
 	if pingInterval == (TestInterval{}) {
-		log.Fatalf("interval not found in configuration file for ping")
+		logger.Terminal("interval not found in configuration file for ping", "f")
 		return
 	}
 
@@ -43,7 +43,7 @@ func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingI
 		case "active":
 			err, _ := utils.VerifyConnection()
 			if !err {
-				log.Println("Not able to connect to externel network please check you internet connection")
+				logger.Terminal("Not able to connect to externel network please check you internet connection", "p")
 			} else {
 				var wg sync.WaitGroup
 				wg.Add(len(urlStack))
@@ -54,10 +54,10 @@ func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingI
 			}
 		case "passive":
 			// terminate the goroutine
-			log.Printf("terminating ping goroutine\n")
+			logger.Terminal("terminating ping goroutine", "p")
 			return
 		default:
-			log.Fatalf("invalid service-state value of ping\n")
+			logger.Terminal("invalid service-state value of ping", "f")
 			return
 		}
 
@@ -70,7 +70,7 @@ func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingI
 		case "sec":
 			time.Sleep(intrv * time.Second)
 		default:
-			log.Fatalf("invalid interval-type for ping\n")
+			logger.Terminal("invalid interval-type for ping", "f")
 			return
 		}
 	}
@@ -81,7 +81,7 @@ func HandleFloodPingStart(config parser.YAMLBenchRoutesType, floodPingServiceSta
 	floodPingConfig := config.Config.Routes
 	floodPingInterval := GetInterval(config.Config.Interval, "ping")
 	if floodPingInterval == (TestInterval{}) {
-		log.Fatalf("interval not found in configuration file for ping")
+		logger.Terminal("interval not found in configuration file for ping", "f")
 		return
 	}
 
@@ -116,10 +116,10 @@ func doFloodPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, 
 			wg.Wait()
 		case "passive":
 			//terminate the goroutine
-			log.Printf("terminating flood ping goroutine\n")
+			logger.Terminal("terminating flood ping goroutine", "p")
 			return
 		default:
-			log.Fatalf("invalid service-state value for flood-ping\n")
+			logger.Terminal("invalid service-state value for flood-ping", "f")
 			return
 		}
 
@@ -132,7 +132,7 @@ func doFloodPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, 
 		case "sec":
 			time.Sleep(intrv * time.Second)
 		default:
-			log.Fatalf("invalid interval-type for flood-ping\n")
+			logger.Terminal("invalid interval-type for flood-ping", "f")
 			return
 		}
 	}
@@ -156,6 +156,6 @@ func GetInterval(intervals []parser.Interval, testName string) TestInterval {
 	}
 
 	// if the execution reaches this then it is an error as the interval was not found in the configuration file
-	log.Panicf("interval not found in the configuration file\n")
+	logger.Terminal("interval not found in the configuration file", "pa")
 	return TestInterval{}
 }
