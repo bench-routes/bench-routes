@@ -87,7 +87,7 @@ func init() {
 	}()
 
 	go func() {
-		chainInitialiser(&utils.GlobalReqResDelChain, ConfigURLs, utils.PathReqResDelayMonitoring, "req_res")
+		chainInitialiser(&utils.GlobalReqResDelChain, configuration.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
 		wg.Done()
 	}()
 

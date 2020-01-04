@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
-
+	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 	"github.com/zairza-cetb/bench-routes/tsdb"
@@ -21,11 +21,10 @@ const (
 // in a Route struct and supplies it to a function in turn to handle it accordingly. We create
 // channels to run tests for each route in parallel, speeding up the process
 func HandleResponseDelayForRoute(responseChains []*tsdb.Chain, route parser.Routes, tsdbNameHash string, wg *sync.WaitGroup) {
-	// routeSuffix := filters.RouteDestroyer(route.URL + "_" + route.Route)
+	routeSuffix := filters.RouteDestroyer(route.URL + "_" + route.Route)
 
 	// Init paths for request-response-monitoring
-	path := PathReqResDelay + "/" + "chunk_req_res_" + tsdbNameHash[12:len(tsdbNameHash)] + ".json"
-
+	path := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + ".json"
 	c := make(chan utils.Response)
 	responseObject := RouteDispatcher(route, c)
 	g := getNormalizedBlockString(responseObject)

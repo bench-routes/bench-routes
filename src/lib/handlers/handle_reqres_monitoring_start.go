@@ -4,7 +4,7 @@ import (
 	"log"
 	"sync"
 	"time"
-
+	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/response"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
@@ -32,7 +32,7 @@ func HandleReqResMonitoringStart(config *parser.YAMLBenchRoutesType, reqResMonit
 				go response.HandleResponseDelayForRoute(
 					utils.GlobalReqResDelChain,
 					route,
-					route.URL,
+					utils.GetHash(route.URL),
 					&wg)
 			}
 			wg.Wait()
