@@ -1,12 +1,12 @@
 package jitter
 
 import (
+	"log"
 	"sync"
 	"testing"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
@@ -25,7 +25,7 @@ var (
 )
 
 func initTest() {
-	logger.Terminal("Testing jitter", "p")
+	log.Printf("Testing jitter")
 
 	// load configuration file
 	Configuration.Address = ConfigurationFilePath

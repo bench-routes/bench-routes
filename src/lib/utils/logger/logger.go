@@ -34,7 +34,6 @@ func init() {
 
 	fileLogger = log.New(generalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds)
 	terminalandFileLogger = log.New(terminalWriter, "LOG:\t", log.Ldate|log.Lmicroseconds)
-
 }
 
 // setupLogger sets up files for logging
@@ -86,6 +85,7 @@ func logLocater(depthList ...int) string {
 // *code*:
 // "p" -> Println()
 // "f" -> Fatalln()
+// "pa" -> Panicln()
 func File(msg string, code string) {
 	switch code {
 	case "p":
@@ -106,6 +106,7 @@ func File(msg string, code string) {
 // *code*:
 // "p" -> Println()
 // "f" -> Fatalln()
+// "pa" -> Panicln()
 func Terminal(msg string, code string) {
 	switch code {
 	case "p":

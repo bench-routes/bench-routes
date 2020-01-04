@@ -13,6 +13,6 @@ func VerifyConnection() (bool, int) {
 		logger.Terminal("unable to ping external network", "p")
 		return false, -1
 	}
-	logger.Terminal("external connection verified", "p")
+	logger.File("external connection verified", "p")
 	return true, res.StatusCode
 }
