@@ -1,14 +1,14 @@
 package response
 
 import (
-	"math"
-	"strconv"
-	"sync"
-	"time"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 	"github.com/zairza-cetb/bench-routes/tsdb"
+	"math"
+	"strconv"
+	"sync"
+	"time"
 )
 
 // Path to storage in tsdb for Req res delay

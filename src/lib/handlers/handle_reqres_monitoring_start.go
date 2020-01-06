@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"sync"
-	"time"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/response"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
+	"sync"
+	"time"
 )
 
 // HandleReqResMonitoringStart handle the route "start"
