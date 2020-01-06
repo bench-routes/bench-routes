@@ -128,8 +128,6 @@ func cleanup() {
 			}
 		}
 	}
-
-	// time.Sleep(20 * time.Second)
 }
 
 func main() {
