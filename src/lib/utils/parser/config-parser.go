@@ -2,8 +2,8 @@ package parser
 
 import (
 	"io/ioutil"
-	"log"
 
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 	"gopkg.in/yaml.v2"
 )
 
@@ -98,7 +98,7 @@ func (inst YAMLBenchRoutesType) Write() (bool, error) {
 	config := *inst.Config
 	r, e := yaml.Marshal(config)
 	if e != nil {
-		log.Fatalf("%s\n", e)
+		logger.Terminal(e.Error(), "f")
 		return false, e
 	}
 

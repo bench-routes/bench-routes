@@ -1,12 +1,12 @@
 package ping
 
 import (
-	"log"
 	"strconv"
 	"sync"
 
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
@@ -16,7 +16,8 @@ func HandlePing(chain []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash st
 	tsdbNameHash = utils.PathPing + "/" + "chunk_ping_" + tsdbNameHash + ".json"
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {
-		log.Printf("Failure occured for %s", urlRaw)
+		msg := "Failure occured for " + urlRaw
+		logger.Terminal(msg, "p")
 		wg.Done()
 		return
 	}

@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"log"
 	"sync"
 	"time"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/response"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 )
 
@@ -17,7 +17,7 @@ func HandleReqResMonitoringStart(config *parser.YAMLBenchRoutesType, reqResMonit
 		*config = (*config).Refresh()
 		monitoringInterval := GetInterval(config.Config.Interval, "req-res-delay-and-monitoring")
 		if monitoringInterval == (TestInterval{}) {
-			log.Fatalf("interval not found in configuration file for req-res monitoring")
+			logger.Terminal("interval not found in configuration file for req-res monitoring", "f")
 			return
 		}
 		switch config.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring {
@@ -37,10 +37,10 @@ func HandleReqResMonitoringStart(config *parser.YAMLBenchRoutesType, reqResMonit
 			wg.Wait()
 		case "passive":
 			// terminate the goroutine
-			log.Printf("terminating req-res monitoring goroutine\n")
+			logger.Terminal("terminating req-res monitoring goroutine", "p")
 			return
 		default:
-			log.Fatalf("invalid service-state value of req-res monitoring\n")
+			logger.Terminal("invalid service-state value of req-res monitoring", "f")
 			return
 		}
 
@@ -53,7 +53,7 @@ func HandleReqResMonitoringStart(config *parser.YAMLBenchRoutesType, reqResMonit
 		case "sec":
 			time.Sleep(intrv * time.Second)
 		default:
-			log.Fatalf("invalid interval-type for req-res monitoring\n")
+			logger.Terminal("invalid interval-type for req-res monitoring", "f")
 			return
 		}
 	}
