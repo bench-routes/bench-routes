@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -100,6 +104,14 @@ func main() {
 	if len(os.Args) > 1 {
 		port = ":" + os.Args[1]
 	}
+
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		cleanup()
+		os.Exit(0)
+	}()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		msg := "ping from " + r.RemoteAddr + ", sent pong in response"
@@ -209,6 +221,38 @@ func main() {
 	// launch service
 	logger.Terminal(http.ListenAndServe(port, nil).Error(), "f")
 
+}
+
+func cleanup() {
+	logger.Terminal(fmt.Sprintf("Alive %d goroutines", runtime.NumGoroutine()), "p")
+	configuration := configuration.Refresh()
+	values := reflect.ValueOf(configuration.Config.UtilsConf.ServicesSignal)
+	typeOfServiceState := values.Type()
+	type serviceState struct {
+		service string
+		state   string
+	}
+	serviceStateValues := []serviceState{}
+
+	for i := 0; i < values.NumField(); i++ {
+		n := serviceState{service: typeOfServiceState.Field(i).Name, state: values.Field(i).Interface().(string)}
+		serviceStateValues = append(serviceStateValues, n)
+	}
+	for _, node := range serviceStateValues {
+		if node.state == "active" {
+			switch node.service {
+			case "Ping":
+				HandlerPingGeneral("stop")
+			case "FloodPing":
+				HandlerFloodPingGeneral("stop")
+			case "Jitter":
+				HandlerJitterGeneral("stop")
+			case "ReqResDelayMonitoring":
+				HandleReqResGeneral("stop")
+			}
+		}
+	}
+	logger.Terminal(fmt.Sprintf("Alive %d goroutines after cleaning up.", runtime.NumGoroutine()), "p")
 }
 
 func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
