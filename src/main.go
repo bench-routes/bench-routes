@@ -224,7 +224,7 @@ func main() {
 }
 
 func cleanup() {
-	logger.Terminal(fmt.Sprintf("No. of go routines running are: "+strconv.Itoa(runtime.NumGoroutine())), "p")
+	logger.Terminal(fmt.Sprintf("Alive %d goroutines", runtime.NumGoroutine()), "p")
 	configuration := configuration.Refresh()
 	values := reflect.ValueOf(configuration.Config.UtilsConf.ServicesSignal)
 	typeOfServiceState := values.Type()
@@ -252,7 +252,7 @@ func cleanup() {
 			}
 		}
 	}
-	logger.Terminal(fmt.Sprintf("No. of go routines running after stopping goroutines are: "+strconv.Itoa(runtime.NumGoroutine())), "p")
+	logger.Terminal(fmt.Sprintf("Alive %d goroutines after cleaning up.", runtime.NumGoroutine()), "p")
 }
 
 func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
