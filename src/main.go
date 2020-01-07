@@ -99,37 +99,6 @@ func init() {
 	logger.Terminal("Bench-routes is up and running", "p")
 }
 
-func cleanup() {
-	logger.Terminal("No. of go routines running are: "+strconv.Itoa(runtime.NumGoroutine()), "p")
-	configuration := configuration.Refresh()
-	values := reflect.ValueOf(configuration.Config.UtilsConf.ServicesSignal)
-	typeOfServiceState := values.Type()
-	type serviceState struct {
-		service string
-		state   string
-	}
-	serviceStateValues := []serviceState{}
-
-	for i := 0; i < values.NumField(); i++ {
-		n := serviceState{service: typeOfServiceState.Field(i).Name, state: values.Field(i).Interface().(string)}
-		serviceStateValues = append(serviceStateValues, n)
-	}
-	for _, node := range serviceStateValues {
-		if node.state == "active" {
-			switch node.service {
-			case "Ping":
-				HandlerPingGeneral("stop")
-			case "FloodPing":
-				HandlerFloodPingGeneral("stop")
-			case "Jitter":
-				HandlerJitterGeneral("stop")
-			case "ReqResDelayMonitoring":
-				HandleReqResGeneral("stop")
-			}
-		}
-	}
-}
-
 func main() {
 
 	if len(os.Args) > 1 {
@@ -252,6 +221,38 @@ func main() {
 	// launch service
 	logger.Terminal(http.ListenAndServe(port, nil).Error(), "f")
 
+}
+
+func cleanup() {
+	logger.Terminal(fmt.Sprintf("No. of go routines running are: "+strconv.Itoa(runtime.NumGoroutine())), "p")
+	configuration := configuration.Refresh()
+	values := reflect.ValueOf(configuration.Config.UtilsConf.ServicesSignal)
+	typeOfServiceState := values.Type()
+	type serviceState struct {
+		service string
+		state   string
+	}
+	serviceStateValues := []serviceState{}
+
+	for i := 0; i < values.NumField(); i++ {
+		n := serviceState{service: typeOfServiceState.Field(i).Name, state: values.Field(i).Interface().(string)}
+		serviceStateValues = append(serviceStateValues, n)
+	}
+	for _, node := range serviceStateValues {
+		if node.state == "active" {
+			switch node.service {
+			case "Ping":
+				HandlerPingGeneral("stop")
+			case "FloodPing":
+				HandlerFloodPingGeneral("stop")
+			case "Jitter":
+				HandlerJitterGeneral("stop")
+			case "ReqResDelayMonitoring":
+				HandleReqResGeneral("stop")
+			}
+		}
+	}
+	logger.Terminal(fmt.Sprintf("No. of go routines running after stopping goroutines are: "+strconv.Itoa(runtime.NumGoroutine())), "p")
 }
 
 func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
