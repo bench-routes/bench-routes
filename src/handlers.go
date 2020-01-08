@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+
 	"github.com/zairza-cetb/bench-routes/src/lib/handlers"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
 )
@@ -29,6 +31,8 @@ func HandlerPingGeneral(signal string) bool {
 	configuration = configuration.Refresh()
 	pingServiceState := configuration.Config.UtilsConf.ServicesSignal.Ping
 
+	ctxGeneralPing, stopPingGeneral := context.WithCancel(context.Background())
+
 	switch signal {
 	case "start":
 		if pingServiceState == "passive" {
@@ -39,7 +43,7 @@ func HandlerPingGeneral(signal string) bool {
 				panic(e)
 			}
 			go func() {
-				handlers.HandlePingStart(configuration, pingServiceState)
+				handlers.HandlePingStart(ctxGeneralPing, configuration, pingServiceState)
 			}()
 			return true
 		}
@@ -47,6 +51,7 @@ func HandlerPingGeneral(signal string) bool {
 	case "stop":
 		configuration.Config.UtilsConf.ServicesSignal.Ping = "passive"
 		_, e := configuration.Write()
+		stopPingGeneral()
 		if e != nil {
 			panic(e)
 		}

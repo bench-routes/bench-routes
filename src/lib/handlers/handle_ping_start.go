@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -12,7 +14,7 @@ import (
 )
 
 // HandlePingStart handle the route "start"
-func HandlePingStart(config parser.YAMLBenchRoutesType, pingServiceState string) {
+func HandlePingStart(ctxGeneralPing context.Context, config parser.YAMLBenchRoutesType, pingServiceState string) {
 	pingConfig := config.Config.Routes
 	pingInterval := GetInterval(config.Config.Interval, "ping")
 	if pingInterval == (TestInterval{}) {
@@ -31,10 +33,18 @@ func HandlePingStart(config parser.YAMLBenchRoutesType, pingServiceState string)
 		}
 	}
 	doPing(config, urlStack, pingInterval)
+	for {
+		select {
+		case <-ctxGeneralPing.Done():
+			fmt.Println("General Stopper Called")
+			return
+		}
+	}
 }
 
 func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingInterval TestInterval) {
 	i := 0
+	ctxPing, stopPing := context.WithCancel(context.Background())
 	for {
 		i++
 		config = config.Refresh()
@@ -48,13 +58,14 @@ func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingI
 				var wg sync.WaitGroup
 				wg.Add(len(urlStack))
 				for _, u := range urlStack {
-					go ping.HandlePing(utils.GlobalPingChain, u, 10, u, &wg, false)
+					go ping.HandlePing(ctxPing, utils.GlobalPingChain, u, 10, u, &wg, false)
 				}
 				wg.Wait()
 			}
 		case "passive":
 			// terminate the goroutine
 			logger.Terminal("terminating ping goroutine", "p")
+			stopPing()
 			return
 		default:
 			logger.Terminal("invalid service-state value of ping", "f")

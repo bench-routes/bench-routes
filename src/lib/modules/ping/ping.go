@@ -1,6 +1,8 @@
 package ping
 
 import (
+	"context"
+	"fmt"
 	"strconv"
 	"sync"
 
@@ -11,7 +13,7 @@ import (
 )
 
 // HandlePing is the main handler for ping operations
-func HandlePing(chain []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
+func HandlePing(ctxPing context.Context, chain []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
 	tsdbNameHash = utils.PathPing + "/" + "chunk_ping_" + tsdbNameHash + ".json"
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {
@@ -35,6 +37,13 @@ func HandlePing(chain []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash st
 		panic("faulty hashing! impossible to look for a hash match.")
 	}
 	wg.Done()
+	for {
+		select {
+		case <-ctxPing.Done():
+			fmt.Println("Module stopper called")
+			return
+		}
+	}
 }
 
 func getNormalizedBlockString(v utils.TypePingScrap) string {
