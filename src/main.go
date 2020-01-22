@@ -23,11 +23,10 @@ import (
 )
 
 var (
-	port     = ":9090"
+	port     = ":9090" // default listen and serve at 9090.
 	upgrader = websocket.Upgrader{
-		// set buffer to 4 mega-bytes size
-		ReadBufferSize:  4048,
-		WriteBufferSize: 4048,
+		ReadBufferSize:  4096,
+		WriteBufferSize: 4096,
 	}
 	configuration parser.YAMLBenchRoutesType
 )
@@ -39,18 +38,14 @@ const (
 func init() {
 	logger.Terminal("initializing bench-routes ...", "p")
 
-	// load configuration file
 	configuration.Address = utils.ConfigurationFilePath
 	configuration = *configuration.Load()
 	configuration.Validate()
 
 	var ConfigURLs []string
-
-	//function to initialize the service state before starting
 	initializeState(&configuration)
 
-	// Load and build TSDB chain
-	// searching for unique URLs
+	// Build TSDB chain
 	for _, r := range configuration.Config.Routes {
 		found := false
 		for _, i := range ConfigURLs {
@@ -409,7 +404,7 @@ func getMessageFromCompoundSignal(arg []string) []byte {
 	return []byte(strings.Join(arg, " "))
 }
 
-//initializing all the service states to passives
+// initializeState initializes all state values to passive.
 func initializeState(configuration *parser.YAMLBenchRoutesType) {
 	configuration.Config.UtilsConf.ServicesSignal = parser.ServiceSignals{
 		Ping:                  "passive",
