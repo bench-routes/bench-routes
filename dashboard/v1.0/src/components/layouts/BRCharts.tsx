@@ -84,8 +84,8 @@ export class BRCharts extends React.Component<BRChartProps, BRChartState> {
 
   public render() {
     return (
-      <div className={this.state.wrapperClassName}>
-        <Line data={this.state.chartJSOpts} />
+      <div className={this.state.wrapperClassName} style={{ height: '100%' }}>
+        {this.state.chartJSOpts ? <Line data={this.state.chartJSOpts} /> : null}
       </div>
     );
   }

@@ -204,13 +204,9 @@ export default class FloodPing extends Component<
           getAddress={this.getAddressSubmenu}
         />
         {this.state.showChart ? (
-          <div style={{ overflow: 'auto' }}>
-            <div>
-              <BRCharts opts={this.state.chartOpts} />
-            </div>
-            <div>
-              <BRCharts opts={this.state.packetLossChartOpts} />
-            </div>
+          <div style={{ overflow: 'scroll', height: '45%' }}>
+            <BRCharts opts={this.state.chartOpts} />
+            <BRCharts opts={this.state.packetLossChartOpts} />
           </div>
         ) : (
           <div>Chart not available</div>
