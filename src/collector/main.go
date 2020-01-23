@@ -2,9 +2,9 @@ package main
 
 import (
 	"log"
-	"runtime"
 	"sync"
 	"time"
+	"fmt"
 
 	"github.com/zairza-cetb/bench-routes/src/collector/process"
 	"github.com/zairza-cetb/bench-routes/tsdb"
@@ -28,16 +28,9 @@ func main() {
 		panic(err)
 	}
 
-	runtime.GC()
-
 	for _, pdetails := range *buffer.ProcessesDetails {
-		var err error
-		processChains[pdetails.FilteredCommand], err = tsdb.NewChain(storagePath + pdetails.FilteredCommand)
-		if err != nil {
-			panic(err)
-		}
-
-		processChains[pdetails.FilteredCommand].Init()
+		processChains[pdetails.FilteredCommand] = tsdb.NewChain(fmt.Sprintf("%s%s.json", storagePath, pdetails.FilteredCommand))
+		processChains[pdetails.FilteredCommand].Init().Commit()
 	}
 
 	for {
@@ -50,7 +43,7 @@ func main() {
 
 		for _, ps := range *buffer.ProcessesDetails {
 			go func(ps process.PDetails) {
-				b := tsdb.GetNewBlock("process", ps.Encode())
+				b := tsdb.GetNewBlock("ps", ps.Encode())
 				processChains[ps.FilteredCommand].Append(*b).Commit()
 				wg.Done()
 			}(ps)
@@ -59,5 +52,4 @@ func main() {
 		wg.Wait()
 		time.Sleep(defaultWait)
 	}
-
 }

@@ -5,3 +5,4 @@ glide.lock
 tests/node_modules
 dashboard/package-lock.json
 dashboard/node_modules
+collector-store

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"strconv"
 	"sync"
 	"unsafe"
@@ -82,10 +81,7 @@ type Chain struct {
 }
 
 // NewChain returns a in-memory chain that implements the TSDB interface.
-func NewChain(path string) (*Chain, error) {
-	if _, err := os.Stat(path); err == nil {
-		return nil, fmt.Errorf("chain already exists in the given path: %s. new chain cannot be created", path)
-	}
+func NewChain(path string) (*Chain) {
 	logger.File(fmt.Sprintf("creating new chain at path %s", path), "p")
 
 	return &Chain{
@@ -93,7 +89,7 @@ func NewChain(path string) (*Chain, error) {
 		Chain:          []Block{},
 		LengthElements: 0,
 		Size:           0,
-	}, nil
+	}
 }
 
 // TSDB implements the idea of tsdb
@@ -133,7 +129,7 @@ func (c *Chain) Init() *Chain {
 
 	res, e := parse(c.Path)
 	if e != nil {
-		logger.Terminal("chain not found at"+c.Path+". creating one ...", "p")
+		logger.Terminal(fmt.Sprintf("chain not found at %s. creating one ...", c.Path), "p")
 		c.LengthElements = 0
 		c.Size = unsafe.Sizeof(c)
 		c.Chain = []Block{}

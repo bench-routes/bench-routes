@@ -50,6 +50,9 @@ run:
 	echo "using 9090 as default service listener port"
 	go run src/*.go 9090
 
+run-collector:
+	go run src/collector/*.go
+
 fix:
 	go fmt ./...
 

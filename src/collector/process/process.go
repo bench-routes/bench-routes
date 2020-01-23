@@ -109,7 +109,6 @@ func removeEmptyStringsFromArray(s []string) []string {
 			a = append(a, inst)
 		}
 	}
-
 	return a
 }
 
@@ -126,12 +125,12 @@ func parseToFloat32(s string) float32 {
 // getProcessThreadCount returns the count of threads involved in a particular process.
 func getProcessThreadCount(pid int) int {
 	// number of light-weight processes that corresponds to the threads.
-	opt, err := exec.Command("ps", "-o", "nlwp", string(pid)).Output()
+	opt, err := exec.Command("ps", "-o", "nlwp", strconv.Itoa(pid)).Output()
 	if err != nil {
-		panic(err)
+		return -1
 	}
-
-	if i, err := strconv.Atoi(string(opt)); err != nil {
+	tmp := strings.TrimSpace(strings.Split(string(opt), "\n")[1])
+	if i, err := strconv.Atoi(tmp); err != nil {
 		panic(err)
 	} else {
 		return i
