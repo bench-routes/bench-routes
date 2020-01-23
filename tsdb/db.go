@@ -3,8 +3,8 @@ package tsdb
 import (
 	"encoding/json"
 	"errors"
-	"os"
 	"fmt"
+	"os"
 	"strconv"
 	"sync"
 	"unsafe"
@@ -81,16 +81,15 @@ type Chain struct {
 	mux            sync.Mutex
 }
 
-// NewChain returns a chain that implements the TSDB interface.
+// NewChain returns a in-memory chain that implements the TSDB interface.
 func NewChain(path string) (*Chain, error) {
 	if _, err := os.Stat(path); err == nil {
 		return nil, fmt.Errorf("chain already exists in the given path: %s. new chain cannot be created", path)
 	}
-
 	logger.File(fmt.Sprintf("creating new chain at path %s", path), "p")
 
 	return &Chain{
-		Path: path,
+		Path:           path,
 		Chain:          []Block{},
 		LengthElements: 0,
 		Size:           0,
@@ -134,7 +133,7 @@ func (c *Chain) Init() *Chain {
 
 	res, e := parse(c.Path)
 	if e != nil {
-		logger.File("chain not found at"+c.Path+". creating one ...", "p")
+		logger.Terminal("chain not found at"+c.Path+". creating one ...", "p")
 		c.LengthElements = 0
 		c.Size = unsafe.Sizeof(c)
 		c.Chain = []Block{}

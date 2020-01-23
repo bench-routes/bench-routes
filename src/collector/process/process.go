@@ -1,6 +1,7 @@
 package process
 
 import (
+	"fmt"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -17,18 +18,27 @@ type PDetails struct {
 	// Resident Set Size
 	RSS float32
 	// System State. Reference link for more information: https://askubuntu.com/a/360253
-	State       string
-	StartTime   string
-	Time        string
-	Command     string
+	State           string
+	StartTime       string
+	Time            string
+	Command         string
 	FilteredCommand string
-	ThreadCount int
+	ThreadCount     int
 }
 
-// PBuffer type
+// PBuffer corresponds to the in-memory store for current running-processes.
 type PBuffer struct {
-	ProcessesDetails *[]PDetails
+	ProcessesDetails      *[]PDetails
 	TotalRunningProcesses int
+}
+
+// DecodeType generally used as decoding value for respponding to the querier.
+type DecodeType struct {
+	CPUUtilization    string `json:"CPUUtilization"`
+	MemoryUtilization string `json:"MemoryUtilization"`
+	VMS               string `json:"VMS"`
+	RSS               string `json:"RSS"`
+	ThreadCount       string `json:"ThreadCount"`
 }
 
 // NewProcessReader returns a reader that reads over the running processes in a system.
@@ -146,6 +156,24 @@ func (p *PDetails) UnFilterCommandToUseableCommand() (s *string) {
 	sreplace(s, "@", "/")
 	p.Command = *s
 	return
+}
+
+// Encode encodes the process type block for inserting into the tsdb.
+func (p *PDetails) Encode() string {
+	return fmt.Sprintf("%f|%f|%f|%f|%d", p.CPUUtilization, p.MemoryUtilization, p.VMS, p.RSS, p.ThreadCount)
+}
+
+// Decode decodes the blocks from tsdb to be sent as response
+// to the calling querier.
+func (p *PDetails) Decode(s string) DecodeType {
+	tmp := strings.Split(s, "|")
+	return DecodeType{
+		CPUUtilization:    tmp[0],
+		MemoryUtilization: tmp[1],
+		VMS:               tmp[2],
+		RSS:               tmp[3],
+		ThreadCount:       tmp[4],
+	}
 }
 
 func sreplace(s *string, prev, new string) {
