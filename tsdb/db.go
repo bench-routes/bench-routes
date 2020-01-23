@@ -81,7 +81,7 @@ type Chain struct {
 }
 
 // NewChain returns a in-memory chain that implements the TSDB interface.
-func NewChain(path string) (*Chain) {
+func NewChain(path string) *Chain {
 	logger.File(fmt.Sprintf("creating new chain at path %s", path), "p")
 
 	return &Chain{

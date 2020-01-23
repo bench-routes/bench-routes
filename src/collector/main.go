@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"sync"
 	"time"
-	"fmt"
 
 	"github.com/zairza-cetb/bench-routes/src/collector/process"
 	"github.com/zairza-cetb/bench-routes/tsdb"
