@@ -24,7 +24,9 @@ func main() {
 	log.Printf("Enabling bench-routes process collections")
 
 	buffer := process.NewProcessReader()
-	buffer.UpdateCurrentProcesses()
+	if _, err := buffer.UpdateCurrentProcesses(); err != nil {
+		panic(err)
+	}
 
 	runtime.GC()
 
@@ -40,7 +42,9 @@ func main() {
 
 	for {
 		var wg sync.WaitGroup
-		buffer.UpdateCurrentProcesses()
+		if _, err := buffer.UpdateCurrentProcesses(); err != nil {
+			panic(err)
+		}
 
 		wg.Add(buffer.TotalRunningProcesses)
 
