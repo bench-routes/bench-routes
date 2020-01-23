@@ -21,19 +21,19 @@ type PDetails struct {
 	StartTime   string
 	Time        string
 	Command     string
+	FilteredCommand string
 	ThreadCount int
 }
 
 // PBuffer type
 type PBuffer struct {
 	ProcessesDetails *[]PDetails
+	TotalRunningProcesses int
 }
 
 // NewProcessReader returns a reader that reads over the running processes in a system.
 func NewProcessReader() *PBuffer {
-	return &PBuffer{
-		ProcessesDetails: nil,
-	}
+	return &PBuffer{}
 }
 
 // UpdateCurrentProcesses updates the process details list
@@ -45,6 +45,7 @@ func (prc *PBuffer) UpdateCurrentProcesses() (*[]PDetails, error) {
 	rawProcessesTable := string(cmd)
 	tmp := processDetailedRawTableFromAUX(rawProcessesTable)
 	prc.ProcessesDetails = tmp
+	prc.TotalRunningProcesses = len(*tmp)
 
 	return tmp, nil
 }
@@ -83,6 +84,8 @@ func processDetailedRawTableFromAUX(table string) *[]PDetails {
 			}
 		}
 		pDetail.ThreadCount = getProcessThreadCount(pDetail.Pid)
+		pDetail.FilterCommandToUseableAddress()
+
 		pDetails = append(pDetails, pDetail)
 	}
 
@@ -123,4 +126,28 @@ func getProcessThreadCount(pid int) int {
 	} else {
 		return i
 	}
+}
+
+// FilterCommandToUseableAddress filters illegal symbols from COMMAND
+// so as to use as a normal path
+func (p *PDetails) FilterCommandToUseableAddress() (s *string) {
+	s = &p.Command
+	sreplace(s, " ", "_")
+	sreplace(s, "/", "@")
+	p.FilteredCommand = *s
+	return
+}
+
+// UnFilterCommandToUseableCommand converts the filtered string back to
+// the original command.
+func (p *PDetails) UnFilterCommandToUseableCommand() (s *string) {
+	s = &p.FilteredCommand
+	sreplace(s, "_", " ")
+	sreplace(s, "@", "/")
+	p.Command = *s
+	return
+}
+
+func sreplace(s *string, prev, new string) {
+	*s = strings.ReplaceAll(*s, prev, new)
 }
