@@ -51,7 +51,7 @@ run:
 	go run src/*.go 9090
 
 run-collector:
-	go run src/collector/*.go
+	go run src/collector/main.go
 
 fix:
 	go fmt ./...

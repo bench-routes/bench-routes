@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	// COMMAND: chain
+	// key: COMMAND; value: chain
 	processChains = make(map[string]*tsdb.Chain)
 )
 

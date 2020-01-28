@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/zairza-cetb/bench-routes/src/collector/process"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
@@ -23,8 +24,9 @@ import (
 )
 
 var (
-	port     = ":9090" // default listen and serve at 9090.
-	upgrader = websocket.Upgrader{
+	port                    = ":9090" // default listen and serve at 9090
+	enableProcessCollection = true    // default collection of process metrices in host of bench-routes
+	upgrader                = websocket.Upgrader{
 		ReadBufferSize:  4096,
 		WriteBufferSize: 4096,
 	}
@@ -212,6 +214,63 @@ func main() {
 			}
 		}
 	})
+
+	if len(os.Args) > 2 && os.Args[2] != "" {
+		enableProcessCollection, _ = strconv.ParseBool(os.Args[2])
+	}
+	if enableProcessCollection {
+		go func() {
+			const (
+				path           = "collector-store/"
+				scrapeDuration = time.Second * 5 // default scrape duration for process metrics.
+				// TODO: accept scrape-duration for process metrices via args.
+			)
+
+			var (
+				wg              sync.WaitGroup
+				buffer          = process.NewProcessReader()
+				collectionCount = 0
+			)
+
+			assignChaintoMap := func(c *map[string]*tsdb.Chain, n, path string) {
+				(*c)[n] = tsdb.NewChain(path)
+				(*c)[n].Init().Commit()
+			}
+
+			processChains := make(map[string]*tsdb.Chain)
+
+			for {
+				collectionCount++
+
+				if collectionCount%10 != 1 { // in every blocks of 10.
+					logger.File(fmt.Sprintf("collection-count: %d; scrape-duration: %fsecs", collectionCount, scrapeDuration.Seconds()), "p")
+				} else {
+					logger.Terminal(fmt.Sprintf("collection-count: %d; scrape-duration: %fsecs", collectionCount, scrapeDuration.Seconds()), "p")
+				}
+
+				if _, err := buffer.UpdateCurrentProcesses(); err != nil {
+					panic(err)
+				}
+
+				wg.Add(buffer.TotalRunningProcesses)
+
+				for _, ps := range *buffer.ProcessesDetails {
+					if processChains[ps.FilteredCommand] == nil {
+						p := fmt.Sprintf("%s%s.json", path, ps.FilteredCommand)
+						assignChaintoMap(&processChains, ps.FilteredCommand, p)
+					}
+					b := *tsdb.GetNewBlock("ps", ps.Encode())
+					processChains[ps.FilteredCommand].Append(b).Commit()
+					wg.Done()
+				}
+
+				runtime.GC()
+
+				wg.Wait()
+				time.Sleep(scrapeDuration)
+			}
+		}()
+	}
 
 	// launch service
 	logger.Terminal(http.ListenAndServe(port, nil).Error(), "f")
