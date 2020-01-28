@@ -8,7 +8,7 @@ import (
 	"sync"
 	"unsafe"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 )
 
 const (

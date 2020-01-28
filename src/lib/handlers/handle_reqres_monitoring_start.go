@@ -6,8 +6,8 @@ import (
 
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/response"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 )
 
 // HandleReqResMonitoringStart handle the route "start"
