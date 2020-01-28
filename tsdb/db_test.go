@@ -40,24 +40,17 @@ func TestPopPreviousNBlocks(t *testing.T) {
 
 func TestGetPositionalPointerNormalized(t *testing.T) {
 	chain := chain.Init()
-	var normalizedTime int64 = 1574178672171188578
 	var outOfRangeTime int64 = 21568705425
 	var notFoundTime int64 = 1568705420
 
 	_, errOutOfRange := chain.GetPositionalIndexNormalized(outOfRangeTime)
-	if errOutOfRange != nil {
-		t.Logf("Out of range value check works")
+	if errOutOfRange == nil {
+		t.Errorf("Out of range value check does not work")
 	}
 
 	_, errNotFound := chain.GetPositionalIndexNormalized(notFoundTime)
-	if errNotFound != nil {
-		t.Logf("Check for element not found works")
-	}
-
-	index, _ := chain.GetPositionalIndexNormalized(normalizedTime)
-	x := chain.Chain[index]
-	if x.NormalizedTime != normalizedTime {
-		t.Errorf("Block not found")
+	if errNotFound == nil {
+		t.Errorf("Check for element not found does not work")
 	}
 }
 
