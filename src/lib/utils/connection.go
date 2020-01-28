@@ -3,7 +3,7 @@ package utils
 import (
 	"net/http"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 )
 
 // VerifyConnection verifies the connectivity of the program with the external network

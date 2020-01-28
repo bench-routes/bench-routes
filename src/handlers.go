@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/zairza-cetb/bench-routes/src/lib/handlers"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 )
 
 type qPingRoute struct {

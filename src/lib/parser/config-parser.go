@@ -3,7 +3,7 @@ package parser
 import (
 	"io/ioutil"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"gopkg.in/yaml.v2"
 )
 
