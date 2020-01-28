@@ -1,7 +1,6 @@
 package tsdb
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -18,9 +17,6 @@ func TestInit(t *testing.T) {
 	blocks := chain.Init()
 	if len(blocks.Chain) == 0 {
 		t.Errorf("tsdb Init not working as expected")
-	} else {
-		t.Log("printing block values ...")
-		t.Log(blocks)
 	}
 }
 
@@ -29,10 +25,7 @@ func TestAppend(t *testing.T) {
 	b := *GetNewBlock("", "20")
 
 	c := chain.Append(b)
-	fmt.Println(c.Chain[len(c.Chain)-1].Datapoint)
-	if c.Chain[len(c.Chain)-1].Datapoint == "20" {
-		t.Logf("Block Append Successful")
-	} else {
+	if c.Chain[len(c.Chain)-1].Datapoint != "20" {
 		t.Errorf("Block Append Unsuccessful")
 	}
 }
@@ -42,8 +35,6 @@ func TestPopPreviousNBlocks(t *testing.T) {
 	_, err := chain.PopPreviousNBlocks(10)
 	if err != nil {
 		t.Logf(err.Error())
-	} else {
-		t.Logf("Block removal worked properly")
 	}
 }
 
@@ -65,16 +56,15 @@ func TestGetPositionalPointerNormalized(t *testing.T) {
 
 	index, _ := chain.GetPositionalIndexNormalized(normalizedTime)
 	x := chain.Chain[index]
-	if x.NormalizedTime == normalizedTime {
-		t.Logf("Block found")
-		t.Log(x)
+	if x.NormalizedTime != normalizedTime {
+		t.Errorf("Block not found")
 	}
 }
 
 func TestSave(t *testing.T) {
 	chain := chain.Init()
-	if chain.Commit() {
-		t.Logf("tsdb Commit works as expected")
+	if !chain.Commit() {
+		t.Errorf("unexpected commit behaviour")
 	}
 }
 

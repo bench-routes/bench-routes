@@ -4,10 +4,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/modules/response"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+	"github.com/zairza-cetb/bench-routes/src/lib/modules/response"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 )
 
 // HandleReqResMonitoringStart handle the route "start"
