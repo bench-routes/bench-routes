@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"runtime"
 	"sync"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 
 const (
 	storagePath = "collector-store/"
-	defaultWait = time.Second * 10
+	defaultWait = time.Second * 1
 )
 
 var (
@@ -29,8 +30,8 @@ func main() {
 	}
 
 	for _, pdetails := range *buffer.ProcessesDetails {
-		processChains[pdetails.FilteredCommand] = tsdb.NewChain(fmt.Sprintf("%s%s.json", storagePath, pdetails.FilteredCommand))
-		processChains[pdetails.FilteredCommand].Init().Commit()
+		p := fmt.Sprintf("%s%s.json", storagePath, pdetails.FilteredCommand)
+		assignChaintoMap(&processChains, pdetails.FilteredCommand, p)
 	}
 
 	for {
@@ -43,13 +44,24 @@ func main() {
 
 		for _, ps := range *buffer.ProcessesDetails {
 			go func(ps process.PDetails) {
-				b := tsdb.GetNewBlock("ps", ps.Encode())
-				processChains[ps.FilteredCommand].Append(*b).Commit()
+				if processChains[ps.FilteredCommand] == nil {
+					p := fmt.Sprintf("%s%s.json", storagePath, ps.FilteredCommand)
+					assignChaintoMap(&processChains, ps.FilteredCommand, p)
+				}
+				b := *tsdb.GetNewBlock("ps", ps.Encode())
+				processChains[ps.FilteredCommand].Append(b).Commit()
 				wg.Done()
 			}(ps)
 		}
 
+		runtime.GC()
+
 		wg.Wait()
 		time.Sleep(defaultWait)
 	}
+}
+
+func assignChaintoMap(c *map[string]*tsdb.Chain, n, path string) {
+	(*c)[n] = tsdb.NewChain(path)
+	(*c)[n].Init().Commit()
 }
