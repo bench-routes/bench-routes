@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
+	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 )
 
 // HandleJitterStart handle the route "start"

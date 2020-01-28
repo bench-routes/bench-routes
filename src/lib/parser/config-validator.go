@@ -3,7 +3,7 @@ package parser
 import (
 	"strconv"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 )
 
 // ValidateRoutesProp validates the `routes` property

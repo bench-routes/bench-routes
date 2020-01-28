@@ -16,9 +16,9 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
