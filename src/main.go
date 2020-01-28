@@ -16,6 +16,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/zairza-cetb/bench-routes/src/collector/process"
+	"github.com/zairza-cetb/bench-routes/src/lib/api"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
@@ -110,13 +111,11 @@ func main() {
 		os.Exit(0)
 	}()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		msg := "ping from " + r.RemoteAddr + ", sent pong in response"
-		logger.Terminal(msg, "p")
-	})
-	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, testFilesDir+"bench-routes-socket-tester.html")
-	})
+	api := api.New()
+
+	http.HandleFunc("/", api.Home)
+	http.HandleFunc("/test", api.TestTemplate)
+	http.HandleFunc("/service-states", api.ServiceState)
 	http.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		ws, err := upgrader.Upgrade(w, r, nil)
@@ -222,7 +221,7 @@ func main() {
 		go func() {
 			const (
 				path           = "collector-store/"
-				scrapeDuration = time.Second * 5 // default scrape duration for process metrics.
+				scrapeDuration = time.Second * 15 // default scrape duration for process metrics.
 				// TODO: accept scrape-duration for process metrices via args.
 			)
 

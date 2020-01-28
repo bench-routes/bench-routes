@@ -78,6 +78,11 @@ type ConfigurationBR struct {
 	UtilsConf UConfig    `yaml:"utils"`
 }
 
+// New returns an type for implementing the parser interface.
+func New() YAMLBenchRoutesType {
+	return YAMLBenchRoutesType{}
+}
+
 // Load loads the configuration file on startup
 func (inst YAMLBenchRoutesType) Load() *YAMLBenchRoutesType {
 	var yInstance ConfigurationBR
