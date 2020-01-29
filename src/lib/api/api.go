@@ -58,11 +58,12 @@ func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
 		Jitter:     p.Config.UtilsConf.ServicesSignal.Jitter,
 		Monitoring: p.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring,
 	}
+	a.setRequestIPAddress(r)
 
-	w.Write(a.marshalled())
+	a.send(w, a.marshalled())
 }
 
-func (a *API) getRequestIPAddress(r *http.Request) {
+func (a *API) setRequestIPAddress(r *http.Request) {
 	a.RequestIP = r.RemoteAddr
 }
 
@@ -73,4 +74,10 @@ func (a *API) marshalled() []byte {
 	}
 
 	return js
+}
+
+func (a *API) send(w http.ResponseWriter, data []byte) {
+	if _, err := w.Write(data); err != nil {
+		panic(err)
+	}
 }

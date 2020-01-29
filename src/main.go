@@ -36,10 +36,6 @@ var (
 	configuration parser.YAMLBenchRoutesType
 )
 
-const (
-	testFilesDir = "tests/"
-)
-
 func init() {
 	logger.Terminal("initializing bench-routes ...", "p")
 
