@@ -7,7 +7,6 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zcalusic/sysinfo"
 )
 
 const (
@@ -16,18 +15,13 @@ const (
 
 // API type for implementing the API interface.
 type API struct {
-	SysInfo   sysinfo.SysInfo `json:"systemInformation"`
-	RequestIP string          `json:"requestIPAddress"`
-	Data      interface{}     `json:"data"`
+	RequestIP string      `json:"requestIPAddress"`
+	Data      interface{} `json:"data"`
 }
 
 // New returns the API type for implementing the API interface.
 func New() *API {
-	tmp := sysinfo.SysInfo{}
-	tmp.GetSysInfo()
-	return &API{
-		SysInfo: tmp,
-	}
+	return &API{}
 }
 
 // Home handles the requests for the home page.
