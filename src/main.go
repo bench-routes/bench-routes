@@ -14,8 +14,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"github.com/rs/cors"
 	"github.com/zairza-cetb/bench-routes/src/collector/process"
+	"github.com/zairza-cetb/bench-routes/src/lib/api"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
@@ -31,10 +34,6 @@ var (
 		WriteBufferSize: 4096,
 	}
 	configuration parser.YAMLBenchRoutesType
-)
-
-const (
-	testFilesDir = "tests/"
 )
 
 func init() {
@@ -110,14 +109,13 @@ func main() {
 		os.Exit(0)
 	}()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		msg := "ping from " + r.RemoteAddr + ", sent pong in response"
-		logger.Terminal(msg, "p")
-	})
-	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, testFilesDir+"bench-routes-socket-tester.html")
-	})
-	http.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
+	api := api.New()
+	router := mux.NewRouter()
+
+	router.HandleFunc("/", api.Home)
+	router.HandleFunc("/test", api.TestTemplate)
+	router.HandleFunc("/service-state", api.ServiceState)
+	router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -222,7 +220,7 @@ func main() {
 		go func() {
 			const (
 				path           = "collector-store/"
-				scrapeDuration = time.Second * 5 // default scrape duration for process metrics.
+				scrapeDuration = time.Second * 15 // default scrape duration for process metrics.
 				// TODO: accept scrape-duration for process metrices via args.
 			)
 
@@ -272,8 +270,7 @@ func main() {
 		}()
 	}
 
-	// launch service
-	logger.Terminal(http.ListenAndServe(port, nil).Error(), "f")
+	logger.Terminal(http.ListenAndServe(port, cors.Default().Handler(router)).Error(), "f")
 
 }
 
