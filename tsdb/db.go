@@ -129,7 +129,7 @@ func (c *Chain) Init() *Chain {
 
 	res, e := parse(c.Path)
 	if e != nil {
-		logger.Terminal(fmt.Sprintf("chain not found at %s. creating one ...", c.Path), "p")
+		logger.Terminal(fmt.Sprintf("creating chain at %s", c.Path), "p")
 		c.LengthElements = 0
 		c.Size = unsafe.Sizeof(c)
 		c.Chain = []Block{}

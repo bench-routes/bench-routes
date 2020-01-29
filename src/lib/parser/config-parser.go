@@ -79,8 +79,10 @@ type ConfigurationBR struct {
 }
 
 // New returns an type for implementing the parser interface.
-func New() YAMLBenchRoutesType {
-	return YAMLBenchRoutesType{}
+func New(path string) YAMLBenchRoutesType {
+	return YAMLBenchRoutesType{
+		Address: path,
+	}
 }
 
 // Load loads the configuration file on startup

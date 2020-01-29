@@ -6,7 +6,9 @@
     "@types/node": "^12.11.7",
     "@types/react": "^16.9.9",
     "@types/react-router-dom": "^5.1.0",
+    "@types/reactstrap": "^8.4.1",
     "@types/websocket": "^1.0.0",
+    "antd": "^3.26.7",
     "chart.js": "^2.9.2",
     "electron": "^7.0.0-beta.7",
     "electron-is-dev": "^1.1.0",
@@ -17,6 +19,7 @@
     "react-motion-ui-pack": "^0.10.3",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.2.0",
+    "reactstrap": "^8.4.1",
     "wait-on": "^3.3.0"
   },
   "scripts": {

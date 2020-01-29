@@ -6,6 +6,7 @@ import (
 
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zcalusic/sysinfo"
 )
 
@@ -43,11 +44,7 @@ func (a *API) TestTemplate(w http.ResponseWriter, r *http.Request) {
 // ServiceState handles requests related to the state of the services in
 // the application.
 func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html: charset=ascii")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,access-ontrol-allow-origin, access-control-allow-headers")
-
-	p := parser.New()
+	p := parser.New(utils.ConfigurationFilePath)
 	p = p.Refresh()
 
 	a.Data = struct {
