@@ -1,4 +1,8 @@
+# github.com/gorilla/mux v1.7.3
+github.com/gorilla/mux
 # github.com/gorilla/websocket v1.4.1
 github.com/gorilla/websocket
+# github.com/rs/cors v1.7.0
+github.com/rs/cors
 # gopkg.in/yaml.v2 v2.2.8
 gopkg.in/yaml.v2
