@@ -1,11 +1,7 @@
 import React from 'react';
 import BRConnect from '../../utils/connection';
 import Submenu from '../layouts/Submenu';
-import {
-  BRChartOpts,
-  BRCharts,
-  chartDefaultOptValues
-} from '../layouts/BRCharts';
+import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
 
 interface MonitoringModulePropsTypes {}
 
@@ -13,8 +9,8 @@ interface MonitoringModuleStateTypes {
   routes: object;
   sAddress: string;
   showChart: boolean;
-  chartOpts: BRChartOpts[];
-  responseLengthOpts: BRChartOpts[];
+  options: ChartOptions[];
+  responseLengthOpts: ChartOptions[];
 }
 
 export default class Monitoring extends React.Component<
@@ -26,13 +22,13 @@ export default class Monitoring extends React.Component<
     super(props);
 
     this.connection = new BRConnect();
-    const tmp: BRChartOpts[] = [chartDefaultOptValues];
+    const tmp: ChartOptions[] = [ChartValues()];
     this.state = {
       // submenu address
       routes: {},
       sAddress: '',
       showChart: false,
-      chartOpts: tmp,
+      options: tmp,
       responseLengthOpts: tmp
     };
   }
@@ -57,47 +53,17 @@ export default class Monitoring extends React.Component<
           d.push(inst.relative);
         }
 
-        const chartOpts: BRChartOpts[] = [
-          {
-            backgroundColor: 'rgba(75,192,192,0.4)',
-            borderColor: 'rgba(75,192,192,1)',
-            fill: false,
-            label: 'Delay',
-            lineTension: 0.1,
-            pBackgroundColor: '#fff',
-            pBorderColor: 'rgba(75,192,2,1)',
-            pBorderWidth: 1,
-            pHoverBackgroundColor: 'rgba(75,192,192,1)',
-            pHoverBorderColor: 'rgba(220,220,220,1)',
-            pHoverBorderWidth: 2,
-            pHoverRadius: 5,
-            pRadius: 1,
-            xAxisValues: d,
-            yAxisValues: r
-          }
+        const options: ChartOptions[] = [
+          ChartValues(d, r, 'Delay', 'rgba(75,192,192,0.4)')
         ];
-        const resChartOpts: BRChartOpts[] = [
-          {
-            backgroundColor: 'rgba(5,192,19,0.4)',
-            borderColor: 'rgba(5,192,19,0.4)',
-            fill: false,
-            label: 'Response-length',
-            lineTension: 0.1,
-            pBackgroundColor: '#fff',
-            pBorderColor: 'rgba(75,192,2,1)',
-            pBorderWidth: 1,
-            pHoverBackgroundColor: 'rgba(75,192,192,1)',
-            pHoverBorderColor: 'rgba(220,220,220,1)',
-            pHoverBorderWidth: 2,
-            pHoverRadius: 5,
-            pRadius: 1,
-            xAxisValues: d,
-            yAxisValues: resLength
-          }
+
+        const optionsResponse: ChartOptions[] = [
+          ChartValues(d, resLength, 'Response-length', 'rgba(5,192,19,0.4)')
         ];
+
         this.setState({
-          chartOpts,
-          responseLengthOpts: resChartOpts,
+          options,
+          responseLengthOpts: optionsResponse,
           showChart: true
         });
       });
@@ -118,8 +84,8 @@ export default class Monitoring extends React.Component<
         />
         {this.state.showChart ? (
           <div style={{ overflowY: 'scroll', height: '45%' }}>
-            <BRCharts opts={this.state.chartOpts} />
-            <BRCharts opts={this.state.responseLengthOpts} />
+            <Charts opts={this.state.options} />
+            <Charts opts={this.state.responseLengthOpts} />
           </div>
         ) : (
           <div>Chart not available</div>

@@ -1,10 +1,6 @@
 import React, { Component } from 'react';
 import BRConnect from '../../utils/connection';
-import {
-  BRChartOpts,
-  BRCharts,
-  chartDefaultOptValues
-} from '../layouts/BRCharts';
+import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
 import Submenu from '../layouts/Submenu';
 
 interface JitterModulePropsTypes {}
@@ -12,7 +8,7 @@ interface JitterModulePropsTypes {}
 interface JitterModuleStateTypes {
   routes: object;
   sAddress: string;
-  chartOpts: BRChartOpts[];
+  chartOpts: ChartOptions[];
   showChart: boolean;
 }
 
@@ -25,7 +21,7 @@ export default class Jitter extends Component<
     super(props);
 
     this.connection = new BRConnect();
-    const tmp: BRChartOpts[] = [chartDefaultOptValues];
+    const tmp: ChartOptions[] = [ChartValues()];
     this.state = {
       chartOpts: tmp,
       routes: {},
@@ -39,9 +35,8 @@ export default class Jitter extends Component<
     this.connection
       .signalJitterRouteFetchAllTimeSeries(sAddressParam)
       .then((res: any) => {
-        // format the values
         const data: any[] = JSON.parse(res.data);
-        const jitter: BRChartOpts[] = [];
+        const jitter: ChartOptions[] = [];
         const norTime: number[] = [];
         const timeStamp: string[] = [];
 
@@ -52,27 +47,11 @@ export default class Jitter extends Component<
           timeStamp.push(inst.timestamp);
         }
 
-        const chartOptions: BRChartOpts[] = [
-          {
-            backgroundColor: 'rgba(75,192,192,0.4)',
-            borderColor: 'rgba(75,192,192,1)',
-            fill: false,
-            label: 'Jitter',
-            lineTension: 0.1,
-            pBackgroundColor: '#fff',
-            pBorderColor: 'rgba(75,192,2,1)',
-            pBorderWidth: 1,
-            pHoverBackgroundColor: 'rgba(75,192,192,1)',
-            pHoverBorderColor: 'rgba(220,220,220,1)',
-            pHoverBorderWidth: 2,
-            pHoverRadius: 5,
-            pRadius: 1,
-            xAxisValues: norTime,
-            yAxisValues: jitter
-          }
+        const options: ChartOptions[] = [
+          ChartValues(norTime, jitter, 'Jitter', 'rgba(75,192,192,0.4)')
         ];
 
-        this.setState({ chartOpts: chartOptions, showChart: true });
+        this.setState({ chartOpts: options, showChart: true });
       });
   };
 
@@ -120,7 +99,7 @@ export default class Jitter extends Component<
         />
         {this.state.showChart ? (
           <div>
-            <BRCharts opts={this.state.chartOpts} />
+            <Charts opts={this.state.chartOpts} />
           </div>
         ) : (
           <div>Chart not available</div>
