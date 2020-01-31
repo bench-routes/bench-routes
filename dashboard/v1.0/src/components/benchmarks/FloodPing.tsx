@@ -1,10 +1,6 @@
 import React, { Component } from 'react';
 import BRConnect from '../../utils/connection';
-import {
-  BRChartOpts,
-  BRCharts,
-  chartDefaultOptValues
-} from '../layouts/BRCharts';
+import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
 import Submenu from '../layouts/Submenu';
 
 interface FPingModulePropsTypes {}
@@ -12,9 +8,9 @@ interface FPingModulePropsTypes {}
 interface FPingModuleStateTypes {
   routes: object;
   sAddress: string;
-  chartOpts: BRChartOpts[];
+  chartOpts: ChartOptions[];
   showChart: boolean;
-  packetLossChartOpts: BRChartOpts[];
+  packetLossChartOpts: ChartOptions[];
 }
 
 export default class FloodPing extends Component<
@@ -26,7 +22,7 @@ export default class FloodPing extends Component<
     super(props);
 
     this.connection = new BRConnect();
-    const tmp: BRChartOpts[] = [chartDefaultOptValues];
+    const tmp: ChartOptions[] = [ChartValues()];
     this.state = {
       // submenu address
       chartOpts: tmp,
@@ -43,12 +39,12 @@ export default class FloodPing extends Component<
       .signalFloodPingRouteFetchAllTimeSeries(sAddressParam)
       .then((res: any) => {
         const data: any[] = JSON.parse(res.data);
-        const yMin: BRChartOpts[] = [];
-        const yMean: BRChartOpts[] = [];
-        const yMax: BRChartOpts[] = [];
-        const yMdev: BRChartOpts[] = [];
         const norTime: number[] = [];
         const timeStamp: string[] = [];
+        const yMin: ChartOptions[] = [];
+        const yMean: ChartOptions[] = [];
+        const yMax: ChartOptions[] = [];
+        const yMdev: ChartOptions[] = [];
         const packetLoss: number[] = [];
 
         let inst;
@@ -62,100 +58,25 @@ export default class FloodPing extends Component<
           packetLoss.push(inst.PacketLoss);
         }
 
-        const chartOptions: BRChartOpts[] = [
-          {
-            backgroundColor: 'rgba(75,192,192,0.4)',
-            borderColor: 'rgba(75,192,192,1)',
-            fill: false,
-            label: 'Minimum',
-            lineTension: 0.1,
-            pBackgroundColor: '#fff',
-            pBorderColor: 'rgba(75,192,2,1)',
-            pBorderWidth: 1,
-            pHoverBackgroundColor: 'rgba(75,192,192,1)',
-            pHoverBorderColor: 'rgba(220,220,220,1)',
-            pHoverBorderWidth: 2,
-            pHoverRadius: 5,
-            pRadius: 1,
-            xAxisValues: norTime,
-            yAxisValues: yMin
-          },
-          {
-            backgroundColor: 'rgba(75,192,2,0.4)',
-            borderColor: 'rgba(75,192,2,0.4)',
-            fill: false,
-            label: 'Mean',
-            lineTension: 0.1,
-            pBackgroundColor: '#fff',
-            pBorderColor: 'rgba(75,192,2,1)',
-            pBorderWidth: 1,
-            pHoverBackgroundColor: 'rgba(75,2,192,1)',
-            pHoverBorderColor: 'rgba(220,220,220,1)',
-            pHoverBorderWidth: 2,
-            pHoverRadius: 5,
-            pRadius: 1,
-            xAxisValues: norTime,
-            yAxisValues: yMean
-          },
-          {
-            backgroundColor: 'rgba(5,192,19,0.4)',
-            borderColor: 'rgba(5,192,19,0.4)',
-            fill: false,
-            label: 'Maximum',
-            lineTension: 0.1,
-            pBackgroundColor: '#fff',
-            pBorderColor: 'rgba(75,192,2,1)',
-            pBorderWidth: 1,
-            pHoverBackgroundColor: 'rgba(75,192,192,1)',
-            pHoverBorderColor: 'rgba(220,220,220,1)',
-            pHoverBorderWidth: 2,
-            pHoverRadius: 5,
-            pRadius: 1,
-            xAxisValues: norTime,
-            yAxisValues: yMax
-          },
-          {
-            backgroundColor: 'rgba(7,12,19,0.4)',
-            borderColor: 'rgba(7,12,19,0.4)',
-            fill: false,
-            label: 'Minimum-deviation',
-            lineTension: 0.1,
-            pBackgroundColor: '#fff',
-            pBorderColor: 'rgba(75,192,2,1)',
-            pBorderWidth: 1,
-            pHoverBackgroundColor: 'rgba(7,12,19,0.4)',
-            pHoverBorderColor: 'rgba(220,220,220,1)',
-            pHoverBorderWidth: 2,
-            pHoverRadius: 5,
-            pRadius: 1,
-            xAxisValues: norTime,
-            yAxisValues: yMdev
-          }
+        const options: ChartOptions[] = [
+          ChartValues(norTime, yMin, 'Minimum', 'rgba(75,192,192,0.4)'),
+          ChartValues(norTime, yMean, 'Mean', 'rgba(75,192,2,0.4)'),
+          ChartValues(norTime, yMax, 'Maximum', 'rgba(5,192,19,0.4)'),
+          ChartValues(norTime, yMdev, 'Standard-Deviation', 'rgba(7,12,19,0.4)')
         ];
 
-        const packetLossChartOptions: BRChartOpts[] = [
-          {
-            backgroundColor: 'rgba(75,192,192,0.4)',
-            borderColor: 'rgba(255,20,147,1)',
-            fill: false,
-            label: 'Packet-Loss',
-            lineTension: 0.1,
-            pBackgroundColor: '#fff',
-            pBorderColor: 'rgba(75,192,2,1)',
-            pBorderWidth: 1,
-            pHoverBackgroundColor: 'rgba(75,192,192,1)',
-            pHoverBorderColor: 'rgba(220,220,220,1)',
-            pHoverBorderWidth: 2,
-            pHoverRadius: 5,
-            pRadius: 1,
-            xAxisValues: norTime,
-            yAxisValues: packetLoss
-          }
+        const optionsPacketLoss: ChartOptions[] = [
+          ChartValues(
+            norTime,
+            packetLoss,
+            'Packet-loss',
+            'rgba(75,192,192,0.4)'
+          )
         ];
 
         this.setState({
-          chartOpts: chartOptions,
-          packetLossChartOpts: packetLossChartOptions,
+          chartOpts: options,
+          packetLossChartOpts: optionsPacketLoss,
           showChart: true
         });
       });
@@ -205,8 +126,8 @@ export default class FloodPing extends Component<
         />
         {this.state.showChart ? (
           <div style={{ overflow: 'scroll', height: '45%' }}>
-            <BRCharts opts={this.state.chartOpts} />
-            <BRCharts opts={this.state.packetLossChartOpts} />
+            <Charts opts={this.state.chartOpts} />
+            <Charts opts={this.state.packetLossChartOpts} />
           </div>
         ) : (
           <div>Chart not available</div>

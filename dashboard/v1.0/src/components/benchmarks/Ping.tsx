@@ -1,53 +1,37 @@
-import React from 'react';
+import React, { FC, useState } from 'react';
 import BRConnect from '../../utils/connection';
-import {
-  BRChartOpts,
-  BRCharts,
-  chartDefaultOptValues
-} from '../layouts/BRCharts';
+import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
 import Submenu from '../layouts/Submenu';
+import { Alert } from 'reactstrap';
 
 interface PingModulePropsTypes {}
 
 interface PingModuleStateTypes {
   routes: object;
   sAddress: string;
-  chartOpts: BRChartOpts[];
+  chartOpts: ChartOptions[];
   showChart: boolean;
 }
 
-export default class PingModule extends React.Component<
-  PingModulePropsTypes,
-  PingModuleStateTypes
-> {
-  private connection: BRConnect;
-  constructor(props: PingModulePropsTypes) {
-    super(props);
+const Ping: FC<{}> = () => {
+  const [chart, setChart] = useState({
+    options: [ChartValues()],
+    show: false
+  });
+  const connection: BRConnect = new BRConnect();
 
-    this.connection = new BRConnect();
-    const tmp: BRChartOpts[] = [chartDefaultOptValues];
-    this.state = {
-      chartOpts: tmp,
-      routes: {},
-      sAddress: '',
-      showChart: false
-    };
-  }
-
-  public getAddressSubmenu = (sAddressParam: string) => {
-    this.setState({ sAddress: sAddressParam, showChart: false });
-    this.connection
+  const updateAddressSubmenu = (sAddressParam: string): void => {
+    setChart({ options: [ChartValues()], show: false });
+    connection
       .signalPingRouteFetchAllTimeSeries(sAddressParam)
       .then((res: any) => {
-        // format the values
-        const data: any[] = JSON.parse(res.data);
-        const yMin: BRChartOpts[] = [];
-        const yMean: BRChartOpts[] = [];
-        const yMax: BRChartOpts[] = [];
-        const yMdev: BRChartOpts[] = [];
+        let data: any[] = JSON.parse(res.data);
+        const yMin: ChartOptions[] = [];
+        const yMean: ChartOptions[] = [];
+        const yMax: ChartOptions[] = [];
+        const yMdev: ChartOptions[] = [];
         const norTime: number[] = [];
         const timeStamp: string[] = [];
-
         let inst;
         for (inst of data) {
           yMin.push(inst.Min);
@@ -58,92 +42,28 @@ export default class PingModule extends React.Component<
           timeStamp.push(inst.timestamp);
         }
 
-        const chartOptions: BRChartOpts[] = [
-          {
-            backgroundColor: 'rgba(75,192,192,0.4)',
-            borderColor: 'rgba(75,192,192,1)',
-            fill: false,
-            label: 'Minimum',
-            lineTension: 0.1,
-            pBackgroundColor: '#fff',
-            pBorderColor: 'rgba(75,192,2,1)',
-            pBorderWidth: 1,
-            pHoverBackgroundColor: 'rgba(75,192,192,1)',
-            pHoverBorderColor: 'rgba(220,220,220,1)',
-            pHoverBorderWidth: 2,
-            pHoverRadius: 5,
-            pRadius: 1,
-            xAxisValues: norTime,
-            yAxisValues: yMin
-          },
-          {
-            backgroundColor: 'rgba(75,192,2,0.4)',
-            borderColor: 'rgba(75,192,2,0.4)',
-            fill: false,
-            label: 'Mean',
-            lineTension: 0.1,
-            pBackgroundColor: '#fff',
-            pBorderColor: 'rgba(75,192,2,1)',
-            pBorderWidth: 1,
-            pHoverBackgroundColor: 'rgba(75,2,192,1)',
-            pHoverBorderColor: 'rgba(220,220,220,1)',
-            pHoverBorderWidth: 2,
-            pHoverRadius: 5,
-            pRadius: 1,
-            xAxisValues: norTime,
-            yAxisValues: yMean
-          },
-          {
-            backgroundColor: 'rgba(5,192,19,0.4)',
-            borderColor: 'rgba(5,192,19,0.4)',
-            fill: false,
-            label: 'Maximum',
-            lineTension: 0.1,
-            pBackgroundColor: '#fff',
-            pBorderColor: 'rgba(75,192,2,1)',
-            pBorderWidth: 1,
-            pHoverBackgroundColor: 'rgba(75,192,192,1)',
-            pHoverBorderColor: 'rgba(220,220,220,1)',
-            pHoverBorderWidth: 2,
-            pHoverRadius: 5,
-            pRadius: 1,
-            xAxisValues: norTime,
-            yAxisValues: yMax
-          },
-          {
-            backgroundColor: 'rgba(7,12,19,0.4)',
-            borderColor: 'rgba(7,12,19,0.4)',
-            fill: false,
-            label: 'Minimum-deviation',
-            lineTension: 0.1,
-            pBackgroundColor: '#fff',
-            pBorderColor: 'rgba(75,192,2,1)',
-            pBorderWidth: 1,
-            pHoverBackgroundColor: 'rgba(7,12,19,0.4)',
-            pHoverBorderColor: 'rgba(220,220,220,1)',
-            pHoverBorderWidth: 2,
-            pHoverRadius: 5,
-            pRadius: 1,
-            xAxisValues: norTime,
-            yAxisValues: yMdev
-          }
+        const options: ChartOptions[] = [
+          ChartValues(norTime, yMin, 'Minimum', 'rgba(75,192,192,0.4)'),
+          ChartValues(norTime, yMean, 'Mean', 'rgba(75,192,2,0.4)'),
+          ChartValues(norTime, yMax, 'Maximum', 'rgba(5,192,19,0.4)'),
+          ChartValues(norTime, yMdev, 'Standard-Deviation', 'rgba(7,12,19,0.4)')
         ];
 
-        this.setState({ chartOpts: chartOptions, showChart: true });
+        setChart({ options, show: true });
       });
   };
 
-  public opts = (operation: string) => {
+  const opts = (operation: string): void => {
     switch (operation) {
       case 'start':
-        this.connection.signalPingStart().then(res => {
+        connection.signalPingStart().then(res => {
           if (res.data) {
             alert('Ping routine started');
           }
         });
         break;
       case 'stop':
-        this.connection.signalPingStop().then(res => {
+        connection.signalPingStop().then(res => {
           if (res.data) {
             alert('Ping routine stopped');
           }
@@ -152,39 +72,36 @@ export default class PingModule extends React.Component<
     }
   };
 
-  public render() {
-    return (
-      <>
-        <div className="btn-layout">
-          {/* operations */}
-          <button
-            className="button-operations btn btn-success"
-            onClick={() => this.opts('start')}
-          >
-            Start
-          </button>
-          <button
-            className="button-operations btn btn-danger"
-            onClick={() => this.opts('stop')}
-          >
-            Stop
-          </button>
-        </div>
-        <div>
-          <Submenu
-            module="ping"
-            submodule=""
-            getAddress={this.getAddressSubmenu}
-          />
-          {this.state.showChart ? (
-            <div>
-              <BRCharts opts={this.state.chartOpts} />
-            </div>
-          ) : (
-            <div>Chart not available</div>
-          )}
-        </div>
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <div className="btn-layout">
+        <button
+          className="button-operations btn btn-success"
+          onClick={() => opts('start')}
+        >
+          Start
+        </button>
+        <button
+          className="button-operations btn btn-danger"
+          onClick={() => opts('stop')}
+        >
+          Stop
+        </button>
+      </div>
+      <div>
+        <Submenu module="ping" submodule="" getAddress={updateAddressSubmenu} />
+        {chart.show ? (
+          <div>
+            <Charts opts={chart.options} />
+          </div>
+        ) : (
+          <Alert color="warning">
+            Select an option from the drop-down list for visualization
+          </Alert>
+        )}
+      </div>
+    </>
+  );
+};
+
+export default Ping;

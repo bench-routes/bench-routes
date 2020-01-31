@@ -96,3 +96,21 @@ export interface service_states {
 }
 
 export const HOST_IP = 'http://localhost:9090';
+
+export interface Datasets {
+  label: string;
+  fill: boolean;
+  lineTension: number;
+  backgroundColor: string;
+  borderColor: string;
+  pointBorderColor: string;
+  pointBackgroundColor: string;
+  pointBorderWidth: number;
+  pointHoverRadius: number;
+  pointHoverBackgroundColor: string;
+  pointHoverBorderColor: string;
+  pointHoverBorderWidth: number;
+  pointRadius: number;
+  data: any[];
+}
+
