@@ -28,7 +28,7 @@ import (
 
 var (
 	port                    = ":9090" // default listen and serve at 9090
-	enableProcessCollection = true    // default collection of process metrices in host of bench-routes
+	enableProcessCollection = false   // default collection of process metrices in host of bench-routes
 	upgrader                = websocket.Upgrader{
 		ReadBufferSize:  4096,
 		WriteBufferSize: 4096,
