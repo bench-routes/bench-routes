@@ -16,7 +16,6 @@
     "react": "^16.10.2",
     "react-chartjs-2": "^2.8.0",
     "react-dom": "^16.10.2",
-    "react-motion-ui-pack": "^0.10.3",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.2.0",
     "reactstrap": "^8.4.1",
