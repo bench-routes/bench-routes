@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC } from 'react';
 import { Line } from 'react-chartjs-2';
 
 export const ChartValues = (
@@ -118,7 +118,7 @@ export const Charts: FC<ChartProps> = ({ opts }) => {
     };
   };
 
-  const [options, setOptions] = useState(formatProps(opts));
+  const options = formatProps(opts);
   const wrapper = 'canvas-chart-wrapper';
 
   return (
@@ -127,52 +127,3 @@ export const Charts: FC<ChartProps> = ({ opts }) => {
     </div>
   );
 };
-
-// export class BRCharts extends React.Component<ChartProps, BRChartState> {
-//   constructor(props: ChartProps) {
-//     super(props);
-//     this.state = {
-//       chartJSOpts: null,
-//       wrapperClassName: 'canvas-chart-wrapper'
-//     };
-//   }
-
-//   public componentDidMount() {
-//     this.setState({ chartJSOpts: this.formatProps(this.props.opts) });
-//   }
-
-//   public render() {
-//     return (
-//       <div className={this.state.wrapperClassName} style={{ height: '100%' }}>
-//         {this.state.chartJSOpts ? <Line data={this.state.chartJSOpts} /> : null}
-//       </div>
-//     );
-//   }
-
-//   private formatProps = (inst: ChartOptions[]) => {
-//     const data: Datasets[] = [];
-//     for (const i of inst) {
-//       const tmp: Datasets = {
-//         backgroundColor: i.backgroundColor,
-//         borderColor: i.borderColor,
-//         data: i.yAxisValues,
-//         fill: i.fill,
-//         label: i.label,
-//         lineTension: i.lineTension,
-//         pointBackgroundColor: i.pBackgroundColor,
-//         pointBorderColor: i.pBorderColor,
-//         pointBorderWidth: i.pBorderWidth,
-//         pointHoverBackgroundColor: i.pBackgroundColor,
-//         pointHoverBorderColor: i.pHoverBorderColor,
-//         pointHoverBorderWidth: i.pHoverBorderWidth,
-//         pointHoverRadius: i.pHoverRadius,
-//         pointRadius: i.pRadius
-//       };
-//       data.push(tmp);
-//     }
-//     return {
-//       datasets: data,
-//       labels: inst[0].xAxisValues
-//     };
-//   };
-// }
