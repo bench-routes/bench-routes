@@ -37,15 +37,13 @@ export default class Sidebar extends React.Component<{}> {
               </div>
             </Link>
             <Link to="/monitoring" style={{ textDecoration: 'none' }}>
-              <div>
-                <div className="sidebar-inner">
-                  <img
-                    src="assets/icons/monitoring-icon.svg"
-                    className="sidebar-inner"
-                    alt="monitoring"
-                  />
-                  <div className="sidebar-head sidebar-inner">Monitoring</div>
-                </div>
+              <div className="sidebar-inner">
+                <img
+                  src="assets/icons/monitoring-icon.svg"
+                  className="sidebar-inner"
+                  alt="monitoring"
+                />
+                <div className="sidebar-head sidebar-inner">Monitoring</div>
               </div>
             </Link>
 
@@ -58,9 +56,9 @@ export default class Sidebar extends React.Component<{}> {
                 <img
                   src="assets/icons/bench-icon.svg"
                   className="sidebar-inner"
-                  alt="Benchmarks"
+                  alt="Tests"
                 />
-                <div className="sidebar-head sidebar-inner">Benchmarks</div>
+                <div className="sidebar-head sidebar-inner">Tests</div>
               </div>
             </div>
 
@@ -93,13 +91,13 @@ export default class Sidebar extends React.Component<{}> {
                     <Link to="/floodping" style={{ textDecoration: 'none' }}>
                       <div>
                         <div className="sidebar-inner">
-                          {/* <img
-                              src="assets/icons/ping-meter.svg"
-                              className="sidebar-submenu-inner"
-                              alt="Benchmarks"
-                          /> */}
+                          <img
+                            src="assets/icons/flood-icon.png"
+                            className="sidebar-submenu-inner"
+                            alt="Flood-Ping"
+                          />
                           <div className="sidebar-head sidebar-inner">
-                            FloodPing
+                            Floodping
                           </div>
                         </div>
                       </div>
@@ -107,11 +105,11 @@ export default class Sidebar extends React.Component<{}> {
                     <Link to="/jitter" style={{ textDecoration: 'none' }}>
                       <div>
                         <div className="sidebar-inner">
-                          {/* <img
-                              src="assets/icons/bench-icon.svg"
-                              className="sidebar-submenu-inner"
-                              alt="Benchmarks"
-                          /> */}
+                          <img
+                            src="assets/icons/jitter-icon.png"
+                            className="sidebar-submenu-inner"
+                            alt="Jitter"
+                          />
                           <div className="sidebar-head sidebar-inner">
                             Jitter
                           </div>

@@ -3,7 +3,7 @@ package parser
 import (
 	"io/ioutil"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"gopkg.in/yaml.v2"
 )
 
@@ -76,6 +76,13 @@ type ConfigurationBR struct {
 	Interval  []Interval `yaml:"test_interval"`
 	Routes    []Routes   `yaml:"routes"`
 	UtilsConf UConfig    `yaml:"utils"`
+}
+
+// New returns an type for implementing the parser interface.
+func New(path string) YAMLBenchRoutesType {
+	return YAMLBenchRoutesType{
+		Address: path,
+	}
 }
 
 // Load loads the configuration file on startup

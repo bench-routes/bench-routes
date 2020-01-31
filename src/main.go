@@ -14,43 +14,39 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"github.com/rs/cors"
+	"github.com/zairza-cetb/bench-routes/src/collector/process"
+	"github.com/zairza-cetb/bench-routes/src/lib/api"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/logger"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/parser"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 var (
-	port     = ":9090"
-	upgrader = websocket.Upgrader{
-		// set buffer to 4 mega-bytes size
-		ReadBufferSize:  4048,
-		WriteBufferSize: 4048,
+	port                    = ":9090" // default listen and serve at 9090
+	enableProcessCollection = true    // default collection of process metrices in host of bench-routes
+	upgrader                = websocket.Upgrader{
+		ReadBufferSize:  4096,
+		WriteBufferSize: 4096,
 	}
 	configuration parser.YAMLBenchRoutesType
-)
-
-const (
-	testFilesDir = "tests/"
 )
 
 func init() {
 	logger.Terminal("initializing bench-routes ...", "p")
 
-	// load configuration file
 	configuration.Address = utils.ConfigurationFilePath
 	configuration = *configuration.Load()
 	configuration.Validate()
 
 	var ConfigURLs []string
-
-	//function to initialize the service state before starting
 	initializeState(&configuration)
 
-	// Load and build TSDB chain
-	// searching for unique URLs
+	// Build TSDB chain
 	for _, r := range configuration.Config.Routes {
 		found := false
 		for _, i := range ConfigURLs {
@@ -113,14 +109,13 @@ func main() {
 		os.Exit(0)
 	}()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		msg := "ping from " + r.RemoteAddr + ", sent pong in response"
-		logger.Terminal(msg, "p")
-	})
-	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, testFilesDir+"bench-routes-socket-tester.html")
-	})
-	http.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
+	api := api.New()
+	router := mux.NewRouter()
+
+	router.HandleFunc("/", api.Home)
+	router.HandleFunc("/test", api.TestTemplate)
+	router.HandleFunc("/service-state", api.ServiceState)
+	router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -218,8 +213,64 @@ func main() {
 		}
 	})
 
-	// launch service
-	logger.Terminal(http.ListenAndServe(port, nil).Error(), "f")
+	if len(os.Args) > 2 && os.Args[2] != "" {
+		enableProcessCollection, _ = strconv.ParseBool(os.Args[2])
+	}
+	if enableProcessCollection {
+		go func() {
+			const (
+				path           = "collector-store/"
+				scrapeDuration = time.Second * 15 // default scrape duration for process metrics.
+				// TODO: accept scrape-duration for process metrices via args.
+			)
+
+			var (
+				wg              sync.WaitGroup
+				buffer          = process.NewProcessReader()
+				collectionCount = 0
+			)
+
+			assignChaintoMap := func(c *map[string]*tsdb.Chain, n, path string) {
+				(*c)[n] = tsdb.NewChain(path)
+				(*c)[n].Init().Commit()
+			}
+
+			processChains := make(map[string]*tsdb.Chain)
+
+			for {
+				collectionCount++
+
+				if collectionCount%10 != 1 { // in every blocks of 10.
+					logger.File(fmt.Sprintf("collection-count: %d; scrape-duration: %fsecs", collectionCount, scrapeDuration.Seconds()), "p")
+				} else {
+					logger.Terminal(fmt.Sprintf("collection-count: %d; scrape-duration: %fsecs", collectionCount, scrapeDuration.Seconds()), "p")
+				}
+
+				if _, err := buffer.UpdateCurrentProcesses(); err != nil {
+					panic(err)
+				}
+
+				wg.Add(buffer.TotalRunningProcesses)
+
+				for _, ps := range *buffer.ProcessesDetails {
+					if processChains[ps.FilteredCommand] == nil {
+						p := fmt.Sprintf("%s%s.json", path, ps.FilteredCommand)
+						assignChaintoMap(&processChains, ps.FilteredCommand, p)
+					}
+					b := *tsdb.GetNewBlock("ps", ps.Encode())
+					processChains[ps.FilteredCommand].Append(b).Commit()
+					wg.Done()
+				}
+
+				runtime.GC()
+
+				wg.Wait()
+				time.Sleep(scrapeDuration)
+			}
+		}()
+	}
+
+	logger.Terminal(http.ListenAndServe(port, cors.Default().Handler(router)).Error(), "f")
 
 }
 
@@ -414,7 +465,7 @@ func getMessageFromCompoundSignal(arg []string) []byte {
 	return []byte(strings.Join(arg, " "))
 }
 
-//initializing all the service states to passives
+// initializeState initializes all state values to passive.
 func initializeState(configuration *parser.YAMLBenchRoutesType) {
 	configuration.Config.UtilsConf.ServicesSignal = parser.ServiceSignals{
 		Ping:                  "passive",

@@ -24,11 +24,9 @@ var (
 func TestCLIPing(t *testing.T) {
 	// testing packets on diff urls
 	for _, ele := range urlsDiff {
-		resp, err := CLIPing(ele, 2)
+		_, err := CLIPing(ele, 2)
 		if err != nil {
 			t.Errorf("err requesting %s\n", ele)
-		} else {
-			t.Logf("%s\n", *resp)
 		}
 	}
 
