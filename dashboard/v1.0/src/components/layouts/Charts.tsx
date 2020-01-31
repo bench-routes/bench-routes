@@ -1,5 +1,33 @@
 import React, { FC } from 'react';
 import { Line } from 'react-chartjs-2';
+import { Datasets } from '../../utils/types';
+
+interface ChartProps {
+  opts: ChartOptions[];
+}
+
+interface ChartFormattedOptions {
+  datasets: Datasets[];
+  labels: any[];
+}
+
+export interface ChartOptions {
+  xAxisValues: any[];
+  yAxisValues: any[];
+  fill: boolean;
+  lineTension: number;
+  backgroundColor: string;
+  borderColor: string;
+  pBorderColor: string;
+  pBackgroundColor: string;
+  pBorderWidth: number;
+  pHoverBorderWidth: number;
+  pHoverRadius: number;
+  pRadius: number;
+  label: string;
+  pHoverBackgroundColor: string;
+  pHoverBorderColor: string;
+}
 
 export const ChartValues = (
   xAxisValues?: any,
@@ -45,50 +73,6 @@ export const ChartValues = (
     yAxisValues
   };
 };
-
-export interface ChartOptions {
-  xAxisValues: any[];
-  yAxisValues: any[];
-  fill: boolean;
-  lineTension: number;
-  backgroundColor: string;
-  borderColor: string;
-  pBorderColor: string;
-  pBackgroundColor: string;
-  pBorderWidth: number;
-  pHoverBorderWidth: number;
-  pHoverRadius: number;
-  pRadius: number;
-  label: string;
-  pHoverBackgroundColor: string;
-  pHoverBorderColor: string;
-}
-
-interface ChartProps {
-  opts: ChartOptions[];
-}
-
-interface Datasets {
-  label: string;
-  fill: boolean;
-  lineTension: number;
-  backgroundColor: string;
-  borderColor: string;
-  pointBorderColor: string;
-  pointBackgroundColor: string;
-  pointBorderWidth: number;
-  pointHoverRadius: number;
-  pointHoverBackgroundColor: string;
-  pointHoverBorderColor: string;
-  pointHoverBorderWidth: number;
-  pointRadius: number;
-  data: any[];
-}
-
-interface ChartFormattedOptions {
-  datasets: Datasets[];
-  labels: any[];
-}
 
 export const Charts: FC<ChartProps> = ({ opts }) => {
   const formatProps = (options: ChartOptions[]): ChartFormattedOptions => {
