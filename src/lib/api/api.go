@@ -53,7 +53,28 @@ func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
 		Monitoring: p.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring,
 	}
 	a.setRequestIPAddress(r)
+	a.send(w, a.marshalled())
+}
 
+// RoutesSummary handles requests related to summarized-configuration details.
+func (a *API) RoutesSummary(w http.ResponseWriter, r *http.Request) {
+	p := parser.New(utils.ConfigurationFilePath)
+	p = p.Refresh()
+
+	var servicesRoutes, monitoringRoutes []string
+	for _, r := range p.Config.Routes {
+		servicesRoutes = append(servicesRoutes, r.URL)
+		monitoringRoutes = append(monitoringRoutes, r.Method+": "+r.URL+"/"+r.Route)
+	}
+
+	a.Data = struct {
+		TestServicesRoutes []string `json:"testServicesRoutes"`
+		MonitoringRoutes   []string `json:"monitoringRoutes"`
+	}{
+		TestServicesRoutes: servicesRoutes,
+		MonitoringRoutes:   monitoringRoutes,
+	}
+	a.setRequestIPAddress(r)
 	a.send(w, a.marshalled())
 }
 

@@ -115,6 +115,7 @@ func main() {
 	router.HandleFunc("/", api.Home)
 	router.HandleFunc("/test", api.TestTemplate)
 	router.HandleFunc("/service-state", api.ServiceState)
+	router.HandleFunc("/routes-summary", api.RoutesSummary)
 	router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		ws, err := upgrader.Upgrade(w, r, nil)
