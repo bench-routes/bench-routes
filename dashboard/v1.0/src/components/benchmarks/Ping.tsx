@@ -4,15 +4,6 @@ import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
 import Submenu from '../layouts/Submenu';
 import { Alert } from 'reactstrap';
 
-interface PingModulePropsTypes {}
-
-interface PingModuleStateTypes {
-  routes: object;
-  sAddress: string;
-  chartOpts: ChartOptions[];
-  showChart: boolean;
-}
-
 const Ping: FC<{}> = () => {
   const [chart, setChart] = useState({
     options: [ChartValues()],
