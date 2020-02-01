@@ -28,7 +28,7 @@ import (
 
 var (
 	port                    = ":9090" // default listen and serve at 9090
-	enableProcessCollection = true    // default collection of process metrices in host of bench-routes
+	enableProcessCollection = false   // default collection of process metrices in host of bench-routes
 	upgrader                = websocket.Upgrader{
 		ReadBufferSize:  4096,
 		WriteBufferSize: 4096,
@@ -115,6 +115,7 @@ func main() {
 	router.HandleFunc("/", api.Home)
 	router.HandleFunc("/test", api.TestTemplate)
 	router.HandleFunc("/service-state", api.ServiceState)
+	router.HandleFunc("/routes-summary", api.RoutesSummary)
 	router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		ws, err := upgrader.Upgrade(w, r, nil)

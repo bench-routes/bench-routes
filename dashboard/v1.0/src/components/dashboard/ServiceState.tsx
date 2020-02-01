@@ -27,7 +27,7 @@ export const ServicesState: FC<{}> = () => {
     const states: service_states = response.data;
 
     return (
-      <div className="row" style={{ padding: '4%' }}>
+      <div className="row" style={{ padding: '4%', height: '15vh' }}>
         <div className="col-md-6">
           <ConditionalBadge Key="Ping" value={states.ping} />
         </div>

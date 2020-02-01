@@ -87,7 +87,7 @@ const Ping: FC<{}> = () => {
           </div>
         ) : (
           <Alert color="warning">
-            Select an option from the drop-down list for visualization
+            Select an option from the drop-down list for visualization.
           </Alert>
         )}
       </div>
