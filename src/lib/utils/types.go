@@ -56,14 +56,14 @@ type FloodPingResp struct {
 // Contains delay in response and the response length
 type Response struct {
 	Delay         int
-	ResLength     int64
+	ResLength     int
 	ResStatusCode int
 }
 
 // ResponseResp for responding the querier.
 type ResponseResp struct {
 	Delay          int    `json:"delay"`
-	ResLength      int64  `json:"resLength"`
+	ResLength      int    `json:"resLength"`
 	ResStatusCode  int    `json:"resStatusCode"`
 	NormalizedTime int64  `json:"NormalizedTime"`
 	Timestamp      string `json:"Timestamp"`
