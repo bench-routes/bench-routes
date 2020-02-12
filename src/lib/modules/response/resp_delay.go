@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"io/ioutil"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
@@ -57,8 +58,13 @@ func HandleGetRequest(url string) utils.Response {
 	// Time init
 	start := time.Now().UnixNano()
 	resp := *utils.SendGETRequest(url)
-
-	resLength := resp.ContentLength
+	defer resp.Body.Close()
+	content, err := ioutil.ReadAll(resp.Body)
+	
+	if err != nil {
+		panic(err)
+	}
+	resLength := int64(len(content))
 	respStatusCode := resp.StatusCode
 
 	end := time.Now().UnixNano()
