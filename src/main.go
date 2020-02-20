@@ -37,7 +37,7 @@ var (
 )
 
 func main() {
-	
+
 	if len(os.Args) > 2 && os.Args[2] != "" {
 		enableProcessCollection, _ = strconv.ParseBool(os.Args[2])
 		port = ":" + os.Args[1]
@@ -81,12 +81,12 @@ func main() {
 	var wg sync.WaitGroup
 	p := time.Now()
 	wg.Add(4)
-	
+
 	go initialise(wg, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
 	go initialise(wg, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
 	go initialise(wg, &utils.Jitterc, ConfigURLs, utils.PathJitter, "jitter")
 	go initialise(wg, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
-	
+
 	wg.Wait()
 	msg := "initial chain formation time: " + time.Since(p).String()
 	logger.Terminal(msg, "p")
@@ -97,7 +97,7 @@ func main() {
 
 	api := api.New()
 	router := mux.NewRouter()
-	
+
 	// API endpoints.
 	{
 		router.HandleFunc("/", api.Home)
@@ -139,7 +139,7 @@ func main() {
 			logger.Terminal(msg, "p")
 			// generate appropriate signals from incoming messages
 			switch sig {
-				// ping
+			// ping
 			case "force-start-ping":
 				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerPingGeneral("start")))); e != nil {
 					panic(e)
@@ -257,12 +257,12 @@ func cleanup() {
 	conf.Refresh()
 	values := reflect.ValueOf(conf.Config.UtilsConf.ServicesSignal)
 	typeOfServiceState := values.Type()
-	
+
 	type serviceState struct {
 		service string
 		state   string
 	}
-	
+
 	var serviceStateValues []serviceState
 	for i := 0; i < values.NumField(); i++ {
 		n := serviceState{service: typeOfServiceState.Field(i).Name, state: values.Field(i).Interface().(string)}
