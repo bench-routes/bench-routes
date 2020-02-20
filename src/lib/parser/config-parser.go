@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"io/ioutil"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
@@ -88,6 +89,7 @@ func New(path string) *YAMLBenchRoutesType {
 // Load loads the configuration file on startup.
 func (inst *YAMLBenchRoutesType) Load() *YAMLBenchRoutesType {
 	var yInstance ConfigurationBR
+	fmt.Println("address is ", inst.Address)
 	file, e := ioutil.ReadFile(inst.Address)
 	if e != nil {
 		panic(e)

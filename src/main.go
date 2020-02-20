@@ -53,10 +53,7 @@ func main() {
 		os.Exit(0)
 	}()
 	logger.Terminal("initializing...", "p")
-	conf := parser.New(utils.ConfigurationFilePath)
-	//configuration.Address = utils.ConfigurationFilePath
-	//configuration = *configuration.Load()
-	//configuration.Validate()
+	conf = parser.New(utils.ConfigurationFilePath)
 	conf.Load().Validate()
 
 	var ConfigURLs []string
@@ -82,10 +79,10 @@ func main() {
 	p := time.Now()
 	wg.Add(4)
 
-	go initialise(wg, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
-	go initialise(wg, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
-	go initialise(wg, &utils.Jitterc, ConfigURLs, utils.PathJitter, "jitter")
-	go initialise(wg, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
+	go initialise(&wg, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
+	go initialise(&wg, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
+	go initialise(&wg, &utils.Jitterc, ConfigURLs, utils.PathJitter, "jitter")
+	go initialise(&wg, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
 
 	wg.Wait()
 	msg := "initial chain formation time: " + time.Since(p).String()
@@ -285,7 +282,7 @@ func cleanup() {
 	logger.Terminal(fmt.Sprintf("Alive %d goroutines after cleaning up.", runtime.NumGoroutine()), "p")
 }
 
-func initialise(wg sync.WaitGroup, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
+func initialise(wg *sync.WaitGroup, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
 	msg := "forming " + Type + " chain ... "
 	logger.Terminal(msg, "p")
 	config, ok := conf.([]string)
