@@ -59,7 +59,7 @@ func initTest() {
 		}
 		inst.Init().Commit()
 		// Initiate the chain
-		utils.GlobalChain = append(utils.GlobalChain, inst)
+		utils.Jitterc = append(utils.Jitterc, inst)
 	}
 }
 
@@ -70,7 +70,7 @@ func TestHandlerJitter(t *testing.T) {
 	wg.Add(len(urls))
 
 	for _, inst := range urls {
-		go HandleJitter(utils.GlobalChain, inst, 10, inst, &wg, true)
+		go HandleJitter(utils.Jitterc, inst, 10, inst, &wg, true)
 	}
 
 	wg.Wait()
