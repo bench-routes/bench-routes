@@ -40,7 +40,7 @@ before_script:
   - npm install --dev
   - npm install
   - npm install -g eslint electron electron-packager tslint prettier
-  - cd tests/ && npm install chromedriver
+  - cd tests/ && npm install chromedriver && cd ..
 
 script:
   - make test-views
