@@ -1,6 +1,7 @@
 package response
 
 import (
+	"io/ioutil"
 	"math"
 	"strconv"
 	"sync"
@@ -57,8 +58,13 @@ func HandleGetRequest(url string) utils.Response {
 	// Time init
 	start := time.Now().UnixNano()
 	resp := *utils.SendGETRequest(url)
+	defer resp.Body.Close()
+	content, err := ioutil.ReadAll(resp.Body)
 
-	resLength := resp.ContentLength
+	if err != nil {
+		panic(err)
+	}
+	resLength := len(content)
 	respStatusCode := resp.StatusCode
 
 	end := time.Now().UnixNano()
@@ -72,6 +78,6 @@ func HandleGetRequest(url string) utils.Response {
 
 // returns the stringified form of the combined data
 func getNormalizedBlockString(b utils.Response) string {
-	return strconv.Itoa(b.Delay) + tsdb.BlockDataSeparator + strconv.FormatInt(b.ResLength, 10) + tsdb.BlockDataSeparator +
+	return strconv.Itoa(b.Delay) + tsdb.BlockDataSeparator + strconv.Itoa(b.ResLength) + tsdb.BlockDataSeparator +
 		strconv.Itoa(b.ResStatusCode)
 }

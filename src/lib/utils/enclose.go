@@ -46,7 +46,7 @@ func Decode(b tsdb.Block) interface{} {
 		arr := strings.Split(b.GetDatapointEnc(), tsdb.BlockDataSeparator)
 		return Response{
 			Delay:         sToI(arr[0]),
-			ResLength:     sToI64(arr[1]),
+			ResLength:     sToI(arr[1]),
 			ResStatusCode: sToI(arr[2]),
 		}
 	}
@@ -63,14 +63,6 @@ func sTof(s string) float64 {
 
 func sToI(s string) int {
 	i, err := strconv.Atoi(s)
-	if err != nil {
-		panic(err)
-	}
-	return i
-}
-
-func sToI64(s string) int64 {
-	i, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
 		panic(err)
 	}
