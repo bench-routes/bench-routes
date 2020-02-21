@@ -12,7 +12,7 @@ import (
 )
 
 // HandleJitterStart handle the route "start"
-func HandleJitterStart(config parser.YAMLBenchRoutesType, jitterServiceState string) {
+func HandleJitterStart(config *parser.YAMLBenchRoutesType, jitterServiceState string) {
 	jitterConfig := config.Config.Routes
 	jitterInterval := GetInterval(config.Config.Interval, "jitter")
 	if jitterInterval == (TestInterval{}) {
@@ -32,18 +32,18 @@ func HandleJitterStart(config parser.YAMLBenchRoutesType, jitterServiceState str
 	doJitter(config, urlStack, jitterInterval)
 }
 
-func doJitter(config parser.YAMLBenchRoutesType, urlStack map[string]string, jitterInterval TestInterval) {
+func doJitter(config *parser.YAMLBenchRoutesType, urlStack map[string]string, jitterInterval TestInterval) {
 	i := 0
 	for {
 		i++
-		config = config.Refresh()
+		config.Refresh()
 
 		switch config.Config.UtilsConf.ServicesSignal.Jitter {
 		case "active":
 			var wg sync.WaitGroup
 			wg.Add(len(urlStack))
 			for _, u := range urlStack {
-				go jitter.HandleJitter(utils.GlobalChain, u, 10, u, &wg, false)
+				go jitter.HandleJitter(utils.Jitterc, u, 10, u, &wg, false)
 			}
 			wg.Wait()
 		case "passive":

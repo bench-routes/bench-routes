@@ -28,26 +28,39 @@ import (
 
 var (
 	port                    = ":9090" // default listen and serve at 9090
-	enableProcessCollection = false   // default collection of process metrices in host of bench-routes
+	enableProcessCollection = false   // default collection of process metrics in host of bench-routes
 	upgrader                = websocket.Upgrader{
 		ReadBufferSize:  4096,
 		WriteBufferSize: 4096,
 	}
-	configuration parser.YAMLBenchRoutesType
+	conf *parser.YAMLBenchRoutesType
 )
 
-func init() {
-	logger.Terminal("initializing bench-routes ...", "p")
+func main() {
 
-	configuration.Address = utils.ConfigurationFilePath
-	configuration = *configuration.Load()
-	configuration.Validate()
+	if len(os.Args) > 2 && os.Args[2] != "" {
+		enableProcessCollection, _ = strconv.ParseBool(os.Args[2])
+		port = ":" + os.Args[1]
+	} else if len(os.Args) > 1 {
+		port = ":" + os.Args[1]
+	}
+
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		cleanup()
+		os.Exit(0)
+	}()
+	logger.Terminal("initializing...", "p")
+	conf = parser.New(utils.ConfigurationFilePath)
+	conf.Load().Validate()
 
 	var ConfigURLs []string
-	initializeState(&configuration)
+	setDefaultServicesState(conf)
 
 	// Build TSDB chain
-	for _, r := range configuration.Config.Routes {
+	for _, r := range conf.Config.Routes {
 		found := false
 		for _, i := range ConfigURLs {
 			if i == r.URL {
@@ -66,62 +79,38 @@ func init() {
 	p := time.Now()
 	wg.Add(4)
 
-	go func() {
-		chainInitialiser(&utils.GlobalPingChain, ConfigURLs, utils.PathPing, "ping")
-		wg.Done()
-	}()
-
-	go func() {
-		chainInitialiser(&utils.GlobalFloodPingChain, ConfigURLs, utils.PathFloodPing, "flood_ping")
-		wg.Done()
-	}()
-
-	go func() {
-		chainInitialiser(&utils.GlobalChain, ConfigURLs, utils.PathJitter, "jitter")
-		wg.Done()
-	}()
-
-	go func() {
-		chainInitialiser(&utils.GlobalReqResDelChain, configuration.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
-		wg.Done()
-	}()
+	go initialise(&wg, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
+	go initialise(&wg, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
+	go initialise(&wg, &utils.Jitterc, ConfigURLs, utils.PathJitter, "jitter")
+	go initialise(&wg, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
 
 	wg.Wait()
 	msg := "initial chain formation time: " + time.Since(p).String()
 	logger.Terminal(msg, "p")
 
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
-	// required resources for the application is up and healthy
+	// required resources for the application is up and healthy.
 	logger.Terminal("Bench-routes is up and running", "p")
-}
-
-func main() {
-
-	if len(os.Args) > 1 {
-		port = ":" + os.Args[1]
-	}
-
-	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-c
-		cleanup()
-		os.Exit(0)
-	}()
 
 	api := api.New()
 	router := mux.NewRouter()
 
-	router.HandleFunc("/", api.Home)
-	router.HandleFunc("/test", api.TestTemplate)
-	router.HandleFunc("/service-state", api.ServiceState)
-	router.HandleFunc("/routes-summary", api.RoutesSummary)
+	// API endpoints.
+	{
+		router.HandleFunc("/", api.Home)
+		router.HandleFunc("/test", api.TestTemplate)
+		router.HandleFunc("/service-state", api.ServiceState)
+		router.HandleFunc("/routes-summary", api.RoutesSummary)
+	}
+
+	// Persistent connection for real-time updates between UI and the service.
 	router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			msg := "error using upgrader" + err.Error()
 			logger.Terminal(msg, "f")
+			os.Exit(1)
 		}
 
 		// capture client request for enabling series of responses unless its killed
@@ -149,13 +138,11 @@ func main() {
 			switch sig {
 			// ping
 			case "force-start-ping":
-				// true if success else false
 				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerPingGeneral("start")))); e != nil {
 					panic(e)
 				}
 			case "force-stop-ping":
-				e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerPingGeneral("stop"))))
-				if e != nil {
+				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerPingGeneral("stop")))); e != nil {
 					panic(e)
 				}
 
@@ -191,7 +178,7 @@ func main() {
 
 				// Get config routes details
 			case "route-details":
-				m := configuration.Config.Routes
+				m := conf.Config.Routes
 				if e := ws.WriteMessage(1, filters.RouteYAMLtoJSONParser(m)); e != nil {
 					panic(e)
 				}
@@ -206,41 +193,33 @@ func main() {
 			case "Qflood-ping-route":
 				querier(ws, inStream, qFloodPingRoute{})
 
-			// TODO just like flood-ping, jitter, ping
-			// Querrier signal for Request-response delay
+			// Querier signal for Request-response delay
 			case "Qrequest-response-delay-route":
 				querier(ws, inStream, qReqResDelayRoute{})
 			}
 		}
 	})
 
-	if len(os.Args) > 2 && os.Args[2] != "" {
-		enableProcessCollection, _ = strconv.ParseBool(os.Args[2])
-	}
 	if enableProcessCollection {
 		go func() {
 			const (
 				path           = "collector-store/"
 				scrapeDuration = time.Second * 15 // default scrape duration for process metrics.
-				// TODO: accept scrape-duration for process metrices via args.
+				// TODO: accept scrape-duration for process metrics via args.
 			)
-
 			var (
 				wg              sync.WaitGroup
 				buffer          = process.NewProcessReader()
 				collectionCount = 0
 			)
-
 			assignChaintoMap := func(c *map[string]*tsdb.Chain, n, path string) {
 				(*c)[n] = tsdb.NewChain(path)
 				(*c)[n].Init().Commit()
 			}
-
 			processChains := make(map[string]*tsdb.Chain)
 
 			for {
 				collectionCount++
-
 				if collectionCount%10 != 1 { // in every blocks of 10.
 					logger.File(fmt.Sprintf("collection-count: %d; scrape-duration: %fsecs", collectionCount, scrapeDuration.Seconds()), "p")
 				} else {
@@ -248,11 +227,10 @@ func main() {
 				}
 
 				if _, err := buffer.UpdateCurrentProcesses(); err != nil {
-					panic(err)
+					logger.File(fmt.Sprintf("Fatal: %s", err.Error()), "f")
+					os.Exit(1)
 				}
-
 				wg.Add(buffer.TotalRunningProcesses)
-
 				for _, ps := range *buffer.ProcessesDetails {
 					if processChains[ps.FilteredCommand] == nil {
 						p := fmt.Sprintf("%s%s.json", path, ps.FilteredCommand)
@@ -262,30 +240,27 @@ func main() {
 					processChains[ps.FilteredCommand].Append(b).Commit()
 					wg.Done()
 				}
-
 				runtime.GC()
-
 				wg.Wait()
 				time.Sleep(scrapeDuration)
 			}
 		}()
 	}
-
 	logger.Terminal(http.ListenAndServe(port, cors.Default().Handler(router)).Error(), "f")
-
 }
 
 func cleanup() {
 	logger.Terminal(fmt.Sprintf("Alive %d goroutines", runtime.NumGoroutine()), "p")
-	configuration := configuration.Refresh()
-	values := reflect.ValueOf(configuration.Config.UtilsConf.ServicesSignal)
+	conf.Refresh()
+	values := reflect.ValueOf(conf.Config.UtilsConf.ServicesSignal)
 	typeOfServiceState := values.Type()
+
 	type serviceState struct {
 		service string
 		state   string
 	}
-	serviceStateValues := []serviceState{}
 
+	var serviceStateValues []serviceState
 	for i := 0; i < values.NumField(); i++ {
 		n := serviceState{service: typeOfServiceState.Field(i).Name, state: values.Field(i).Interface().(string)}
 		serviceStateValues = append(serviceStateValues, n)
@@ -307,7 +282,7 @@ func cleanup() {
 	logger.Terminal(fmt.Sprintf("Alive %d goroutines after cleaning up.", runtime.NumGoroutine()), "p")
 }
 
-func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
+func initialise(wg *sync.WaitGroup, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
 	msg := "forming " + Type + " chain ... "
 	logger.Terminal(msg, "p")
 	config, ok := conf.([]string)
@@ -325,12 +300,10 @@ func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type str
 			*chain = append(*chain, resp)
 		}
 	}
-	configRes, ok := conf.([]parser.Routes)
-	if ok {
+	if configRes, ok := conf.([]parser.Routes); ok {
 		for _, v := range configRes {
 			fmt.Println(v.URL + v.Route)
 			path := basePath + "/chunk_" + Type + "_" + filters.RouteDestroyer(v.URL+"_"+v.Route) + ".json"
-
 			resp := &tsdb.Chain{
 				Path:           path,
 				Chain:          []tsdb.Block{},
@@ -343,6 +316,7 @@ func chainInitialiser(chain *[]*tsdb.Chain, conf interface{}, basePath, Type str
 	}
 
 	logger.Terminal("finished "+Type+" chain", "p")
+	wg.Done()
 }
 
 func querier(ws *websocket.Conn, inComingStream []string, route interface{}) {
@@ -461,8 +435,8 @@ func getMessageFromCompoundSignal(arg []string) []byte {
 	return []byte(strings.Join(arg, " "))
 }
 
-// initializeState initializes all state values to passive.
-func initializeState(configuration *parser.YAMLBenchRoutesType) {
+// setDefaultServicesState initializes all state values to passive.
+func setDefaultServicesState(configuration *parser.YAMLBenchRoutesType) {
 	configuration.Config.UtilsConf.ServicesSignal = parser.ServiceSignals{
 		Ping:                  "passive",
 		Jitter:                "passive",
