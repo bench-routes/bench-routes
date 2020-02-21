@@ -108,7 +108,7 @@ func ValidatePasswordProp(password string) {
 }
 
 // Validate validates the local configuration file.
-func (inst YAMLBenchRoutesType) Validate() bool {
+func (inst *YAMLBenchRoutesType) Validate() bool {
 	var config = *inst.Config
 	ValidatePasswordProp(config.Password)
 	ValidateRoutesProp(config.Routes)

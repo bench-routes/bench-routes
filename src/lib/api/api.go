@@ -39,7 +39,7 @@ func (a *API) TestTemplate(w http.ResponseWriter, r *http.Request) {
 // the application.
 func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
 	p := parser.New(utils.ConfigurationFilePath)
-	p = p.Refresh()
+	p.Refresh()
 
 	a.Data = struct {
 		Ping       string `json:"ping"`
@@ -59,7 +59,7 @@ func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
 // RoutesSummary handles requests related to summarized-configuration details.
 func (a *API) RoutesSummary(w http.ResponseWriter, r *http.Request) {
 	p := parser.New(utils.ConfigurationFilePath)
-	p = p.Refresh()
+	p.Refresh()
 
 	var servicesRoutes, monitoringRoutes []string
 	for _, r := range p.Config.Routes {

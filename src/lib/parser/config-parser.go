@@ -79,14 +79,14 @@ type ConfigurationBR struct {
 }
 
 // New returns an type for implementing the parser interface.
-func New(path string) YAMLBenchRoutesType {
-	return YAMLBenchRoutesType{
+func New(path string) *YAMLBenchRoutesType {
+	return &YAMLBenchRoutesType{
 		Address: path,
 	}
 }
 
-// Load loads the configuration file on startup
-func (inst YAMLBenchRoutesType) Load() *YAMLBenchRoutesType {
+// Load loads the configuration file on startup.
+func (inst *YAMLBenchRoutesType) Load() *YAMLBenchRoutesType {
 	var yInstance ConfigurationBR
 	file, e := ioutil.ReadFile(inst.Address)
 	if e != nil {
@@ -98,10 +98,11 @@ func (inst YAMLBenchRoutesType) Load() *YAMLBenchRoutesType {
 		panic(e)
 	}
 	inst.Config = &yInstance
-	return &inst
+	return inst
 }
 
-func (inst YAMLBenchRoutesType) Write() (bool, error) {
+// Write force updates the configuration.
+func (inst *YAMLBenchRoutesType) Write() (bool, error) {
 	config := *inst.Config
 	r, e := yaml.Marshal(config)
 	if e != nil {
@@ -117,7 +118,7 @@ func (inst YAMLBenchRoutesType) Write() (bool, error) {
 	return true, nil
 }
 
-// Refresh refreshes the Configuration settings
-func (inst YAMLBenchRoutesType) Refresh() YAMLBenchRoutesType {
-	return *inst.Load()
+// Refresh refreshes the Configuration settings.
+func (inst *YAMLBenchRoutesType) Refresh() {
+	inst.Load()
 }

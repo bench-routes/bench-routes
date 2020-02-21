@@ -57,7 +57,7 @@ func initPingTest() {
 		}
 		inst.Init().Commit()
 		// Initiate the chain
-		utils.GlobalPingChain = append(utils.GlobalPingChain, inst)
+		utils.Pingc = append(utils.Pingc, inst)
 	}
 }
 
@@ -95,7 +95,7 @@ func initFloodPingTest() {
 		}
 		inst.Init().Commit()
 		// Initiate the chain
-		utils.GlobalFloodPingChain = append(utils.GlobalFloodPingChain, inst)
+		utils.FPingc = append(utils.FPingc, inst)
 	}
 }
 
@@ -105,7 +105,7 @@ func TestHandlerPing(t *testing.T) {
 	wg.Add(len(urls))
 
 	for _, inst := range urls {
-		go HandlePing(utils.GlobalPingChain, inst, 10, "", &wg, true)
+		go HandlePing(utils.Pingc, inst, 10, "", &wg, true)
 	}
 	wg.Wait()
 }
@@ -116,7 +116,7 @@ func TestHandlerFloodPing(t *testing.T) {
 	wg.Add(len(urls))
 
 	for _, inst := range urls {
-		go HandleFloodPing(utils.GlobalFloodPingChain, inst, 1000, "", &wg, true, Configuration.Config.Password)
+		go HandleFloodPing(utils.FPingc, inst, 1000, "", &wg, true, Configuration.Config.Password)
 	}
 	wg.Wait()
 }

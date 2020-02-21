@@ -15,7 +15,7 @@ func HandleReqResMonitoringStart(config *parser.YAMLBenchRoutesType, reqResMonit
 	routes := config.Config.Routes
 
 	for {
-		*config = (*config).Refresh()
+		config.Refresh()
 		monitoringInterval := GetInterval(config.Config.Interval, "req-res-delay-and-monitoring")
 		if monitoringInterval == (TestInterval{}) {
 			logger.Terminal("interval not found in configuration file for req-res monitoring", "f")
@@ -30,7 +30,7 @@ func HandleReqResMonitoringStart(config *parser.YAMLBenchRoutesType, reqResMonit
 			// statusCode in an array of type [][]*tsdb.Chain
 			for _, route := range routes {
 				go response.HandleResponseDelayForRoute(
-					utils.GlobalReqResDelChain,
+					utils.RespMonitoringc,
 					route,
 					utils.GetHash(route.URL),
 					&wg)

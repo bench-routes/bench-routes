@@ -16,7 +16,7 @@ const (
 )
 
 //HandleJitter handles the url and calculate the jitter for that url
-func HandleJitter(globalChain []*tsdb.Chain, url string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
+func HandleJitter(Jitterc []*tsdb.Chain, url string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
 	tsdbNameHash = PathJitter + "/" + "chunk_jitter_" + tsdbNameHash + ".json"
 	resp, err := utils.CLIPing(url, packets)
 	if err != nil {
@@ -28,11 +28,11 @@ func HandleJitter(globalChain []*tsdb.Chain, url string, packets int, tsdbNameHa
 	result := scrap.CLIJitterScrap(resp)
 	newBlock := *tsdb.GetNewBlock("jitter", fToS(result))
 	urlExists := false
-	for index := range globalChain {
-		if globalChain[index].Path == tsdbNameHash {
+	for index := range Jitterc {
+		if Jitterc[index].Path == tsdbNameHash {
 			urlExists = true
-			globalChain[index] = globalChain[index].Append(newBlock)
-			globalChain[index].Commit()
+			Jitterc[index] = Jitterc[index].Append(newBlock)
+			Jitterc[index].Commit()
 			break
 		}
 	}

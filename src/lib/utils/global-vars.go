@@ -23,20 +23,20 @@ var (
 	PingDBNames = make(map[string]string)
 	// FloodPingDBNames contains the name of the flood ping corresponding to the unique config url
 	FloodPingDBNames = make(map[string]string)
-	// GlobalPingChain contains chains of all the pings operating in bench-routes which has to be globally accessed
+	// Pingc contains chains of all the pings operating in bench-routes which has to be globally accessed
 	// This is necessary as it helps to retain the parent values which are required for concurreny
-	GlobalPingChain []*tsdb.Chain
+	Pingc []*tsdb.Chain
 
-	// GlobalChain is the global chain array which can be used to maintain a list of chains that represent
+	// Jitterc is the global chain array which can be used to maintain a list of chains that represent
 	// the time-series values
-	GlobalChain []*tsdb.Chain
+	Jitterc []*tsdb.Chain
 
-	// GlobalFloodPingChain contains chains of flood ping operations in bench-routes which has to be globally accessed
+	// FPingc contains chains of flood ping operations in bench-routes which has to be globally accessed
 	// This is necessary as it helps to retain the parent values which are required for concurreny
-	GlobalFloodPingChain []*tsdb.Chain
+	FPingc []*tsdb.Chain
 
-	// GlobalReqResDelChain stands for Request-Response-Delay
-	GlobalReqResDelChain []*tsdb.Chain
+	// RespMonitoringc stands for Request-Response-Delay
+	RespMonitoringc []*tsdb.Chain
 )
 
 // TypePingScrap as datatype for ping outputs
