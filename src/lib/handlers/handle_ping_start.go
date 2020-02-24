@@ -14,7 +14,7 @@ import (
 )
 
 // HandlePingStart handle the route "start"
-func HandlePingStart(ctxGeneralPing context.Context, config parser.YAMLBenchRoutesType, pingServiceState string) {
+func HandlePingStart(ctxGeneralPing context.Context, config *parser.YAMLBenchRoutesType, pingServiceState string) {
 	pingConfig := config.Config.Routes
 	pingInterval := GetInterval(config.Config.Interval, "ping")
 	if pingInterval == (TestInterval{}) {
@@ -42,12 +42,12 @@ func HandlePingStart(ctxGeneralPing context.Context, config parser.YAMLBenchRout
 	}
 }
 
-func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingInterval TestInterval) {
+func doPing(config *parser.YAMLBenchRoutesType, urlStack map[string]string, pingInterval TestInterval) {
 	i := 0
 	ctxPing, stopPing := context.WithCancel(context.Background())
 	for {
 		i++
-		config = config.Refresh()
+		config.Refresh()
 
 		switch config.Config.UtilsConf.ServicesSignal.Ping {
 		case "active":
@@ -58,7 +58,7 @@ func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingI
 				var wg sync.WaitGroup
 				wg.Add(len(urlStack))
 				for _, u := range urlStack {
-					go ping.HandlePing(ctxPing, utils.GlobalPingChain, u, 10, u, &wg, false)
+					go ping.HandlePing(ctxPing, utils.Pingc, u, 10, u, &wg, false)
 				}
 				wg.Wait()
 			}
@@ -88,7 +88,7 @@ func doPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, pingI
 }
 
 // HandleFloodPingStart starts the flood ping service
-func HandleFloodPingStart(config parser.YAMLBenchRoutesType, floodPingServiceState string) {
+func HandleFloodPingStart(config *parser.YAMLBenchRoutesType, floodPingServiceState string) {
 	floodPingConfig := config.Config.Routes
 	floodPingInterval := GetInterval(config.Config.Interval, "ping")
 	if floodPingInterval == (TestInterval{}) {
@@ -110,18 +110,18 @@ func HandleFloodPingStart(config parser.YAMLBenchRoutesType, floodPingServiceSta
 	doFloodPing(config, urlStack, floodPingInterval)
 }
 
-func doFloodPing(config parser.YAMLBenchRoutesType, urlStack map[string]string, interval TestInterval) {
+func doFloodPing(config *parser.YAMLBenchRoutesType, urlStack map[string]string, interval TestInterval) {
 	i := 0
 	for {
 		i++
-		config = config.Refresh()
+		config.Refresh()
 
 		switch config.Config.UtilsConf.ServicesSignal.FloodPing {
 		case "active":
 			var wg sync.WaitGroup
 			wg.Add(len(urlStack))
 			for _, u := range urlStack {
-				go ping.HandleFloodPing(utils.GlobalFloodPingChain, u, 500, u, &wg, false, config.Config.Password)
+				go ping.HandleFloodPing(utils.FPingc, u, 500, u, &wg, false, config.Config.Password)
 			}
 
 			wg.Wait()

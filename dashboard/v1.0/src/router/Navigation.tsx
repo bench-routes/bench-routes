@@ -1,10 +1,10 @@
 import React from 'react';
 import { HashRouter as Router, Route, Switch } from 'react-router-dom';
-import FloodPing from '../components/benchmarks/FloodPing';
-import Jitter from '../components/benchmarks/Jitter';
-import Ping from '../components/benchmarks/Ping';
 import Dashboard from '../components/dashboard/Dashboard';
-import Monitoring from '../components/monitoring/Monitoring';
+import FloodPing from '../components/service-ui/FloodPing';
+import Jitter from '../components/service-ui/Jitter';
+import Monitoring from '../components/service-ui/Monitoring';
+import Ping from '../components/service-ui/Ping';
 import Settings from '../components/settings/Settings';
 
 const Navigator = () => (

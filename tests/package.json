@@ -17,7 +17,6 @@
   },
   "homepage": "https://github.com/zairza-cetb/bench-routes#readme",
   "dependencies": {
-    "chromedriver": "^78.0.1",
     "mocha": "^6.2.2",
     "selenium-webdriver": "^4.0.0-alpha.5"
   }

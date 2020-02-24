@@ -10,7 +10,7 @@ import (
 )
 
 // HandleFloodPing is the main handler for flood ping operations
-func HandleFloodPing(globalChain []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool, password string) {
+func HandleFloodPing(Jitterc []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool, password string) {
 
 	tsdbNameHash = utils.PathFloodPing + "/" + "chunk_flood_ping_" + tsdbNameHash + ".json"
 	resp, err := utils.CLIFloodPing(urlRaw, packets, password)
@@ -22,11 +22,11 @@ func HandleFloodPing(globalChain []*tsdb.Chain, urlRaw string, packets int, tsdb
 	result := *scrap.CLIFLoodPingScrap(resp)
 	block := *tsdb.GetNewBlock("flood-ping", getNormalizedBlockStringFlood(result))
 	urlExists := false
-	for index := range globalChain {
-		if globalChain[index].Path == tsdbNameHash {
+	for index := range Jitterc {
+		if Jitterc[index].Path == tsdbNameHash {
 			urlExists = true
-			globalChain[index] = globalChain[index].Append(block)
-			globalChain[index].Commit()
+			Jitterc[index] = Jitterc[index].Append(block)
+			Jitterc[index].Commit()
 			break
 		}
 	}
