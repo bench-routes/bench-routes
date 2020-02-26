@@ -16,21 +16,28 @@ const Ping: FC<{}> = () => {
     connection
       .signalPingRouteFetchAllTimeSeries(sAddressParam)
       .then((res: any) => {
-        let data: any[] = JSON.parse(res.data);
+        let data: any[] = JSON.parse(res.data) || [];
         const yMin: ChartOptions[] = [];
         const yMean: ChartOptions[] = [];
         const yMax: ChartOptions[] = [];
         const yMdev: ChartOptions[] = [];
         const norTime: number[] = [];
         const timeStamp: string[] = [];
-        let inst;
-        for (inst of data) {
-          yMin.push(inst.Min);
-          yMean.push(inst.Mean);
-          yMax.push(inst.Max);
-          yMdev.push(inst.Mdev);
-          norTime.push(inst.relative);
-          timeStamp.push(inst.timestamp);
+
+        if (data.length === 0) {
+          // Probably send the required information
+          // to the user via br-logger
+          console.log('No data from the url');
+        } else {
+          let inst;
+          for (inst of data) {
+            yMin.push(inst.Min);
+            yMean.push(inst.Mean);
+            yMax.push(inst.Max);
+            yMdev.push(inst.Mdev);
+            norTime.push(inst.relative);
+            timeStamp.push(inst.timestamp);
+          }
         }
 
         const options: ChartOptions[] = [
