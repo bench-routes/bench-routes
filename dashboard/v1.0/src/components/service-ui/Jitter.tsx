@@ -36,16 +36,22 @@ const Jitter: FC<{}> = () => {
     connection
       .signalJitterRouteFetchAllTimeSeries(sAddressParam)
       .then((res: any) => {
-        const data: any[] = JSON.parse(res.data);
+        const data: any[] = JSON.parse(res.data) || [];
         const jitter: ChartOptions[] = [];
         const norTime: number[] = [];
         const timeStamp: string[] = [];
 
-        let inst;
-        for (inst of data) {
-          jitter.push(inst.datapoint);
-          norTime.push(inst.relative);
-          timeStamp.push(inst.timestamp);
+        if (data.length === 0) {
+          // Probably send the required information
+          // to the user via br-logger
+          console.log('No data from the url');
+        } else {
+          let inst;
+          for (inst of data) {
+            jitter.push(inst.datapoint);
+            norTime.push(inst.relative);
+            timeStamp.push(inst.timestamp);
+          }
         }
 
         const options: ChartOptions[] = [

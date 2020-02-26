@@ -49,15 +49,21 @@ const FloodPing: FC<{}> = () => {
         const yMdev: ChartOptions[] = [];
         const packetLoss: number[] = [];
 
-        let inst;
-        for (inst of data) {
-          yMin.push(inst.Min);
-          yMean.push(inst.Mean);
-          yMax.push(inst.Max);
-          yMdev.push(inst.Mdev);
-          norTime.push(inst.relative);
-          timeStamp.push(inst.timestamp);
-          packetLoss.push(inst.PacketLoss);
+        if (data.length === 0) {
+          // Probably send the required information
+          // to the user via br-logger
+          console.log('No data from the url');
+        } else {
+          let inst;
+          for (inst of data) {
+            yMin.push(inst.Min);
+            yMean.push(inst.Mean);
+            yMax.push(inst.Max);
+            yMdev.push(inst.Mdev);
+            norTime.push(inst.relative);
+            timeStamp.push(inst.timestamp);
+            packetLoss.push(inst.PacketLoss);
+          }
         }
 
         const options: ChartOptions[] = [
