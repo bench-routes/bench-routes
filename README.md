@@ -1,6 +1,7 @@
 # Bench-routes
 
 [![Build Status](https://travis-ci.com/zairza-cetb/bench-routes.svg?branch=master)](https://travis-ci.com/zairza-cetb/bench-routes)
+[![Go Report Card](https://goreportcard.com/badge/github.com/zairza-cetb/bench-routes)](https://goreportcard.com/report/github.com/zairza-cetb/bench-routes)
 [![Gitter](https://img.shields.io/badge/join%20discussions%20on%20gitter-%23benchroutes-green/)](https://gitter.im/bench-routes/community#)
 
 Bench-routes is a highly scalable network benchmarking, routes performance and monitoring tool, that monitors in regular intervals the state
