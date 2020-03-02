@@ -3,7 +3,7 @@ import BRConnect from '../../utils/connection';
 import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
 import Submenu from '../layouts/Submenu';
 import { Alert } from 'reactstrap';
-import {opts} from './publicOpts';
+import { opts } from './publicOpts';
 const Jitter: FC<{}> = () => {
   const [chart, setChart] = useState({
     options: [ChartValues()],
@@ -11,8 +11,6 @@ const Jitter: FC<{}> = () => {
   });
 
   const connection = new BRConnect();
-
-  
 
   const getAddressSubmenu = (sAddressParam: string): void => {
     setChart({ options: [ChartValues()], show: false });

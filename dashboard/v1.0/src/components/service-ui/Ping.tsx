@@ -3,8 +3,8 @@ import BRConnect from '../../utils/connection';
 import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
 import Submenu from '../layouts/Submenu';
 import { Alert } from 'reactstrap';
-import {opts} from './publicOpts';
-import {getChartOptions} from './getChartOptions';
+import { opts } from './publicOpts';
+import { getChartOptions } from './getChartOptions';
 const Ping: FC<{}> = () => {
   const [chart, setChart] = useState({
     options: [ChartValues()],
@@ -18,13 +18,11 @@ const Ping: FC<{}> = () => {
       .signalPingRouteFetchAllTimeSeries(sAddressParam)
       .then((res: any) => {
         let data: any[] = JSON.parse(res.data) || [];
-       
-       const options=getChartOptions(data);
+
+        const options = getChartOptions(data);
         setChart({ options, show: true });
       });
   };
-
-  
 
   return (
     <>

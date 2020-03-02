@@ -3,8 +3,8 @@ import BRConnect from '../../utils/connection';
 import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
 import Submenu from '../layouts/Submenu';
 import { Alert } from 'reactstrap';
-import {opts} from './publicOpts';
-import {getChartOptions} from './getChartOptions';
+import { opts } from './publicOpts';
+import { getChartOptions } from './getChartOptions';
 
 const FloodPing: FC<{}> = () => {
   const [chart, setChart] = useState({
@@ -14,7 +14,6 @@ const FloodPing: FC<{}> = () => {
   });
   const connection = new BRConnect();
 
- 
   const updateAddressSubmenu = (sAddressParam: string): void => {
     setChart({
       options: [ChartValues()],
@@ -28,7 +27,7 @@ const FloodPing: FC<{}> = () => {
         const norTime: number[] = [];
         const packetLoss: number[] = [];
 
-        const options=getChartOptions(data);
+        const options = getChartOptions(data);
 
         const optionsPacketLoss: ChartOptions[] = [
           ChartValues(
