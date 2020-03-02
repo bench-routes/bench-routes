@@ -3,6 +3,7 @@ import BRConnect from '../../utils/connection';
 import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
 import Submenu from '../layouts/Submenu';
 import { Alert } from 'reactstrap';
+import {opts} from './opts';
 
 const Ping: FC<{}> = () => {
   const [chart, setChart] = useState({
@@ -51,37 +52,20 @@ const Ping: FC<{}> = () => {
       });
   };
 
-  const opts = (operation: string): void => {
-    switch (operation) {
-      case 'start':
-        connection.signalPingStart().then(res => {
-          if (res.data) {
-            alert('Ping routine started');
-          }
-        });
-        break;
-      case 'stop':
-        connection.signalPingStop().then(res => {
-          if (res.data) {
-            alert('Ping routine stopped');
-          }
-        });
-        break;
-    }
-  };
+  
 
   return (
     <>
       <div className="btn-layout">
         <button
           className="button-operations btn btn-success"
-          onClick={() => opts('start')}
+          onClick={() => opts('start', connection, 'ping')}
         >
           Start
         </button>
         <button
           className="button-operations btn btn-danger"
-          onClick={() => opts('stop')}
+          onClick={() => opts('stop', connection, 'ping')}
         >
           Stop
         </button>

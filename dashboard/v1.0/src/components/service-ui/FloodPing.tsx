@@ -3,6 +3,7 @@ import BRConnect from '../../utils/connection';
 import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
 import Submenu from '../layouts/Submenu';
 import { Alert } from 'reactstrap';
+import {opts} from './opts';
 
 const FloodPing: FC<{}> = () => {
   const [chart, setChart] = useState({
@@ -12,25 +13,7 @@ const FloodPing: FC<{}> = () => {
   });
   const connection = new BRConnect();
 
-  const opts = (operation: string) => {
-    switch (operation) {
-      case 'start':
-        connection.signalFloodPingStart().then(res => {
-          if (res.data) {
-            alert('Flood Ping routine started');
-          }
-        });
-        break;
-      case 'stop':
-        connection.signalFloodPingStop().then(res => {
-          if (res.data) {
-            alert('Flood Ping routine stopped');
-          }
-        });
-        break;
-    }
-  };
-
+ 
   const setAddressSubmenu = (sAddressParam: string): void => {
     setChart({
       options: [ChartValues()],
@@ -91,13 +74,13 @@ const FloodPing: FC<{}> = () => {
       <div className="btn-layout">
         <button
           className="button-operations btn btn-success"
-          onClick={() => opts('start')}
+          onClick={() => opts('start', connection, 'floodPing')}
         >
           Start
         </button>
         <button
           className="button-operations btn btn-danger"
-          onClick={() => opts('start')}
+          onClick={() => opts('stop', connection, 'floodPing')}
         >
           Stop
         </button>
