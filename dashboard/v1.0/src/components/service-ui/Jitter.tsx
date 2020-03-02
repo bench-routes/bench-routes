@@ -3,7 +3,7 @@ import BRConnect from '../../utils/connection';
 import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
 import Submenu from '../layouts/Submenu';
 import { Alert } from 'reactstrap';
-import {opts} from './opts';
+import {opts} from './publicOpts';
 const Jitter: FC<{}> = () => {
   const [chart, setChart] = useState({
     options: [ChartValues()],

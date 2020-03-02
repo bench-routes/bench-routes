@@ -3,7 +3,8 @@ import BRConnect from '../../utils/connection';
 import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
 import Submenu from '../layouts/Submenu';
 import { Alert } from 'reactstrap';
-import {opts} from './opts';
+import {opts} from './publicOpts';
+import {getChartOptions} from './getChartOptions';
 
 const FloodPing: FC<{}> = () => {
   const [chart, setChart] = useState({
@@ -14,7 +15,7 @@ const FloodPing: FC<{}> = () => {
   const connection = new BRConnect();
 
  
-  const setAddressSubmenu = (sAddressParam: string): void => {
+  const updateAddressSubmenu = (sAddressParam: string): void => {
     setChart({
       options: [ChartValues()],
       show: true,
@@ -25,36 +26,9 @@ const FloodPing: FC<{}> = () => {
       .then((res: any) => {
         const data: any[] = JSON.parse(res.data);
         const norTime: number[] = [];
-        const timeStamp: string[] = [];
-        const yMin: ChartOptions[] = [];
-        const yMean: ChartOptions[] = [];
-        const yMax: ChartOptions[] = [];
-        const yMdev: ChartOptions[] = [];
         const packetLoss: number[] = [];
 
-        if (data.length === 0) {
-          // Probably send the required information
-          // to the user via br-logger
-          console.log('No data from the url');
-        } else {
-          let inst;
-          for (inst of data) {
-            yMin.push(inst.Min);
-            yMean.push(inst.Mean);
-            yMax.push(inst.Max);
-            yMdev.push(inst.Mdev);
-            norTime.push(inst.relative);
-            timeStamp.push(inst.timestamp);
-            packetLoss.push(inst.PacketLoss);
-          }
-        }
-
-        const options: ChartOptions[] = [
-          ChartValues(norTime, yMin, 'Minimum', 'rgba(75,192,192,0.4)'),
-          ChartValues(norTime, yMean, 'Mean', 'rgba(75,192,2,0.4)'),
-          ChartValues(norTime, yMax, 'Maximum', 'rgba(5,192,19,0.4)'),
-          ChartValues(norTime, yMdev, 'Standard-Deviation', 'rgba(7,12,19,0.4)')
-        ];
+        const options=getChartOptions(data);
 
         const optionsPacketLoss: ChartOptions[] = [
           ChartValues(
@@ -85,7 +59,7 @@ const FloodPing: FC<{}> = () => {
           Stop
         </button>
       </div>
-      <Submenu module="ping" submodule="" getAddress={setAddressSubmenu} />
+      <Submenu module="ping" submodule="" getAddress={updateAddressSubmenu} />
       {chart.show ? (
         <div style={{ overflow: 'scroll', height: '45%' }}>
           <Charts opts={chart.options} />
