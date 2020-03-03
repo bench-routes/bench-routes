@@ -1,6 +1,6 @@
 import React, { FC, useState } from 'react';
 import BRConnect from '../../utils/connection';
-import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
+import {  Charts, ChartValues } from '../layouts/Charts';
 import Submenu from '../layouts/Submenu';
 import { Alert } from 'reactstrap';
 import { opts } from './publicOpts';

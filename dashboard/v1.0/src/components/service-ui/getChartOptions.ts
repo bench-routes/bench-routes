@@ -1,4 +1,4 @@
-import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
+import { ChartOptions, ChartValues } from '../layouts/Charts';
 
 export const getChartOptions=(data)=>{
     console.log("inside getChartOptions")
