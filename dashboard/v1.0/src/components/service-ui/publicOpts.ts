@@ -1,9 +1,11 @@
-export const opts = (operation: string, connection, type: string): void => {
+import BRConnect from "../../utils/connection";
+
+export const opts = (operation: string, connection : BRConnect, type: string): void => {
     switch (operation) {
       case 'start':
           if(type==='ping')
           {
-             console.log("inside ping");
+            
               connection.signalPingStart().then(res => {
                 if (res.data) {
                   alert('Ping routine started');
@@ -12,7 +14,7 @@ export const opts = (operation: string, connection, type: string): void => {
           }
           else if(type==='jitter')
           {
-              console.log("inside jitter");
+              
             connection.signalJitterStart().then(res => {
                 if (res.data) {
                   alert('Jitter routine started');
@@ -21,7 +23,7 @@ export const opts = (operation: string, connection, type: string): void => {
           }
           else if(type==='floodPing')
           {
-              console.log("inside flood ping");
+             
             connection.signalFloodPingStart().then(res => {
                 if (res.data) {
                   alert('Flood Ping routine started');
