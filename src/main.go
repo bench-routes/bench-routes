@@ -269,6 +269,7 @@ func cleanup() {
 		if node.state == "active" {
 			switch node.service {
 			case "Ping":
+				fmt.Println("General stop signal called")
 				if ok := HandlerPingGeneral("stop"); !ok {
 					panic("Error occured while closing modulwe")
 				}
@@ -281,7 +282,7 @@ func cleanup() {
 			}
 		}
 	}
-
+	time.Sleep(60 * time.Second)
 	logger.Terminal(fmt.Sprintf("Alive %d goroutines after cleaning up.", runtime.NumGoroutine()), "p")
 }
 

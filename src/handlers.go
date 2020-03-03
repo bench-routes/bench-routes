@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/handlers"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
@@ -52,6 +53,7 @@ func HandlerPingGeneral(signal string) bool {
 		conf.Config.UtilsConf.ServicesSignal.Ping = "passive"
 		_, e := conf.Write()
 		stopPingGeneral()
+		fmt.Println("General Context stopper called")
 		if e != nil {
 			panic(e)
 		}

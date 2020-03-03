@@ -38,9 +38,10 @@ func HandlePing(ctxPing context.Context, chain []*tsdb.Chain, urlRaw string, pac
 	}
 	wg.Done()
 	for {
+		fmt.Println("Listening Module")
 		select {
 		case <-ctxPing.Done():
-			fmt.Println("Module stopper called")
+			fmt.Print("M")
 			return
 		}
 	}

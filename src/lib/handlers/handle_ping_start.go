@@ -34,12 +34,14 @@ func HandlePingStart(ctxGeneralPing context.Context, config *parser.YAMLBenchRou
 	}
 	doPing(config, urlStack, pingInterval)
 	for {
+		fmt.Println("Listening General")
 		select {
 		case <-ctxGeneralPing.Done():
 			fmt.Println("General Stopper Called")
 			return
 		}
 	}
+
 }
 
 func doPing(config *parser.YAMLBenchRoutesType, urlStack map[string]string, pingInterval TestInterval) {
