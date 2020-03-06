@@ -43,7 +43,8 @@ before_script:
   - cd tests/ && npm install chromedriver && cd ..
 
 script:
-  - make test-views
+  - make test-views-v1.0
+  - make test-views-v1.1
   - make build
   - make test
   - xvfb-run -s "-screen 0 1920x1080x16" -a make test-services
