@@ -11,6 +11,7 @@
     "@types/reactstrap": "^8.4.1",
     "@types/websocket": "^1.0.0",
     "chart.js": "^2.9.2",
+    "clsx": "^1.1.0",
     "nan": "^2.14.0",
     "react": "^16.10.2",
     "react-chartjs-2": "^2.8.0",
@@ -28,7 +29,7 @@
     "tlint-fix": "tslint --fix --project ./tsconfig.json -e src/*.js public/*.js",
     "prettier-fix": "prettier --write '**/*.tsx'",
     "lint": "eslint . --no-error-on-unmatched-pattern",
-    "tlint": "tslint src/*.tsx src/**/*.tsx public/*.tsx public/**/*.tsx",
+    "tlint": "tslint src/*.tsx src/**/*.tsx --fix",
     "prettier": "prettier '**/*.tsx' --list-different",
     "prim-tests": "npm run prettier && npm run lint && npm run tlint"
   },

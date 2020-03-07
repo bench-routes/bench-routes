@@ -4,7 +4,8 @@
   "jsRules": {},
   "rules": {
     "arrow-parens": false,
-    "ordered-imports": false,
+    "ordered-imports": true,
+    "object-literal-sort-keys": false,
     "adjacent-overload-signatures": true,
     "array-type": {
       "options": ["array"]
