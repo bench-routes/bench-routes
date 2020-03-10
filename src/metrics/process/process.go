@@ -32,7 +32,7 @@ type PBuffer struct {
 	TotalRunningProcesses int
 }
 
-// DecodeType generally used as decoding value for respponding to the querier.
+// DecodeType generally used as decoding value for responding to the querier.
 type DecodeType struct {
 	CPUUtilization    string `json:"CPUUtilization"`
 	MemoryUtilization string `json:"MemoryUtilization"`
@@ -41,8 +41,8 @@ type DecodeType struct {
 	ThreadCount       string `json:"ThreadCount"`
 }
 
-// NewProcessReader returns a reader that reads over the running processes in a system.
-func NewProcessReader() *PBuffer {
+// New returns a reader that reads over the running processes in a system.
+func New() *PBuffer {
 	return &PBuffer{}
 }
 

@@ -17,18 +17,18 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
-	"github.com/zairza-cetb/bench-routes/src/collector/process"
 	"github.com/zairza-cetb/bench-routes/src/lib/api"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/metrics/process"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 var (
 	port                    = ":9090" // default listen and serve at 9090
-	enableProcessCollection = false   // default collection of process metrics in host of bench-routes
+	enableProcessCollection = true   // default collection of process metrics in host of bench-routes
 	upgrader                = websocket.Upgrader{
 		ReadBufferSize:  4096,
 		WriteBufferSize: 4096,
@@ -204,12 +204,12 @@ func main() {
 		go func() {
 			const (
 				path           = "collector-store/"
-				scrapeDuration = time.Second * 15 // default scrape duration for process metrics.
+				scrapeDuration = time.Second * 5 // default scrape duration for process metrics.
 				// TODO: accept scrape-duration for process metrics via args.
 			)
 			var (
 				wg              sync.WaitGroup
-				buffer          = process.NewProcessReader()
+				buffer          = process.New()
 				collectionCount = 0
 			)
 			assignChaintoMap := func(c *map[string]*tsdb.Chain, n, path string) {
