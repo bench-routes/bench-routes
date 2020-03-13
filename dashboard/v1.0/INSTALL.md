@@ -3,22 +3,22 @@
 Please follow the following steps in order to set up your
 development environment.
 
-1. Install NodeJS and npm.
+1. Install NodeJS and yarn.
 2. Clone the repository or its fork via 
    ```
-   git clone https://github.com/zairza-cetb/bench-routes-electron
+   git clone https://github.com/zairza-cetb/bench-routes
    ```
 3. Navigate into the cloned repo 
    ```
-   cd bench-routes-electron
+   cd bench-routes
    ```
 4. Install the dependencies via
    ```
-   npm install
+   yarn add
    ```
 5. To start running, run
    ```
-   npm start
+   yarn start
    ```
 
 Please feel free to open any issue in case you encounter any issues while setting up the development environment.

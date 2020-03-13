@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@types/node": "^12.11.7",
+    "@types/node": "^12.12.29",
     "@types/react": "^16.9.9",
     "@types/react-router-dom": "^5.1.0",
     "@types/reactstrap": "^8.4.1",
@@ -32,9 +32,9 @@
     "prettier-fix": "prettier --write '**/*.tsx'",
     "lint": "eslint .",
     "tlint": "tslint src/*.tsx src/**/*.tsx public/*.tsx public/**/*.tsx",
-    "start": "concurrently \"BROWSER=none npm run react-start\" \"wait-on http://localhost:3000 && electron .\"",
+    "start": "concurrently \"BROWSER=none yarn run react-start\" \"wait-on http://localhost:3000 && electron .\"",
     "prettier": "prettier '**/*.tsx' --list-different",
-    "prim-tests": "npm run prettier && npm run lint && npm run tlint"
+    "prim-tests": "yarn run prettier && yarn run lint && yarn run tlint"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -53,22 +53,22 @@
   },
   "main": "public/main.js",
   "devDependencies": {
-    "@types/node": "^12.11.6",
+    "@types/node": "^12.12.29",
     "@typescript-eslint/eslint-plugin": "^2.5.0",
     "@typescript-eslint/parser": "^2.4.0",
-    "eslint": "^6.5.1",
-    "eslint-config-airbnb": "^18.0.1",
+    "concurrently": "^5.0.0",
     "electron-builder": "^21.2.0",
     "electron-packager": "^14.0.6",
+    "eslint": "^6.5.1",
+    "eslint-config-airbnb": "^18.0.1",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-react": "^7.16.0",
     "eslint-plugin-react-hooks": "^1.7.0",
-    "husky": "^3.0.9",
+    "husky": "^4.2.3",
     "prettier": "^1.18.2",
     "tslint": "^5.20.0",
     "tslint-react": "^4.1.0",
-    "concurrently": "^5.0.0",
     "typescript": "^3.6.4"
   }
 }
