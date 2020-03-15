@@ -8,20 +8,20 @@ build:
 	mv main bench-routes
 
 view-v1.0:
-	cd dashboard/v1.0/ && sudo yarn start
+	cd dashboard/v1.0/ && sudo npm start
 
 view-v1.1:
 	cd dashboard/v1.1/ && sudo yarn start
 
 test-views-v1.0:
-	cd dashboard/v1.0/ && yarn add
-	cd dashboard/v1.0/ && yarn run lint
-	cd dashboard/v1.0/ && yarn run tlint
+	cd dashboard/v1.0/ && npm install
+	cd dashboard/v1.0/ && npm run lint
+	cd dashboard/v1.0/ && npm run tlint
 	cd dashboard/v1.0/ && prettier '**/*.tsx' --list-different
-	cd dashboard/v1.0/ && yarn run react-test
-	cd dashboard/v1.0/ && yarn run react-build
-	cd dashboard/v1.0/ && yarn run build
-	cd dashboard/v1.0/ && yarn start &
+	cd dashboard/v1.0/ && npm run react-test
+	cd dashboard/v1.0/ && npm run react-build
+	cd dashboard/v1.0/ && npm run build
+	cd dashboard/v1.0/ && npm start &
 
 test-views-v1.1:
 	cd dashboard/v1.1/ && yarn add
@@ -34,13 +34,13 @@ test-views-v1.1:
 
 
 test-views-only:
-	cd dashboard/v1.0/ && yarn run lint
-	cd dashboard/v1.0/ && yarn run tlint
+	cd dashboard/v1.0/ && npm run lint
+	cd dashboard/v1.0/ && npm run tlint
 	cd dashboard/v1.0/ && prettier '**/*.tsx' --list-different
-	cd dashboard/v1.0/ && yarn run react-test
-	cd dashboard/v1.0/ && yarn run react-build
-	cd dashboard/v1.0/ && yarn run build
-	cd dashboard/v1.0/ && yarn start &
+	cd dashboard/v1.0/ && npm run react-test
+	cd dashboard/v1.0/ && npm run react-build
+	cd dashboard/v1.0/ && npm run build
+	cd dashboard/v1.0/ && npm start &
 
 clean:
 	rm -R build/ bench-routes
@@ -69,9 +69,8 @@ run-collector:
 
 fix:
 	go fmt ./...
-	cd dashboard/v1.0/ && yarn run prettier-fix
-	cd dashboard/v1.0/ && yarn run tlint-fix
+	cd dashboard/v1.0/ && npm run prettier-fix
+	cd dashboard/v1.0/ && npm run tlint-fix
 
 lint:
 	golangci-lint run
-
