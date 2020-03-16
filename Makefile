@@ -51,8 +51,8 @@ test: build
 
 test-services: build
 	./bench-routes &
-	cd tests && npm install
-	npm install -g mocha
+	cd tests && yarn add
+	yarn add -g mocha
 	mocha tests/browser.js
 
 test_complete: build
