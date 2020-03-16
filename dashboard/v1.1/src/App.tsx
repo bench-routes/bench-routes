@@ -1,17 +1,18 @@
-import React from 'react';
-import './App.css';
+import { blue } from '@material-ui/core/colors';
 import {
   createMuiTheme,
-  ThemeProvider,
-  responsiveFontSizes
+  responsiveFontSizes,
+  ThemeProvider
 } from '@material-ui/core/styles';
-import { grey } from '@material-ui/core/colors';
+import React from 'react';
+import './App.css';
+import BaseLayout from './layouts/BaseLayout';
 
 let theme = createMuiTheme({
   palette: {
     // Provides you with all
     // shades of whites
-    primary: grey
+    primary: blue
     // secondary: <Color>,
   },
   typography: {
@@ -24,7 +25,9 @@ theme = responsiveFontSizes(theme);
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <div className="App">Bench-routes ui</div>
+      <BaseLayout>
+        <div className="App">Bench-routes ui</div>
+      </BaseLayout>
     </ThemeProvider>
   );
 }
