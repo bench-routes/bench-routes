@@ -204,7 +204,7 @@ func main() {
 		go func() {
 			const (
 				path           = "collector-store/"
-				scrapeDuration = time.Second * 15 // default scrape duration for process metrics.
+				scrapeDuration = time.Second * 3 // default scrape duration for process metrics.
 				// TODO: accept scrape-duration for process metrics via args.
 			)
 			var (
@@ -217,7 +217,7 @@ func main() {
 				(*c)[n].Init().Commit()
 			}
 			processChains := make(map[string]*tsdb.Chain)
-
+			fmt.Println("inside")
 			for {
 				collectionCount++
 				if collectionCount%10 != 1 { // in every blocks of 10.
