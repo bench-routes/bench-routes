@@ -20,6 +20,7 @@ import {
 } from '@material-ui/icons';
 import clsx from 'clsx';
 import React, { useState } from 'react';
+import { HashRouter as Router, Link } from 'react-router-dom';
 
 const drawerWidth = 240;
 
@@ -79,13 +80,13 @@ export default function Sidebar(props) {
   };
   const menuItems = (
     <div>
-      <ListItem button={true}>
+      <ListItem button={true} component={Link} to="/">
         <ListItemIcon>
           <DashboardIcon />
         </ListItemIcon>
         <ListItemText primary="Dashboard" />
       </ListItem>
-      <ListItem button={true}>
+      <ListItem button={true} component={Link} to="/monitoring">
         <ListItemIcon>
           <AccessAlarmIcon />
         </ListItemIcon>
@@ -105,19 +106,34 @@ export default function Sidebar(props) {
       {/* Nested List */}
       <Collapse in={testListOpen} timeout="auto" unmountOnExit={true}>
         <List component="div" disablePadding={true}>
-          <ListItem button={true} className={classes.nested}>
+          <ListItem
+            button={true}
+            component={Link}
+            to="/ping"
+            className={classes.nested}
+          >
             <ListItemIcon>
               <DashboardIcon />
             </ListItemIcon>
             <ListItemText primary="Ping" />
           </ListItem>
-          <ListItem button={true} className={classes.nested}>
+          <ListItem
+            button={true}
+            component={Link}
+            to="/floodping"
+            className={classes.nested}
+          >
             <ListItemIcon>
               <DashboardIcon />
             </ListItemIcon>
             <ListItemText primary="FloodPing" />
           </ListItem>
-          <ListItem button={true} className={classes.nested}>
+          <ListItem
+            button={true}
+            component={Link}
+            to="/jitter"
+            className={classes.nested}
+          >
             <ListItemIcon>
               <DashboardIcon />
             </ListItemIcon>
@@ -130,30 +146,37 @@ export default function Sidebar(props) {
 
   return (
     <div className={classes.root}>
-      <Drawer
-        variant="permanent"
-        classes={{
-          paper: clsx(
-            classes.drawerPaper,
-            !props.open && classes.drawerPaperClose
-          )
-        }}
-        open={props.open}
-      >
-        <div className={classes.toolbarIcon}>
-          <IconButton onClick={props.handleDrawerClose}>
-            <ChevronLeftIcon />
-          </IconButton>
-        </div>
-        <Divider />
-        <List>{menuItems}</List>
-        <ListItem button={true} className={classes.settings}>
-          <ListItemIcon>
-            <SettingsIcon />
-          </ListItemIcon>
-          <ListItemText primary="Settings" />
-        </ListItem>
-      </Drawer>
+      <Router>
+        <Drawer
+          variant="permanent"
+          classes={{
+            paper: clsx(
+              classes.drawerPaper,
+              !props.open && classes.drawerPaperClose
+            )
+          }}
+          open={props.open}
+        >
+          <div className={classes.toolbarIcon}>
+            <IconButton onClick={props.handleDrawerClose}>
+              <ChevronLeftIcon />
+            </IconButton>
+          </div>
+          <Divider />
+          <List>{menuItems}</List>
+          <ListItem
+            button={true}
+            component={Link}
+            to="/settings"
+            className={classes.settings}
+          >
+            <ListItemIcon>
+              <SettingsIcon />
+            </ListItemIcon>
+            <ListItemText primary="Settings" />
+          </ListItem>
+        </Drawer>
+      </Router>
     </div>
   );
 }
