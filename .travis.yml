@@ -7,45 +7,56 @@ addons:
 
 sudo: required
 
-language:
-  - go
-  - node
+matrix:
+  include:
+    - language: go
 
-go:
-  1.13.x
+      go:
+        1.13.x
 
-node_js:
-  - '8'
+      notifications:
+        gitter:
+          on_success: always
+          on_failure: always
+        email: truemac
 
-cache:
-  directories:
-    - node_modules
+      before_script:
+          - go get -u ./...
+          - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
+          - echo "checking linting in golang ..."
+          - golangci-lint run
+          - echo "perfect linting standards! moving ahead ..."
+          - echo "checking go format ..."
+          - diff -u <(echo -n) <(gofmt -d ./src ./tsdb)
+          - echo "perfect go format. moving ahead ..."
 
-notifications:
-  gitter:
-    on_success: always
-    on_failure: always
-  email: truemac
+      script:
+        - make build
+        - make test
+        - xvfb-run -s "-screen 0 1920x1080x16" -a make test-services
+        - make test_complete
+  
+    - language: node_js
 
-before_script:
-  - go get -u ./...
-  - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
-  - echo "checking linting in golang ..."
-  - golangci-lint run
-  - echo "perfect linting standards! moving ahead ..."
-  - echo "checking go format ..."
-  - diff -u <(echo -n) <(gofmt -d ./src ./tsdb)
-  - echo "perfect go format. moving ahead ..."
-  - npm install -g npm@latest
-  - npm install --dev
-  - npm install
-  - npm install -g eslint electron electron-packager tslint prettier
-  - cd tests/ && npm install chromedriver && cd ..
+      node_js:
+        - '10'
 
-script:
-  - make test-views-v1.0
-  - make test-views-v1.1
-  - make build
-  - make test
-  - xvfb-run -s "-screen 0 1920x1080x16" -a make test-services
-  - make test_complete
+      cache:
+        directories:
+          - node_modules
+      
+      notifications:
+        gitter:
+          on_success: always
+          on_failure: always
+        email: truemac
+      
+      before_script:
+        - npm install --dev
+        - npm install
+        - npm install -g eslint electron electron-packager tslint prettier
+        - cd tests/ && npm install chromedriver && cd ..
+
+      script:
+        - make test-views-v1.0
+        - make test-views-v1.1
