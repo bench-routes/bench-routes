@@ -22,6 +22,7 @@
   },
   "scripts": {
     "react-start": "react-scripts start",
+    "start": "react-scripts start",
     "react-build": "react-scripts build",
     "react-test": "react-scripts test",
     "build": "electron-packager . bench-routes-electron",
@@ -31,7 +32,7 @@
     "prettier-fix": "prettier --write '**/*.tsx'",
     "lint": "eslint .",
     "tlint": "tslint src/*.tsx src/**/*.tsx public/*.tsx public/**/*.tsx",
-    "start": "concurrently \"BROWSER=none npm run react-start\" \"wait-on http://localhost:3000 && electron .\"",
+    "start-electron": "concurrently \"BROWSER=none npm run react-start\" \"wait-on http://localhost:3000 && electron .\"",
     "prettier": "prettier '**/*.tsx' --list-different",
     "prim-tests": "npm run prettier && npm run lint && npm run tlint"
   },
