@@ -1,20 +1,13 @@
 import React from 'react';
 import './App.css';
-import Header from './components/layouts/Header';
-import Sidebar from './components/layouts/Sidebar';
+import BaseLayout from './components/layouts/BaseLayout';
 import Navigator from './router/Navigation';
 
 function App() {
   return (
-    <div className="App">
-      <div className="sidebar">
-        <Sidebar />
-      </div>
-      <div className="inner-component">
-        <Header />
-        <Navigator />
-      </div>
-    </div>
+    <BaseLayout>
+      <Navigator />
+    </BaseLayout>
   );
 }
 

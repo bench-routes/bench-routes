@@ -1,10 +1,17 @@
 # Bench-routes
 
 [![Build Status](https://travis-ci.com/zairza-cetb/bench-routes.svg?branch=master)](https://travis-ci.com/zairza-cetb/bench-routes)
+[![Go Report Card](https://goreportcard.com/badge/github.com/zairza-cetb/bench-routes)](https://goreportcard.com/report/github.com/zairza-cetb/bench-routes)
 [![Gitter](https://img.shields.io/badge/join%20discussions%20on%20gitter-%23benchroutes-green/)](https://gitter.im/bench-routes/community#)
 
 Bench-routes is a highly scalable network benchmarking, routes performance and monitoring tool, that monitors in regular intervals the state
-of the server, running as a daemon process. For more information, read the [docs](https://docs.google.com/document/d/1jGfc2eXvToRL9anzosTLQ4zJ7fdFxMGfaiDv2BYHEvw/edit?usp=sharing)
+of the server, running as a daemon process.
+
+#### Dataflow
+
+![Screenshot from 2020-03-21 20-09-00](https://user-images.githubusercontent.com/33792202/77228928-b139e900-6bb0-11ea-877b-54afffd2aa53.png)
+
+**For more information, read the [docs](https://docs.google.com/document/d/1jGfc2eXvToRL9anzosTLQ4zJ7fdFxMGfaiDv2BYHEvw/edit?usp=sharing)**
 
 ### Read the complete idea and approach [here](https://github.com/zairza-cetb/bench-routes/blob/master/approach.md).
 
@@ -49,3 +56,25 @@ Follow the commands to make the development process easier:
 4. Complete testing include building for all OSs out there: `make test_complete`
 5. Cleaning up the residual files: `make clean`
 6. *(optional)* Check linting (assuming [golangci-lint](https://github.com/golangci/golangci-lint#install) is installed): `make lint`
+
+## Postman Usage
+1. Download [Postman](https://www.postman.com/downloads/) and Install it.
+2. Create a new collection.
+
+### To Check Service State
+1. Add request
+2. Select method **GET**
+3. Copy and Enter below request url  
+`http://localhost:9090/service-state` 
+4. Send the request to url.
+5. This API returns the state of the services (active or passive) in real-time.
+
+### To Get Routes Summary
+1. Add request
+2. Select method **GET**
+3. Copy and Enter below request url  
+`http://localhost:9090/routes-summary` 
+4. Send the request to url.
+5. This API returns the list of all URLs/Routes that are being monitored for testing using the application.
+
+For more information, regarding usage in different languages. Visit [Bench-Routes](https://documenter.getpostman.com/view/6521254/SzRuWqq9?version=latest).

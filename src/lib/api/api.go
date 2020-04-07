@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
@@ -11,6 +12,7 @@ import (
 
 const (
 	testFilesDir = "tests/"
+	uiPathV1     = "ui-builds/v1.0/index.html"
 )
 
 // API type for implementing the API interface.
@@ -28,6 +30,13 @@ func New() *API {
 func (a *API) Home(w http.ResponseWriter, r *http.Request) {
 	msg := "ping from " + r.RemoteAddr + ", sent pong in response"
 	logger.Terminal(msg, "p")
+}
+
+// UIv1 serves the v1.0 version of user-interface of bench-routes.
+// ui-builds/v1.0 is served through this.
+func (a *API) UIv1(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("inside here")
+	http.FileServer(http.Dir(uiPathV1))
 }
 
 // TestTemplate handles template related request for testing purposes.

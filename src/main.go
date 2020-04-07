@@ -95,9 +95,17 @@ func main() {
 	api := api.New()
 	router := mux.NewRouter()
 
+	const uiPathV1 = "ui-builds/v1.0/"
 	// API endpoints.
 	{
-		router.HandleFunc("/", api.Home)
+		// static servings.
+		{
+			router.Handle("/", http.FileServer(http.Dir(uiPathV1)))
+			router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(uiPathV1+"assets/"))))
+			router.PathPrefix("/manifest.json").Handler(http.StripPrefix("/manifest.json", http.FileServer(http.Dir(uiPathV1+"/manifest.json"))))
+			router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(uiPathV1+"static/"))))
+		}
+		router.HandleFunc("/br-live-check", api.Home)
 		router.HandleFunc("/test", api.TestTemplate)
 		router.HandleFunc("/service-state", api.ServiceState)
 		router.HandleFunc("/routes-summary", api.RoutesSummary)
@@ -217,7 +225,7 @@ func main() {
 				(*c)[n].Init().Commit()
 			}
 			processChains := make(map[string]*tsdb.Chain)
-
+			fmt.Println("inside")
 			for {
 				collectionCount++
 				if collectionCount%10 != 1 { // in every blocks of 10.

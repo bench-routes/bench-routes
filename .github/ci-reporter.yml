@@ -1,0 +1,3 @@
+updateComment: true
+before: "Thank you for showing interest in this! ✨ Unfortunately, the [ build]() is failing. Here's the output:"
+after: "Please do not hesitate to ask a maintainer of the project for any kind of help!"

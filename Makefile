@@ -7,10 +7,13 @@ build:
 	go build src/main.go src/handlers.go
 	mv main bench-routes
 
-view:
+view-v1.0:
 	cd dashboard/v1.0/ && sudo npm start
 
-test-views:
+view-v1.1:
+	cd dashboard/v1.1/ && sudo npm start
+
+test-views-v1.0:
 	cd dashboard/v1.0/ && npm install
 	cd dashboard/v1.0/ && npm run lint
 	cd dashboard/v1.0/ && npm run tlint
@@ -19,6 +22,17 @@ test-views:
 	cd dashboard/v1.0/ && npm run react-build
 	cd dashboard/v1.0/ && npm run build
 	cd dashboard/v1.0/ && npm start &
+
+test-views-v1.1:
+	cd dashboard/v1.1/ && npm install
+	cd dashboard/v1.1/ && npm run lint
+	cd dashboard/v1.1/ && npm run tlint
+	cd dashboard/v1.1/ && prettier '**/*.tsx' --list-different
+	cd dashboard/v1.1/ && npm run test
+	cd dashboard/v1.1/ && npm run build
+	cd dashboard/v1.1/ && npm start &
+
+
 test-views-only:
 	cd dashboard/v1.0/ && npm run lint
 	cd dashboard/v1.0/ && npm run tlint

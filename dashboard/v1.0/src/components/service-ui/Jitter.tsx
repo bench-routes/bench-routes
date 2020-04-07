@@ -3,7 +3,7 @@ import BRConnect from '../../utils/connection';
 import { ChartOptions, Charts, ChartValues } from '../layouts/Charts';
 import Submenu from '../layouts/Submenu';
 import { Alert } from 'reactstrap';
-
+import { opts } from './publicOpts';
 const Jitter: FC<{}> = () => {
   const [chart, setChart] = useState({
     options: [ChartValues()],
@@ -12,40 +12,27 @@ const Jitter: FC<{}> = () => {
 
   const connection = new BRConnect();
 
-  const opts = (operation: string) => {
-    switch (operation) {
-      case 'start':
-        connection.signalJitterStart().then(res => {
-          if (res.data) {
-            alert('Jitter routine started');
-          }
-        });
-        break;
-      case 'stop':
-        connection.signalJitterStop().then(res => {
-          if (res.data) {
-            alert('Jitter routine stopped');
-          }
-        });
-        break;
-    }
-  };
-
   const getAddressSubmenu = (sAddressParam: string): void => {
     setChart({ options: [ChartValues()], show: false });
     connection
       .signalJitterRouteFetchAllTimeSeries(sAddressParam)
       .then((res: any) => {
-        const data: any[] = JSON.parse(res.data);
+        const data: any[] = JSON.parse(res.data) || [];
         const jitter: ChartOptions[] = [];
         const norTime: number[] = [];
         const timeStamp: string[] = [];
 
-        let inst;
-        for (inst of data) {
-          jitter.push(inst.datapoint);
-          norTime.push(inst.relative);
-          timeStamp.push(inst.timestamp);
+        if (data.length === 0) {
+          // Probably send the required information
+          // to the user via br-logger
+          console.log('No data from the url');
+        } else {
+          let inst;
+          for (inst of data) {
+            jitter.push(inst.datapoint);
+            norTime.push(inst.relative);
+            timeStamp.push(inst.timestamp);
+          }
         }
 
         const options: ChartOptions[] = [
@@ -60,13 +47,13 @@ const Jitter: FC<{}> = () => {
       <div className="btn-layout">
         <button
           className="button-operations btn btn-success"
-          onClick={() => opts('start')}
+          onClick={() => opts('start', connection, 'jitter')}
         >
           Start
         </button>
         <button
           className="button-operations btn btn-danger"
-          onClick={() => opts('stop')}
+          onClick={() => opts('stop', connection, 'jitter')}
         >
           Stop
         </button>
