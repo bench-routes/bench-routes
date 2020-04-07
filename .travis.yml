@@ -21,21 +21,24 @@ matrix:
         email: truemac
 
       before_script:
-          - go get -u ./...
-          - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
-          - echo "checking linting in golang ..."
-          - golangci-lint run
-          - echo "perfect linting standards! moving ahead ..."
-          - echo "checking go format ..."
-          - diff -u <(echo -n) <(gofmt -d ./src ./tsdb)
-          - echo "perfect go format. moving ahead ..."
+        - go get -u ./...
+        - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
+        - echo "checking linting in golang ..."
+        - golangci-lint run
+        - echo "perfect linting standards! moving ahead ..."
+        - echo "checking go format ..."
+        - diff -u <(echo -n) <(gofmt -d ./src ./tsdb)
+        - echo "perfect go format. moving ahead ..."
 
       script:
         - make build
         - make test
         - xvfb-run -s "-screen 0 1920x1080x16" -a make test-services
         - make test_complete
-  
+        # test release-bot by creating a valid release
+        - echo "testing release-bot by creating a valid release"
+        - ./shell/release-bot.sh
+
     - language: node_js
 
       node_js:
@@ -44,13 +47,13 @@ matrix:
       cache:
         directories:
           - node_modules
-      
+
       notifications:
         gitter:
           on_success: always
           on_failure: always
         email: truemac
-      
+
       before_script:
         - npm install --dev
         - npm install
