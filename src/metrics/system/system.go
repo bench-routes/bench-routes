@@ -1,4 +1,4 @@
-package main
+package system
 
 import (
 	"fmt"
@@ -38,13 +38,13 @@ func New() *SystemMetrics {
 
 // GetTotalCPUUsage returns the total CPU usage by all the
 // available cores over the previous second.
-func (s *SystemMetrics) GetTotalCPUUsage() string {
+func (s *SystemMetrics) GetTotalCPUUsage(c chan string) {
 	usage, err := gostats.Percent(time.Duration(time.Second), false)
 	if err != nil {
 		panic(err)
 	}
 
-	return fmt.Sprintf("%.2f", usage[0])
+	c <- fmt.Sprintf("%.2f", usage[0])
 }
 
 // GetTotalCPUStats returns the stats related to the CPU
@@ -68,13 +68,13 @@ type MemoryStats struct {
 }
 
 // GetVirtualMemoryStats returns the memory statistics of the host machine.
-func (s *SystemMetrics) GetVirtualMemoryStats() MemoryStats {
+func (s *SystemMetrics) GetVirtualMemoryStats(c chan MemoryStats) {
 	stats, err := gomem.VirtualMemory()
 	if err != nil {
 		panic(err)
 	}
 
-	return MemoryStats{
+	c <- MemoryStats{
 		// default is always in bytes. hence, convert into the required format.
 		Total:       stats.Total / 1000000,
 		Available:   stats.Available / 1000000,
@@ -86,12 +86,12 @@ func (s *SystemMetrics) GetVirtualMemoryStats() MemoryStats {
 
 // DiskStats statistics for information related to the disk.
 type DiskStats struct {
-	DiskIO int    `json:"diskIO"`
-	Cached uint64 `json:"cached"`
+	DiskIO int `json:"diskIO"`
+	Cached int `json:"cached"`
 }
 
 // GetDiskIOStats returns the disk stats: IO per sec and cached volume.
-func (s *SystemMetrics) GetDiskIOStats() DiskStats {
+func (s *SystemMetrics) GetDiskIOStats(c chan DiskStats) {
 	before, err := disk.Get()
 	if err != nil {
 		panic(err)
@@ -104,9 +104,31 @@ func (s *SystemMetrics) GetDiskIOStats() DiskStats {
 		panic(err)
 	}
 
-	return DiskStats{
+	c <- DiskStats{
 		// default is always in bytes. hence, convert into the required format.
 		DiskIO: (int(now.Used) - int(before.Used)) / 1000, // in kilo-bytes
-		Cached: now.Cached / 1000000,                      // mega-bytes
+		Cached: int(now.Cached / 1000000),                 // mega-bytes
 	}
+}
+
+// Encode encodes the blocks into format that can be consumed
+// by the tsdb module.
+func (s *SystemMetrics) Encode(block interface{}) string {
+	switch node := block.(type) {
+	case DiskStats:
+		return fmt.Sprintf("%d|%d", node.DiskIO, node.Cached)
+	case MemoryStats:
+		return fmt.Sprintf("%d|%d|%d|%f|%d",
+			node.Total, node.Available, node.Used, node.UsedPercent, node.Free,
+		)
+	case string:
+		return node
+	}
+
+	data, ok := block.(string)
+	if !ok {
+		panic(fmt.Sprintf("Invalid block type: %v", block))
+	}
+
+	return data
 }
