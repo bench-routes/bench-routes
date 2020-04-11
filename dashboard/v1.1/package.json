@@ -64,7 +64,7 @@
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-react": "^7.16.0",
     "eslint-plugin-react-hooks": "^1.7.0",
-    "husky": "^3.0.9",
+    "husky": "^4.2.5",
     "prettier": "^1.18.2",
     "tslint": "^5.20.0",
     "tslint-react": "^4.1.0",
