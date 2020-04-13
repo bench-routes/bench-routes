@@ -20,6 +20,8 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/api"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
+	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/metrics/process"
@@ -40,7 +42,6 @@ var (
 )
 
 func main() {
-
 	if len(os.Args) > 2 && os.Args[2] != "" {
 		enableProcessCollection, _ = strconv.ParseBool(os.Args[2])
 		port = ":" + os.Args[1]
@@ -48,13 +49,16 @@ func main() {
 		port = ":" + os.Args[1]
 	}
 
-	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-c
-		cleanup()
-		os.Exit(0)
-	}()
+	intervals := conf.Config.Interval
+
+	service := struct {
+		Ping   *ping.Ping
+		Jitter *jitter.Jitter
+	}{
+		Ping:   ping.New(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, utils.Pingc),
+		Jitter: jitter.New(conf, jitter.TestInterval{OfType: intervals[0].Type, Duration: *intervals[1].Duration}, utils.Pingc),
+	}
+
 	logger.Terminal("initializing...", "p")
 	conf = parser.New(utils.ConfigurationFilePath)
 	conf.Load().Validate()
@@ -124,6 +128,10 @@ func main() {
 			os.Exit(1)
 		}
 
+		format := func(b bool) []byte {
+			return []byte(strconv.FormatBool(b))
+		}
+
 		// capture client request for enabling series of responses unless its killed
 		for {
 			messageType, message, err := ws.ReadMessage()
@@ -149,11 +157,11 @@ func main() {
 			switch sig {
 			// ping
 			case "force-start-ping":
-				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerPingGeneral("start")))); e != nil {
+				if e := ws.WriteMessage(1, format(service.Ping.Iterate("start"))); e != nil {
 					panic(e)
 				}
 			case "force-stop-ping":
-				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerPingGeneral("stop")))); e != nil {
+				if e := ws.WriteMessage(1, format(service.Ping.Iterate("stop"))); e != nil {
 					panic(e)
 				}
 
@@ -169,11 +177,11 @@ func main() {
 
 				// jitter
 			case "force-start-jitter":
-				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerJitterGeneral("start")))); e != nil {
+				if e := ws.WriteMessage(1, format(service.Jitter.Iterate("start"))); e != nil {
 					panic(e)
 				}
 			case "force-stop-jitter":
-				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerJitterGeneral("stop")))); e != nil {
+				if e := ws.WriteMessage(1, format(service.Jitter.Iterate("start"))); e != nil {
 					panic(e)
 				}
 
@@ -313,40 +321,45 @@ func main() {
 		time.Sleep(time.Duration(time.Minute * 3))
 	}()
 
-	logger.Terminal(http.ListenAndServe(port, cors.Default().Handler(router)).Error(), "f")
-}
+	// Reset services.
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		logger.Terminal(fmt.Sprintf("Alive %d goroutines", runtime.NumGoroutine()), "p")
+		conf.Refresh()
+		values := reflect.ValueOf(conf.Config.UtilsConf.ServicesSignal)
+		typeOfServiceState := values.Type()
 
-func cleanup() {
-	logger.Terminal(fmt.Sprintf("Alive %d goroutines", runtime.NumGoroutine()), "p")
-	conf.Refresh()
-	values := reflect.ValueOf(conf.Config.UtilsConf.ServicesSignal)
-	typeOfServiceState := values.Type()
+		type serviceState struct {
+			service string
+			state   string
+		}
 
-	type serviceState struct {
-		service string
-		state   string
-	}
-
-	var serviceStateValues []serviceState
-	for i := 0; i < values.NumField(); i++ {
-		n := serviceState{service: typeOfServiceState.Field(i).Name, state: values.Field(i).Interface().(string)}
-		serviceStateValues = append(serviceStateValues, n)
-	}
-	for _, node := range serviceStateValues {
-		if node.state == "active" {
-			switch node.service {
-			case "Ping":
-				HandlerPingGeneral("stop")
-			case "FloodPing":
-				HandlerFloodPingGeneral("stop")
-			case "Jitter":
-				HandlerJitterGeneral("stop")
-			case "ReqResDelayMonitoring":
-				HandleReqResGeneral("stop")
+		var serviceStateValues []serviceState
+		for i := 0; i < values.NumField(); i++ {
+			n := serviceState{service: typeOfServiceState.Field(i).Name, state: values.Field(i).Interface().(string)}
+			serviceStateValues = append(serviceStateValues, n)
+		}
+		for _, node := range serviceStateValues {
+			if node.state == "active" {
+				switch node.service {
+				case "Ping":
+					service.Ping.Iterate("stop")
+				case "FloodPing":
+					HandlerFloodPingGeneral("stop")
+				case "Jitter":
+					service.Jitter.Iterate("stop")
+				case "ReqResDelayMonitoring":
+					HandleReqResGeneral("stop")
+				}
 			}
 		}
-	}
-	logger.Terminal(fmt.Sprintf("Alive %d goroutines after cleaning up.", runtime.NumGoroutine()), "p")
+		logger.Terminal(fmt.Sprintf("Alive %d goroutines after cleaning up.", runtime.NumGoroutine()), "p")
+		os.Exit(0)
+	}()
+
+	logger.Terminal(http.ListenAndServe(port, cors.Default().Handler(router)).Error(), "f")
 }
 
 func initialise(wg *sync.WaitGroup, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
