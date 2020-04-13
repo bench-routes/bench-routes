@@ -50,7 +50,7 @@ test: build
 
 test-services: build
 	./bench-routes &
-	cd tests && yarn install
+	cd tests && yarn add .
 	yarn add -g mocha
 	mocha tests/browser.js
 
