@@ -17,19 +17,22 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
-	"github.com/zairza-cetb/bench-routes/src/collector/process"
 	"github.com/zairza-cetb/bench-routes/src/lib/api"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/metrics/process"
+	sysMetrics "github.com/zairza-cetb/bench-routes/src/metrics/system"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 var (
-	port                    = ":9090" // default listen and serve at 9090
-	enableProcessCollection = false   // default collection of process metrics in host of bench-routes
-	upgrader                = websocket.Upgrader{
+	port                        = ":9090" // default listen and serve at 9090
+	enableProcessCollection     = true    // default collection of process metrics in host of bench-routes
+	processCollectionScrapeTime = time.Second * 5
+	systemCollectionScrapeTime  = time.Second * 10
+	upgrader                    = websocket.Upgrader{
 		ReadBufferSize:  4096,
 		WriteBufferSize: 4096,
 	}
@@ -208,16 +211,67 @@ func main() {
 		}
 	})
 
+	go func() {
+		var (
+			metrics = sysMetrics.New()
+		)
+
+		type metric struct {
+			cpu    string
+			memory sysMetrics.MemoryStats
+			disk   sysMetrics.DiskStats
+		}
+
+		combine := func(cpu, memory, disk string) string {
+			return cpu + "|" + memory + "|" + disk
+		}
+
+		chain := tsdb.NewChain("storage/system.json")
+		chain.Init().Commit()
+
+		for {
+			// collections for cpu, memory and disk run independently and are
+			// time dependent. Hence, running these serailly will take more
+			// time than the actual `systemCollectionScrapeTime`. Hence, the
+			// best way is to run them parallely and get datas via channels,
+			// such that systemCollectionScrapeTime >= duration(cpu|memory|disk)
+			// will meet excepted systemCollectionScrapeTime. Anything other
+			// than this will be inaccurate.
+			cpu := make(chan string)
+			memory := make(chan sysMetrics.MemoryStats)
+			disk := make(chan sysMetrics.DiskStats)
+
+			go metrics.GetTotalCPUUsage(cpu)
+			go metrics.GetVirtualMemoryStats(memory)
+			go metrics.GetDiskIOStats(disk)
+
+			data := &metric{
+				cpu:    <-cpu,
+				memory: <-memory,
+				disk:   <-disk,
+			}
+
+			encoded := combine(
+				metrics.Encode(data.cpu), metrics.Encode(data.memory), metrics.Encode(data.disk),
+			)
+
+			block := tsdb.GetNewBlock("sys", encoded)
+
+			chain.Append(*block).Commit()
+
+			time.Sleep(systemCollectionScrapeTime)
+		}
+	}()
+
 	if enableProcessCollection {
 		go func() {
-			const (
-				path           = "collector-store/"
-				scrapeDuration = time.Second * 3 // default scrape duration for process metrics.
-				// TODO: accept scrape-duration for process metrics via args.
-			)
 			var (
+				path           = "collector-store/"
+				scrapeDuration = processCollectionScrapeTime // default scrape duration for process metrics.
+				// TODO: accept scrape-duration for process metrics via args.
+
 				wg              sync.WaitGroup
-				buffer          = process.NewProcessReader()
+				buffer          = process.New()
 				collectionCount = 0
 			)
 			assignChaintoMap := func(c *map[string]*tsdb.Chain, n, path string) {
@@ -225,7 +279,6 @@ func main() {
 				(*c)[n].Init().Commit()
 			}
 			processChains := make(map[string]*tsdb.Chain)
-			fmt.Println("inside")
 			for {
 				collectionCount++
 				if collectionCount%10 != 1 { // in every blocks of 10.
@@ -244,16 +297,22 @@ func main() {
 						p := fmt.Sprintf("%s%s.json", path, ps.FilteredCommand)
 						assignChaintoMap(&processChains, ps.FilteredCommand, p)
 					}
-					b := *tsdb.GetNewBlock("ps", ps.Encode())
-					processChains[ps.FilteredCommand].Append(b).Commit()
+					b := tsdb.GetNewBlock("ps", ps.Encode())
+					processChains[ps.FilteredCommand].Append(*b).Commit()
 					wg.Done()
 				}
-				runtime.GC()
 				wg.Wait()
 				time.Sleep(scrapeDuration)
 			}
 		}()
 	}
+
+	// clean tsdb blocks in regular intervals.
+	go func() {
+		runtime.GC()
+		time.Sleep(time.Duration(time.Minute * 3))
+	}()
+
 	logger.Terminal(http.ListenAndServe(port, cors.Default().Handler(router)).Error(), "f")
 }
 
