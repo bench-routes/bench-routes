@@ -79,7 +79,7 @@ Follow the commands to make the development process easier:
 
 For more information, regarding usage in different languages. Visit [Bench-Routes](https://documenter.getpostman.com/view/6521254/SzRuWqq9?version=latest).
 
-## GSSoC'20   [<img src="https://img.shields.io/badge/GSSOC-20-orange?style=for-the-badge">](https://www.gssoc.tech/)<br />
+## GSSoC'20   
 **Bench-routes** has been selected at [GirlScript Summer of Code 2020](https://www.gssoc.tech/)!!! -a three months long Open Source program conducted by [GirlScript Foundation](https://www.girlscript.tech/home).
 
 ### 👨 Project Owner
