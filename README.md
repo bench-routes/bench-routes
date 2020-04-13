@@ -79,14 +79,14 @@ Follow the commands to make the development process easier:
 
 For more information, regarding usage in different languages. Visit [Bench-Routes](https://documenter.getpostman.com/view/6521254/SzRuWqq9?version=latest).
 
-### GSSoC'20
+## GSSoC'20
 **Bench-routes** has been selected at [GirlScript Summer of Code 2020](https://www.gssoc.tech/)!!! -a three months long Open Source program conducted by [GirlScript Foundation](https://www.girlscript.tech/home).
 
-#### 👨 Project Owner
+### 👨 Project Owner
 
 - Harkishen Singh <p>[<img src="https://img.icons8.com/windows/32/000000/github-2.png" display = "inline-block">](https://github.com/Harkishen-Singh) [<img src="https://img.icons8.com/ios-glyphs/30/000000/linkedin-2.png"/>](https://www.linkedin.com/in/harkishen-singh/)</p>
 
-#### 👬  Mentors
+### 👬  Mentors
 
 - Aquib Baig <p>[<img src="https://img.icons8.com/windows/32/000000/github-2.png" display = "inline-block">](https://github.com/aquibbaig) [<img src="https://img.icons8.com/ios-glyphs/30/000000/linkedin-2.png"/>](https://www.linkedin.com/in/baigaquib/)</p>
 
@@ -98,7 +98,7 @@ For more information, regarding usage in different languages. Visit [Bench-Route
 
 Feel free to ask your queries!! 🙌
 
-#### Slack Channel
+### Slack Channel
 
 - [#proj_bench-routes](https://app.slack.com/client/TRN1H1V43/CUCKG6R0V)
 
