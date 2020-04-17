@@ -94,9 +94,9 @@ For more information, regarding usage in different languages. Visit [Bench-Route
 
 - Ganesh Patro (ganeshpatro321@gmail.com) 
 
-- Muskan Khedia (trivedivatsal005@gmail.com) 
+- Muskan Khedia (muskan.khedia2000@gmail.com) 
 
-- Ankit Jena (trivedivatsal005@gmail.com)
+- Ankit Jena (ankitjena13@gmail.com)
 
 - Marut Pandya (pandyamarut@gmail.com)
 
