@@ -86,24 +86,18 @@ For more information, regarding usage in different languages. Visit [Bench-Route
 ### 👬  Mentors
 
 - Harkishen Singh (harkishensingh@hotmail.com)
-
 - Aquib Baig (aquibbaig97@gmail.com)
-
 - Ganesh Patro (ganeshpatro321@gmail.com) 
-
 - Muskan Khedia (muskan.khedia2000@gmail.com) 
-
 - Ankit Jena (ankitjena13@gmail.com)
-
 - Marut Pandya (pandyamarut@gmail.com)
-
 - Vatsal Trivedi (trivedivatsal005@gmail.com )
 
 Feel free to ask your queries!! 🙌
 
 ### Gitter Channel
 
-- [#proj_bench-routes](https://gitter.im/bench-routes/community)
+- [#proj_bench_routes => bench-routes/community](https://gitter.im/bench-routes/community)
 
 
 
