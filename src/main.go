@@ -31,7 +31,7 @@ import (
 
 var (
 	port                        = ":9090" // default listen and serve at 9090
-	enableProcessCollection     = true    // default collection of process metrics in host of bench-routes
+	enableProcessCollection     = false   // default collection of process metrics in host of bench-routes
 	processCollectionScrapeTime = time.Second * 5
 	systemCollectionScrapeTime  = time.Second * 10
 	upgrader                    = websocket.Upgrader{
@@ -39,6 +39,10 @@ var (
 		WriteBufferSize: 4096,
 	}
 	conf *parser.YAMLBenchRoutesType
+)
+
+const (
+	uiPathV1 = "ui-builds/v1.0/"
 )
 
 func main() {
@@ -49,6 +53,8 @@ func main() {
 		port = ":" + os.Args[1]
 	}
 
+	conf = parser.New(utils.ConfigurationFilePath)
+	conf.Load().Validate()
 	intervals := conf.Config.Interval
 
 	service := struct {
@@ -60,8 +66,6 @@ func main() {
 	}
 
 	logger.Terminal("initializing...", "p")
-	conf = parser.New(utils.ConfigurationFilePath)
-	conf.Load().Validate()
 
 	var ConfigURLs []string
 	setDefaultServicesState(conf)
@@ -95,28 +99,8 @@ func main() {
 	msg := "initial chain formation time: " + time.Since(p).String()
 	logger.Terminal(msg, "p")
 
-	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
-	// required resources for the application is up and healthy.
-	logger.Terminal("Bench-routes is up and running", "p")
-
 	api := api.New()
 	router := mux.NewRouter()
-
-	const uiPathV1 = "ui-builds/v1.0/"
-	// API endpoints.
-	{
-		// static servings.
-		{
-			router.Handle("/", http.FileServer(http.Dir(uiPathV1)))
-			router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(uiPathV1+"assets/"))))
-			router.PathPrefix("/manifest.json").Handler(http.StripPrefix("/manifest.json", http.FileServer(http.Dir(uiPathV1+"/manifest.json"))))
-			router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(uiPathV1+"static/"))))
-		}
-		router.HandleFunc("/br-live-check", api.Home)
-		router.HandleFunc("/test", api.TestTemplate)
-		router.HandleFunc("/service-state", api.ServiceState)
-		router.HandleFunc("/routes-summary", api.RoutesSummary)
-	}
 
 	// Persistent connection for real-time updates between UI and the service.
 	router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
@@ -264,9 +248,7 @@ func main() {
 			)
 
 			block := tsdb.GetNewBlock("sys", encoded)
-
 			chain.Append(*block).Commit()
-
 			time.Sleep(systemCollectionScrapeTime)
 		}
 	}()
@@ -359,7 +341,25 @@ func main() {
 		os.Exit(0)
 	}()
 
+	// API endpoints.
+	{
+		// static servings.
+		{
+			router.Handle("/", http.FileServer(http.Dir(uiPathV1)))
+			router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(uiPathV1+"assets/"))))
+			router.PathPrefix("/manifest.json").Handler(http.StripPrefix("/manifest.json", http.FileServer(http.Dir(uiPathV1+"/manifest.json"))))
+			router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(uiPathV1+"static/"))))
+		}
+		router.HandleFunc("/br-live-check", api.Home)
+		router.HandleFunc("/test", api.TestTemplate)
+		router.HandleFunc("/service-state", api.ServiceState)
+		router.HandleFunc("/routes-summary", api.RoutesSummary)
+	}
+
 	logger.Terminal(http.ListenAndServe(port, cors.Default().Handler(router)).Error(), "f")
+	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
+	// required resources for the application is up and healthy.
+	logger.Terminal("Bench-routes is up and running", "p")
 }
 
 func initialise(wg *sync.WaitGroup, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
