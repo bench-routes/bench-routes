@@ -78,3 +78,26 @@ Follow the commands to make the development process easier:
 5. This API returns the list of all URLs/Routes that are being monitored for testing using the application.
 
 For more information, regarding usage in different languages. Visit [Bench-Routes](https://documenter.getpostman.com/view/6521254/SzRuWqq9?version=latest).
+ 
+**Bench-routes** has been selected at :-
+1.[Rails Girls Summer of Code ](https://railsgirlssummerofcode.org/)
+2.[GirlScript Summer of Code 2020](https://www.gssoc.tech/)
+
+### 👬  Mentors
+
+- Harkishen Singh (harkishensingh@hotmail.com)
+- Aquib Baig (aquibbaig97@gmail.com)
+- Ganesh Patro (ganeshpatro321@gmail.com) 
+- Muskan Khedia (muskan.khedia2000@gmail.com) 
+- Ankit Jena (ankitjena13@gmail.com)
+- Marut Pandya (pandyamarut@gmail.com)
+- Vatsal Trivedi (trivedivatsal005@gmail.com )
+
+Feel free to ask your queries!! 🙌
+
+### Gitter Channel
+
+- [bench-routes/community](https://gitter.im/bench-routes/community)
+
+
+
