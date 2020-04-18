@@ -97,7 +97,7 @@ Feel free to ask your queries!! 🙌
 
 ### Gitter Channel
 
-- [#proj_bench_routes => bench-routes/community](https://gitter.im/bench-routes/community)
+- [bench-routes/community](https://gitter.im/bench-routes/community)
 
 
 
