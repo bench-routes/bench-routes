@@ -83,9 +83,6 @@ For more information, regarding usage in different languages. Visit [Bench-Route
 1.[Rails Girls Summer of Code ](https://railsgirlssummerofcode.org/)
 2.[GirlScript Summer of Code 2020](https://www.gssoc.tech/)
 
-### 👨 Project Owner
-- Harkishen Singh <p>[<img src="https://img.icons8.com/windows/32/000000/github-2.png" display = "inline-block">](https://github.com/Harkishen-Singh) [<img src="https://img.icons8.com/ios-glyphs/30/000000/linkedin-2.png"/>](https://www.linkedin.com/in/harkishen-singh/)</p>
-
 ### 👬  Mentors
 
 - Harkishen Singh (harkishensingh@hotmail.com)
