@@ -37,7 +37,7 @@ func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval,
 
 // Iterate iterates over the local-configuration file to keep state
 // of the jitter service in sync with the local configuration.
-// It is responbile for stopping the service without damaging the currently
+// It is responsible for stopping the service without damaging the currently
 // calculated samples.
 func (ps *Jitter) Iterate(signal string) bool {
 	// Get latest service state settings
@@ -49,15 +49,12 @@ func (ps *Jitter) Iterate(signal string) bool {
 	switch signal {
 	case "start":
 		if pingServiceState == "passive" {
-
 			conf.Config.UtilsConf.ServicesSignal.Jitter = "active"
 			_, e := conf.Write()
 			if e != nil {
 				panic(e)
 			}
-			go func() {
-				ps.setConfigurations()
-			}()
+			go ps.setConfigurations()
 			return true
 		}
 		return true
@@ -75,11 +72,11 @@ func (ps *Jitter) Iterate(signal string) bool {
 }
 
 func (ps *Jitter) setConfigurations() {
-	pingConfig := ps.localConfig.Config.Routes
-	pingInterval := ps.scrapeInterval
+	config := ps.localConfig.Config.Routes
+	interval := ps.scrapeInterval
 
 	urlStack := make(map[string]string)
-	for _, route := range pingConfig {
+	for _, route := range config {
 		url := route.URL
 		urlHash := utils.GetHash(url)
 		// maintain urls uniquely
@@ -89,7 +86,7 @@ func (ps *Jitter) setConfigurations() {
 		}
 	}
 
-	ps.perform(urlStack, pingInterval)
+	ps.perform(urlStack, interval)
 }
 
 func (ps *Jitter) perform(urlStack map[string]string, pingInterval TestInterval) {
@@ -139,7 +136,7 @@ func (ps *Jitter) perform(urlStack map[string]string, pingInterval TestInterval)
 
 func (ps *Jitter) jitter(urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
 	chain := ps.chain
-	tsdbNameHash = utils.PathPing + "/" + "chunk_ping_" + tsdbNameHash + ".json"
+	tsdbNameHash = utils.PathJitter + "/" + "chunk_jitter_" + tsdbNameHash + ".json"
 
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {
@@ -152,12 +149,10 @@ func (ps *Jitter) jitter(urlRaw string, packets int, tsdbNameHash string, wg *sy
 	result := *scrap.CLIPingScrap(resp)
 	newBlock := *tsdb.GetNewBlock("jitter", getNormalizedBlockString(result))
 	urlExists := false
-
 	for index := range chain {
 		if chain[index].Path == tsdbNameHash {
 			urlExists = true
-			chain[index] = chain[index].Append(newBlock)
-			chain[index].Commit()
+			chain[index].Append(newBlock).Commit()
 			break
 		}
 	}

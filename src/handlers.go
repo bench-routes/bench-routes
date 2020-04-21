@@ -124,34 +124,34 @@ func HandleReqResGeneral(signal string) bool {
 	return false
 }
 
-//HandlerFloodPingGeneral handles the flood-ping route
-func HandlerFloodPingGeneral(signal string) bool {
-	// Refresh conf with latest update
-	conf.Refresh()
-	serviceState := conf.Config.UtilsConf.ServicesSignal.FloodPing
-
-	switch signal {
-	case "start":
-		if serviceState == "passive" {
-			conf.Config.UtilsConf.ServicesSignal.FloodPing = "active"
-			_, e := conf.Write()
-			if e != nil {
-				panic(e)
-			}
-			go func() {
-				handlers.HandleFloodPingStart(conf, serviceState)
-			}()
-			return true
-		}
-	case "stop":
-		conf.Config.UtilsConf.ServicesSignal.FloodPing = "passive"
-		_, e := conf.Write()
-		if e != nil {
-			panic(e)
-		}
-		return true
-	default:
-		logger.Terminal("invalid signal", "f")
-	}
-	return false
-}
+////HandlerFloodPingGeneral handles the flood-ping route
+//func HandlerFloodPingGeneral(signal string) bool {
+//	// Refresh conf with latest update
+//	conf.Refresh()
+//	serviceState := conf.Config.UtilsConf.ServicesSignal.FloodPing
+//
+//	switch signal {
+//	case "start":
+//		if serviceState == "passive" {
+//			conf.Config.UtilsConf.ServicesSignal.FloodPing = "active"
+//			_, e := conf.Write()
+//			if e != nil {
+//				panic(e)
+//			}
+//			go func() {
+//				handlers.HandleFloodPingStart(conf, serviceState)
+//			}()
+//			return true
+//		}
+//	case "stop":
+//		conf.Config.UtilsConf.ServicesSignal.FloodPing = "passive"
+//		_, e := conf.Write()
+//		if e != nil {
+//			panic(e)
+//		}
+//		return true
+//	default:
+//		logger.Terminal("invalid signal", "f")
+//	}
+//	return false
+//}

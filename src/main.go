@@ -57,20 +57,11 @@ func main() {
 	conf.Load().Validate()
 	intervals := conf.Config.Interval
 
-	service := struct {
-		Ping   *ping.Ping
-		Jitter *jitter.Jitter
-	}{
-		Ping:   ping.New(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, utils.Pingc),
-		Jitter: jitter.New(conf, jitter.TestInterval{OfType: intervals[0].Type, Duration: *intervals[1].Duration}, utils.Pingc),
-	}
-
 	logger.Terminal("initializing...", "p")
-
 	var ConfigURLs []string
 	setDefaultServicesState(conf)
 
-	// Build TSDB chain
+	// Build TSDB chain.
 	for _, r := range conf.Config.Routes {
 		found := false
 		for _, i := range ConfigURLs {
@@ -98,6 +89,16 @@ func main() {
 	wg.Wait()
 	msg := "initial chain formation time: " + time.Since(p).String()
 	logger.Terminal(msg, "p")
+
+	service := struct {
+		Ping   *ping.Ping
+		Jitter *jitter.Jitter
+		PingF  *ping.FloodPing
+	}{
+		Ping:   ping.New(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, utils.Pingc),
+		Jitter: jitter.New(conf, jitter.TestInterval{OfType: intervals[0].Type, Duration: *intervals[1].Duration}, utils.Jitterc),
+		PingF:  ping.Newf(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, utils.FPingc, conf.Config.Password),
+	}
 
 	api := api.New()
 	router := mux.NewRouter()
@@ -136,7 +137,7 @@ func main() {
 
 			sig := inStream[0] // Signal
 			msg := "type: " + strconv.Itoa(messageType) + " \n message: " + sig
-			logger.Terminal(msg, "p")
+			logger.File(msg, "p")
 			// generate appropriate signals from incoming messages
 			switch sig {
 			// ping
@@ -151,11 +152,11 @@ func main() {
 
 				// flood-ping
 			case "force-start-flood-ping":
-				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerFloodPingGeneral("start")))); e != nil {
+				if e := ws.WriteMessage(1, format(service.PingF.Iteratef("start"))); e != nil {
 					panic(e)
 				}
 			case "force-stop-flood-ping":
-				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandlerFloodPingGeneral("stop")))); e != nil {
+				if e := ws.WriteMessage(1, format(service.PingF.Iteratef("stop"))); e != nil {
 					panic(e)
 				}
 
@@ -189,14 +190,10 @@ func main() {
 				// Queries
 			case "Qping-route":
 				querier(ws, inStream, qPingRoute{})
-
 			case "Qjitter-route":
 				querier(ws, inStream, qJitterRoute{})
-
 			case "Qflood-ping-route":
 				querier(ws, inStream, qFloodPingRoute{})
-
-			// Querier signal for Request-response delay
 			case "Qrequest-response-delay-route":
 				querier(ws, inStream, qReqResDelayRoute{})
 			}
@@ -329,7 +326,7 @@ func main() {
 				case "Ping":
 					service.Ping.Iterate("stop")
 				case "FloodPing":
-					HandlerFloodPingGeneral("stop")
+					service.PingF.Iteratef("stop")
 				case "Jitter":
 					service.Jitter.Iterate("stop")
 				case "ReqResDelayMonitoring":
@@ -364,7 +361,7 @@ func main() {
 
 func initialise(wg *sync.WaitGroup, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
 	msg := "forming " + Type + " chain ... "
-	logger.Terminal(msg, "p")
+	logger.File(msg, "p")
 	config, ok := conf.([]string)
 	if ok {
 		for _, v := range config {
@@ -382,7 +379,6 @@ func initialise(wg *sync.WaitGroup, chain *[]*tsdb.Chain, conf interface{}, base
 	}
 	if configRes, ok := conf.([]parser.Routes); ok {
 		for _, v := range configRes {
-			fmt.Println(v.URL + v.Route)
 			path := basePath + "/chunk_" + Type + "_" + filters.RouteDestroyer(v.URL+"_"+v.Route) + ".json"
 			resp := &tsdb.Chain{
 				Path:           path,

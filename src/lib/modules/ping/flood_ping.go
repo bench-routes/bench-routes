@@ -12,11 +12,6 @@ import (
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
-func getNormalizedBlockStringFlood(v utils.TypeFloodPingScrap) string {
-	return fToS(v.Min) + tsdb.BlockDataSeparator + fToS(v.Avg) + tsdb.BlockDataSeparator +
-		fToS(v.Max) + tsdb.BlockDataSeparator + fToS(v.Mdev) + tsdb.BlockDataSeparator + fToS(v.PacketLoss)
-}
-
 // FloodPing is the structure that implements the Ping service.
 type FloodPing struct {
 	localConfig    *parser.YAMLBenchRoutesType
@@ -165,6 +160,11 @@ func (ps *FloodPing) ping(urlRaw string, packets int, tsdbNameHash string, wg *s
 		panic("faulty hashing! impossible to look for a hash match.")
 	}
 	wg.Done()
+}
+
+func getNormalizedBlockStringFlood(v utils.TypeFloodPingScrap) string {
+	return fToS(v.Min) + tsdb.BlockDataSeparator + fToS(v.Avg) + tsdb.BlockDataSeparator +
+		fToS(v.Max) + tsdb.BlockDataSeparator + fToS(v.Mdev) + tsdb.BlockDataSeparator + fToS(v.PacketLoss)
 }
 
 //// HandleFloodPing is the main handler for flood ping operations
