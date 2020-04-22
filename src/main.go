@@ -145,41 +145,41 @@ func main() {
 			switch sig {
 			// ping
 			case "force-start-ping":
-				if e := ws.WriteMessage(1, format(service.Ping.Iterate("start"))); e != nil {
+				if e := ws.WriteMessage(1, format(service.Ping.Iterate("start", false))); e != nil {
 					panic(e)
 				}
 			case "force-stop-ping":
-				if e := ws.WriteMessage(1, format(service.Ping.Iterate("stop"))); e != nil {
+				if e := ws.WriteMessage(1, format(service.Ping.Iterate("stop", false))); e != nil {
 					panic(e)
 				}
 
 				// flood-ping
 			case "force-start-flood-ping":
-				if e := ws.WriteMessage(1, format(service.PingF.Iteratef("start"))); e != nil {
+				if e := ws.WriteMessage(1, format(service.PingF.Iteratef("start", false))); e != nil {
 					panic(e)
 				}
 			case "force-stop-flood-ping":
-				if e := ws.WriteMessage(1, format(service.PingF.Iteratef("stop"))); e != nil {
+				if e := ws.WriteMessage(1, format(service.PingF.Iteratef("stop", false))); e != nil {
 					panic(e)
 				}
 
 				// jitter
 			case "force-start-jitter":
-				if e := ws.WriteMessage(1, format(service.Jitter.Iterate("start"))); e != nil {
+				if e := ws.WriteMessage(1, format(service.Jitter.Iterate("start", false))); e != nil {
 					panic(e)
 				}
 			case "force-stop-jitter":
-				if e := ws.WriteMessage(1, format(service.Jitter.Iterate("start"))); e != nil {
+				if e := ws.WriteMessage(1, format(service.Jitter.Iterate("start", false))); e != nil {
 					panic(e)
 				}
 
 				// request-monitor-monitoring
 			case "force-start-req-res-monitoring":
-				if e := ws.WriteMessage(1, format(service.Monitor.Iterate("start"))); e != nil {
+				if e := ws.WriteMessage(1, format(service.Monitor.Iterate("start", false))); e != nil {
 					panic(e)
 				}
 			case "force-stop-req-res-monitoring":
-				if e := ws.WriteMessage(1, format(service.Monitor.Iterate("Stop"))); e != nil {
+				if e := ws.WriteMessage(1, format(service.Monitor.Iterate("stop", false))); e != nil {
 					panic(e)
 				}
 
@@ -327,13 +327,13 @@ func main() {
 			if node.state == "active" {
 				switch node.service {
 				case "Ping":
-					service.Ping.Iterate("stop")
+					service.Ping.Iterate("stop", false)
 				case "FloodPing":
-					service.PingF.Iteratef("stop")
+					service.PingF.Iteratef("stop", false)
 				case "Jitter":
-					service.Jitter.Iterate("stop")
+					service.Jitter.Iterate("stop", false)
 				case "ReqResDelayMonitoring":
-					service.Monitor.Iterate("stop")
+					service.Monitor.Iterate("stop", false)
 				}
 			}
 		}
