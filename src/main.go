@@ -223,9 +223,9 @@ func main() {
 
 		for {
 			// collections for cpu, memory and disk run independently and are
-			// time dependent. Hence, running these serailly will take more
+			// time dependent. Hence, running these serially will take more
 			// time than the actual `systemCollectionScrapeTime`. Hence, the
-			// best way is to run them parallely and get datas via channels,
+			// best way is to run them in parallel and get data via channels,
 			// such that systemCollectionScrapeTime >= duration(cpu|memory|disk)
 			// will meet excepted systemCollectionScrapeTime. Anything other
 			// than this will be inaccurate.
@@ -360,6 +360,23 @@ func main() {
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
 	// required resources for the application is up and healthy.
 	logger.Terminal("Bench-routes is up and running", "p")
+}
+
+type qPingRoute struct {
+	URL string `json:"url"`
+}
+
+type qFloodPingRoute struct {
+	URL string `json:"url"`
+}
+
+type qJitterRoute struct {
+	URL string `json:"url"`
+}
+
+type qReqResDelayRoute struct {
+	URL    string `json:"url"`
+	Method string `json:"method"`
 }
 
 func initialise(wg *sync.WaitGroup, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {

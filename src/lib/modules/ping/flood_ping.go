@@ -18,6 +18,7 @@ type FloodPing struct {
 	scrapeInterval TestInterval
 	chain          []*tsdb.Chain
 	password       string
+	test           bool
 }
 
 // Newf returns a Flood Ping type.
@@ -27,6 +28,7 @@ func Newf(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval
 		scrapeInterval: scrapeInterval,
 		chain:          chain,
 		password:       password,
+		test:           false,
 	}
 }
 
@@ -34,9 +36,10 @@ func Newf(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval
 // of the ping service in sync with the local configuration.
 // It is responsible for stopping the service without damaging the currently
 // calculated samples.
-func (ps *FloodPing) Iteratef(signal string) bool {
-	// Get latest service state settings
-
+func (ps *FloodPing) Iteratef(signal string, isTest bool) bool {
+	if isTest {
+		ps.test = true
+	}
 	conf := ps.localConfig
 	conf.Refresh()
 	pingServiceState := conf.Config.UtilsConf.ServicesSignal.FloodPing
@@ -149,10 +152,13 @@ func (ps *FloodPing) ping(urlRaw string, packets int, tsdbNameHash string, wg *s
 
 	c := ps.chain
 	for index := range c {
-		if c[index].Path == tsdbNameHash {
+		if c[index].Path == tsdbNameHash || ps.test {
 			urlExists = true
 			c[index] = c[index].Append(newBlock)
 			c[index].Commit()
+			if ps.test {
+				continue
+			}
 			break
 		}
 	}

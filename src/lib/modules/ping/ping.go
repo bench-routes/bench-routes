@@ -18,6 +18,7 @@ type Ping struct {
 	localConfig    *parser.YAMLBenchRoutesType
 	scrapeInterval TestInterval
 	chain          []*tsdb.Chain
+	test           bool
 }
 
 //TestInterval stores the value of the duration and the type of test
@@ -32,6 +33,7 @@ func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval,
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
 		chain:          chain,
+		test:           false,
 	}
 }
 
@@ -39,8 +41,10 @@ func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval,
 // of the ping service in sync with the local configuration.
 // It is responsible for stopping the service without damaging the currently
 // calculated samples.
-func (ps *Ping) Iterate(signal string) bool {
-	// Get latest service state settings
+func (ps *Ping) Iterate(signal string, isTest bool) bool {
+	if isTest {
+		ps.test = true
+	}
 
 	conf := ps.localConfig
 	conf.Refresh()
@@ -49,7 +53,6 @@ func (ps *Ping) Iterate(signal string) bool {
 	switch signal {
 	case "start":
 		if pingServiceState == "passive" {
-
 			conf.Config.UtilsConf.ServicesSignal.Ping = "active"
 			_, e := conf.Write()
 			if e != nil {
@@ -109,7 +112,7 @@ func (ps *Ping) perform(urlStack map[string]string, pingInterval TestInterval) {
 				var wg sync.WaitGroup
 				wg.Add(len(urlStack))
 				for _, u := range urlStack {
-					go ps.ping(u, 10, u, &wg, false)
+					go ps.ping(u, 10, u, &wg)
 				}
 				wg.Wait()
 			}
@@ -137,7 +140,7 @@ func (ps *Ping) perform(urlStack map[string]string, pingInterval TestInterval) {
 	}
 }
 
-func (ps *Ping) ping(urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
+func (ps *Ping) ping(urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup) {
 	chain := ps.chain
 	tsdbNameHash = utils.PathPing + "/" + "chunk_ping_" + tsdbNameHash + ".json"
 
@@ -154,15 +157,18 @@ func (ps *Ping) ping(urlRaw string, packets int, tsdbNameHash string, wg *sync.W
 	urlExists := false
 
 	for index := range chain {
-		if chain[index].Path == tsdbNameHash {
+		if chain[index].Path == tsdbNameHash || ps.test {
 			urlExists = true
 			chain[index] = chain[index].Append(newBlock)
 			chain[index].Commit()
+			if ps.test {
+				continue
+			}
 			break
 		}
 	}
 
-	if !urlExists && !isTest {
+	if !urlExists {
 		panic("faulty hashing! impossible to look for a hash match.")
 	}
 

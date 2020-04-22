@@ -13,41 +13,9 @@ func ValidateRoutesProp(routes []Routes) {
 		logger.Terminal("`routes` property is missing.", "f")
 	} else {
 		for i, route := range routes {
-			if route.Method == "" {
-				msg := "`method` property for route #" + strconv.Itoa(i+1) + " is missing."
-				logger.Terminal(msg, "f")
-			}
-			if route.Route == "" {
-				msg := "`route` property for route #" + strconv.Itoa(i+1) + " is missing."
-				logger.Terminal(msg, "f")
-			}
 			if route.URL == "" {
 				msg := "`url` property for route #" + strconv.Itoa(i+1) + " is missing."
 				logger.Terminal(msg, "f")
-			}
-			if len(route.Header) != 0 {
-				for j, header := range route.Header {
-					if header.OfType == "" {
-						msg := "`type` property for header #" + strconv.Itoa(j+1) + " of route " + route.Route + "is missing"
-						logger.Terminal(msg, "f")
-					}
-					if header.Value == "" {
-						msg := "`value` property for header #" + strconv.Itoa(j+1) + " of route " + route.Route + "is missing"
-						logger.Terminal(msg, "f")
-					}
-				}
-			}
-			if len(route.Params) != 0 {
-				for j, param := range route.Params {
-					if param.Name == "" {
-						msg := "`name` property for param #" + strconv.Itoa(j+1) + " of route " + route.Route + "is missing"
-						logger.Terminal(msg, "f")
-					}
-					if param.Value == "" {
-						msg := "`value` property for param #" + strconv.Itoa(j+1) + " of route " + route.Route + "is missing"
-						logger.Terminal(msg, "f")
-					}
-				}
 			}
 		}
 	}

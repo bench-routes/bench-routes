@@ -9,3 +9,6 @@ dashboard/node_modules
 collector-store
 storage
 .idea/
+
+# testfiles
+src/lib/modules/testfiles/*.json
