@@ -20,7 +20,5 @@ func TestLoad(t *testing.T) {
 	res := *inst.Config
 	if len(res.Interval) == 0 || len(res.Password) == 0 || len(res.Routes) == 0 {
 		t.Errorf("faulty load of configuration.")
-	} else {
-		t.Log(inst)
 	}
 }

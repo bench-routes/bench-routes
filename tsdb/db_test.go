@@ -56,9 +56,7 @@ func TestGetPositionalPointerNormalized(t *testing.T) {
 
 func TestSave(t *testing.T) {
 	chain := chain.Init()
-	if !chain.Commit() {
-		t.Errorf("unexpected commit behaviour")
-	}
+	chain.Commit()
 }
 
 func TestChainSequence(t *testing.T) {

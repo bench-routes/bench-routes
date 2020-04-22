@@ -53,7 +53,7 @@ type FloodPingResp struct {
 
 // Response struct
 // This is the object that we return from resp_delay module
-// Contains delay in response and the response length
+// Contains delay in monitor and the monitor length
 type Response struct {
 	Delay         int
 	ResLength     int

@@ -1,122 +1,74 @@
 package ping
 
 import (
-	"sync"
 	"testing"
+	"time"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
-
-	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 )
 
 var (
-	urls = []string{
-		"google.co.in",
-		"facebook.com",
-		"yahoo.com",
-		"youtube.com",
-	}
-	Configuration         parser.YAMLBenchRoutesType
-	ConfigurationFilePath = "../../../../local-config.yml"
-	pathPing              = "../../../../storage/ping"
-	pathFloodPing         = "../../../../storage/flood-ping"
+	configuration     *parser.YAMLBenchRoutesType
+	chainPing         []*tsdb.Chain
+	configurationPath = "../testfiles/configuration.yaml"
 )
 
-func initPingTest() {
-	Configuration.Address = ConfigurationFilePath
-	Configuration = *Configuration.Load()
+func initVars() {
+	configuration = parser.New(configurationPath)
+	configuration.Load().Validate()
 
-	var ConfigURLs []string
+	setDefaultServicesState(configuration)
 
-	// Load and build TSDB chain
-	// searching for unique URLs
-	for _, r := range Configuration.Config.Routes {
-		found := false
-		for _, i := range ConfigURLs {
-			if i == r.URL {
-				found = true
-				break
-			}
-		}
-		if !found {
-			filters.HTTPPingFilter(&r.URL)
-			ConfigURLs = append(ConfigURLs, r.URL)
-			utils.PingDBNames[r.URL] = utils.GetHash(r.URL)
-		}
-	}
-	// forming ping chain
-	for _, v := range ConfigURLs {
-		path := pathPing + "/" + "chunk_ping_" + v + ".json"
-		inst := &tsdb.Chain{
-			Path:           path,
-			Chain:          []tsdb.Block{},
-			LengthElements: 0,
-			Size:           0,
-		}
-		inst.Init().Commit()
-		// Initiate the chain
-		utils.Pingc = append(utils.Pingc, inst)
+	chainPing = []*tsdb.Chain{
+		tsdb.NewChain("../testfiles/Test_Ping_1.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_2.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_3.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_4.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_5.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_6.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_7.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_8.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_9.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_10.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_11.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_12.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_13.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_14.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_15.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_16.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_17.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_18.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_19.json").Init().Commit(),
+		tsdb.NewChain("../testfiles/Test_Ping_20.json").Init().Commit(),
 	}
 }
 
-func initFloodPingTest() {
-	// load configuration file
-	Configuration.Address = ConfigurationFilePath
-	Configuration = *Configuration.Load()
-
-	var ConfigURLs []string
-
-	// Load and build TSDB chain
-	// searching for unique URLs
-	for _, r := range Configuration.Config.Routes {
-		found := false
-		for _, i := range ConfigURLs {
-			if i == r.URL {
-				found = true
-				break
-			}
-		}
-		if !found {
-			filters.HTTPPingFilter(&r.URL)
-			ConfigURLs = append(ConfigURLs, r.URL)
-			utils.FloodPingDBNames[r.URL] = utils.GetHash(r.URL)
-		}
+// setDefaultServicesState initializes all state values to passive.
+func setDefaultServicesState(configuration *parser.YAMLBenchRoutesType) {
+	configuration.Config.UtilsConf.ServicesSignal = parser.ServiceSignals{
+		Ping:                  "passive",
+		Jitter:                "passive",
+		FloodPing:             "passive",
+		ReqResDelayMonitoring: "passive",
 	}
-	// forming ping chain
-	for _, v := range ConfigURLs {
-		path := pathFloodPing + "/" + "chunk_flood_ping_" + v + ".json"
-		inst := &tsdb.Chain{
-			Path:           path,
-			Chain:          []tsdb.Block{},
-			LengthElements: 0,
-			Size:           0,
-		}
-		inst.Init().Commit()
-		// Initiate the chain
-		utils.FPingc = append(utils.FPingc, inst)
+	if _, e := configuration.Write(); e != nil {
+		panic(e)
 	}
 }
 
-func TestHandlerPing(t *testing.T) {
-	initPingTest()
-	var wg sync.WaitGroup
-	wg.Add(len(urls))
-
-	for _, inst := range urls {
-		go HandlePing(utils.Pingc, inst, 10, "", &wg, true)
-	}
-	wg.Wait()
+func Test_module_PING(T *testing.T) {
+	initVars()
+	ping := New(configuration, TestInterval{OfType: "min", Duration: 0}, chainPing)
+	go ping.Iterate("start", true)
+	time.Sleep(time.Second * 30)
+	go ping.Iterate("stop", true)
 }
 
-func TestHandlerFloodPing(t *testing.T) {
-	initFloodPingTest()
-	var wg sync.WaitGroup
-	wg.Add(len(urls))
-
-	for _, inst := range urls {
-		go HandleFloodPing(utils.FPingc, inst, 1000, "", &wg, true, Configuration.Config.Password)
-	}
-	wg.Wait()
+func Test_module_FLOOD_PING(T *testing.T) {
+	initVars()
+	ping := Newf(configuration, TestInterval{OfType: "min", Duration: 0}, chainPing, "")
+	go ping.Iteratef("start", true)
+	time.Sleep(time.Second * 30)
+	go ping.Iteratef("stop", true)
 }

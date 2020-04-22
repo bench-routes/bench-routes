@@ -169,7 +169,7 @@ func (c *Chain) PopPreviousNBlocks(n int) (*Chain, error) {
 
 // Commit saves or commits the existing chain in the secondary memory.
 // Returns the success status
-func (c *Chain) Commit() bool {
+func (c *Chain) Commit() *Chain {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
@@ -179,7 +179,7 @@ func (c *Chain) Commit() bool {
 	if e != nil {
 		panic(e)
 	}
-	return true
+	return c
 }
 
 // GetPositionalIndexNormalized Returns block by searching the chain for the NormalizedTime
