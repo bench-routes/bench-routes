@@ -199,6 +199,8 @@ func main() {
 				querier(ws, inStream, qFloodPingRoute{})
 			case "Qrequest-monitor-delay-route":
 				querier(ws, inStream, qReqResDelayRoute{})
+			case "Qsystem-metrics":
+				querier(ws, inStream, qSysMetrics{})
 			}
 		}
 	})
@@ -212,10 +214,6 @@ func main() {
 			cpu    string
 			memory sysMetrics.MemoryStats
 			disk   sysMetrics.DiskStats
-		}
-
-		combine := func(cpu, memory, disk string) string {
-			return cpu + "|" + memory + "|" + disk
 		}
 
 		chain := tsdb.NewChain("storage/system.json")
@@ -243,7 +241,7 @@ func main() {
 				disk:   <-disk,
 			}
 
-			encoded := combine(
+			encoded := metrics.Combine(
 				metrics.Encode(data.cpu), metrics.Encode(data.memory), metrics.Encode(data.disk),
 			)
 
@@ -303,7 +301,7 @@ func main() {
 		time.Sleep(time.Duration(time.Minute * 3))
 	}()
 
-	// Reset services.
+	// Reset Services.
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -378,6 +376,8 @@ type qReqResDelayRoute struct {
 	URL    string `json:"url"`
 	Method string `json:"method"`
 }
+
+type qSysMetrics struct{}
 
 func initialise(wg *sync.WaitGroup, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
 	msg := "forming " + Type + " chain ... "
@@ -508,6 +508,10 @@ func querier(ws *websocket.Conn, inComingStream []string, route interface{}) {
 				Relative:       i,
 			})
 		}
+
+	case qSysMetrics:
+		inst := qSysMetrics{}
+
 	}
 	respond(ws, response)
 }

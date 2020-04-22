@@ -4,8 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strconv"
+	"strings"
 	"sync"
+	parse2 "text/template/parse"
+	"time"
 	"unsafe"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
@@ -80,6 +85,15 @@ type Chain struct {
 	mux            sync.Mutex
 }
 
+// ChainReadOnly is a read-only structure that contains
+// a stream of blocks from the tsdb. This is meant to
+// be used by the querier for performing read operations
+// over the time-series samples.
+type ChainReadOnly struct {
+	Path  string
+	Chain *[]Block
+}
+
 // NewChain returns a in-memory chain that implements the TSDB interface.
 func NewChain(path string) *Chain {
 	logger.File(fmt.Sprintf("creating new chain at path %s", path), "p")
@@ -89,6 +103,17 @@ func NewChain(path string) *Chain {
 		Chain:          []Block{},
 		LengthElements: 0,
 		Size:           0,
+	}
+}
+
+// ReadOnly returns a in-memory chain that implements the TSDB interface.
+func ReadOnly(path string) *ChainReadOnly {
+	logger.File(fmt.Sprintf("creating new chain at path %s", path), "p")
+	var blockStream []Block
+
+	return ChainReadOnly{
+		Path:  path,
+		Chain: &blockStream,
 	}
 }
 
@@ -207,4 +232,93 @@ func (c *Chain) GetPositionalIndexNormalized(n int64) (int, error) {
 	}
 
 	return 0, errors.New("Normalized time not found in chain")
+}
+
+// BlockStream returns the address of stream (or list)
+// of blocks from the in-memory chain.
+func (c *ChainReadOnly) BlockStream() *[]Block {
+	return c.Chain
+}
+
+// Refresh loads/reloads the chain from the secondary storage
+// which contains the latest samples/blocks.
+func (c *ChainReadOnly) Refresh() *ChainReadOnly {
+	response, e := parse(c.Path)
+	if e != nil {
+		logger.Terminal(fmt.Sprintf("error readig the chain: %s", c.Path), "f")
+	}
+
+	c.Chain = loadFromStorage(response)
+	return c
+}
+
+func parse(path string) (*string, error) {
+	res, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, errors.New("file not existed. create a new chain")
+	}
+	str := string(res)
+	return &str, nil
+}
+
+// parseToJSON converts the chain into Marshallable JSON
+func parseToJSON(a []Block) (j []byte) {
+	j, e := json.Marshal(a)
+	if e != nil {
+		panic(e)
+	}
+	return
+}
+
+func loadFromStorage(raw *string) *[]Block {
+	var inst []Block
+	b := []byte(*raw)
+	e := json.Unmarshal(b, &inst)
+	if e != nil {
+		panic(e)
+	}
+	return &inst
+}
+
+func checkAndCreatePath(path string) {
+	array := strings.Split(path, "/")
+	array = array[:len(array)-1]
+	path = strings.Join(array, "/")
+	_, err := os.Stat(path)
+	if err != nil {
+		e := os.MkdirAll(path, os.ModePerm)
+		if e != nil {
+			panic(e)
+		}
+	}
+}
+
+func saveToHDD(path string, data []byte) error {
+	checkAndCreatePath(path)
+	e := ioutil.WriteFile(path, data, 0755)
+	if e != nil {
+		return e
+	}
+	return nil
+}
+
+// GetTimeStamp returns the timestamp
+func GetTimeStampCalc() string {
+	t := time.Now()
+
+	return s(t.Year()) + "|" + s(t.Month()) + "|" + s(t.Day()) + "|" + s(t.Hour()) + "|" +
+		s(t.Minute()) + "|" + s(t.Second()) + "#" + s(milliSeconds())
+}
+
+// GetNormalizedTime returns the UnixNano time as normalized time.
+func GetNormalizedTimeCalc() int64 {
+	return time.Now().UnixNano()
+}
+
+func s(st interface{}) string {
+	return fmt.Sprintf("%v", st)
+}
+
+func milliSeconds() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }

@@ -44,7 +44,7 @@ func (a *API) TestTemplate(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, testFilesDir+"bench-routes-socket-tester.html")
 }
 
-// ServiceState handles requests related to the state of the services in
+// ServiceState handles requests related to the state of the Services in
 // the application.
 func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
 	p := parser.New(utils.ConfigurationFilePath)
