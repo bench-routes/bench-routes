@@ -4,7 +4,7 @@ update:
 
 build:
 	echo "building bench-routes ..."
-	go build src/main.go src/handlers.go
+	go build src/main.go
 	mv main bench-routes
 
 view-v1.0:
