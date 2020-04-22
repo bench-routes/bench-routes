@@ -171,11 +171,6 @@ func (ps *Jitter) jitter(urlRaw string, packets int, tsdbNameHash string, wg *sy
 	wg.Done()
 }
 
-func getNormalizedBlockString(v utils.TypePingScrap) string {
-	return fToS(v.Min) + tsdb.BlockDataSeparator + fToS(v.Avg) +
-		tsdb.BlockDataSeparator + fToS(v.Max) + tsdb.BlockDataSeparator + fToS(v.Mdev)
-}
-
 func fToS(v float64) string {
 	return strconv.FormatFloat(v, 'f', 6, 64)
 }
