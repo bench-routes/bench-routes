@@ -162,7 +162,7 @@ func (p *PDetails) Encode() string {
 	return fmt.Sprintf("%f|%f|%f|%f|%d", p.CPUUtilization, p.MemoryUtilization, p.VMS, p.RSS, p.ThreadCount)
 }
 
-// Decode decodes the blocks from tsdb to be sent as response
+// Decode decodes the blocks from tsdb to be sent as monitor
 // to the calling querier.
 func (p *PDetails) Decode(s string) DecodeType {
 	tmp := strings.Split(s, "|")

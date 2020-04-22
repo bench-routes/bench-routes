@@ -1,4 +1,4 @@
-password: your password
+password: hsinghbb
 test_interval:
 - test: ping
   type: sec
@@ -46,7 +46,7 @@ routes:
   - name: ei
     value: UTF-8
 utils:
-  response-length:
+  monitor-length:
     mode: 0
     mean: 0
   services-state:

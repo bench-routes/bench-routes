@@ -28,7 +28,7 @@ func New() *API {
 
 // Home handles the requests for the home page.
 func (a *API) Home(w http.ResponseWriter, r *http.Request) {
-	msg := "ping from " + r.RemoteAddr + ", sent pong in response"
+	msg := "ping from " + r.RemoteAddr + ", sent pong in monitor"
 	logger.Terminal(msg, "p")
 }
 

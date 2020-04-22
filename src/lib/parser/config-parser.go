@@ -2,6 +2,7 @@ package parser
 
 import (
 	"io/ioutil"
+	"sync"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"gopkg.in/yaml.v2"
@@ -17,6 +18,7 @@ type YAMLParser interface {
 
 // YAMLBenchRoutesType defines the structure type for implementing the interface
 type YAMLBenchRoutesType struct {
+	mutex   sync.RWMutex
 	Address string
 	Config  *ConfigurationBR
 }
@@ -49,10 +51,10 @@ type Routes struct {
 	Params []Params  `yaml:"params"`
 }
 
-// ResponseChangesConfig acts as a type for response-length configuration in config.yml
+// ResponseChangesConfig acts as a type for monitor-length configuration in config.yml
 type ResponseChangesConfig struct {
-	Mode *float32 `yaml:"mode"`
-	Mean *float32 `yaml:"mean"`
+	Mode float32 `yaml:"mode"`
+	Mean float32 `yaml:"mean"`
 }
 
 // ServiceSignals type for defining current running states of various services supported
@@ -66,7 +68,7 @@ type ServiceSignals struct {
 
 // UConfig type for storing utilities in config.yml as local DB
 type UConfig struct {
-	RespChanges    ResponseChangesConfig `yaml:"response-length"`
+	RespChanges    ResponseChangesConfig `yaml:"monitor-length"`
 	ServicesSignal ServiceSignals        `yaml:"services-state"`
 }
 
@@ -87,6 +89,9 @@ func New(path string) *YAMLBenchRoutesType {
 
 // Load loads the configuration file on startup.
 func (inst *YAMLBenchRoutesType) Load() *YAMLBenchRoutesType {
+	inst.mutex.RLock()
+	defer inst.mutex.RUnlock()
+
 	var yInstance ConfigurationBR
 	file, e := ioutil.ReadFile(inst.Address)
 	if e != nil {

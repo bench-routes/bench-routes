@@ -1,10 +1,5 @@
 package main
 
-import (
-	"github.com/zairza-cetb/bench-routes/src/lib/handlers"
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
-)
-
 type qPingRoute struct {
 	URL string `json:"url"`
 }
@@ -92,37 +87,37 @@ type qReqResDelayRoute struct {
 
 // HandleReqResGeneral is the handler for requests regarding
 // req-res delay and monitoring
-func HandleReqResGeneral(signal string) bool {
-	// Get latest service state settings
-	conf.Refresh()
-	reqResMonitoringServiceState := conf.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring
-
-	switch signal {
-	case "start":
-		if reqResMonitoringServiceState == "passive" {
-
-			conf.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "active"
-			_, e := conf.Write()
-			if e != nil {
-				panic(e)
-			}
-			go func() {
-				handlers.HandleReqResMonitoringStart(conf, reqResMonitoringServiceState)
-			}()
-			return true
-		}
-	case "stop":
-		conf.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "passive"
-		_, e := conf.Write()
-		if e != nil {
-			panic(e)
-		}
-		return true
-	default:
-		logger.Terminal("invalid signal", "f")
-	}
-	return false
-}
+//func HandleReqResGeneral(signal string) bool {
+//	// Get latest service state settings
+//	conf.Refresh()
+//	reqResMonitoringServiceState := conf.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring
+//
+//	switch signal {
+//	case "start":
+//		if reqResMonitoringServiceState == "passive" {
+//
+//			conf.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "active"
+//			_, e := conf.Write()
+//			if e != nil {
+//				panic(e)
+//			}
+//			go func() {
+//				handlers.HandleReqResMonitoringStart(conf, reqResMonitoringServiceState)
+//			}()
+//			return true
+//		}
+//	case "stop":
+//		conf.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "passive"
+//		_, e := conf.Write()
+//		if e != nil {
+//			panic(e)
+//		}
+//		return true
+//	default:
+//		logger.Terminal("invalid signal", "f")
+//	}
+//	return false
+//}
 
 ////HandlerFloodPingGeneral handles the flood-ping route
 //func HandlerFloodPingGeneral(signal string) bool {

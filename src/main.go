@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zairza-cetb/bench-routes/src/lib/modules/monitor"
 	"net/http"
 	"os"
 	"os/signal"
@@ -91,13 +92,15 @@ func main() {
 	logger.Terminal(msg, "p")
 
 	service := struct {
-		Ping   *ping.Ping
-		Jitter *jitter.Jitter
-		PingF  *ping.FloodPing
+		Ping    *ping.Ping
+		Jitter  *jitter.Jitter
+		PingF   *ping.FloodPing
+		Monitor *monitor.Monitor
 	}{
-		Ping:   ping.New(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, utils.Pingc),
-		Jitter: jitter.New(conf, jitter.TestInterval{OfType: intervals[0].Type, Duration: *intervals[1].Duration}, utils.Jitterc),
-		PingF:  ping.Newf(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, utils.FPingc, conf.Config.Password),
+		Ping:    ping.New(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, utils.Pingc),
+		Jitter:  jitter.New(conf, jitter.TestInterval{OfType: intervals[0].Type, Duration: *intervals[1].Duration}, utils.Jitterc),
+		PingF:   ping.Newf(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, utils.FPingc, conf.Config.Password),
+		Monitor: monitor.New(conf, monitor.TestInterval{OfType: intervals[2].Type, Duration: *intervals[2].Duration}, utils.RespMonitoringc),
 	}
 
 	api := api.New()
@@ -170,13 +173,13 @@ func main() {
 					panic(e)
 				}
 
-				// request-response-monitoring
+				// request-monitor-monitoring
 			case "force-start-req-res-monitoring":
-				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandleReqResGeneral("start")))); e != nil {
+				if e := ws.WriteMessage(1, format(service.Monitor.Iterate("start"))); e != nil {
 					panic(e)
 				}
 			case "force-stop-req-res-monitoring":
-				if e := ws.WriteMessage(1, []byte(strconv.FormatBool(HandleReqResGeneral("stop")))); e != nil {
+				if e := ws.WriteMessage(1, format(service.Monitor.Iterate("Stop"))); e != nil {
 					panic(e)
 				}
 
@@ -194,7 +197,7 @@ func main() {
 				querier(ws, inStream, qJitterRoute{})
 			case "Qflood-ping-route":
 				querier(ws, inStream, qFloodPingRoute{})
-			case "Qrequest-response-delay-route":
+			case "Qrequest-monitor-delay-route":
 				querier(ws, inStream, qReqResDelayRoute{})
 			}
 		}
@@ -330,7 +333,7 @@ func main() {
 				case "Jitter":
 					service.Jitter.Iterate("stop")
 				case "ReqResDelayMonitoring":
-					HandleReqResGeneral("stop")
+					service.Monitor.Iterate("stop")
 				}
 			}
 		}

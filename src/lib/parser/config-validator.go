@@ -79,12 +79,6 @@ func ValidateIntervalProp(intervals []Interval) {
 // ValidateUtilsConf validates the `utils` property
 // in the configuration file.
 func ValidateUtilsConf(config *UConfig) {
-	if config.RespChanges.Mean == nil {
-		logger.Terminal("`mean` property under `response-length` is missing.", "f")
-	}
-	if config.RespChanges.Mode == nil {
-		logger.Terminal("`mode` property under `response-length` is missing.", "f")
-	}
 	if config.ServicesSignal.FloodPing == "" {
 		logger.Terminal("`flood-ping` property under `services-state` is missing.", "f")
 	}
@@ -109,7 +103,7 @@ func ValidatePasswordProp(password string) {
 
 // Validate validates the local configuration file.
 func (inst *YAMLBenchRoutesType) Validate() bool {
-	var config = *inst.Config
+	config := *inst.Config
 	ValidatePasswordProp(config.Password)
 	ValidateRoutesProp(config.Routes)
 	ValidateIntervalProp(config.Interval)

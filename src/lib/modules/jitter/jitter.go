@@ -1,12 +1,12 @@
 package jitter
 
 import (
+	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
-	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
@@ -146,8 +146,8 @@ func (ps *Jitter) jitter(urlRaw string, packets int, tsdbNameHash string, wg *sy
 		return
 	}
 
-	result := *scrap.CLIPingScrap(resp)
-	newBlock := *tsdb.GetNewBlock("jitter", getNormalizedBlockString(result))
+	result := scrap.CLIJitterScrap(resp)
+	newBlock := *tsdb.GetNewBlock("jitter", fToS(result))
 	urlExists := false
 	for index := range chain {
 		if chain[index].Path == tsdbNameHash {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/zairza-cetb/bench-routes/src/lib/modules/monitor"
 	"sync"
 	"time"
 
@@ -26,10 +27,10 @@ func HandleReqResMonitoringStart(config *parser.YAMLBenchRoutesType, reqResMonit
 			var wg sync.WaitGroup
 			wg.Add(len(routes))
 			// We send global chain arrays
-			// of response delay, length and
+			// of monitor delay, length and
 			// statusCode in an array of type [][]*tsdb.Chain
 			for _, route := range routes {
-				go response.HandleResponseDelayForRoute(
+				go monitor.HandleResponseDelayForRoute(
 					utils.RespMonitoringc,
 					route,
 					utils.GetHash(route.URL),

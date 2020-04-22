@@ -37,7 +37,7 @@ func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval,
 
 // Iterate iterates over the local-configuration file to keep state
 // of the ping service in sync with the local configuration.
-// It is responbile for stopping the service without damaging the currently
+// It is responsible for stopping the service without damaging the currently
 // calculated samples.
 func (ps *Ping) Iterate(signal string) bool {
 	// Get latest service state settings
