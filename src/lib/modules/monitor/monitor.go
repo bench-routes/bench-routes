@@ -24,6 +24,7 @@ type Monitor struct {
 	localConfig    *parser.YAMLBenchRoutesType
 	scrapeInterval TestInterval
 	chain          []*tsdb.Chain
+	test           bool
 }
 
 //TestInterval stores the value of the duration and the type of test
@@ -38,6 +39,7 @@ func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval,
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
 		chain:          chain,
+		test:           false,
 	}
 }
 
@@ -45,8 +47,10 @@ func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval,
 // of the monitoring service in sync with the local configuration.
 // It is responsible for stopping the service without damaging the currently
 // calculated samples.
-func (ps *Monitor) Iterate(signal string) bool {
-	// Get latest service state settings
+func (ps *Monitor) Iterate(signal string, isTest bool) bool {
+	if isTest {
+		ps.test = true
+	}
 
 	conf := ps.localConfig
 	conf.Refresh()
@@ -140,9 +144,12 @@ func (ps *Monitor) responseDelay(wg *sync.WaitGroup, route parser.Routes) {
 	block := *tsdb.GetNewBlock("req-res", g)
 
 	for index := range responseChains {
-		if responseChains[index].Path == path {
+		if responseChains[index].Path == path || ps.test {
 			responseChains[index] = responseChains[index].Append(block)
 			responseChains[index].Commit()
+			if ps.test {
+				continue
+			}
 			break
 		}
 	}

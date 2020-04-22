@@ -18,6 +18,7 @@ type Jitter struct {
 	localConfig    *parser.YAMLBenchRoutesType
 	scrapeInterval TestInterval
 	chain          []*tsdb.Chain
+	test           bool
 }
 
 //TestInterval stores the value of the duration and the type of test
@@ -32,6 +33,7 @@ func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval,
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
 		chain:          chain,
+		test:           false,
 	}
 }
 
@@ -39,8 +41,10 @@ func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval,
 // of the jitter service in sync with the local configuration.
 // It is responsible for stopping the service without damaging the currently
 // calculated samples.
-func (ps *Jitter) Iterate(signal string) bool {
-	// Get latest service state settings
+func (ps *Jitter) Iterate(signal string, isTest bool) bool {
+	if isTest {
+		ps.test = true
+	}
 
 	conf := ps.localConfig
 	conf.Refresh()
@@ -150,9 +154,12 @@ func (ps *Jitter) jitter(urlRaw string, packets int, tsdbNameHash string, wg *sy
 	newBlock := *tsdb.GetNewBlock("jitter", fToS(result))
 	urlExists := false
 	for index := range chain {
-		if chain[index].Path == tsdbNameHash {
+		if chain[index].Path == tsdbNameHash || ps.test {
 			urlExists = true
 			chain[index].Append(newBlock).Commit()
+			if ps.test {
+				continue
+			}
 			break
 		}
 	}
