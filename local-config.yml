@@ -46,11 +46,11 @@ routes:
   - name: ei
     value: UTF-8
 utils:
-  monitor-length:
-    mode: 0
-    mean: 0
+  response-length:
+    mode: null
+    mean: null
   services-state:
-    ping: passive
-    flood-ping: passive
-    jitter: passive
-    req-res-delay-or-monitoring: passive
+    ping: active
+    flood-ping: active
+    jitter: active
+    req-res-delay-or-monitoring: active
