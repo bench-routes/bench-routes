@@ -9,11 +9,12 @@ sudo: required
 
 matrix:
   include:
-    - language: go
-
+    - language: 
+      - go
+      
       go:
         1.13.x
-
+      
       notifications:
         gitter:
           on_success: always
@@ -22,6 +23,10 @@ matrix:
 
       before_script:
         - go get -u ./...
+        # Installing nvm and nodejs
+        - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
+        - source ~/.bashrc
+        - nvm install 12
         - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
         - echo "checking linting in golang ..."
         - golangci-lint run
@@ -42,7 +47,7 @@ matrix:
     - language: node_js
 
       node_js:
-        - '10'
+        - "12"
 
       cache:
         directories:
