@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"time"
 	"unsafe"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
@@ -24,6 +25,16 @@ type Block struct {
 	Timestamp      string `json:"timestamp"`
 }
 
+// GetNewBlock creates and returns a new block with the specified type.
+func GetNewBlock(blockType, value string) *Block {
+	return &Block{
+		Timestamp:      GetTimeStampCalc(),
+		NormalizedTime: GetNormalizedTimeCalc(),
+		Datapoint:      value,
+		Type:           blockType,
+	}
+}
+
 // Encode decodes the structure and marshals into a string
 func (b Block) Encode() string {
 	logger.File("decoding block type"+b.Type+" normalized as "+strconv.FormatInt(b.NormalizedTime, 10), "p")
@@ -40,8 +51,9 @@ func (b Block) GetType() string {
 	return b.Type
 }
 
-// GetDatapointEnc returns the datapoint to the caller.
-// The encoded refers to the combined _(containing *|*)_ values in stringified form.
+// GetDatapointEnc returns the data point to the caller.
+// The encoded refers to the combined _(containing *|*)_ values in the string
+// form.
 func (b Block) GetDatapointEnc() string {
 	return b.Datapoint
 }
@@ -56,19 +68,9 @@ func (b Block) GetNormalizedTime() int64 {
 	return b.NormalizedTime
 }
 
-// GetTimeStamp returns thetimestamp of the block.
+// GetTimeStamp returns the timestamp of the block.
 func (b Block) GetTimeStamp() string {
 	return b.Timestamp
-}
-
-// GetNewBlock creates and returns a new block with the specified type.
-func GetNewBlock(blockType, value string) *Block {
-	return &Block{
-		Timestamp:      GetTimeStampCalc(),
-		NormalizedTime: GetNormalizedTimeCalc(),
-		Datapoint:      value,
-		Type:           blockType,
-	}
 }
 
 // Chain contains Blocks arranged as a chain
@@ -208,3 +210,38 @@ func (c *Chain) GetPositionalIndexNormalized(n int64) (int, error) {
 
 	return 0, errors.New("Normalized time not found in chain")
 }
+
+// ChainSet is a set of chain that manages the operations related to chains
+// on a macro level. These include flushing chains to the storage based on
+// regular time intervals or size (to be done). It can delete chains that are
+// not active, thus being low on the memory. Scheduling operations on
+// time-series values in chain can be done as well with slight customization.
+type ChainSet struct {
+	FlushDuration time.Duration
+	Cmap          map[string]*Chain
+}
+
+func NewChainSet(flushDuration time.Duration) *ChainSet {
+	return &ChainSet{
+		FlushDuration: flushDuration,
+	}
+}
+
+// Register makes a new property in the Chain map (Cmap) with
+// name as Key and Chain address as value respectively. Repeated
+// calls with same name will overwrite the chain contents and hence
+// not recommended.
+func (cs *ChainSet) Register(name string, chainAddress *Chain) {
+	cs.Cmap[name] = chainAddress
+}
+
+// Get returns the chain corresponding to the passed name.
+func (cs *ChainSet) Get(name string) *Chain {
+	return cs.Cmap[name]
+}
+
+// Run triggers the ChainSet tasks which currently includes
+// flushing those chains that have newer blocks only. This is done
+// keeping in mind the performance of the system, thus being effective
+// on the resources.
+func (cs *ChainSet) Run() {}
