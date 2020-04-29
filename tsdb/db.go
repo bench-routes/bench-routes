@@ -75,11 +75,13 @@ func (b Block) GetTimeStamp() string {
 
 // Chain contains Blocks arranged as a chain
 type Chain struct {
-	Path           string
-	Chain          []Block
-	LengthElements int
-	Size           uintptr
-	mux            sync.Mutex
+	Path               string
+	Chain              []Block
+	LengthElements     int
+	Size               uintptr
+	containsNewBlocks  bool
+	inActiveIterations uint32
+	mux                sync.Mutex
 }
 
 // NewChain returns a in-memory chain that implements the TSDB interface.
@@ -104,10 +106,6 @@ type TSDB interface {
 	// Returns address of the chain in RAM.
 	Init() (*[]Block, Chain)
 
-	// Append appends a new tsdb block passed as params to the most recent location (or
-	// the last location) of the chain. Returns success status.
-	Append(b Block) bool
-
 	// GetPositionalIndexNormalized accepts the normalized time, searches for the block with that time
 	// using jump search, and returns the address of the block having the specified normalized
 	// time.
@@ -119,9 +117,6 @@ type TSDB interface {
 
 	// GetChain returns the positional pointer address of the first element of the chain.
 	GetChain() *[]Block
-
-	// Commit saves or commits the chain in storage and returns success status.
-	Commit() bool
 }
 
 // Init initialize Chain properties
@@ -146,13 +141,17 @@ func (c *Chain) Init() *Chain {
 }
 
 // Append function appends the new block in the chain
-func (c *Chain) Append(b Block) *Chain {
+func (c *Chain) append(b Block) *Chain {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
 	c.Chain = append(c.Chain, b)
 	c.Size = unsafe.Sizeof(c)
 	c.LengthElements = len(c.Chain)
+	c.containsNewBlocks = true
+	if c.inActiveIterations != 0 {
+		c.inActiveIterations = 0
+	}
 	return c
 }
 
@@ -171,7 +170,7 @@ func (c *Chain) PopPreviousNBlocks(n int) (*Chain, error) {
 
 // Commit saves or commits the existing chain in the secondary memory.
 // Returns the success status
-func (c *Chain) Commit() *Chain {
+func (c *Chain) commit() *Chain {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
@@ -181,6 +180,7 @@ func (c *Chain) Commit() *Chain {
 	if e != nil {
 		panic(e)
 	}
+	c.containsNewBlocks = false
 	return c
 }
 
@@ -211,6 +211,17 @@ func (c *Chain) GetPositionalIndexNormalized(n int64) (int, error) {
 	return 0, errors.New("Normalized time not found in chain")
 }
 
+const (
+	// FlushAsTime for flushing in regular intervals of seconds.
+	FlushAsTime = 0
+	// FlushAsSpace for flushing in regular intervals of space/bytes.
+	FlushAsSpace = 1
+	// inActiveIterationsLimit is the limit after which the chain is deleted
+	// from the chain set in order to free up the memory from inactive
+	// chains.
+	inActiveIterationsLimit = 5
+)
+
 // ChainSet is a set of chain that manages the operations related to chains
 // on a macro level. These include flushing chains to the storage based on
 // regular time intervals or size (to be done). It can delete chains that are
@@ -218,12 +229,16 @@ func (c *Chain) GetPositionalIndexNormalized(n int64) (int, error) {
 // time-series values in chain can be done as well with slight customization.
 type ChainSet struct {
 	FlushDuration time.Duration
+	flushType     int
 	Cmap          map[string]*Chain
+	inactiveMap   map[string]*Chain
 }
 
-func NewChainSet(flushDuration time.Duration) *ChainSet {
+// NewChainSet returns a new ChainSet for managing chains during runtime.
+func NewChainSet(flushType int, flushDuration time.Duration) *ChainSet {
 	return &ChainSet{
 		FlushDuration: flushDuration,
+		flushType:     flushType,
 	}
 }
 
@@ -235,13 +250,58 @@ func (cs *ChainSet) Register(name string, chainAddress *Chain) {
 	cs.Cmap[name] = chainAddress
 }
 
-// Get returns the chain corresponding to the passed name.
-func (cs *ChainSet) Get(name string) *Chain {
-	return cs.Cmap[name]
+// Get returns the chain corresponding to the passed name. It returns
+// false if the chain is not found in the Cmap. This can be the case if the
+// chain has been deleted by the Run() in order to save the memory resources.
+func (cs *ChainSet) Get(name string) (*Chain, bool) {
+	if _, ok := cs.Cmap[name]; !ok {
+		return nil, false
+	}
+	return cs.Cmap[name], true
 }
 
-// Run triggers the ChainSet tasks which currently includes
+// Run is a chain scheduler that triggers the ChainSet tasks which currently includes
 // flushing those chains that have newer blocks only. This is done
 // keeping in mind the performance of the system, thus being effective
 // on the resources.
-func (cs *ChainSet) Run() {}
+func (cs *ChainSet) Run() {
+	flushType := cs.flushType
+
+	switch flushType {
+	case FlushAsTime:
+		go func() {
+			for k, chain := range cs.Cmap {
+				if chain.containsNewBlocks {
+					chain.commit()
+				} else {
+					if chain.inActiveIterations > inActiveIterationsLimit {
+						cs.inactiveMap[k] = chain
+						delete(cs.Cmap, k)
+						continue
+					}
+					chain.inActiveIterations++
+				}
+			}
+			time.Sleep(cs.FlushDuration)
+		}()
+	case FlushAsSpace:
+		// TODO: Support for flushing when the chain content exceeds
+		// the limit of bytes.
+		return
+	}
+}
+
+// Append appends the block into the chain name passed. The new block is added
+// only in the memory. Commit is done by the chain scheduler and only after
+// commit, the changes appear in the secondary storage.
+func (cs *ChainSet) Append(name string, block Block) *Chain {
+	// check if chain is inactive from the inactive map. if inactive,
+	// remove the chain from the map and make an entry into the
+	// active chains map.
+	if _, ok := cs.Cmap[name]; !ok {
+		cs.Cmap[name] = cs.inactiveMap[name]
+		delete(cs.inactiveMap, name)
+	}
+	cs.Cmap[name].append(block)
+	return cs.Cmap[name]
+}
