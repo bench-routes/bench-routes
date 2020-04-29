@@ -56,7 +56,7 @@ func TestGetPositionalPointerNormalized(t *testing.T) {
 
 func TestSave(t *testing.T) {
 	chain := chain.Init()
-	chain.Commit()
+	chain.commit()
 }
 
 func TestChainSequence(t *testing.T) {
