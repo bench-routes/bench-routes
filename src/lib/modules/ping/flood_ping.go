@@ -189,7 +189,7 @@ func getNormalizedBlockStringFlood(v utils.TypeFloodPingScrap) string {
 //		if Jitterc[index].Path == tsdbNameHash {
 //			urlExists = true
 //			Jitterc[index] = Jitterc[index].Append(block)
-//			Jitterc[index].Commit()
+//			Jitterc[index]
 //			break
 //		}
 //	}
