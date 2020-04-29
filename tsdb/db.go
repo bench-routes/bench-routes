@@ -240,7 +240,6 @@ type ChainSet struct {
 	flushType     int
 	Cmap          map[string]*Chain
 	cancel        chan interface{}
-	inactiveMap   map[string]*Chain
 	mux           sync.RWMutex
 }
 
