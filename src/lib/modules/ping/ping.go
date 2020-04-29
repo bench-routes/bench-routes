@@ -160,7 +160,6 @@ func (ps *Ping) ping(urlRaw string, packets int, tsdbNameHash string, wg *sync.W
 		if chain[index].Path == tsdbNameHash || ps.test {
 			urlExists = true
 			chain[index] = chain[index].Append(newBlock)
-			chain[index].Commit()
 			if ps.test {
 				continue
 			}

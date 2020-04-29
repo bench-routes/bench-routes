@@ -156,7 +156,7 @@ func (ps *Jitter) jitter(urlRaw string, packets int, tsdbNameHash string, wg *sy
 	for index := range chain {
 		if chain[index].Path == tsdbNameHash || ps.test {
 			urlExists = true
-			chain[index].Append(newBlock).Commit()
+			chain[index].Append(newBlock)
 			if ps.test {
 				continue
 			}

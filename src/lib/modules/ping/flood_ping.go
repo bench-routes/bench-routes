@@ -155,7 +155,6 @@ func (ps *FloodPing) ping(urlRaw string, packets int, tsdbNameHash string, wg *s
 		if c[index].Path == tsdbNameHash || ps.test {
 			urlExists = true
 			c[index] = c[index].Append(newBlock)
-			c[index].Commit()
 			if ps.test {
 				continue
 			}
