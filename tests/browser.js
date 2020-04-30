@@ -3,10 +3,6 @@ const webdriver = require('selenium-webdriver'),
     By = webdriver.By,
     Key = webdriver.Key
 
-{
-    describe, it
-} require('selenium-webdriver/testing')
-
 require('chromedriver')
 
 let chromeOptions = new chrome.Options(),

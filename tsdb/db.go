@@ -29,6 +29,16 @@ type Block struct {
 	Timestamp      string `json:"timestamp"`
 }
 
+// GetNewBlock creates and returns a new block with the specified type.
+func GetNewBlock(blockType, value string) *Block {
+	return &Block{
+		Timestamp:      GetTimeStampCalc(),
+		NormalizedTime: GetNormalizedTimeCalc(),
+		Datapoint:      value,
+		Type:           blockType,
+	}
+}
+
 // Encode decodes the structure and marshals into a string
 func (b Block) Encode() string {
 	logger.File("decoding block type"+b.Type+" normalized as "+strconv.FormatInt(b.NormalizedTime, 10), "p")
@@ -45,8 +55,9 @@ func (b Block) GetType() string {
 	return b.Type
 }
 
-// GetDatapointEnc returns the datapoint to the caller.
-// The encoded refers to the combined _(containing *|*)_ values in stringified form.
+// GetDatapointEnc returns the data point to the caller.
+// The encoded refers to the combined _(containing *|*)_ values in the string
+// form.
 func (b Block) GetDatapointEnc() string {
 	return b.Datapoint
 }
@@ -61,28 +72,21 @@ func (b Block) GetNormalizedTime() int64 {
 	return b.NormalizedTime
 }
 
-// GetTimeStamp returns thetimestamp of the block.
+// GetTimeStamp returns the timestamp of the block.
 func (b Block) GetTimeStamp() string {
 	return b.Timestamp
 }
 
-// GetNewBlock creates and returns a new block with the specified type.
-func GetNewBlock(blockType, value string) *Block {
-	return &Block{
-		Timestamp:      GetTimeStampCalc(),
-		NormalizedTime: GetNormalizedTimeCalc(),
-		Datapoint:      value,
-		Type:           blockType,
-	}
-}
-
 // Chain contains Blocks arranged as a chain
 type Chain struct {
-	Path           string
-	Chain          []Block
-	LengthElements int
-	Size           uintptr
-	mux            sync.Mutex
+	Path               string
+	Name               string
+	Chain              []Block
+	LengthElements     int
+	Size               uintptr
+	containsNewBlocks  bool
+	inActiveIterations uint32
+	mux                sync.Mutex
 }
 
 // ChainReadOnly is a read-only structure that contains
@@ -97,12 +101,13 @@ type ChainReadOnly struct {
 // NewChain returns a in-memory chain that implements the TSDB interface.
 func NewChain(path string) *Chain {
 	logger.File(fmt.Sprintf("creating new chain at path %s", path), "p")
-
 	return &Chain{
-		Path:           path,
-		Chain:          []Block{},
-		LengthElements: 0,
-		Size:           0,
+		Name:              filterChainPath(path),
+		Path:              path,
+		Chain:             []Block{},
+		LengthElements:    0,
+		Size:              0,
+		containsNewBlocks: true,
 	}
 }
 
@@ -117,6 +122,11 @@ func ReadOnly(path string) *ChainReadOnly {
 	}
 }
 
+func filterChainPath(name string) string {
+	name = strings.ReplaceAll(name, ".", "___")
+	return strings.ReplaceAll(name, "/", "_")
+}
+
 // TSDB implements the idea of tsdb
 type TSDB interface {
 	// Init helps to initialize the tsdb chain for the respective component. This function
@@ -126,10 +136,6 @@ type TSDB interface {
 	// Takes *path* as path to the existing chain or for creating a new one.
 	// Returns address of the chain in RAM.
 	Init() (*[]Block, Chain)
-
-	// Append appends a new tsdb block passed as params to the most recent location (or
-	// the last location) of the chain. Returns success status.
-	Append(b Block) bool
 
 	// GetPositionalIndexNormalized accepts the normalized time, searches for the block with that time
 	// using jump search, and returns the address of the block having the specified normalized
@@ -142,9 +148,6 @@ type TSDB interface {
 
 	// GetChain returns the positional pointer address of the first element of the chain.
 	GetChain() *[]Block
-
-	// Commit saves or commits the chain in storage and returns success status.
-	Commit() bool
 }
 
 // Init initialize Chain properties
@@ -176,6 +179,10 @@ func (c *Chain) Append(b Block) *Chain {
 	c.Chain = append(c.Chain, b)
 	c.Size = unsafe.Sizeof(c)
 	c.LengthElements = len(c.Chain)
+	c.containsNewBlocks = true
+	if c.inActiveIterations != 0 {
+		c.inActiveIterations = 0
+	}
 	return c
 }
 
@@ -194,7 +201,7 @@ func (c *Chain) PopPreviousNBlocks(n int) (*Chain, error) {
 
 // Commit saves or commits the existing chain in the secondary memory.
 // Returns the success status
-func (c *Chain) Commit() *Chain {
+func (c *Chain) commit() *Chain {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
@@ -204,6 +211,7 @@ func (c *Chain) Commit() *Chain {
 	if e != nil {
 		panic(e)
 	}
+	c.containsNewBlocks = false
 	return c
 }
 
@@ -214,7 +222,7 @@ func (c *Chain) GetPositionalIndexNormalized(n int64) (int, error) {
 
 	c.LengthElements = len(c.Chain)
 	if c.Chain[c.LengthElements-1].NormalizedTime < n || c.Chain[0].NormalizedTime > n {
-		return 0, errors.New("Normalized time not in Chain range")
+		return 0, errors.New("normalized time not in Chain range")
 	}
 	l, r, m := 0, c.LengthElements, 0
 
@@ -231,7 +239,107 @@ func (c *Chain) GetPositionalIndexNormalized(n int64) (int, error) {
 		}
 	}
 
-	return 0, errors.New("Normalized time not found in chain")
+	return 0, errors.New("normalized time not found in chain")
+}
+
+const (
+	// FlushAsTime for flushing in regular intervals of seconds.
+	FlushAsTime = 0
+	// FlushAsSpace for flushing in regular intervals of space/bytes.
+	FlushAsSpace = 1
+	// inActiveIterationsLimit is the limit after which the chain is deleted
+	// from the chain set in order to free up the memory from inactive
+	// chains.
+	// inActiveIterationsLimit = 5
+)
+
+// ChainSet is a set of chain that manages the operations related to chains
+// on a macro level. These include flushing chains to the storage based on
+// regular time intervals or size (to be done). It can delete chains that are
+// not active, thus being low on the memory. Scheduling operations on
+// time-series values in chain can be done as well with slight customization.
+type ChainSet struct {
+	FlushDuration time.Duration
+	flushType     int
+	Cmap          map[string]*Chain
+	cancel        chan interface{}
+	mux           sync.RWMutex
+}
+
+// NewChainSet returns a new ChainSet for managing chains during runtime.
+func NewChainSet(flushType int, flushDuration time.Duration) *ChainSet {
+	return &ChainSet{
+		FlushDuration: flushDuration,
+		flushType:     flushType,
+		Cmap:          make(map[string]*Chain),
+		cancel:        make(chan interface{}),
+	}
+}
+
+// Append currently not supported.
+// Appends the block into the chain name passed. The new block is added
+// only in the memory. Commit is done by the chain scheduler and only after
+// commit, the changes appear in the secondary storage.
+func (cs *ChainSet) Append(name string, block Block) *Chain {
+	cs.Cmap[name].Append(block)
+	return cs.Cmap[name]
+}
+
+// Cancel cancels or stops the execution of chain scheduler.
+func (cs *ChainSet) Cancel() {
+	cs.cancel <- ""
+}
+
+// Get returns the chain corresponding to the passed name. It returns
+// false if the chain is not found in the Cmap. This can be the case if the
+// chain has been deleted by the Run() in order to save the memory resources.
+func (cs *ChainSet) Get(name string) (*Chain, bool) {
+	if _, ok := cs.Cmap[name]; !ok {
+		return nil, false
+	}
+	return cs.Cmap[name], true
+}
+
+// Register makes a new property in the Chain map (Cmap) with
+// name as Key and Chain address as value respectively. Repeated
+// calls with same name will overwrite the chain contents and hence
+// not recommended.
+func (cs *ChainSet) Register(name string, chainAddress *Chain) {
+	cs.mux.Lock()
+	defer cs.mux.Unlock()
+	cs.Cmap[name] = chainAddress
+}
+
+// Run is a chain scheduler that triggers the ChainSet tasks which currently includes
+// flushing those chains that have newer blocks only. This is done
+// keeping in mind the performance of the system, thus being effective
+// on the resources.
+func (cs *ChainSet) Run() {
+	switch cs.flushType {
+	case FlushAsTime:
+		go func() {
+			for {
+				select {
+				case <-cs.cancel:
+					return
+				default:
+				}
+				for _, chain := range cs.Cmap {
+					if chain.containsNewBlocks {
+						chain.commit()
+					} else {
+						// TODO: delete inactive chains and add them back to Cmap when active.
+						chain.inActiveIterations++
+					}
+				}
+				time.Sleep(cs.FlushDuration)
+			}
+		}()
+	case FlushAsSpace:
+		// TODO: Support for flushing when the chain content exceeds
+		// the limit of bytes.
+		return
+	}
 }
 
 // BlockStream returns the address of stream (or list)

@@ -146,7 +146,6 @@ func (ps *Monitor) responseDelay(wg *sync.WaitGroup, route parser.Routes) {
 	for index := range responseChains {
 		if responseChains[index].Path == path || ps.test {
 			responseChains[index] = responseChains[index].Append(block)
-			responseChains[index].Commit()
 			if ps.test {
 				continue
 			}

@@ -82,14 +82,18 @@ func main() {
 	p := time.Now()
 	wg.Add(4)
 
-	go initialise(&wg, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
-	go initialise(&wg, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
-	go initialise(&wg, &utils.Jitterc, ConfigURLs, utils.PathJitter, "jitter")
-	go initialise(&wg, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
+	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Duration(time.Second*5))
+
+	go initialise(&wg, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
+	go initialise(&wg, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
+	go initialise(&wg, chainSet, &utils.Jitterc, ConfigURLs, utils.PathJitter, "jitter")
+	go initialise(&wg, chainSet, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
 
 	wg.Wait()
 	msg := "initial chain formation time: " + time.Since(p).String()
 	logger.Terminal(msg, "p")
+
+	chainSet.Run()
 
 	service := struct {
 		Ping    *ping.Ping
@@ -217,7 +221,7 @@ func main() {
 		}
 
 		chain := tsdb.NewChain("storage/system.json")
-		chain.Init().Commit()
+		chain.Init()
 
 		for {
 			// collections for cpu, memory and disk run independently and are
@@ -246,7 +250,7 @@ func main() {
 			)
 
 			block := tsdb.GetNewBlock("sys", encoded)
-			chain.Append(*block).Commit()
+			chain.Append(*block)
 			time.Sleep(systemCollectionScrapeTime)
 		}
 	}()
@@ -264,7 +268,7 @@ func main() {
 			)
 			assignChaintoMap := func(c *map[string]*tsdb.Chain, n, path string) {
 				(*c)[n] = tsdb.NewChain(path)
-				(*c)[n].Init().Commit()
+				(*c)[n].Init()
 			}
 			processChains := make(map[string]*tsdb.Chain)
 			for {
@@ -286,7 +290,7 @@ func main() {
 						assignChaintoMap(&processChains, ps.FilteredCommand, p)
 					}
 					b := tsdb.GetNewBlock("ps", ps.Encode())
-					processChains[ps.FilteredCommand].Append(*b).Commit()
+					processChains[ps.FilteredCommand].Append(*b)
 					wg.Done()
 				}
 				wg.Wait()
@@ -379,36 +383,28 @@ type qReqResDelayRoute struct {
 
 type qSysMetrics struct{}
 
-func initialise(wg *sync.WaitGroup, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
+func initialise(wg *sync.WaitGroup, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
 	msg := "forming " + Type + " chain ... "
 	logger.File(msg, "p")
 	config, ok := conf.([]string)
 	if ok {
 		for _, v := range config {
 			path := basePath + "/chunk_" + Type + "_" + v + ".json"
-
-			resp := &tsdb.Chain{
-				Path:           path,
-				Chain:          []tsdb.Block{},
-				LengthElements: 0,
-				Size:           0,
-			}
-			resp.Init().Commit()
+			resp := tsdb.NewChain(path)
+			resp.Init()
 			*chain = append(*chain, resp)
 		}
 	}
 	if configRes, ok := conf.([]parser.Routes); ok {
 		for _, v := range configRes {
 			path := basePath + "/chunk_" + Type + "_" + filters.RouteDestroyer(v.URL+"_"+v.Route) + ".json"
-			resp := &tsdb.Chain{
-				Path:           path,
-				Chain:          []tsdb.Block{},
-				LengthElements: 0,
-				Size:           0,
-			}
-			resp.Init().Commit()
+			resp := tsdb.NewChain(path)
+			resp.Init()
 			*chain = append(*chain, resp)
 		}
+	}
+	for _, chain := range *chain {
+		chainSet.Register(chain.Name, chain)
 	}
 
 	logger.Terminal("finished "+Type+" chain", "p")
