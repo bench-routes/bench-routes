@@ -3,11 +3,15 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zairza-cetb/bench-routes/tsdb"
+	"math"
 	"net/http"
+	"strconv"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/tsdb/querier"
 )
 
 const (
@@ -85,6 +89,53 @@ func (a *API) RoutesSummary(w http.ResponseWriter, r *http.Request) {
 	}
 	a.setRequestIPAddress(r)
 	a.send(w, a.marshalled())
+}
+
+// Query forms the query handler for querying over the time-series data.
+func (a *API) Query(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("inside querier")
+	var (
+		startTimestamp, endTimestamp int64
+		err                          error
+	)
+
+	timeSeriesPath := r.FormValue("timeSeriesPath")
+
+	startTimestampStr := r.FormValue("startTimestamp")
+	if startTimestampStr == "" {
+		startTimestamp = int64(math.MaxInt64)
+	} else {
+		startTimestamp, err = strconv.ParseInt(startTimestampStr, 10, 64)
+		if err != nil {
+			logger.Terminal(fmt.Errorf("error in startTimestamp: %s", err.Error()).Error(), "p")
+		}
+	}
+
+	endTimestampStr := r.FormValue("endTimestamp")
+	if endTimestampStr == "" {
+		endTimestamp = int64(math.MinInt64)
+	} else {
+		endTimestamp, err = strconv.ParseInt(endTimestampStr, 10, 64)
+		if err != nil {
+			logger.Terminal(fmt.Errorf("error in endTimestamp: %s", err.Error()).Error(), "p")
+		}
+	}
+
+	// condition: only for bench-routes as per the design
+	//
+	// path should be in syntax: <DBPath>/<ofType>/chunk_<middle>/<url>.json -> non-system metric
+	// %s/system.json -> system metric
+
+	// verify if chain path exists
+	if ok := tsdb.VerifyChainPathExists(timeSeriesPath); !ok {
+		a.send(w, []byte("INVALID_PATH"))
+		return
+	}
+
+	qry := querier.New(w, timeSeriesPath, "")
+	query := qry.QueryBuilder()
+	query.SetRange(startTimestamp, endTimestamp)
+	query.Exec()
 }
 
 func (a *API) setRequestIPAddress(r *http.Request) {

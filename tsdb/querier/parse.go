@@ -3,36 +3,30 @@ package querier
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"time"
 )
 
 type response struct {
-	_range       queryRange    `json:"range"`
-	timeInvolved time.Duration `json:"queryTime"`
-	value        interface{}   `json:"value"`
+	Range        queryRange    `json:"range"`
+	TimeInvolved time.Duration `json:"queryTime"`
+	Value        interface{}   `json:"value"`
 }
-
-type queryValue struct {
-	timestamp int64 `yaml:"timestamp"`
-	value     int64 `yaml:"value"`
-}
-
-const valueNULL string = "null"
 
 func getBaseResponse(r queryRange) (response, time.Time) {
 	return response{
-		_range: queryRange{
-			start: r.start,
-			end:   r.end,
+		Range: queryRange{
+			Start: r.Start,
+			End:   r.End,
 		},
-		value: nil,
+		Value: nil,
 	}, time.Now()
 }
 
 func encode(r response) []byte {
 	j, e := json.Marshal(r)
 	if e != nil {
-		fmt.Errorf("encoding error: %s", e.Error())
+		logger.Terminal(fmt.Errorf("encoding error: %s", e.Error()).Error(), "p")
 	}
 	return j
 }

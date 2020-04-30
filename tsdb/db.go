@@ -241,6 +241,12 @@ func (c *Chain) GetPositionalIndexNormalized(n int64) (int, error) {
 	return 0, errors.New("normalized time not found in chain")
 }
 
+// VerifyChainPathExists verifies the existence of chain in the tsdb directory.
+func VerifyChainPathExists(chainPath string) bool {
+	_, err := os.Stat(chainPath)
+	return os.IsExist(err)
+}
+
 const (
 	// FlushAsTime for flushing in regular intervals of seconds.
 	FlushAsTime = 0

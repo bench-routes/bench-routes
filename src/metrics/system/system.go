@@ -1,7 +1,6 @@
 package system
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -167,7 +166,7 @@ func (s *SystemMetrics) Combine(cpu, memory, disk string) string {
 func Decode(block string) Response {
 	arr := strings.Split(block, "|")
 	if len(arr) != 8 {
-		panic(errors.New(fmt.Sprintf("Invalid block segments length: Segments must be 8 in number: length: %d", len(arr))))
+		panic(fmt.Errorf("Invalid block segments length: Segments must be 8 in number: length: %d", len(arr)))
 	}
 
 	return Response{
