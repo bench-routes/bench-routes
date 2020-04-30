@@ -82,7 +82,7 @@ func main() {
 	p := time.Now()
 	wg.Add(4)
 
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Duration(time.Second*5))
+	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Duration(time.Second*30))
 
 	go initialise(&wg, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
 	go initialise(&wg, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
@@ -222,6 +222,7 @@ func main() {
 
 		chain := tsdb.NewChain("storage/system.json")
 		chain.Init()
+		chainSet.Register(chain.Name, chain)
 
 		for {
 			// collections for cpu, memory and disk run independently and are
@@ -269,6 +270,7 @@ func main() {
 			assignChaintoMap := func(c *map[string]*tsdb.Chain, n, path string) {
 				(*c)[n] = tsdb.NewChain(path)
 				(*c)[n].Init()
+				chainSet.Register((*c)[n].Name, (*c)[n])
 			}
 			processChains := make(map[string]*tsdb.Chain)
 			for {
@@ -506,7 +508,7 @@ func querier(ws *websocket.Conn, inComingStream []string, route interface{}) {
 		}
 
 	case qSysMetrics:
-		inst := qSysMetrics{}
+		// inst := qSysMetrics{}
 
 	}
 	respond(ws, response)

@@ -69,7 +69,7 @@ type ServiceSignals struct {
 // UConfig type for storing utilities in config.yml as local DB
 type UConfig struct {
 	RespChanges    ResponseChangesConfig `yaml:"monitor-length"`
-	ServicesSignal ServiceSignals        `yaml:"Services-state"`
+	ServicesSignal ServiceSignals        `yaml:"services-state"`
 }
 
 // ConfigurationBR sets a type for configuration file which also acts as a local DB

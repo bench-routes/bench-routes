@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	parse2 "text/template/parse"
 	"time"
 	"unsafe"
 
@@ -116,7 +115,7 @@ func ReadOnly(path string) *ChainReadOnly {
 	logger.File(fmt.Sprintf("creating new chain at path %s", path), "p")
 	var blockStream []Block
 
-	return ChainReadOnly{
+	return &ChainReadOnly{
 		Path:  path,
 		Chain: &blockStream,
 	}
@@ -157,7 +156,7 @@ func (c *Chain) Init() *Chain {
 
 	res, e := parse(c.Path)
 	if e != nil {
-		logger.Terminal(fmt.Sprintf("creating chain at %s", c.Path), "p")
+		logger.Terminal(fmt.Sprintf("creating in-memory chain: %s", c.Name), "p")
 		c.LengthElements = 0
 		c.Size = unsafe.Sizeof(c)
 		c.Chain = []Block{}
