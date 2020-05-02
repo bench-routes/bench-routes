@@ -2,7 +2,6 @@ package querier
 
 import (
 	"encoding/json"
-	"fmt"
 	"math"
 	"testing"
 )
@@ -196,7 +195,6 @@ func Test_Querier_Range_no_resultant_block(t *testing.T) {
 	if err := json.Unmarshal(result, &resp); err != nil {
 		panic(err)
 	}
-	fmt.Println(string(result))
 	_, ok := resp.Value.([]interface{})
 	if ok {
 		t.Errorf("Range_Invalid_test: type should be string, but received %t", resp.Value)
