@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+	"math"
 	"time"
 )
 
@@ -20,7 +21,13 @@ type queryValue struct {
 	NormalizedTime int64       `json:"normalizedTime"`
 }
 
-func getBaseResponse(r queryRange) (QueryResponse, time.Time) {
+func getBaseResponse(r *queryRange) (QueryResponse, time.Time) {
+	if r == nil {
+		r = &queryRange{
+			Start: math.MaxInt64,
+			End:   math.MinInt64,
+		}
+	}
 	return QueryResponse{
 		Range: queryRange{
 			Start: r.Start,

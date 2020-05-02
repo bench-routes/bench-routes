@@ -1,12 +1,10 @@
 package querier
 
 import (
-	"fmt"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"math"
 	"time"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
@@ -76,7 +74,7 @@ func (q *Query) exec(blockStream []tsdb.Block) []byte {
 	// start represents the starting of the timer that will calculate
 	// the total time involved in performing a particular query.
 	// This can be later benchmarked and compared with other algorithms.
-	base, stamp := getBaseResponse(*q.Range)
+	base, stamp := getBaseResponse(q.Range)
 	q.stamp = stamp
 	q.queryResponse = base
 
@@ -89,11 +87,11 @@ func (q *Query) exec(blockStream []tsdb.Block) []byte {
 		// block stream.
 		timeFirstBlock = blockStream[lengthBlockStream-1].GetNormalizedTime()
 		timeLastBlock  = blockStream[0].GetNormalizedTime()
+		onEndTimestamp = false
 	)
-	status := q.validate(timeFirstBlock, timeLastBlock)
-	if !status {
-		logger.Terminal(fmt.Errorf("invalid query received: %v", q).Error(), "p")
-		return q.ReturnMessageResponse("QUERY_INVALID")
+	issues := q.validate(timeFirstBlock, timeLastBlock)
+	if issues != nil {
+		return issues
 	}
 
 	// A nil range represents to return all time-series value as response.
@@ -108,6 +106,9 @@ func (q *Query) exec(blockStream []tsdb.Block) []byte {
 		}
 		return encode(base)
 	}
+	if len(blockStream) == 0 {
+		return q.ReturnMessageResponse("NO_BLOCKS_IN_MENTIONED_DB_PATH")
+	}
 
 	var (
 		startPos, endPos   = lengthBlockStream - 1, 0
@@ -117,12 +118,19 @@ func (q *Query) exec(blockStream []tsdb.Block) []byte {
 
 	for i := lengthBlockStream - 1; i >= 0; i-- {
 		block := blockStream[i]
-		if block.GetNormalizedTime() < q.Range.Start && !startPosFound {
+		if block.GetNormalizedTime() <= q.Range.Start && !startPosFound {
 			startPos = i
 			startPosFound = true
 			continue
 		}
-		if block.GetNormalizedTime() < q.Range.End && startPosFound {
+		// When the input end time has a time value much less than the
+		// normalized-time of the last block in the time-series, we
+		// need to prevent slicing the last most bock caused by
+		// endPos + 1.
+		if block.GetNormalizedTime() == timeLastBlock || block.GetNormalizedTime() == q.Range.End {
+			onEndTimestamp = true
+		}
+		if block.GetNormalizedTime() <= q.Range.End && startPosFound {
 			endPos = i
 			break
 		}
@@ -131,6 +139,9 @@ func (q *Query) exec(blockStream []tsdb.Block) []byte {
 	// the range of [Start, End] query range. If not, this will lead to
 	// Start - 1, End range of blocks.
 	resultingBlockSlice := blockStream[endPos+1 : startPos+1]
+	if onEndTimestamp {
+		resultingBlockSlice = blockStream[endPos : startPos+1]
+	}
 	if len(resultingBlockSlice) == 0 {
 		return q.ReturnNILResponse()
 	}
@@ -154,16 +165,17 @@ func (q *Query) exec(blockStream []tsdb.Block) []byte {
 
 // validate performs pre-validations on the query in order to avoid faults
 // while traversing through the time-series values.
-func (q *Query) validate(timeFirstBlock, timeLastBlock int64) bool {
-	if q.Range.Start < timeLastBlock || q.Range.End > timeFirstBlock {
-		q.ReturnNILResponse()
-		return false
+func (q *Query) validate(timeFirstBlock, timeLastBlock int64) []byte {
+	if q.Range == nil {
+		return nil
 	}
 	if q.Range.Start < timeLastBlock || q.Range.End > timeFirstBlock {
-		q.ReturnNILResponse()
-		return false
+		return q.ReturnNILResponse()
 	}
-	return true
+	if q.Range.Start < q.Range.End {
+		return q.ReturnMessageResponse("ERROR_fromTimestamp_LESS_THAN_tillTimestamp")
+	}
+	return nil
 }
 
 // ReturnNILResponse is used only in cases when the response is known to be

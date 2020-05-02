@@ -88,7 +88,7 @@ export default class Submenu extends React.Component<
                 <span>
                   <select
                     className="submenu-style-general"
-                    onChange={e => this.setState({ urlSlot: e.target.value })}
+                    onChange={(e) => this.setState({ urlSlot: e.target.value })}
                   >
                     <option />
                     {this.state.routes.length !== 0
@@ -104,7 +104,7 @@ export default class Submenu extends React.Component<
                 <span>
                   <select
                     className="submenu-style-general"
-                    onChange={e => this.setState({ urlSlot: e.target.value })}
+                    onChange={(e) => this.setState({ urlSlot: e.target.value })}
                   >
                     <option />
                     {this.state.routes.length !== 0
