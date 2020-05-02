@@ -57,7 +57,7 @@ type ResponseChangesConfig struct {
 	Mean float32 `yaml:"mean"`
 }
 
-// ServiceSignals type for defining current running states of various services supported
+// ServiceSignals type for defining current running states of various Services supported
 // by BR. Allowed only two values: `active` OR `passive`
 type ServiceSignals struct {
 	Ping                  string `yaml:"ping"`

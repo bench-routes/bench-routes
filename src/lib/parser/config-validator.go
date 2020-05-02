@@ -48,16 +48,16 @@ func ValidateIntervalProp(intervals []Interval) {
 // in the configuration file.
 func ValidateUtilsConf(config *UConfig) {
 	if config.ServicesSignal.FloodPing == "" {
-		logger.Terminal("`flood-ping` property under `services-state` is missing.", "f")
+		logger.Terminal("`flood-ping` property under `Services-state` is missing.", "f")
 	}
 	if config.ServicesSignal.Jitter == "" {
-		logger.Terminal("`jitter` property under `services-state` is missing.", "f")
+		logger.Terminal("`jitter` property under `Services-state` is missing.", "f")
 	}
 	if config.ServicesSignal.Ping == "" {
-		logger.Terminal("`ping` property under `services-state` is missing.", "f")
+		logger.Terminal("`ping` property under `Services-state` is missing.", "f")
 	}
 	if config.ServicesSignal.ReqResDelayMonitoring == "" {
-		logger.Terminal("`req-res-delay-or-monitoring` property under `services-state` is missing.", "f")
+		logger.Terminal("`req-res-delay-or-monitoring` property under `Services-state` is missing.", "f")
 	}
 }
 

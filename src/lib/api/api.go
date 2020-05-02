@@ -3,11 +3,15 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zairza-cetb/bench-routes/tsdb"
+	"math"
 	"net/http"
+	"strconv"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/tsdb/querier"
 )
 
 const (
@@ -44,7 +48,7 @@ func (a *API) TestTemplate(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, testFilesDir+"bench-routes-socket-tester.html")
 }
 
-// ServiceState handles requests related to the state of the services in
+// ServiceState handles requests related to the state of the Services in
 // the application.
 func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
 	p := parser.New(utils.ConfigurationFilePath)
@@ -85,6 +89,58 @@ func (a *API) RoutesSummary(w http.ResponseWriter, r *http.Request) {
 	}
 	a.setRequestIPAddress(r)
 	a.send(w, a.marshalled())
+}
+
+// Query forms the query handler for querying over the time-series data.
+func (a *API) Query(w http.ResponseWriter, r *http.Request) {
+	var (
+		startTimestamp, endTimestamp int64
+		err                          error
+	)
+	//timeSeriesPath := r.FormValue("timeSeriesPath")
+	timeSeriesPath := r.URL.Query().Get("timeSeriesPath")
+
+	//startTimestampStr := r.FormValue("startTimestamp")
+	startTimestampStr := r.URL.Query().Get("startTimestamp")
+	if startTimestampStr == "" {
+		startTimestamp = int64(math.MaxInt64)
+	} else {
+		startTimestamp, err = strconv.ParseInt(startTimestampStr, 10, 64)
+		if err != nil {
+			logger.Terminal(fmt.Errorf("error in startTimestamp: %s", err.Error()).Error(), "p")
+		}
+	}
+
+	//endTimestampStr := r.FormValue("endTimestamp")
+	endTimestampStr := r.URL.Query().Get("endTimestamp")
+	if endTimestampStr == "" {
+		endTimestamp = int64(math.MinInt64)
+	} else {
+		endTimestamp, err = strconv.ParseInt(endTimestampStr, 10, 64)
+		if err != nil {
+			logger.Terminal(fmt.Errorf("error in endTimestamp: %s", err.Error()).Error(), "p")
+		}
+	}
+
+	// condition: only for bench-routes as per the design
+	//
+	// path should be in syntax: <DBPath>/<ofType>/chunk_<middle>_<url>.json -> non-system metric
+	// %s/system.json -> system metric
+
+	// verify if chain path exists
+	timeSeriesPath = timeSeriesPath + tsdb.TSDBFileExtension
+	if ok := tsdb.VerifyChainPathExists(timeSeriesPath); !ok {
+		a.send(w, []byte("INVALID_PATH"))
+		return
+	}
+
+	// TODO: we do not capture the block streams in memory while querying yet. They are captured only when flushed.
+	// TODO: consider cmap while querying for fetching latest blocks after shifting tsdb to binary.
+
+	qry := querier.New(timeSeriesPath, "")
+	query := qry.QueryBuilder()
+	query.SetRange(startTimestamp, endTimestamp)
+	a.send(w, query.Exec())
 }
 
 func (a *API) setRequestIPAddress(r *http.Request) {

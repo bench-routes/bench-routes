@@ -12,7 +12,7 @@ chromeOptions.addArguments('--no-sandbox');
 chromeOptions.addArguments('--disable-dev-shm-usage');
 chromeOptions.addArguments('--disable-gpu');
 
-describe('launch services via virtual browser test', function() {
+describe('launch Services via virtual browser test', function() {
     this.timeout(200000);
     it('launching chrome browser', (done) => {
         driver = new webdriver
@@ -41,10 +41,10 @@ describe('launch services via virtual browser test', function() {
             throw e;
         });
     });
-    describe('trigger services', function() {
+    describe('trigger Services', function() {
         this.timeout(50000);
         it('ping', done => {
-            // starts services again
+            // starts Services again
             driver.findElement(By.xpath('//*[@id="btnGroupDrop1"]')).click().then(() => {
                 driver.findElement(By.xpath('/html/body/div/div[1]/div[1]/div/button[1]')).click().then(() => {
                     done();
@@ -148,7 +148,7 @@ describe('launch services via virtual browser test', function() {
             });
         });
     });
-    describe('shutting down services', function() {
+    describe('shutting down Services', function() {
         this.timeout(50000);
         it('ping', done => {
             driver.findElement(By.xpath('//*[@id="btnGroupDrop1"]')).click().then(() => {

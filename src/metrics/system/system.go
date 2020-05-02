@@ -2,6 +2,7 @@ package system
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	disk "github.com/mackerelio/go-osstat/memory"
@@ -67,6 +68,15 @@ type MemoryStats struct {
 	Free        uint64  `json:"freeBytes"`
 }
 
+// MemoryStatsStringified for http response.
+type MemoryStatsStringified struct {
+	Total       string `json:"totalBytes"`
+	Available   string `json:"availableBytes"`
+	Used        string `json:"usedBytes"`
+	UsedPercent string `json:"usedPercent"`
+	Free        string `json:"freeBytes"`
+}
+
 // GetVirtualMemoryStats returns the memory statistics of the host machine.
 func (s *SystemMetrics) GetVirtualMemoryStats(c chan MemoryStats) {
 	stats, err := gomem.VirtualMemory()
@@ -88,6 +98,12 @@ func (s *SystemMetrics) GetVirtualMemoryStats(c chan MemoryStats) {
 type DiskStats struct {
 	DiskIO int `json:"diskIO"`
 	Cached int `json:"cached"`
+}
+
+// DiskStatsStringified for http response.
+type DiskStatsStringified struct {
+	DiskIO string `json:"diskIO"`
+	Cached string `json:"cached"`
 }
 
 // GetDiskIOStats returns the disk stats: IO per sec and cached volume.
@@ -131,4 +147,40 @@ func (s *SystemMetrics) Encode(block interface{}) string {
 	}
 
 	return data
+}
+
+// Response as http type for system-metrics response.
+type Response struct {
+	CPUTotalUsage string                 `json:"cpuTotalUsage"`
+	Memory        MemoryStatsStringified `json:"memory"`
+	Disk          DiskStatsStringified   `json:"disk"`
+}
+
+// Combine combines segments into a single data point for a block.
+func (s *SystemMetrics) Combine(cpu, memory, disk string) string {
+	return cpu + "|" + memory + "|" + disk
+}
+
+// Decode converts the block into Response type for easily http based
+// response.
+func Decode(block string) Response {
+	arr := strings.Split(block, "|")
+	if len(arr) != 8 {
+		panic(fmt.Errorf("Invalid block segments length: Segments must be 8 in number: length: %d", len(arr)))
+	}
+
+	return Response{
+		CPUTotalUsage: arr[0],
+		Memory: MemoryStatsStringified{
+			Total:       arr[1],
+			Available:   arr[2],
+			Used:        arr[3],
+			UsedPercent: arr[4],
+			Free:        arr[5],
+		},
+		Disk: DiskStatsStringified{
+			DiskIO: arr[6],
+			Cached: arr[7],
+		},
+	}
 }

@@ -22,7 +22,7 @@ export default class Notification extends React.Component<{
               alt="collapse notifications"
               className="notification-close"
               onClick={() => this.props.updateShowNotificationsScreen()}
-              onKeyDown={e => {
+              onKeyDown={(e) => {
                 if (e.keyCode === 13) {
                   return this.props.updateShowNotificationsScreen();
                 }
