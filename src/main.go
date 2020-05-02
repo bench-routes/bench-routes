@@ -82,7 +82,7 @@ func main() {
 	p := time.Now()
 	wg.Add(4)
 
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Duration(time.Second*30))
+	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
 
 	go initialise(&wg, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
 	go initialise(&wg, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
@@ -358,6 +358,7 @@ func main() {
 		router.HandleFunc("/test", api.TestTemplate)
 		router.HandleFunc("/service-state", api.ServiceState)
 		router.HandleFunc("/routes-summary", api.RoutesSummary)
+		router.HandleFunc("/query", api.Query)
 	}
 
 	logger.Terminal(http.ListenAndServe(port, cors.Default().Handler(router)).Error(), "f")

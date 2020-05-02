@@ -16,8 +16,10 @@ import (
 )
 
 const (
-	// BlockDataSeparator sets a separator for block datavalue
+	// BlockDataSeparator sets a separator for block data value.
 	BlockDataSeparator = "|"
+	// TSDBFileExtension file extension for db files.
+	TSDBFileExtension = ".json"
 )
 
 // Block use case block for the TSDB chain
@@ -244,6 +246,9 @@ func (c *Chain) GetPositionalIndexNormalized(n int64) (int, error) {
 // VerifyChainPathExists verifies the existence of chain in the tsdb directory.
 func VerifyChainPathExists(chainPath string) bool {
 	_, err := os.Stat(chainPath)
+	if err == nil {
+		return true
+	}
 	return os.IsExist(err)
 }
 

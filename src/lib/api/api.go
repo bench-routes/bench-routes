@@ -93,15 +93,15 @@ func (a *API) RoutesSummary(w http.ResponseWriter, r *http.Request) {
 
 // Query forms the query handler for querying over the time-series data.
 func (a *API) Query(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("inside querier")
 	var (
 		startTimestamp, endTimestamp int64
 		err                          error
 	)
+	//timeSeriesPath := r.FormValue("timeSeriesPath")
+	timeSeriesPath := r.URL.Query().Get("timeSeriesPath")
 
-	timeSeriesPath := r.FormValue("timeSeriesPath")
-
-	startTimestampStr := r.FormValue("startTimestamp")
+	//startTimestampStr := r.FormValue("startTimestamp")
+	startTimestampStr := r.URL.Query().Get("startTimestamp")
 	if startTimestampStr == "" {
 		startTimestamp = int64(math.MaxInt64)
 	} else {
@@ -111,7 +111,8 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	endTimestampStr := r.FormValue("endTimestamp")
+	//endTimestampStr := r.FormValue("endTimestamp")
+	endTimestampStr := r.URL.Query().Get("endTimestamp")
 	if endTimestampStr == "" {
 		endTimestamp = int64(math.MinInt64)
 	} else {
@@ -123,19 +124,23 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 
 	// condition: only for bench-routes as per the design
 	//
-	// path should be in syntax: <DBPath>/<ofType>/chunk_<middle>/<url>.json -> non-system metric
+	// path should be in syntax: <DBPath>/<ofType>/chunk_<middle>_<url>.json -> non-system metric
 	// %s/system.json -> system metric
 
 	// verify if chain path exists
+	timeSeriesPath = timeSeriesPath + tsdb.TSDBFileExtension
 	if ok := tsdb.VerifyChainPathExists(timeSeriesPath); !ok {
 		a.send(w, []byte("INVALID_PATH"))
 		return
 	}
 
-	qry := querier.New(w, timeSeriesPath, "")
+	// TODO: we do not capture the block streams in memory while querying yet. They are captured only when flushed.
+	// TODO: consider cmap while querying for fetching latest blocks after shifting tsdb to binary.
+
+	qry := querier.New(timeSeriesPath, "")
 	query := qry.QueryBuilder()
 	query.SetRange(startTimestamp, endTimestamp)
-	query.Exec()
+	a.send(w, query.Exec())
 }
 
 func (a *API) setRequestIPAddress(r *http.Request) {

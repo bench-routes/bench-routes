@@ -7,14 +7,21 @@ import (
 	"time"
 )
 
-type response struct {
+// QueryResponse is the response sent after processing the query.
+type QueryResponse struct {
 	Range        queryRange    `json:"range"`
 	TimeInvolved time.Duration `json:"queryTime"`
-	Value        interface{}   `json:"value"`
+	Value        interface{}   `json:"values"`
 }
 
-func getBaseResponse(r queryRange) (response, time.Time) {
-	return response{
+type queryValue struct {
+	Value          interface{} `json:"value"`
+	Timestamp      interface{} `json:"timestamp"`
+	NormalizedTime int64       `json:"normalizedTime"`
+}
+
+func getBaseResponse(r queryRange) (QueryResponse, time.Time) {
+	return QueryResponse{
 		Range: queryRange{
 			Start: r.Start,
 			End:   r.End,
@@ -23,7 +30,7 @@ func getBaseResponse(r queryRange) (response, time.Time) {
 	}, time.Now()
 }
 
-func encode(r response) []byte {
+func encode(r QueryResponse) []byte {
 	j, e := json.Marshal(r)
 	if e != nil {
 		logger.Terminal(fmt.Errorf("encoding error: %s", e.Error()).Error(), "p")
