@@ -4,6 +4,7 @@ import Dashboard from '../pages/Dashboard';
 import FloodPing from '../pages/FloodPing';
 import Jitter from '../pages/Jitter';
 import Monitoring from '../pages/Monitoring';
+import Charts from '../layouts/Charts';
 import Ping from '../pages/Ping';
 import Settings from '../pages/Settings';
 
@@ -11,6 +12,7 @@ const Navigator = () => (
   <Router>
     <Switch>
       <Route exact={true} path="/" component={Dashboard} />
+      <Route path="/charts" component={Charts} />
       <Route path="/monitoring" component={Monitoring} />
       <Route path="/ping" component={Ping} />
       <Route path="/floodping" component={FloodPing} />

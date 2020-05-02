@@ -86,6 +86,12 @@ export default function Sidebar(props) {
         </ListItemIcon>
         <ListItemText primary="Dashboard" />
       </ListItem>
+      <ListItem button={true} component={Link} to="/charts">
+        <ListItemIcon>
+          <AccessAlarmIcon />
+        </ListItemIcon>
+        <ListItemText primary="Charts" />
+      </ListItem>
       <ListItem button={true} component={Link} to="/monitoring">
         <ListItemIcon>
           <AccessAlarmIcon />

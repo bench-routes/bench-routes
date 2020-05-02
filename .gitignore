@@ -9,6 +9,7 @@ dashboard/node_modules
 collector-store
 storage
 .idea/
+dashboard/v1.1/*.lock
 
 # testfiles
 src/lib/modules/testfiles/*.json
