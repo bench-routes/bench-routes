@@ -82,6 +82,7 @@ func (b Block) GetTimeStamp() string {
 type Chain struct {
 	Path               string
 	Name               string
+	Route              string
 	Chain              []Block
 	LengthElements     int
 	Size               uintptr

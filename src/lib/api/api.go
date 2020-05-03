@@ -23,11 +23,14 @@ const (
 type API struct {
 	RequestIP string      `json:"requestIPAddress"`
 	Data      interface{} `json:"data"`
+	Matrix    *utils.BRmap
 }
 
 // New returns the API type for implementing the API interface.
-func New() *API {
-	return &API{}
+func New(matrix *utils.BRmap) *API {
+	return &API{
+		Matrix: matrix,
+	}
 }
 
 // Home handles the requests for the home page.
@@ -141,6 +144,16 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	query := qry.QueryBuilder()
 	query.SetRange(startTimestamp, endTimestamp)
 	a.send(w, query.Exec())
+}
+
+// SendMatrix responds by sending the multi-dimensional data (called matrix)
+// dependent on a route, as set of routes which are decided by a filter.
+func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
+	filterValue := r.URL.Query().Get("filter")
+	if filterValue == "" || filterValue == "all" {
+		//	format here
+		return
+	}
 }
 
 func (a *API) setRequestIPAddress(r *http.Request) {
