@@ -29,10 +29,10 @@ type TestInterval struct {
 
 // Response is used to decode the tsdb while sending data in the API
 type Response struct {
-	Min  string `json: "minValue"`
-	Avg  string `json: "avgValue"`
-	Max  string `json: "maxValue"`
-	Mdev string `json: "mdevValue"`
+	Min  string `json:"minValue"`
+	Avg  string `json:"avgValue"`
+	Max  string `json:"maxValue"`
+	Mdev string `json:"mdevValue"`
 }
 
 // New returns a Ping type.

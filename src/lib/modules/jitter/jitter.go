@@ -29,7 +29,7 @@ type TestInterval struct {
 
 // Response is used to decode the tsdb while sending data in the API
 type Response struct {
-	Value string `json: "value"`
+	Value string `json:"value"`
 }
 
 // New returns a Jitter type.

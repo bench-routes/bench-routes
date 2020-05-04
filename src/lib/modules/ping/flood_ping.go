@@ -34,11 +34,11 @@ func Newf(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval
 
 // FloodPingResponse is used to decode the tsdb while sending data in the API
 type FloodPingResponse struct {
-	Min   string `json: "minValue"`
-	Avg   string `json: "avgValue"`
-	Max   string `json: "maxValue"`
-	Mdev  string `json: "mdevValue"`
-	Ploss string `json: "packetLoss"`
+	Min   string `json:"minValue"`
+	Avg   string `json:"avgValue"`
+	Max   string `json:"maxValue"`
+	Mdev  string `json:"mdevValue"`
+	Ploss string `json:"packetLoss"`
 }
 
 // Iteratef iterates over the local-configuration file to keep state
