@@ -27,6 +27,11 @@ type TestInterval struct {
 	Duration int64
 }
 
+// Response is used to decode the tsdb while sending data in the API
+type Response struct {
+	Value string `json: "value"`
+}
+
 // New returns a Jitter type.
 func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval, chain []*tsdb.Chain) *Jitter {
 	return &Jitter{

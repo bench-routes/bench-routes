@@ -1,7 +1,6 @@
-package utils
+package decode
 
 import (
-	"github.com/zairza-cetb/bench-routes/src/metrics/system"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
@@ -17,10 +16,19 @@ func NewBlockDecoding(Type string) *BlockDecodingBR {
 	}
 }
 
+// Decode function checks for different kinds of modules and redirects
+// the same to the respective functions to get the decoded value which
+// is to be passed to the front end
 func (bd *BlockDecodingBR) Decode(block tsdb.Block) interface{} {
 	switch bd.Type {
 	case "sys":
-		return system.Decode(block.Datapoint)
+		return systemDecode(block.Datapoint)
+	case "ping":
+		return pingDecode(block.Datapoint)
+	case "jitter":
+		return jitterDecode(block.Datapoint)
+	case "flood-ping":
+		return floodPingDecode(block.Datapoint)
 	}
 	return nil
 }
