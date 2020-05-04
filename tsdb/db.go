@@ -420,23 +420,19 @@ func saveToHDD(path string, data []byte) error {
 	return nil
 }
 
-// GetTimeStamp returns the timestamp
+// GetTimeStampCalc returns the timestamp
 func GetTimeStampCalc() string {
 	t := time.Now()
 
 	return s(t.Year()) + "|" + s(t.Month()) + "|" + s(t.Day()) + "|" + s(t.Hour()) + "|" +
-		s(t.Minute()) + "|" + s(t.Second()) + "#" + s(milliSeconds())
+		s(t.Minute()) + "|" + s(t.Second())
 }
 
-// GetNormalizedTime returns the UnixNano time as normalized time.
+// GetNormalizedTimeCalc returns the UnixNano time as normalized time.
 func GetNormalizedTimeCalc() int64 {
 	return time.Now().UnixNano()
 }
 
 func s(st interface{}) string {
 	return fmt.Sprintf("%v", st)
-}
-
-func milliSeconds() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
 }
