@@ -106,7 +106,6 @@ func main() {
 		}
 		matrix = setMatrixKey(matrix, r.URL)
 	}
-	fmt.Println(matrix)
 	var wg sync.WaitGroup
 	p := time.Now()
 	wg.Add(4)
@@ -386,6 +385,8 @@ func main() {
 		router.HandleFunc("/test", api.TestTemplate)
 		router.HandleFunc("/service-state", api.ServiceState)
 		router.HandleFunc("/routes-summary", api.RoutesSummary)
+		router.HandleFunc("/get-time-series", api.TSDBPathDetails)
+		router.HandleFunc("/query-matrix", api.SendMatrix)
 		router.HandleFunc("/query", api.Query)
 	}
 
@@ -446,16 +447,18 @@ func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 			resp := tsdb.NewChain(path)
 			resp.Init()
 			*chain = append(*chain, resp)
-			fmt.Println("configRes is ", v.URL)
 			for k := range *matrix {
-				filters.HTTPPingFilter(&k)
-				(*matrix)[k] = &utils.BRMatrix{
-					URL:          v.URL,
-					Method:       v.Method,
-					Route:        v.Route,
-					Headers:      v.Header,
-					Params:       v.Params,
-					MonitorChain: resp,
+				filters.HTTPPingFilter(&v.URL)
+				if k == v.URL {
+					(*matrix)[k] = &utils.BRMatrix{
+						URL:          v.URL,
+						Method:       v.Method,
+						Route:        v.Route,
+						Headers:      v.Header,
+						Params:       v.Params,
+						MonitorChain: resp,
+					}
+					break
 				}
 			}
 		}

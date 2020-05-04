@@ -3,14 +3,15 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 	"math"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/tsdb"
 	"github.com/zairza-cetb/bench-routes/tsdb/querier"
 )
 
@@ -42,7 +43,6 @@ func (a *API) Home(w http.ResponseWriter, r *http.Request) {
 // UIv1 serves the v1.0 version of user-interface of bench-routes.
 // ui-builds/v1.0 is served through this.
 func (a *API) UIv1(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("inside here")
 	http.FileServer(http.Dir(uiPathV1))
 }
 
@@ -100,10 +100,8 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 		startTimestamp, endTimestamp int64
 		err                          error
 	)
-	//timeSeriesPath := r.FormValue("timeSeriesPath")
 	timeSeriesPath := r.URL.Query().Get("timeSeriesPath")
 
-	//startTimestampStr := r.FormValue("startTimestamp")
 	startTimestampStr := r.URL.Query().Get("startTimestamp")
 	if startTimestampStr == "" {
 		startTimestamp = int64(math.MaxInt64)
@@ -114,7 +112,6 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	//endTimestampStr := r.FormValue("endTimestamp")
 	endTimestampStr := r.URL.Query().Get("endTimestamp")
 	if endTimestampStr == "" {
 		endTimestamp = int64(math.MinInt64)
@@ -147,13 +144,58 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 }
 
 // SendMatrix responds by sending the multi-dimensional data (called matrix)
-// dependent on a route, as set of routes which are decided by a filter.
+// dependent on a route name as in matrix key.
 func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
-	filterValue := r.URL.Query().Get("filter")
-	if filterValue == "" || filterValue == "all" {
-		//	format here
-		return
+	routeNameMatrix := r.URL.Query().Get("routeNameMatrix")
+	curr := time.Now().UnixNano()
+	from := time.Now()
+	from.Add(-(time.Minute * time.Duration(30)))
+	fmt.Println(routeNameMatrix)
+	fmt.Println(*a.Matrix)
+	matrix := (*a.Matrix)[routeNameMatrix]
+	fmt.Println("matrix is ", matrix)
+	parallelQueryExec := func(path string, c chan []byte) {
+		qry := querier.New(path, "")
+		query := qry.QueryBuilder()
+		query.SetRange(curr, from.UnixNano())
+		c <- query.Exec()
 	}
+	chans := []chan []byte{
+		make(chan []byte),
+		make(chan []byte),
+		make(chan []byte),
+		make(chan []byte),
+	}
+	go parallelQueryExec(matrix.PingChain.Path, chans[0])
+	go parallelQueryExec(matrix.FPingChain.Path, chans[1])
+	go parallelQueryExec(matrix.JitterChain.Path, chans[2])
+	go parallelQueryExec(matrix.MonitorChain.Path, chans[3])
+	matrixResponse := utils.MatrixResponse{
+		PingBlocks:    <-chans[0],
+		FpingBlocks:   <-chans[1],
+		JitterBlocks:  <-chans[2],
+		MonitorBlocks: <-chans[3],
+	}
+	a.Data = matrixResponse
+	a.send(w, a.marshalled())
+}
+
+// TSDBPathDetails responds with the path details that will be used for
+// passing into the querier's timeSeriesPath.
+func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
+	var chainDetails []utils.ResponseTSDBChains
+	for _, v := range *a.Matrix {
+		chainDetails = append(chainDetails, utils.ResponseTSDBChains{
+			Name: v.Domain,
+			Path: utils.ChainPath{
+				Ping:    v.PingChain.Path,
+				Jitter:  v.JitterChain.Path,
+				Fping:   v.FPingChain.Path,
+				Monitor: v.MonitorChain.Path,
+			},
+		})
+	}
+	a.send(w, a.marshal(chainDetails))
 }
 
 func (a *API) setRequestIPAddress(r *http.Request) {
@@ -162,6 +204,15 @@ func (a *API) setRequestIPAddress(r *http.Request) {
 
 func (a *API) marshalled() []byte {
 	js, err := json.Marshal(*a)
+	if err != nil {
+		panic(err)
+	}
+
+	return js
+}
+
+func (a *API) marshal(data interface{}) []byte {
+	js, err := json.Marshal(data)
 	if err != nil {
 		panic(err)
 	}

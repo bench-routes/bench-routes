@@ -75,6 +75,28 @@ type ResponseResp struct {
 	Relative       int    `json:"relative"`
 }
 
+// ResponseTSDBChains as response type for information on the tsdb chains.
+type ResponseTSDBChains struct {
+	Name string    `json:"name"`
+	Path ChainPath `json:"path"`
+}
+
+// ChainPath keeps the path of all chains corresponding to a matrix value.
+type ChainPath struct {
+	Ping    string `json:"ping"`
+	Jitter  string `json:"jitter"`
+	Fping   string `json:"fping"`
+	Monitor string `json:"monitor"`
+}
+
+// MatrixResponse wraps the block stream of the chains.
+type MatrixResponse struct {
+	PingBlocks    []byte `json:"ping"`
+	JitterBlocks  []byte `json:"jitter"`
+	FpingBlocks   []byte `json:"fping"`
+	MonitorBlocks []byte `json:"monitor"`
+}
+
 // BRMatrix type for storing multi-dimensional information related to a route.
 type BRMatrix struct {
 	URL                                              string

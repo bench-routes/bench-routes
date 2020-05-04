@@ -156,9 +156,10 @@ func (q *Query) exec(blockStream []tsdb.Block) []byte {
 	}
 
 	base = QueryResponse{
-		TimeInvolved: time.Since(stamp),
-		Range:        *q.Range,
-		Value:        decodedBlockStream,
+		TimeSeriesPath: q.Path,
+		TimeInvolved:   time.Since(stamp),
+		Range:          *q.Range,
+		Value:          decodedBlockStream,
 	}
 	return encode(base)
 }
