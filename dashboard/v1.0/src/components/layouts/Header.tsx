@@ -23,7 +23,7 @@ export default function Header() {
               src="assets/icons/notify-icon.svg"
               alt="notification"
               onClick={() => updateShowNotificationsScreen()}
-              onKeyDown={(e) => {
+              onKeyDown={e => {
                 if (e.keyCode === 13) {
                   updateShowNotificationsScreen();
                 }
