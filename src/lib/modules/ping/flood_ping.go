@@ -32,7 +32,7 @@ func Newf(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval
 	}
 }
 
-// FloodPingResponse is used to decode the tsdb while sending data in the API
+// FloodPingResponse is used to decode the tsdb blocks to data points that supports JSON encoding.
 type FloodPingResponse struct {
 	Min   string `json:"minValue"`
 	Avg   string `json:"avgValue"`

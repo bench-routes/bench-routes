@@ -9,8 +9,7 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/metrics/system"
 )
 
-// System converts the block into Response type for easily http based
-// response.
+// systemDecode converts the block into Response type for easy http based JSON response.
 func systemDecode(block string) system.Response {
 	arr := strings.Split(block, "|")
 	if len(arr) != 8 {

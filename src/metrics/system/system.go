@@ -148,7 +148,7 @@ func (s *SystemMetrics) Encode(block interface{}) string {
 	return data
 }
 
-// Response as http type for system-metrics response.
+// Response is used to decode the tsdb blocks to data points that supports JSON encoding.
 type Response struct {
 	CPUTotalUsage string                 `json:"cpuTotalUsage"`
 	Memory        MemoryStatsStringified `json:"memory"`

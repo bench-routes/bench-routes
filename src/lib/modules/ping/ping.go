@@ -27,7 +27,7 @@ type TestInterval struct {
 	Duration int64
 }
 
-// Response is used to decode the tsdb while sending data in the API
+// Response is used to decode the tsdb blocks to data points that supports JSON encoding.
 type Response struct {
 	Min  string `json:"minValue"`
 	Avg  string `json:"avgValue"`
