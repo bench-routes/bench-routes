@@ -2,7 +2,6 @@ package system
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	disk "github.com/mackerelio/go-osstat/memory"
@@ -149,7 +148,7 @@ func (s *SystemMetrics) Encode(block interface{}) string {
 	return data
 }
 
-// Response as http type for system-metrics response.
+// Response is used to decode the tsdb blocks to data points that supports JSON encoding.
 type Response struct {
 	CPUTotalUsage string                 `json:"cpuTotalUsage"`
 	Memory        MemoryStatsStringified `json:"memory"`
@@ -159,28 +158,4 @@ type Response struct {
 // Combine combines segments into a single data point for a block.
 func (s *SystemMetrics) Combine(cpu, memory, disk string) string {
 	return cpu + "|" + memory + "|" + disk
-}
-
-// Decode converts the block into Response type for easily http based
-// response.
-func Decode(block string) Response {
-	arr := strings.Split(block, "|")
-	if len(arr) != 8 {
-		panic(fmt.Errorf("Invalid block segments length: Segments must be 8 in number: length: %d", len(arr)))
-	}
-
-	return Response{
-		CPUTotalUsage: arr[0],
-		Memory: MemoryStatsStringified{
-			Total:       arr[1],
-			Available:   arr[2],
-			Used:        arr[3],
-			UsedPercent: arr[4],
-			Free:        arr[5],
-		},
-		Disk: DiskStatsStringified{
-			DiskIO: arr[6],
-			Cached: arr[7],
-		},
-	}
 }

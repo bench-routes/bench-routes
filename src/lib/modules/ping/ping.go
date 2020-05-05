@@ -27,6 +27,14 @@ type TestInterval struct {
 	Duration int64
 }
 
+// Response is used to decode the tsdb blocks to data points that supports JSON encoding.
+type Response struct {
+	Min  string `json:"minValue"`
+	Avg  string `json:"avgValue"`
+	Max  string `json:"maxValue"`
+	Mdev string `json:"mdevValue"`
+}
+
 // New returns a Ping type.
 func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval, chain []*tsdb.Chain) *Ping {
 	return &Ping{

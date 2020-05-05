@@ -1,9 +1,10 @@
 package querier
 
 import (
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"math"
 	"time"
+
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/decode"
 
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
@@ -146,7 +147,7 @@ func (q *Query) exec(blockStream []tsdb.Block) []byte {
 		return q.ReturnNILResponse()
 	}
 	// decode the selected range of blocks
-	blocksDecoder := utils.NewBlockDecoding(resultingBlockSlice[0].Type)
+	blocksDecoder := decode.NewBlockDecoding(resultingBlockSlice[0].Type)
 	for i := range resultingBlockSlice {
 		decodedBlockStream = append(decodedBlockStream, queryValue{
 			Timestamp:      resultingBlockSlice[i].Timestamp,
