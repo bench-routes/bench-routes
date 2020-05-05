@@ -160,29 +160,30 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(*a.Matrix)
 	matrix := (*a.Matrix)[routeNameMatrix]
 	fmt.Println("matrix is ", matrix)
-	parallelQueryExec := func(path string, c chan []byte) {
+	parallelQueryExec := func(path string, c chan querier.QueryResponse) {
+		fmt.Println("path is ", path)
 		qry := querier.New(path, "")
 		query := qry.QueryBuilder()
 		query.SetRange(curr, from.UnixNano())
-		c <- query.Exec()
+		c <- query.ExecWithoutEncode()
 	}
-	chans := []chan []byte{
-		make(chan []byte),
-		make(chan []byte),
-		make(chan []byte),
-		make(chan []byte),
+	chans := []chan querier.QueryResponse{
+		make(chan querier.QueryResponse),
+		make(chan querier.QueryResponse),
+		make(chan querier.QueryResponse),
+		make(chan querier.QueryResponse),
 	}
 	go parallelQueryExec(matrix.PingChain.Path, chans[0])
 	go parallelQueryExec(matrix.FPingChain.Path, chans[1])
 	go parallelQueryExec(matrix.JitterChain.Path, chans[2])
 	go parallelQueryExec(matrix.MonitorChain.Path, chans[3])
-	matrixResponse := map[string][]byte{
+	matrixResponse := map[string]querier.QueryResponse{
 		"ping":    <-chans[0],
 		"fping":   <-chans[1],
 		"jitter":  <-chans[2],
 		"monitor": <-chans[3],
 	}
-	fmt.Println(string(matrixResponse["ping"]))
+	fmt.Println(matrixResponse["ping"])
 	a.Data = matrixResponse
 	a.send(w, a.marshalled())
 }

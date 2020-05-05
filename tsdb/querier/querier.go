@@ -1,6 +1,7 @@
 package querier
 
 import (
+	"fmt"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"math"
@@ -115,6 +116,7 @@ func (q *Query) exec(blockStream []tsdb.Block, encoding bool) interface{} {
 
 	// A nil range represents to return all time-series value as response.
 	if q.Range == nil {
+		fmt.Println("inside 1")
 		base = QueryResponse{
 			TimeInvolved: time.Since(stamp),
 			Range: queryRange{
@@ -123,7 +125,7 @@ func (q *Query) exec(blockStream []tsdb.Block, encoding bool) interface{} {
 			},
 			Value: blockStream,
 		}
-		return encode(base, true)
+		return encode(base, encoding)
 	}
 	if len(blockStream) == 0 {
 		return q.ReturnMessageResponse("NO_BLOCKS_IN_MENTIONED_DB_PATH")
@@ -180,7 +182,9 @@ func (q *Query) exec(blockStream []tsdb.Block, encoding bool) interface{} {
 		Range:          *q.Range,
 		Value:          decodedBlockStream,
 	}
-	return encode(base, true)
+	fmt.Println("base is ")
+	fmt.Println(base)
+	return encode(base, encoding)
 }
 
 // validate performs pre-validations on the query in order to avoid faults
