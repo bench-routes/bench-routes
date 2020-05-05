@@ -32,7 +32,16 @@ func Newf(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval
 	}
 }
 
-// Iterate iterates over the local-configuration file to keep state
+// FloodPingResponse is used to decode the tsdb blocks to data points that supports JSON encoding.
+type FloodPingResponse struct {
+	Min   string `json:"minValue"`
+	Avg   string `json:"avgValue"`
+	Max   string `json:"maxValue"`
+	Mdev  string `json:"mdevValue"`
+	Ploss string `json:"packetLoss"`
+}
+
+// Iteratef iterates over the local-configuration file to keep state
 // of the ping service in sync with the local configuration.
 // It is responsible for stopping the service without damaging the currently
 // calculated samples.
