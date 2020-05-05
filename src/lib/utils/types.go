@@ -3,6 +3,11 @@
 
 package utils
 
+import (
+	"github.com/zairza-cetb/bench-routes/src/lib/parser"
+	"github.com/zairza-cetb/bench-routes/tsdb"
+)
+
 // Ping type for storing Ping values in TSDB
 type Ping struct {
 	Min  float64
@@ -69,3 +74,39 @@ type ResponseResp struct {
 	Timestamp      string `json:"Timestamp"`
 	Relative       int    `json:"relative"`
 }
+
+// ResponseTSDBChains as response type for information on the tsdb chains.
+type ResponseTSDBChains struct {
+	Name string    `json:"name"`
+	Path ChainPath `json:"path"`
+}
+
+// ChainPath keeps the path of all chains corresponding to a matrix value.
+type ChainPath struct {
+	Ping    string `json:"ping"`
+	Jitter  string `json:"jitter"`
+	Fping   string `json:"fping"`
+	Monitor string `json:"monitor"`
+}
+
+// MatrixResponse wraps the block stream of the chains.
+type MatrixResponse struct {
+	PingBlocks    []byte `json:"ping"`
+	JitterBlocks  []byte `json:"jitter"`
+	FpingBlocks   []byte `json:"fping"`
+	MonitorBlocks []byte `json:"monitor"`
+}
+
+// BRMatrix type for storing multi-dimensional information related to a route.
+type BRMatrix struct {
+	URL                                              string
+	Domain                                           string
+	Method                                           string
+	Route                                            string
+	Headers                                          []parser.Headers
+	Params                                           []parser.Params
+	PingChain, JitterChain, FPingChain, MonitorChain *tsdb.Chain
+}
+
+// BRmap forms a map of matrix that can be accessed with least possible time.
+type BRmap map[string]*BRMatrix

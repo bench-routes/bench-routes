@@ -1,11 +1,12 @@
 package querier
 
 import (
+	"fmt"
 	"math"
 	"time"
 
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/decode"
-
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
@@ -68,16 +69,35 @@ func (q *Query) Exec() []byte {
 	chainReadOnly := tsdb.ReadOnly(q.Path).Refresh()
 	bstream := chainReadOnly.BlockStream()
 
-	return q.exec(*bstream)
+	data, ok := q.exec(*bstream, true).([]byte)
+	if !ok {
+		logger.Terminal("p", "invalid []byte extracting from interface{}")
+	}
+	return data
 }
 
-func (q *Query) exec(blockStream []tsdb.Block) []byte {
+// ExecWithoutEncode executes the Query without encoding the result to []byte,
+// rather keeps the result as default QueryResponse.
+func (q *Query) ExecWithoutEncode() QueryResponse {
+	chainReadOnly := tsdb.ReadOnly(q.Path).Refresh()
+	bstream := chainReadOnly.BlockStream()
+	data, ok := q.exec(*bstream, false).(QueryResponse)
+	if !ok {
+		logger.Terminal("p", "invalid []byte extracting from interface{}")
+	}
+	return data
+}
+
+func (q *Query) exec(blockStream []tsdb.Block, encoding bool) interface{} {
 	// start represents the starting of the timer that will calculate
 	// the total time involved in performing a particular query.
 	// This can be later benchmarked and compared with other algorithms.
 	base, stamp := getBaseResponse(q.Range)
 	q.stamp = stamp
 	q.queryResponse = base
+	if len(blockStream) == 0 {
+		return q.ReturnMessageResponse("EMPTY_SAMPLES")
+	}
 
 	var (
 		lengthBlockStream = len(blockStream)
@@ -97,6 +117,7 @@ func (q *Query) exec(blockStream []tsdb.Block) []byte {
 
 	// A nil range represents to return all time-series value as response.
 	if q.Range == nil {
+		fmt.Println("inside 1")
 		base = QueryResponse{
 			TimeInvolved: time.Since(stamp),
 			Range: queryRange{
@@ -105,7 +126,7 @@ func (q *Query) exec(blockStream []tsdb.Block) []byte {
 			},
 			Value: blockStream,
 		}
-		return encode(base)
+		return encode(base, encoding)
 	}
 	if len(blockStream) == 0 {
 		return q.ReturnMessageResponse("NO_BLOCKS_IN_MENTIONED_DB_PATH")
@@ -155,13 +176,13 @@ func (q *Query) exec(blockStream []tsdb.Block) []byte {
 			NormalizedTime: resultingBlockSlice[i].GetNormalizedTime(),
 		})
 	}
-
 	base = QueryResponse{
-		TimeInvolved: time.Since(stamp),
-		Range:        *q.Range,
-		Value:        decodedBlockStream,
+		TimeSeriesPath: q.Path,
+		TimeInvolved:   time.Since(stamp),
+		Range:          *q.Range,
+		Value:          decodedBlockStream,
 	}
-	return encode(base)
+	return encode(base, encoding)
 }
 
 // validate performs pre-validations on the query in order to avoid faults
@@ -170,11 +191,11 @@ func (q *Query) validate(timeFirstBlock, timeLastBlock int64) []byte {
 	if q.Range == nil {
 		return nil
 	}
-	if q.Range.Start < timeLastBlock || q.Range.End > timeFirstBlock {
-		return q.ReturnNILResponse()
-	}
 	if q.Range.Start < q.Range.End {
 		return q.ReturnMessageResponse("ERROR_fromTimestamp_LESS_THAN_tillTimestamp")
+	}
+	if q.Range.Start < timeLastBlock || q.Range.End > timeFirstBlock {
+		return q.ReturnNILResponse()
 	}
 	return nil
 }
@@ -183,7 +204,11 @@ func (q *Query) validate(timeFirstBlock, timeLastBlock int64) []byte {
 // null value.
 func (q *Query) ReturnNILResponse() []byte {
 	q.queryResponse.TimeInvolved = time.Since(q.stamp)
-	return encode(q.queryResponse)
+	data, ok := encode(q.queryResponse, true).([]byte)
+	if !ok {
+		logger.Terminal("p", "invalid []byte extracting from interface{}")
+	}
+	return data
 }
 
 // ReturnMessageResponse is used only for sending simple messages. This should
@@ -193,5 +218,9 @@ func (q *Query) ReturnMessageResponse(message string) []byte {
 		TimeInvolved: time.Since(q.stamp),
 		Value:        message,
 	}
-	return encode(q.queryResponse)
+	data, ok := encode(q.queryResponse, true).([]byte)
+	if !ok {
+		logger.Terminal("p", "invalid []byte extracting from interface{}")
+	}
+	return data
 }

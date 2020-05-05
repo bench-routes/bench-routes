@@ -60,11 +60,38 @@ func main() {
 
 	logger.Terminal("initializing...", "p")
 	var ConfigURLs []string
+	matrix := make(utils.BRmap)
 	setDefaultServicesState(conf)
 
-	// Build TSDB chain.
+	setMatrixKey := func(matrix utils.BRmap, url string) utils.BRmap {
+		var count int
+		for k := range matrix {
+			if k == url {
+				count++
+			}
+		}
+		if count != 0 {
+			if count == 1 {
+				delete(matrix, url)
+				tmp := fmt.Sprintf("%s-%d", url, count)
+				matrix[tmp] = &utils.BRMatrix{
+					Domain: tmp,
+				}
+			}
+			tmp := fmt.Sprintf("%s-%d", url, count+1)
+			matrix[tmp] = &utils.BRMatrix{
+				Domain: tmp,
+			}
+		} else {
+			matrix[url] = &utils.BRMatrix{
+				Domain: url,
+			}
+		}
+		return matrix
+	}
+
 	for _, r := range conf.Config.Routes {
-		found := false
+		var found bool
 		for _, i := range ConfigURLs {
 			if i == r.URL {
 				found = true
@@ -77,20 +104,20 @@ func main() {
 			utils.PingDBNames[r.URL] = utils.GetHash(r.URL)
 			utils.FloodPingDBNames[r.URL] = utils.GetHash(r.URL)
 		}
+		matrix = setMatrixKey(matrix, r.URL)
 	}
 	var wg sync.WaitGroup
 	p := time.Now()
 	wg.Add(4)
 
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
+	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*20)
 
-	go initialise(&wg, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
-	go initialise(&wg, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
-	go initialise(&wg, chainSet, &utils.Jitterc, ConfigURLs, utils.PathJitter, "jitter")
-	go initialise(&wg, chainSet, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
-
+	go initialise(&wg, &matrix, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
+	go initialise(&wg, &matrix, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
+	go initialise(&wg, &matrix, chainSet, &utils.Jitterc, ConfigURLs, utils.PathJitter, "jitter")
+	go initialise(&wg, &matrix, chainSet, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
 	wg.Wait()
-	msg := "initial chain formation time: " + time.Since(p).String()
+	msg := "initialization time: " + time.Since(p).String()
 	logger.Terminal(msg, "p")
 
 	chainSet.Run()
@@ -107,7 +134,7 @@ func main() {
 		Monitor: monitor.New(conf, monitor.TestInterval{OfType: intervals[2].Type, Duration: *intervals[2].Duration}, utils.RespMonitoringc),
 	}
 
-	api := api.New()
+	api := api.New(&matrix)
 	router := mux.NewRouter()
 
 	// Persistent connection for real-time updates between UI and the service.
@@ -358,6 +385,8 @@ func main() {
 		router.HandleFunc("/test", api.TestTemplate)
 		router.HandleFunc("/service-state", api.ServiceState)
 		router.HandleFunc("/routes-summary", api.RoutesSummary)
+		router.HandleFunc("/get-time-series", api.TSDBPathDetails)
+		router.HandleFunc("/query-matrix", api.SendMatrix)
 		router.HandleFunc("/query", api.Query)
 	}
 
@@ -386,7 +415,7 @@ type qReqResDelayRoute struct {
 
 type qSysMetrics struct{}
 
-func initialise(wg *sync.WaitGroup, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
+func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
 	msg := "forming " + Type + " chain ... "
 	logger.File(msg, "p")
 	config, ok := conf.([]string)
@@ -396,6 +425,20 @@ func initialise(wg *sync.WaitGroup, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chai
 			resp := tsdb.NewChain(path)
 			resp.Init()
 			*chain = append(*chain, resp)
+			for k := range *matrix {
+				index := k
+				filters.HTTPPingFilter(&k)
+				if k == v {
+					switch Type {
+					case "ping":
+						(*matrix)[index].PingChain = resp
+					case "jitter":
+						(*matrix)[index].JitterChain = resp
+					case "flood_ping":
+						(*matrix)[index].FPingChain = resp
+					}
+				}
+			}
 		}
 	}
 	if configRes, ok := conf.([]parser.Routes); ok {
@@ -404,6 +447,20 @@ func initialise(wg *sync.WaitGroup, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chai
 			resp := tsdb.NewChain(path)
 			resp.Init()
 			*chain = append(*chain, resp)
+			for k := range *matrix {
+				filters.HTTPPingFilter(&v.URL)
+				if k == v.URL {
+					(*matrix)[k] = &utils.BRMatrix{
+						URL:          v.URL,
+						Method:       v.Method,
+						Route:        v.Route,
+						Headers:      v.Header,
+						Params:       v.Params,
+						MonitorChain: resp,
+					}
+					break
+				}
+			}
 		}
 	}
 	for _, chain := range *chain {

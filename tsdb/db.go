@@ -82,6 +82,7 @@ func (b Block) GetTimeStamp() string {
 type Chain struct {
 	Path               string
 	Name               string
+	Route              string
 	Chain              []Block
 	LengthElements     int
 	Size               uintptr
@@ -363,7 +364,7 @@ func (c *ChainReadOnly) BlockStream() *[]Block {
 func (c *ChainReadOnly) Refresh() *ChainReadOnly {
 	response, e := parse(c.Path)
 	if e != nil {
-		logger.Terminal(fmt.Sprintf("error readig the chain: %s", c.Path), "f")
+		logger.Terminal(fmt.Sprintf("error reading the chain: %s", c.Path), "f")
 	}
 
 	c.Chain = loadFromStorage(response)

@@ -3,14 +3,16 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 	"math"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/brt"
+	"github.com/zairza-cetb/bench-routes/tsdb"
 	"github.com/zairza-cetb/bench-routes/tsdb/querier"
 )
 
@@ -21,13 +23,16 @@ const (
 
 // API type for implementing the API interface.
 type API struct {
-	RequestIP string      `json:"requestIPAddress"`
-	Data      interface{} `json:"data"`
+	RequestIP string
+	Data      interface{}
+	Matrix    *utils.BRmap
 }
 
 // New returns the API type for implementing the API interface.
-func New() *API {
-	return &API{}
+func New(matrix *utils.BRmap) *API {
+	return &API{
+		Matrix: matrix,
+	}
 }
 
 // Home handles the requests for the home page.
@@ -39,7 +44,6 @@ func (a *API) Home(w http.ResponseWriter, r *http.Request) {
 // UIv1 serves the v1.0 version of user-interface of bench-routes.
 // ui-builds/v1.0 is served through this.
 func (a *API) UIv1(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("inside here")
 	http.FileServer(http.Dir(uiPathV1))
 }
 
@@ -97,10 +101,8 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 		startTimestamp, endTimestamp int64
 		err                          error
 	)
-	//timeSeriesPath := r.FormValue("timeSeriesPath")
 	timeSeriesPath := r.URL.Query().Get("timeSeriesPath")
 
-	//startTimestampStr := r.FormValue("startTimestamp")
 	startTimestampStr := r.URL.Query().Get("startTimestamp")
 	if startTimestampStr == "" {
 		startTimestamp = int64(math.MaxInt64)
@@ -111,7 +113,6 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	//endTimestampStr := r.FormValue("endTimestamp")
 	endTimestampStr := r.URL.Query().Get("endTimestamp")
 	if endTimestampStr == "" {
 		endTimestamp = int64(math.MinInt64)
@@ -143,12 +144,85 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	a.send(w, query.Exec())
 }
 
+// SendMatrix responds by sending the multi-dimensional data (called matrix)
+// dependent on a route name as in matrix key.
+func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
+	routeNameMatrix := r.URL.Query().Get("routeNameMatrix")
+	if _, ok := (*a.Matrix)[routeNameMatrix]; !ok {
+		a.Data = "ROUTE_NAME_NOT_IN_MATRIX"
+		a.send(w, a.marshalled())
+		return
+	}
+	curr := time.Now().UnixNano()
+	from := curr - (brt.Hour * 6)
+
+	matrix := (*a.Matrix)[routeNameMatrix]
+	parallelQueryExec := func(path string, c chan querier.QueryResponse) {
+		qry := querier.New(path, "")
+		query := qry.QueryBuilder()
+		query.SetRange(curr, from)
+		c <- query.ExecWithoutEncode()
+	}
+	chans := []chan querier.QueryResponse{
+		make(chan querier.QueryResponse),
+		make(chan querier.QueryResponse),
+		make(chan querier.QueryResponse),
+		make(chan querier.QueryResponse),
+	}
+	go parallelQueryExec(matrix.PingChain.Path, chans[0])
+	go parallelQueryExec(matrix.FPingChain.Path, chans[1])
+	go parallelQueryExec(matrix.JitterChain.Path, chans[2])
+	go parallelQueryExec(matrix.MonitorChain.Path, chans[3])
+	matrixResponse := map[string]querier.QueryResponse{
+		"ping":    <-chans[0],
+		"fping":   <-chans[1],
+		"jitter":  <-chans[2],
+		"monitor": <-chans[3],
+	}
+	a.Data = matrixResponse
+	a.send(w, a.marshalled())
+}
+
+// TSDBPathDetails responds with the path details that will be used for
+// passing into the querier's timeSeriesPath.
+func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
+	var chainDetails []utils.ResponseTSDBChains
+	for _, v := range *a.Matrix {
+		chainDetails = append(chainDetails, utils.ResponseTSDBChains{
+			Name: v.Domain,
+			Path: utils.ChainPath{
+				Ping:    v.PingChain.Path,
+				Jitter:  v.JitterChain.Path,
+				Fping:   v.FPingChain.Path,
+				Monitor: v.MonitorChain.Path,
+			},
+		})
+	}
+	a.send(w, a.marshal(chainDetails))
+}
+
 func (a *API) setRequestIPAddress(r *http.Request) {
 	a.RequestIP = r.RemoteAddr
 }
 
 func (a *API) marshalled() []byte {
-	js, err := json.Marshal(*a)
+	response := struct {
+		RequestIP string      `json:"requestIPAddress"`
+		Data      interface{} `json:"data"`
+	}{
+		RequestIP: a.RequestIP,
+		Data:      a.Data,
+	}
+	js, err := json.Marshal(response)
+	if err != nil {
+		panic(err)
+	}
+
+	return js
+}
+
+func (a *API) marshal(data interface{}) []byte {
+	js, err := json.Marshal(data)
 	if err != nil {
 		panic(err)
 	}
