@@ -11,6 +11,7 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/brt"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 	"github.com/zairza-cetb/bench-routes/tsdb/querier"
 )
@@ -152,19 +153,14 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		a.send(w, a.marshalled())
 		return
 	}
-
 	curr := time.Now().UnixNano()
-	from := time.Now()
-	from.Add(-(time.Minute * time.Duration(30)))
-	fmt.Println(routeNameMatrix)
-	fmt.Println(*a.Matrix)
+	from := curr - (brt.Hour * 6)
+
 	matrix := (*a.Matrix)[routeNameMatrix]
-	fmt.Println("matrix is ", matrix)
 	parallelQueryExec := func(path string, c chan querier.QueryResponse) {
-		fmt.Println("path is ", path)
 		qry := querier.New(path, "")
 		query := qry.QueryBuilder()
-		query.SetRange(curr, from.UnixNano())
+		query.SetRange(curr, from)
 		c <- query.ExecWithoutEncode()
 	}
 	chans := []chan querier.QueryResponse{
@@ -183,7 +179,6 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		"jitter":  <-chans[2],
 		"monitor": <-chans[3],
 	}
-	fmt.Println(matrixResponse["ping"])
 	a.Data = matrixResponse
 	a.send(w, a.marshalled())
 }

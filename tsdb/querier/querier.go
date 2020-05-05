@@ -5,8 +5,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/decode"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/decode"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
@@ -76,11 +76,12 @@ func (q *Query) Exec() []byte {
 	return data
 }
 
+// ExecWithoutEncode executes the Query without encoding the result to []byte,
+// rather keeps the result as default QueryResponse.
 func (q *Query) ExecWithoutEncode() QueryResponse {
 	chainReadOnly := tsdb.ReadOnly(q.Path).Refresh()
 	bstream := chainReadOnly.BlockStream()
-
-	data, ok := q.exec(*bstream, true).(QueryResponse)
+	data, ok := q.exec(*bstream, false).(QueryResponse)
 	if !ok {
 		logger.Terminal("p", "invalid []byte extracting from interface{}")
 	}
@@ -175,15 +176,12 @@ func (q *Query) exec(blockStream []tsdb.Block, encoding bool) interface{} {
 			NormalizedTime: resultingBlockSlice[i].GetNormalizedTime(),
 		})
 	}
-
 	base = QueryResponse{
 		TimeSeriesPath: q.Path,
 		TimeInvolved:   time.Since(stamp),
 		Range:          *q.Range,
 		Value:          decodedBlockStream,
 	}
-	fmt.Println("base is ")
-	fmt.Println(base)
 	return encode(base, encoding)
 }
 
@@ -193,11 +191,11 @@ func (q *Query) validate(timeFirstBlock, timeLastBlock int64) []byte {
 	if q.Range == nil {
 		return nil
 	}
-	if q.Range.Start < timeLastBlock || q.Range.End > timeFirstBlock {
-		return q.ReturnNILResponse()
-	}
 	if q.Range.Start < q.Range.End {
 		return q.ReturnMessageResponse("ERROR_fromTimestamp_LESS_THAN_tillTimestamp")
+	}
+	if q.Range.Start < timeLastBlock || q.Range.End > timeFirstBlock {
+		return q.ReturnNILResponse()
 	}
 	return nil
 }

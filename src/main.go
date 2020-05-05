@@ -110,7 +110,7 @@ func main() {
 	p := time.Now()
 	wg.Add(4)
 
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
+	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*20)
 
 	go initialise(&wg, &matrix, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
 	go initialise(&wg, &matrix, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
@@ -119,9 +119,6 @@ func main() {
 	wg.Wait()
 	msg := "initialization time: " + time.Since(p).String()
 	logger.Terminal(msg, "p")
-	fmt.Println(matrix["facebook.com"])
-	fmt.Println(matrix["in.search.yahoo.com"])
-	fmt.Println(matrix["google.co.in"])
 
 	chainSet.Run()
 
