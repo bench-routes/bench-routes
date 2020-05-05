@@ -22,8 +22,8 @@ const (
 
 // API type for implementing the API interface.
 type API struct {
-	RequestIP string      `json:"requestIPAddress"`
-	Data      interface{} `json:"data"`
+	RequestIP string
+	Data      interface{}
 	Matrix    *utils.BRmap
 }
 
@@ -147,6 +147,12 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 // dependent on a route name as in matrix key.
 func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 	routeNameMatrix := r.URL.Query().Get("routeNameMatrix")
+	if _, ok := (*a.Matrix)[routeNameMatrix]; !ok {
+		a.Data = "ROUTE_NAME_NOT_IN_MATRIX"
+		a.send(w, a.marshalled())
+		return
+	}
+
 	curr := time.Now().UnixNano()
 	from := time.Now()
 	from.Add(-(time.Minute * time.Duration(30)))
@@ -170,12 +176,13 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 	go parallelQueryExec(matrix.FPingChain.Path, chans[1])
 	go parallelQueryExec(matrix.JitterChain.Path, chans[2])
 	go parallelQueryExec(matrix.MonitorChain.Path, chans[3])
-	matrixResponse := utils.MatrixResponse{
-		PingBlocks:    <-chans[0],
-		FpingBlocks:   <-chans[1],
-		JitterBlocks:  <-chans[2],
-		MonitorBlocks: <-chans[3],
+	matrixResponse := map[string][]byte{
+		"ping":    <-chans[0],
+		"fping":   <-chans[1],
+		"jitter":  <-chans[2],
+		"monitor": <-chans[3],
 	}
+	fmt.Println(string(matrixResponse["ping"]))
 	a.Data = matrixResponse
 	a.send(w, a.marshalled())
 }
@@ -203,7 +210,14 @@ func (a *API) setRequestIPAddress(r *http.Request) {
 }
 
 func (a *API) marshalled() []byte {
-	js, err := json.Marshal(*a)
+	response := struct {
+		RequestIP string      `json:"requestIPAddress"`
+		Data      interface{} `json:"data"`
+	}{
+		RequestIP: a.RequestIP,
+		Data:      a.Data,
+	}
+	js, err := json.Marshal(response)
 	if err != nil {
 		panic(err)
 	}

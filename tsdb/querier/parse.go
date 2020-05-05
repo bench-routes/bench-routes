@@ -38,10 +38,13 @@ func getBaseResponse(r *queryRange) (QueryResponse, time.Time) {
 	}, time.Now()
 }
 
-func encode(r QueryResponse) []byte {
-	j, e := json.Marshal(r)
-	if e != nil {
-		logger.Terminal(fmt.Errorf("encoding error: %s", e.Error()).Error(), "p")
+func encode(r QueryResponse, enabled bool) interface{} {
+	if enabled {
+		j, e := json.Marshal(r)
+		if e != nil {
+			logger.Terminal(fmt.Errorf("encoding error: %s", e.Error()).Error(), "p")
+		}
+		return j
 	}
-	return j
+	return r
 }

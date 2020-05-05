@@ -119,6 +119,9 @@ func main() {
 	wg.Wait()
 	msg := "initialization time: " + time.Since(p).String()
 	logger.Terminal(msg, "p")
+	fmt.Println(matrix["facebook.com"])
+	fmt.Println(matrix["in.search.yahoo.com"])
+	fmt.Println(matrix["google.co.in"])
 
 	chainSet.Run()
 
