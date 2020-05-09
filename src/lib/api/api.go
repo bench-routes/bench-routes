@@ -141,7 +141,8 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	qry := querier.New(timeSeriesPath, "")
 	query := qry.QueryBuilder()
 	query.SetRange(startTimestamp, endTimestamp)
-	a.send(w, query.Exec())
+	a.Data = query.ExecWithoutEncode()
+	a.send(w, a.marshalled())
 }
 
 // SendMatrix responds by sending the multi-dimensional data (called matrix)
@@ -207,11 +208,11 @@ func (a *API) setRequestIPAddress(r *http.Request) {
 
 func (a *API) marshalled() []byte {
 	response := struct {
-		RequestIP string      `json:"requestIPAddress"`
-		Data      interface{} `json:"data"`
+		Status string      `json:"status"`
+		Data   interface{} `json:"data"`
 	}{
-		RequestIP: a.RequestIP,
-		Data:      a.Data,
+		Status: a.RequestIP,
+		Data:   a.Data,
 	}
 	js, err := json.Marshal(response)
 	if err != nil {
