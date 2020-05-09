@@ -385,7 +385,7 @@ func main() {
 		router.HandleFunc("/test", api.TestTemplate)
 		router.HandleFunc("/service-state", api.ServiceState)
 		router.HandleFunc("/routes-summary", api.RoutesSummary)
-		router.HandleFunc("/get-time-series", api.TSDBPathDetails)
+		router.HandleFunc("/get-route-time-series", api.TSDBPathDetails)
 		router.HandleFunc("/query-matrix", api.SendMatrix)
 		router.HandleFunc("/query", api.Query)
 	}
