@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect } from 'react';
 import { useFetch } from '../../utils/useFetch';
 import CPUUsage from './CPUUsage';
 import AppBar from '@material-ui/core/AppBar';
@@ -12,14 +12,7 @@ import DiskUsage from './Disk';
 import MemoryDetails from './MemoryDetails';
 import TimeInstance from '../../utils/brt';
 import { HOST_IP } from '../../utils/types';
-import {
-  QueryResponse,
-  QueryValues,
-  queryValueCPUUsage,
-  queryValueMemory,
-  queryValueDisk,
-  queryValueMemoryUsedPercent
-} from '../../utils/queryTypes';
+import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -58,35 +51,65 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const segregateMetrics = (metricValues: QueryValues[]) => {
-  const cpuUsageSlice: queryValueCPUUsage[] = [];
-  const diskSlice: queryValueDisk[] = [];
-  const memorySlice: queryValueMemory[] = [];
-  const memoryUsedPercentSlice: queryValueMemoryUsedPercent[] = [];
+  const cpuUsageSlice: chartData[] = [];
+
+  const diskSliceCache: chartData[] = [];
+  const diskSliceDiskIO: chartData[] = [];
+
+  const memorySliceAvailableBytes: chartData[] = [];
+  const memorySliceFreeBytes: chartData[] = [];
+  const memorySliceTotalBytes: chartData[] = [];
+  const memorySliceUsedBytes: chartData[] = [];
+
+  const memoryUsedPercentSlice: chartData[] = [];
 
   for (const metric of metricValues) {
     cpuUsageSlice.push({
-      CPUUsage: metric.value.cpuTotalUsage,
-      normalizedTime: metric.normalizedTime
+      y: metric.value.cpuTotalUsage,
+      x: metric.normalizedTime
     });
-    diskSlice.push({
-      cached: metric.value.disk.cached,
-      diskIO: metric.value.disk.diskIO,
-      normalizedTime: metric.normalizedTime
+
+    diskSliceCache.push({
+      y: metric.value.disk.cached,
+      x: metric.normalizedTime
     });
-    memorySlice.push({
-      availableBytes: metric.value.memory.availableBytes,
-      freeBytes: metric.value.memory.freeBytes,
-      totalBytes: metric.value.memory.totalBytes,
-      usedBytes: metric.value.memory.usedBytes,
-      usedPercent: metric.value.memory.usedPercent,
-      normalizedTime: metric.normalizedTime
+    diskSliceDiskIO.push({
+      y: metric.value.disk.diskIO,
+      x: metric.normalizedTime
     });
+
+    memorySliceAvailableBytes.push({
+      y: metric.value.memory.availableBytes,
+      x: metric.normalizedTime
+    });
+    memorySliceFreeBytes.push({
+      y: metric.value.memory.freeBytes,
+      x: metric.normalizedTime
+    });
+    memorySliceTotalBytes.push({
+      y: metric.value.memory.totalBytes,
+      x: metric.normalizedTime
+    });
+    memorySliceUsedBytes.push({
+      y: metric.value.memory.usedBytes,
+      x: metric.normalizedTime
+    });
+
     memoryUsedPercentSlice.push({
-      memoryUsedPercent: metric.value.memory.usedPercent,
-      normalizedTime: metric.normalizedTime
+      y: metric.value.memory.usedPercent,
+      x: metric.normalizedTime
     });
   }
-  return { cpuUsageSlice, diskSlice, memorySlice, memoryUsedPercentSlice };
+  return {
+    cpuUsageSlice,
+    diskSliceCache,
+    diskSliceDiskIO,
+    memorySliceAvailableBytes,
+    memorySliceFreeBytes,
+    memorySliceTotalBytes,
+    memorySliceUsedBytes,
+    memoryUsedPercentSlice
+  };
 };
 
 interface SystemMetricsProps {
@@ -96,22 +119,26 @@ interface SystemMetricsProps {
 const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
+  const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
 
-  const handleChange = (event, newValue) => {
+  useEffect(() => {
+    showLoader(true);
+  }, [showLoader]);
+  const handleChange = (_event, newValue) => {
     setValue(newValue);
   };
 
-  const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
-  showLoader(true);
   const { response, error } = useFetch<QueryResponse>(
     `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${endTimestamp}`
   );
+
   if (error) {
     console.warn(error);
   }
   if (!response.data) {
     return null;
   }
+
   const responseInFormat = segregateMetrics(response.data.values);
   showLoader(false);
   return (
@@ -145,12 +172,20 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
           </TabPanel>
           <TabPanel value={value} index={1}>
             <div className="col-md-12">
-              <DiskUsage metrics={responseInFormat.diskSlice} />
+              <DiskUsage
+                diskIO={responseInFormat.diskSliceDiskIO}
+                cache={responseInFormat.diskSliceCache}
+              />
             </div>
           </TabPanel>
           <TabPanel value={value} index={2}>
             <div className="col-md-12">
-              <MemoryDetails metrics={responseInFormat.memorySlice} />
+              <MemoryDetails
+                availableBytes={responseInFormat.memorySliceAvailableBytes}
+                freeBytes={responseInFormat.memorySliceFreeBytes}
+                totalBytes={responseInFormat.memorySliceTotalBytes}
+                usedBytes={responseInFormat.memorySliceUsedBytes}
+              />
             </div>
           </TabPanel>
         </div>

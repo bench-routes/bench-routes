@@ -1,67 +1,36 @@
 import React, { FC } from 'react';
 import Chart from 'react-apexcharts';
-import { queryValueMemory } from '../../utils/queryTypes';
-
-interface chartData {
-  x: number;
-  y: string;
-}
-
-const chartFormating = (metrics: queryValueMemory[]) => {
-  const chartDataAvailableBytes: chartData[] = [];
-  const chartDataFreeBytes: chartData[] = [];
-  const chartDataTotalBytes: chartData[] = [];
-  const chartDataUsedBytes: chartData[] = [];
-
-  for (const metric of metrics) {
-    chartDataAvailableBytes.push({
-      y: metric.availableBytes,
-      x: metric.normalizedTime
-    });
-    chartDataFreeBytes.push({
-      y: metric.freeBytes,
-      x: metric.normalizedTime
-    });
-    chartDataTotalBytes.push({
-      y: metric.totalBytes,
-      x: metric.normalizedTime
-    });
-    chartDataUsedBytes.push({
-      y: metric.usedBytes,
-      x: metric.normalizedTime
-    });
-  }
-
-  return {
-    chartDataAvailableBytes,
-    chartDataFreeBytes,
-    chartDataTotalBytes,
-    chartDataUsedBytes
-  };
-};
+import { chartData } from '../../utils/queryTypes';
 
 interface MemoryDetailsProps {
-  metrics: queryValueMemory[];
+  availableBytes: chartData[];
+  freeBytes: chartData[];
+  totalBytes: chartData[];
+  usedBytes: chartData[];
 }
 
-const MemoryDetails: FC<MemoryDetailsProps> = ({ metrics }) => {
-  const dataFormatted = chartFormating(metrics);
+const MemoryDetails: FC<MemoryDetailsProps> = ({
+  availableBytes,
+  freeBytes,
+  totalBytes,
+  usedBytes
+}) => {
   const series = [
     {
       name: 'Available',
-      data: dataFormatted.chartDataAvailableBytes
+      data: availableBytes
     },
     {
       name: 'Free',
-      data: dataFormatted.chartDataFreeBytes
+      data: freeBytes
     },
     {
       name: 'Total',
-      data: dataFormatted.chartDataTotalBytes
+      data: totalBytes
     },
     {
       name: 'Used',
-      data: dataFormatted.chartDataUsedBytes
+      data: usedBytes
     }
   ];
   const options = {
@@ -104,4 +73,4 @@ const MemoryDetails: FC<MemoryDetailsProps> = ({ metrics }) => {
   );
 };
 
-export default MemoryDetails;
+export default React.memo(MemoryDetails);

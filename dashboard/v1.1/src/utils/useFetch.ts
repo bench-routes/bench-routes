@@ -16,6 +16,7 @@ export const useFetch = <T extends {}>(url: string, options?: RequestInit): Fetc
 
   useEffect(() => {
     const fetchData = async () => {
+      console.warn('fetcher')
       try {
         setIsLoading(true);
         setRequestSent(true);

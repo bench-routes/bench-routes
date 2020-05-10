@@ -19,7 +19,7 @@ import {
   Settings as SettingsIcon
 } from '@material-ui/icons';
 import clsx from 'clsx';
-import React, { useState, FC } from 'react';
+import React, { FC, useState } from 'react';
 import { HashRouter as Router, Link } from 'react-router-dom';
 
 const drawerWidth = 240;
@@ -71,8 +71,8 @@ const useStyles = makeStyles(theme => ({
 }));
 
 interface SidebarProps {
-  handleDrawerClose(): void;
   open: boolean;
+  handleDrawerClose(): void;
 }
 
 const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {

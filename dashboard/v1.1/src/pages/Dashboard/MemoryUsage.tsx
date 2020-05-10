@@ -1,31 +1,15 @@
 import React, { FC } from 'react';
 import Chart from 'react-apexcharts';
-import { queryValueMemoryUsedPercent } from '../../utils/queryTypes';
-
-interface chartData {
-  x: number;
-  y: string;
-}
-
-const chartFormating = (metrics: queryValueMemoryUsedPercent[]) => {
-  const chartData: chartData[] = [];
-  for (const metric of metrics) {
-    chartData.push({
-      y: metric.memoryUsedPercent,
-      x: metric.normalizedTime
-    });
-  }
-  return chartData;
-};
+import { chartData } from '../../utils/queryTypes';
 
 interface MemoryUsagePercentProps {
-  memoryUsagePercentMetrics: queryValueMemoryUsedPercent[];
+  memoryUsagePercentMetrics: chartData[];
 }
 
 const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
   memoryUsagePercentMetrics
 }) => {
-  const dataFormatted = chartFormating(memoryUsagePercentMetrics);
+  const dataFormatted = memoryUsagePercentMetrics;
   const series = [
     {
       name: 'Memory',
@@ -72,4 +56,4 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
   );
 };
 
-export default MemoryUsagePercent;
+export default React.memo(MemoryUsagePercent);

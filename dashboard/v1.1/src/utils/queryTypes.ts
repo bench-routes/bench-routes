@@ -9,6 +9,11 @@ export interface queryValueMemoryUsedPercent {
   normalizedTime: number;
 }
 
+export interface chartData {
+  x: number;
+  y: string;
+}
+
 export interface QueryRange {
   start: number;
   end: number;

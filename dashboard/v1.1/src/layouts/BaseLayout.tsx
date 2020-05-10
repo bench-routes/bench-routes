@@ -1,10 +1,5 @@
 import { CssBaseline } from '@material-ui/core';
 import { Container } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import React, { ReactElement, useState } from 'react';
-// import Navbar from './Navbar';
-import Sidebar from './Sidebar';
-import Navigator from '../router/Navigation';
 import {
   AppBar,
   Badge,
@@ -12,12 +7,17 @@ import {
   Toolbar,
   Typography
 } from '@material-ui/core';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import { makeStyles } from '@material-ui/core/styles';
 import {
   Menu as MenuIcon,
   Notifications as NotificationsIcon
 } from '@material-ui/icons';
 import clsx from 'clsx';
-import LinearProgress from '@material-ui/core/LinearProgress';
+import React, { ReactElement, useState, useCallback } from 'react';
+import Navigator from '../router/Navigation';
+// import Navbar from './Navbar';
+import Sidebar from './Sidebar';
 
 const drawerWidth = 240;
 
@@ -80,9 +80,9 @@ export default function BaseLayout(): ReactElement {
   const _classes = _useStyles();
   const [loader, setLoader] = useState<boolean>(false);
 
-  const updateLoader = (status: boolean) => {
+  const updateLoader = useCallback((status: boolean) => {
     setLoader(status);
-  };
+  }, []);
 
   // Opens and closes the drawer
   const [open, setOpen] = useState(true);
