@@ -19,7 +19,7 @@ import {
   Settings as SettingsIcon
 } from '@material-ui/icons';
 import clsx from 'clsx';
-import React, { useState } from 'react';
+import React, { FC, useState } from 'react';
 import { HashRouter as Router, Link } from 'react-router-dom';
 
 const drawerWidth = 240;
@@ -70,7 +70,12 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default function Sidebar(props) {
+interface SidebarProps {
+  open: boolean;
+  handleDrawerClose(): void;
+}
+
+const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
   const classes = useStyles();
 
   // Sidebar element
@@ -97,7 +102,7 @@ export default function Sidebar(props) {
           <NetworkCheckIcon />
         </ListItemIcon>
         <ListItemText primary="Tests" onClick={showTestList} />
-        {props.open ? (
+        {open ? (
           <ExpandLessIcon onClick={showTestList} />
         ) : (
           <ExpandMoreIcon onClick={showTestList} />
@@ -150,15 +155,12 @@ export default function Sidebar(props) {
         <Drawer
           variant="permanent"
           classes={{
-            paper: clsx(
-              classes.drawerPaper,
-              !props.open && classes.drawerPaperClose
-            )
+            paper: clsx(classes.drawerPaper, !open && classes.drawerPaperClose)
           }}
-          open={props.open}
+          open={open}
         >
           <div className={classes.toolbarIcon}>
-            <IconButton onClick={props.handleDrawerClose}>
+            <IconButton onClick={handleDrawerClose}>
               <ChevronLeftIcon />
             </IconButton>
           </div>
@@ -179,4 +181,6 @@ export default function Sidebar(props) {
       </Router>
     </div>
   );
-}
+};
+
+export default Sidebar;

@@ -1,47 +1,23 @@
 import React, { FC } from 'react';
 import Chart from 'react-apexcharts';
-import { queryValueDisk } from '../../utils/queryTypes';
-
-interface chartData {
-  x: number;
-  y: string;
-}
-
-const chartFormating = (metrics: queryValueDisk[]) => {
-  const chartDataDiskIO: chartData[] = [];
-  const chartDataCache: chartData[] = [];
-
-  for (const metric of metrics) {
-    chartDataDiskIO.push({
-      y: metric.diskIO,
-      x: metric.normalizedTime
-    });
-    chartDataCache.push({
-      y: metric.cached,
-      x: metric.normalizedTime
-    });
-  }
-
-  return { chartDataDiskIO, chartDataCache };
-};
+import { chartData } from '../../utils/queryTypes';
 
 interface DiskUsageProps {
-  metrics: queryValueDisk[];
+  diskIO: chartData[];
+  cache: chartData[];
 }
 
-const DiskUsage: FC<DiskUsageProps> = ({ metrics }) => {
-  const { chartDataDiskIO, chartDataCache } = chartFormating(metrics);
-
+const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
   const seriesDiskIO = [
     {
       name: 'Disk IO in bytes (+ve means write / -ve means read)',
-      data: chartDataDiskIO
+      data: diskIO
     }
   ];
   const seriesCache = [
     {
       name: 'Cache (in bytes)',
-      data: chartDataCache
+      data: cache
     }
   ];
 
@@ -122,4 +98,4 @@ const DiskUsage: FC<DiskUsageProps> = ({ metrics }) => {
   );
 };
 
-export default DiskUsage;
+export default React.memo(DiskUsage);

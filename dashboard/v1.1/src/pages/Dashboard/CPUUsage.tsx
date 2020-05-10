@@ -1,31 +1,13 @@
 import React, { FC } from 'react';
 import Chart from 'react-apexcharts';
-import { queryValueCPUUsage } from '../../utils/queryTypes';
-
-interface chartData {
-  x: number;
-  y: string;
-}
-
-const chartFormating = (metrics: queryValueCPUUsage[]) => {
-  const chartData: chartData[] = [];
-
-  for (const metric of metrics) {
-    chartData.push({
-      y: metric.CPUUsage,
-      x: metric.normalizedTime
-    });
-  }
-
-  return chartData;
-};
+import { chartData } from '../../utils/queryTypes';
 
 interface CPUUsageProps {
-  cpuMetrics: queryValueCPUUsage[];
+  cpuMetrics: chartData[];
 }
 
 const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
-  const dataFormatted = chartFormating(cpuMetrics);
+  const dataFormatted = cpuMetrics;
   const series = [
     {
       name: 'CPU',
@@ -60,7 +42,7 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
       width: 3
     },
     subtitle: {
-      text: 'CPU usage',
+      text: 'CPU usage (in percent)',
       align: 'center'
     }
   };
@@ -72,4 +54,4 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
   );
 };
 
-export default CPUUsage;
+export default React.memo(CPUUsage);

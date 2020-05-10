@@ -8,7 +8,6 @@ import React from 'react';
 import './App.css';
 import './assets/bootstrap.min.css';
 import BaseLayout from './layouts/BaseLayout';
-import Navigator from './router/Navigation';
 
 let theme = createMuiTheme({
   palette: {
@@ -27,9 +26,7 @@ theme = responsiveFontSizes(theme);
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <BaseLayout>
-        <Navigator />
-      </BaseLayout>
+      <BaseLayout />
     </ThemeProvider>
   );
 }

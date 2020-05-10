@@ -1,158 +1,197 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect } from 'react';
 import { useFetch } from '../../utils/useFetch';
 import CPUUsage from './CPUUsage';
-import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Typography from '@material-ui/core/Typography';
+import AppBar from '@material-ui/core/AppBar';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import PropTypes from 'prop-types';
+import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
+import Alert from '@material-ui/lab/Alert';
 import MemoryUsagePercent from './MemoryUsage';
 import DiskUsage from './Disk';
 import MemoryDetails from './MemoryDetails';
 import TimeInstance from '../../utils/brt';
 import { HOST_IP } from '../../utils/types';
-import {
-  QueryResponse,
-  QueryValues,
-  queryValueCPUUsage,
-  queryValueMemory,
-  queryValueDisk,
-  queryValueMemoryUsedPercent
-} from '../../utils/queryTypes';
+import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 
-const segregateMetrics = (metricValues: QueryValues[]) => {
-  const cpuUsageSlice: queryValueCPUUsage[] = [];
-  const diskSlice: queryValueDisk[] = [];
-  const memorySlice: queryValueMemory[] = [];
-  const memoryUsedPercentSlice: queryValueMemoryUsedPercent[] = [];
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
 
-  for (const metric of metricValues) {
-    cpuUsageSlice.push({
-      CPUUsage: metric.value.cpuTotalUsage,
-      normalizedTime: metric.normalizedTime
-    });
-    diskSlice.push({
-      cached: metric.value.disk.cached,
-      diskIO: metric.value.disk.diskIO,
-      normalizedTime: metric.normalizedTime
-    });
-    memorySlice.push({
-      availableBytes: metric.value.memory.availableBytes,
-      freeBytes: metric.value.memory.freeBytes,
-      totalBytes: metric.value.memory.totalBytes,
-      usedBytes: metric.value.memory.usedBytes,
-      usedPercent: metric.value.memory.usedPercent,
-      normalizedTime: metric.normalizedTime
-    });
-    memoryUsedPercentSlice.push({
-      memoryUsedPercent: metric.value.memory.usedPercent,
-      normalizedTime: metric.normalizedTime
-    });
-  }
-  return { cpuUsageSlice, diskSlice, memorySlice, memoryUsedPercentSlice };
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box p={3}>{children}</Box>}
+    </div>
+  );
+}
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.any.isRequired,
+  value: PropTypes.any.isRequired
 };
 
+function a11yProps(index) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`
+  };
+}
+
 const useStyles = makeStyles(theme => ({
-  heading: {
-    fontSize: theme.typography.pxToRem(15),
-    flexBasis: '33.33%',
-    flexShrink: 0,
-    fontWeight: 600
-  },
-  secondaryHeading: {
-    fontSize: theme.typography.pxToRem(15),
-    color: theme.palette.text.secondary
+  root: {
+    flexGrow: 1,
+    backgroundColor: theme.palette.background.paper
   }
 }));
 
+const segregateMetrics = (metricValues: QueryValues[]) => {
+  const cpuUsageSlice: chartData[] = [];
+
+  const diskSliceCache: chartData[] = [];
+  const diskSliceDiskIO: chartData[] = [];
+
+  const memorySliceAvailableBytes: chartData[] = [];
+  const memorySliceFreeBytes: chartData[] = [];
+  const memorySliceTotalBytes: chartData[] = [];
+  const memorySliceUsedBytes: chartData[] = [];
+
+  const memoryUsedPercentSlice: chartData[] = [];
+
+  for (const metric of metricValues) {
+    cpuUsageSlice.push({
+      y: metric.value.cpuTotalUsage,
+      x: metric.normalizedTime
+    });
+
+    diskSliceCache.push({
+      y: metric.value.disk.cached,
+      x: metric.normalizedTime
+    });
+    diskSliceDiskIO.push({
+      y: metric.value.disk.diskIO,
+      x: metric.normalizedTime
+    });
+
+    memorySliceAvailableBytes.push({
+      y: metric.value.memory.availableBytes,
+      x: metric.normalizedTime
+    });
+    memorySliceFreeBytes.push({
+      y: metric.value.memory.freeBytes,
+      x: metric.normalizedTime
+    });
+    memorySliceTotalBytes.push({
+      y: metric.value.memory.totalBytes,
+      x: metric.normalizedTime
+    });
+    memorySliceUsedBytes.push({
+      y: metric.value.memory.usedBytes,
+      x: metric.normalizedTime
+    });
+
+    memoryUsedPercentSlice.push({
+      y: metric.value.memory.usedPercent,
+      x: metric.normalizedTime
+    });
+  }
+  return {
+    cpuUsageSlice,
+    diskSliceCache,
+    diskSliceDiskIO,
+    memorySliceAvailableBytes,
+    memorySliceFreeBytes,
+    memorySliceTotalBytes,
+    memorySliceUsedBytes,
+    memoryUsedPercentSlice
+  };
+};
+
 interface SystemMetricsProps {
-  done(status: boolean): any;
+  showLoader(status: boolean): any;
 }
 
-const SystemMetrics: FC<SystemMetricsProps> = ({ done }) => {
+const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
   const classes = useStyles();
+  const [value, setValue] = React.useState(0);
   const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
+
+  useEffect(() => {
+    showLoader(true);
+  }, [showLoader]);
+  const handleChange = (_event, newValue) => {
+    setValue(newValue);
+  };
+
   const { response, error } = useFetch<QueryResponse>(
     `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${endTimestamp}`
   );
+
   if (error) {
-    console.warn(error);
+    showLoader(false);
+    return <Alert severity="error">Unable to reach the service: error</Alert>;
   }
   if (!response.data) {
-    return null;
+    return <Alert severity="info">Fetching data from sources</Alert>;
   }
-  done(true);
+
   const responseInFormat = segregateMetrics(response.data.values);
+  showLoader(false);
+
   return (
     <div className="row">
       <div className="col-md-12" style={{ marginBottom: '1%' }}>
-        <ExpansionPanel>
-          <ExpansionPanelSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1bh-content"
-            id="panel1bh-header"
-          >
-            <Typography className={classes.heading}>
-              System performance
-            </Typography>
-            <Typography className={classes.secondaryHeading}>
-              Performance values related to central processing
-            </Typography>
-          </ExpansionPanelSummary>
-          <ExpansionPanelDetails>
-            <div className="col-md-6">
-              <CPUUsage cpuMetrics={responseInFormat.cpuUsageSlice} />
+        <div className={classes.root}>
+          <AppBar position="static">
+            <Tabs
+              value={value}
+              onChange={handleChange}
+              indicatorColor="secondary"
+            >
+              <Tab label="System" {...a11yProps(0)} />
+              <Tab label="Disk" {...a11yProps(1)} />
+              <Tab label="Memory details" {...a11yProps(2)} />
+            </Tabs>
+          </AppBar>
+          <TabPanel value={value} index={0}>
+            <div className="row">
+              <div className="col-md-6">
+                <CPUUsage cpuMetrics={responseInFormat.cpuUsageSlice} />
+              </div>
+              <div className="col-md-6">
+                <MemoryUsagePercent
+                  memoryUsagePercentMetrics={
+                    responseInFormat.memoryUsedPercentSlice
+                  }
+                />
+              </div>
             </div>
-            <div className="col-md-6">
-              <MemoryUsagePercent
-                memoryUsagePercentMetrics={
-                  responseInFormat.memoryUsedPercentSlice
-                }
+          </TabPanel>
+          <TabPanel value={value} index={1}>
+            <div className="col-md-12">
+              <DiskUsage
+                diskIO={responseInFormat.diskSliceDiskIO}
+                cache={responseInFormat.diskSliceCache}
               />
             </div>
-          </ExpansionPanelDetails>
-        </ExpansionPanel>
-      </div>
-      <div className="col-md-12" style={{ marginBottom: '1%' }}>
-        <ExpansionPanel>
-          <ExpansionPanelSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1bh-content"
-            id="panel1bh-header"
-          >
-            <Typography className={classes.heading}>
-              Disk performance
-            </Typography>
-            <Typography className={classes.secondaryHeading}>
-              Performance values related to system-disk
-            </Typography>
-          </ExpansionPanelSummary>
-          <ExpansionPanelDetails>
+          </TabPanel>
+          <TabPanel value={value} index={2}>
             <div className="col-md-12">
-              <DiskUsage metrics={responseInFormat.diskSlice} />
+              <MemoryDetails
+                availableBytes={responseInFormat.memorySliceAvailableBytes}
+                freeBytes={responseInFormat.memorySliceFreeBytes}
+                totalBytes={responseInFormat.memorySliceTotalBytes}
+                usedBytes={responseInFormat.memorySliceUsedBytes}
+              />
             </div>
-          </ExpansionPanelDetails>
-        </ExpansionPanel>
-      </div>
-      <div className="col-md-12" style={{ marginBottom: '1%' }}>
-        <ExpansionPanel>
-          <ExpansionPanelSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1bh-content"
-            id="panel1bh-header"
-          >
-            <Typography className={classes.heading}>Memory details</Typography>
-            <Typography className={classes.secondaryHeading}>
-              Detail visualization of memory values
-            </Typography>
-          </ExpansionPanelSummary>
-          <ExpansionPanelDetails>
-            <div className="col-md-12">
-              <MemoryDetails metrics={responseInFormat.memorySlice} />
-            </div>
-          </ExpansionPanelDetails>
-        </ExpansionPanel>
+          </TabPanel>
+        </div>
       </div>
     </div>
   );
