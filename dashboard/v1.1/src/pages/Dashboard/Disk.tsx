@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import Chart from 'react-apexcharts';
-import { queryValueDisk } from './SystemMetrics';
+import { queryValueDisk } from '../../utils/queryTypes';
 
 interface chartData {
   x: number;
@@ -22,23 +22,29 @@ const chartFormating = (metrics: queryValueDisk[]) => {
     });
   }
 
-  return {chartDataDiskIO, chartDataCache};
-}
+  return { chartDataDiskIO, chartDataCache };
+};
 
 interface DiskUsageProps {
   metrics: queryValueDisk[];
 }
 
-const DiskUsage: FC<DiskUsageProps> = ({metrics}) => {
+const DiskUsage: FC<DiskUsageProps> = ({ metrics }) => {
   const { chartDataDiskIO, chartDataCache } = chartFormating(metrics);
-  const seriesDiskIO = [{
-    name: 'Disk IO in bytes (+ve means write / -ve means read)',
-    data: chartDataDiskIO
-  }];
-  const seriesCache = [{
-    name: 'Cache (in bytes)',
-    data: chartDataCache
-  }];
+
+  const seriesDiskIO = [
+    {
+      name: 'Disk IO in bytes (+ve means write / -ve means read)',
+      data: chartDataDiskIO
+    }
+  ];
+  const seriesCache = [
+    {
+      name: 'Cache (in bytes)',
+      data: chartDataCache
+    }
+  ];
+
   const optionsDiskIO = {
     chart: {
       type: 'area',
@@ -47,21 +53,24 @@ const DiskUsage: FC<DiskUsageProps> = ({metrics}) => {
         easing: 'easeinout',
         speed: 800,
         animateGradually: {
-            enabled: true,
-            delay: 150
+          enabled: true,
+          delay: 150
         },
         dynamicAnimation: {
-            enabled: true,
-            speed: 350
+          enabled: true,
+          speed: 350
         }
       },
       background: '#fff'
     },
     datalabels: {
-      enabled: false,
+      enabled: false
     },
     stroke: {
-      curve: 'straight'
+      show: true,
+      curve: 'straight',
+      lineCap: 'butt',
+      width: 3
     },
     subtitle: {
       text: 'Disk IO in bytes (+ve means write / -ve means read)',
@@ -76,21 +85,24 @@ const DiskUsage: FC<DiskUsageProps> = ({metrics}) => {
         easing: 'easeinout',
         speed: 800,
         animateGradually: {
-            enabled: true,
-            delay: 150
+          enabled: true,
+          delay: 150
         },
         dynamicAnimation: {
-            enabled: true,
-            speed: 350
+          enabled: true,
+          speed: 350
         }
       },
       background: '#fff'
     },
     datalabels: {
-      enabled: false,
+      enabled: false
     },
     stroke: {
-      curve: 'straight'
+      show: true,
+      curve: 'straight',
+      lineCap: 'butt',
+      width: 3
     },
     subtitle: {
       text: 'Cache (in bytes)',
@@ -101,18 +113,10 @@ const DiskUsage: FC<DiskUsageProps> = ({metrics}) => {
   return (
     <div className="row">
       <div className="col-md-6">
-        <Chart
-          series={seriesDiskIO}
-          options={optionsDiskIO}
-          height="300"
-        />
+        <Chart series={seriesDiskIO} options={optionsDiskIO} height="300" />
       </div>
       <div className="col-md-6">
-        <Chart
-          series={seriesCache}
-          options={optionsCache}
-          height="300"
-        />
+        <Chart series={seriesCache} options={optionsCache} height="300" />
       </div>
     </div>
   );

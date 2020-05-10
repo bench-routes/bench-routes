@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import Chart from 'react-apexcharts';
-import { queryValueCPUUsage } from './SystemMetrics';
+import { queryValueCPUUsage } from '../../utils/queryTypes';
 
 interface chartData {
   x: number;
@@ -18,18 +18,20 @@ const chartFormating = (metrics: queryValueCPUUsage[]) => {
   }
 
   return chartData;
-}
+};
 
 interface CPUUsageProps {
   cpuMetrics: queryValueCPUUsage[];
 }
 
-const CPUUsage: FC<CPUUsageProps> = ({cpuMetrics}) => {
+const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
   const dataFormatted = chartFormating(cpuMetrics);
-  const series = [{
-    name: 'CPU',
-    data: dataFormatted
-  }];
+  const series = [
+    {
+      name: 'CPU',
+      data: dataFormatted
+    }
+  ];
   const options = {
     chart: {
       type: 'area',
@@ -38,21 +40,24 @@ const CPUUsage: FC<CPUUsageProps> = ({cpuMetrics}) => {
         easing: 'easeinout',
         speed: 800,
         animateGradually: {
-            enabled: true,
-            delay: 150
+          enabled: true,
+          delay: 150
         },
         dynamicAnimation: {
-            enabled: true,
-            speed: 350
+          enabled: true,
+          speed: 350
         }
       },
       background: '#fff'
     },
     datalabels: {
-      enabled: false,
+      enabled: false
     },
     stroke: {
-      curve: 'straight'
+      show: true,
+      curve: 'straight',
+      lineCap: 'butt',
+      width: 3
     },
     subtitle: {
       text: 'CPU usage',
@@ -62,11 +67,7 @@ const CPUUsage: FC<CPUUsageProps> = ({cpuMetrics}) => {
 
   return (
     <>
-      <Chart
-        series={series}
-        options={options}
-        height="300"
-      />
+      <Chart series={series} options={options} height="300" />
     </>
   );
 };

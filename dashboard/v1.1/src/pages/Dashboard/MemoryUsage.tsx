@@ -1,12 +1,12 @@
 import React, { FC } from 'react';
 import Chart from 'react-apexcharts';
-import { queryValueMemoryUsedPercent } from './SystemMetrics';
+import { queryValueMemoryUsedPercent } from '../../utils/queryTypes';
 
 interface chartData {
   x: number;
   y: string;
 }
-  
+
 const chartFormating = (metrics: queryValueMemoryUsedPercent[]) => {
   const chartData: chartData[] = [];
   for (const metric of metrics) {
@@ -16,18 +16,22 @@ const chartFormating = (metrics: queryValueMemoryUsedPercent[]) => {
     });
   }
   return chartData;
-}
+};
 
 interface MemoryUsagePercentProps {
   memoryUsagePercentMetrics: queryValueMemoryUsedPercent[];
 }
 
-const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({memoryUsagePercentMetrics}) => {
+const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
+  memoryUsagePercentMetrics
+}) => {
   const dataFormatted = chartFormating(memoryUsagePercentMetrics);
-  const series = [{
-    name: 'Memory',
-    data: dataFormatted
-  }];
+  const series = [
+    {
+      name: 'Memory',
+      data: dataFormatted
+    }
+  ];
   const options = {
     chart: {
       type: 'area',
@@ -36,21 +40,24 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({memoryUsagePercentMetr
         easing: 'easeinout',
         speed: 800,
         animateGradually: {
-            enabled: true,
-            delay: 150
+          enabled: true,
+          delay: 150
         },
         dynamicAnimation: {
-            enabled: true,
-            speed: 350
+          enabled: true,
+          speed: 350
         }
       },
       background: '#fff'
     },
     datalabels: {
-      enabled: false,
+      enabled: false
     },
     stroke: {
-      curve: 'straight'
+      show: true,
+      curve: 'straight',
+      lineCap: 'butt',
+      width: 3
     },
     subtitle: {
       text: 'Memory (RAM) usage  (in percent)',
@@ -60,11 +67,7 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({memoryUsagePercentMetr
 
   return (
     <>
-      <Chart
-        series={series}
-        options={options}
-        height="300"
-      />
+      <Chart series={series} options={options} height="300" />
     </>
   );
 };
