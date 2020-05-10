@@ -11,7 +11,8 @@ import {
   Notifications as NotificationsIcon
 } from '@material-ui/icons';
 import clsx from 'clsx';
-import React from 'react';
+import React, { useState, FC } from 'react';
+import LinearProgress from '@material-ui/core/LinearProgress';
 
 const drawerWidth = 240;
 
@@ -48,25 +49,35 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default function Navbar(props) {
-  // Access styles
+interface NavbarProps {
+  handleDrawerOpen(): void;
+  open: boolean;
+  getLoaderStatus(): boolean;
+}
+
+const Navbar: FC<NavbarProps> = ({
+  handleDrawerOpen,
+  open,
+  getLoaderStatus
+}) => {
   const classes = useStyles();
+  const [showLoader, setShowLoader] = useState<boolean>(getLoaderStatus());
 
   return (
     <div>
       <AppBar
         position="absolute"
-        className={clsx(classes.appBar, props.open && classes.appBarShift)}
+        className={clsx(classes.appBar, open && classes.appBarShift)}
       >
         <Toolbar className={classes.toolbar}>
           <IconButton
             edge="start"
             color="inherit"
             aria-label="open drawer"
-            onClick={props.handleDrawerOpen}
+            onClick={handleDrawerOpen}
             className={clsx(
               classes.menuButton,
-              props.open && classes.menuButtonHidden
+              open && classes.menuButtonHidden
             )}
           >
             <MenuIcon />
@@ -86,7 +97,10 @@ export default function Navbar(props) {
             </Badge>
           </IconButton>
         </Toolbar>
+        {showLoader ? <LinearProgress /> : null}
       </AppBar>
     </div>
   );
-}
+};
+
+export default Navbar;

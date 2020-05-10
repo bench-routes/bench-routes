@@ -60,7 +60,7 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
       width: 3
     },
     subtitle: {
-      text: 'CPU usage',
+      text: 'CPU usage (in percent)',
       align: 'center'
     }
   };

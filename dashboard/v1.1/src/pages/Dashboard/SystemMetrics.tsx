@@ -1,11 +1,11 @@
 import React, { FC } from 'react';
 import { useFetch } from '../../utils/useFetch';
 import CPUUsage from './CPUUsage';
-import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Typography from '@material-ui/core/Typography';
+import AppBar from '@material-ui/core/AppBar';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import PropTypes from 'prop-types';
+import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
 import MemoryUsagePercent from './MemoryUsage';
 import DiskUsage from './Disk';
@@ -20,6 +20,42 @@ import {
   queryValueDisk,
   queryValueMemoryUsedPercent
 } from '../../utils/queryTypes';
+
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box p={3}>{children}</Box>}
+    </div>
+  );
+}
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.any.isRequired,
+  value: PropTypes.any.isRequired
+};
+
+function a11yProps(index) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`
+  };
+}
+
+const useStyles = makeStyles(theme => ({
+  root: {
+    flexGrow: 1,
+    backgroundColor: theme.palette.background.paper
+  }
+}));
 
 const segregateMetrics = (metricValues: QueryValues[]) => {
   const cpuUsageSlice: queryValueCPUUsage[] = [];
@@ -53,26 +89,20 @@ const segregateMetrics = (metricValues: QueryValues[]) => {
   return { cpuUsageSlice, diskSlice, memorySlice, memoryUsedPercentSlice };
 };
 
-const useStyles = makeStyles(theme => ({
-  heading: {
-    fontSize: theme.typography.pxToRem(15),
-    flexBasis: '33.33%',
-    flexShrink: 0,
-    fontWeight: 600
-  },
-  secondaryHeading: {
-    fontSize: theme.typography.pxToRem(15),
-    color: theme.palette.text.secondary
-  }
-}));
-
 interface SystemMetricsProps {
-  done(status: boolean): any;
+  showLoader(status: boolean): any;
 }
 
-const SystemMetrics: FC<SystemMetricsProps> = ({ done }) => {
+const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
   const classes = useStyles();
+  const [value, setValue] = React.useState(0);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
   const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
+  showLoader(true);
   const { response, error } = useFetch<QueryResponse>(
     `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${endTimestamp}`
   );
@@ -82,77 +112,48 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ done }) => {
   if (!response.data) {
     return null;
   }
-  done(true);
   const responseInFormat = segregateMetrics(response.data.values);
+  showLoader(false);
   return (
     <div className="row">
       <div className="col-md-12" style={{ marginBottom: '1%' }}>
-        <ExpansionPanel>
-          <ExpansionPanelSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1bh-content"
-            id="panel1bh-header"
-          >
-            <Typography className={classes.heading}>
-              System performance
-            </Typography>
-            <Typography className={classes.secondaryHeading}>
-              Performance values related to central processing
-            </Typography>
-          </ExpansionPanelSummary>
-          <ExpansionPanelDetails>
-            <div className="col-md-6">
-              <CPUUsage cpuMetrics={responseInFormat.cpuUsageSlice} />
+        <div className={classes.root}>
+          <AppBar position="static">
+            <Tabs
+              value={value}
+              onChange={handleChange}
+              indicatorColor="secondary"
+            >
+              <Tab label="System" {...a11yProps(0)} />
+              <Tab label="Disk" {...a11yProps(1)} />
+              <Tab label="Memory details" {...a11yProps(2)} />
+            </Tabs>
+          </AppBar>
+          <TabPanel value={value} index={0}>
+            <div className="row">
+              <div className="col-md-6">
+                <CPUUsage cpuMetrics={responseInFormat.cpuUsageSlice} />
+              </div>
+              <div className="col-md-6">
+                <MemoryUsagePercent
+                  memoryUsagePercentMetrics={
+                    responseInFormat.memoryUsedPercentSlice
+                  }
+                />
+              </div>
             </div>
-            <div className="col-md-6">
-              <MemoryUsagePercent
-                memoryUsagePercentMetrics={
-                  responseInFormat.memoryUsedPercentSlice
-                }
-              />
-            </div>
-          </ExpansionPanelDetails>
-        </ExpansionPanel>
-      </div>
-      <div className="col-md-12" style={{ marginBottom: '1%' }}>
-        <ExpansionPanel>
-          <ExpansionPanelSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1bh-content"
-            id="panel1bh-header"
-          >
-            <Typography className={classes.heading}>
-              Disk performance
-            </Typography>
-            <Typography className={classes.secondaryHeading}>
-              Performance values related to system-disk
-            </Typography>
-          </ExpansionPanelSummary>
-          <ExpansionPanelDetails>
+          </TabPanel>
+          <TabPanel value={value} index={1}>
             <div className="col-md-12">
               <DiskUsage metrics={responseInFormat.diskSlice} />
             </div>
-          </ExpansionPanelDetails>
-        </ExpansionPanel>
-      </div>
-      <div className="col-md-12" style={{ marginBottom: '1%' }}>
-        <ExpansionPanel>
-          <ExpansionPanelSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1bh-content"
-            id="panel1bh-header"
-          >
-            <Typography className={classes.heading}>Memory details</Typography>
-            <Typography className={classes.secondaryHeading}>
-              Detail visualization of memory values
-            </Typography>
-          </ExpansionPanelSummary>
-          <ExpansionPanelDetails>
+          </TabPanel>
+          <TabPanel value={value} index={2}>
             <div className="col-md-12">
               <MemoryDetails metrics={responseInFormat.memorySlice} />
             </div>
-          </ExpansionPanelDetails>
-        </ExpansionPanel>
+          </TabPanel>
+        </div>
       </div>
     </div>
   );
