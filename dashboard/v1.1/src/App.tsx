@@ -6,9 +6,9 @@ import {
 } from '@material-ui/core/styles';
 import React from 'react';
 import './App.css';
+import './assets/bootstrap.min.css';
 import BaseLayout from './layouts/BaseLayout';
 import Navigator from './router/Navigation';
-import './assets/bootstrap.min.css';
 
 let theme = createMuiTheme({
   palette: {

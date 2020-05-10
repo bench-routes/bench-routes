@@ -37,6 +37,6 @@ export const useFetch = <T extends {}>(url: string, options?: RequestInit): Fetc
         fetchData();
       }, 1000);
     }
-  }, [url, options]);
+  }, [url, options, requestSent]);
   return { response, error, isLoading };
 };

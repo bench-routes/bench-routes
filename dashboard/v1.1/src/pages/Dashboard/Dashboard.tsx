@@ -1,7 +1,7 @@
 import React, { FC, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import SystemMetrics from './SystemMetrics';
-import { Card, CardContent, CardHeader } from '@material-ui/core';
+import { Card, CardContent } from '@material-ui/core';
 import LinearProgress from '@material-ui/core/LinearProgress';
 
 const Dashboard: FC<RouteComponentProps> = () => {

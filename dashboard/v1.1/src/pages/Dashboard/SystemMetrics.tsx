@@ -73,7 +73,7 @@ interface SystemMetricsProps {
 const SystemMetrics: FC<SystemMetricsProps> = ({ done }) => {
   const classes = useStyles();
   const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
-  const { response, error, isLoading } = useFetch<QueryResponse>(
+  const { response, error } = useFetch<QueryResponse>(
     `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${endTimestamp}`
   );
   if (error) {
