@@ -7,6 +7,7 @@ import Tab from '@material-ui/core/Tab';
 import PropTypes from 'prop-types';
 import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
+import Alert from '@material-ui/lab/Alert';
 import MemoryUsagePercent from './MemoryUsage';
 import DiskUsage from './Disk';
 import MemoryDetails from './MemoryDetails';
@@ -133,14 +134,16 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
   );
 
   if (error) {
-    console.warn(error);
+    showLoader(false);
+    return <Alert severity="error">Unable to reach the service: error</Alert>;
   }
   if (!response.data) {
-    return null;
+    return <Alert severity="info">Fetching data from sources</Alert>;
   }
 
   const responseInFormat = segregateMetrics(response.data.values);
   showLoader(false);
+
   return (
     <div className="row">
       <div className="col-md-12" style={{ marginBottom: '1%' }}>

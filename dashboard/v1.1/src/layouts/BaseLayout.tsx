@@ -14,7 +14,7 @@ import {
   Notifications as NotificationsIcon
 } from '@material-ui/icons';
 import clsx from 'clsx';
-import React, { ReactElement, useState, useCallback } from 'react';
+import React, { ReactElement, useCallback, useState } from 'react';
 import Navigator from '../router/Navigation';
 // import Navbar from './Navbar';
 import Sidebar from './Sidebar';
