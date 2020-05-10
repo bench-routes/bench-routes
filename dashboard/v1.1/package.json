@@ -9,7 +9,7 @@
     "@types/react-router-dom": "^5.1.0",
     "@types/reactstrap": "^8.4.1",
     "@types/websocket": "^1.0.0",
-    "apexcharts": "^3.18.1",
+    "apexcharts": "^3.19.0",
     "chart.js": "^2.9.2",
     "clsx": "^1.1.0",
     "nan": "^2.14.0",
