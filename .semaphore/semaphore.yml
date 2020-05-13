@@ -29,5 +29,6 @@ blocks:
             - export GOPATH=~/go
             - 'export PATH=/home/semaphore/go/bin:$PATH'
             - checkout
+            - go version
             - go get ./...
             - ./shell/release-bot.sh
