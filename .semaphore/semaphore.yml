@@ -44,17 +44,8 @@ blocks:
   - name: Lint checks on dashboard v1.1
     task:
       jobs:
-        - commands:
-            - sem-version node 12
-            - checkout
-            - yarn global add eslint
-            - cd dashboard/v1.1 && yarn run lint
-          name: eslint
-        - commands:
-            - sem-version node 12
-            - checkout
-            - yarn global add prettier
-            - cd dashboard/v1.1 && yarn run prettier
-          name: prettier
+        - name: react build
+          commands:
+            - cd dashboard/v1.1 && yarn run build
     dependencies:
       - Install dependencies
