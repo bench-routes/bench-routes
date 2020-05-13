@@ -17,4 +17,17 @@ blocks:
             - checkout
             - go get ./...
             - go test -v ./...
+    dependencies: []
+  - name: Build all platforms
+    dependencies: []
+    task:
+      jobs:
+        - name: 'Job #1'
+          commands:
+            - sem-version go 1.13
+            - export GO111MODULE=on
+            - export GOPATH=~/go
+            - 'export PATH=/home/semaphore/go/bin:$PATH'
+            - checkout
+            - go get ./...
             - ./shell/release-bot.sh
