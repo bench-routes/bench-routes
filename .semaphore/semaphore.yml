@@ -1,57 +1,67 @@
 version: v1.0
-name: Node JS
-agent:
-  machine:
-    type: e1-standard-2
+name: Go / Node
+agent: 
+  machine: 
     os_image: ubuntu1804
-blocks:
-   - name: Test go
-     task:
-      jobs:
-        - name: go test
-          commands:
-            - sem-version go 1.13
-            - export GO111MODULE=on
-            - export GOPATH=~/go
-            - 'export PATH=/home/semaphore/go/bin:$PATH'
-            - checkout
-            - go get ./...
-            - go test -v ./...
+    type: e1-standard-2
+blocks: 
+  - 
     dependencies: []
-  - name: Build all platforms
-    dependencies: []
-    task:
-      jobs:
-        - name: create releases via release-bot
-          commands:
-            - sem-version go 1.13
-            - export GO111MODULE=on
-            - export GOPATH=~/go
-            - 'export PATH=/home/semaphore/go/bin:$PATH'
+    name: "Test go"
+    task: 
+      jobs: 
+        - 
+          commands: 
+            - "sem-version go 1.13"
+            - "export GO111MODULE=on"
+            - "export GOPATH=~/go"
+            - "export PATH=/home/semaphore/go/bin:$PATH"
             - checkout
-            - go version
-            - go get ./...
+            - "go get ./..."
+            - "go test -v ./..."
+          name: "go test"
+  - 
+    dependencies: []
+    name: "Build all platforms"
+    task: 
+      jobs: 
+        - 
+          commands: 
+            - "sem-version go 1.13"
+            - "export GO111MODULE=on"
+            - "export GOPATH=~/go"
+            - "export PATH=/home/semaphore/go/bin:$PATH"
+            - checkout
+            - "go version"
+            - "go get ./..."
             - ./shell/release-bot.sh
-  - name: Install dependencies
-    task:
-      jobs:
-        - name: yarn install
-          commands:
-            - sem-version node 12
+          name: "create releases via release-bot"
+  - 
+    name: "Install dependencies"
+    task: 
+      jobs: 
+        - 
+          commands: 
+            - "sem-version node 12"
             - checkout
-            - cd dashboard/v1.1 && yarn install
-  - name: Lint checks on dashboard v1.1
-    task:
-      jobs:
-        - name: eslint
-          commands:
-            - sem-version node 12
+            - "cd dashboard/v1.1 && yarn install"
+          name: "yarn install"
+  - 
+    name: "Lint checks on dashboard v1.1"
+    task: 
+      jobs: 
+        - 
+          commands: 
+            - "sem-version node 12"
             - checkout
-            - yarn global add eslint
-            - cd dashboard/v1.1 && yarn run lint
-        - name: prettier
-          commands:
-            - sem-version node 12
+            - "yarn global add eslint"
+            - "cd dashboard/v1.1 && yarn run lint"
+          name: eslint
+        - 
+          commands: 
+            - "sem-version node 12"
             - checkout
-            - yarn global add prettier
-            - cd dashboard/v1.1 && yarn run prettier
+            - "yarn global add prettier"
+            - "cd dashboard/v1.1 && yarn run prettier"
+          name: prettier
+
