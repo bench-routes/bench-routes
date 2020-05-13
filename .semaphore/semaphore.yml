@@ -20,10 +20,11 @@ blocks:
           commands:
             - sem-version node 12
             - checkout
+            - yarn global add eslint
             - cd dashboard/v1.1 && yarn run lint
         - name: prettier
           commands:
             - sem-version node 12
             - checkout
-            - yarn install -g prettier
+            - yarn global add prettier
             - cd dashboard/v1.1 && yarn run prettier
