@@ -1,34 +1,29 @@
 version: v1.0
-name: Go
+name: Node JS
 agent:
   machine:
     type: e1-standard-2
     os_image: ubuntu1804
 blocks:
-  - name: Test go
+  - name: Install dependencies
     task:
       jobs:
-        - name: go test
+        - name: yarn install
           commands:
-            - sem-version go 1.13
-            - export GO111MODULE=on
-            - export GOPATH=~/go
-            - 'export PATH=/home/semaphore/go/bin:$PATH'
+            - sem-version node 12
             - checkout
-            - go get ./...
-            - go test -v ./...
-    dependencies: []
-  - name: Build all platforms
-    dependencies: []
+            - cd dashboard/v1.1 && yarn install
+  - name: Lint checks on dashboard v1.1
     task:
       jobs:
-        - name: create releases via release-bot
+        - name: eslint
           commands:
-            - sem-version go 1.13
-            - export GO111MODULE=on
-            - export GOPATH=~/go
-            - 'export PATH=/home/semaphore/go/bin:$PATH'
+            - sem-version node 12
             - checkout
-            - go version
-            - go get ./...
-            - ./shell/release-bot.sh
+            - cd dashboard/v1.1 && yarn run lint
+        - name: prettier
+          commands:
+            - sem-version node 12
+            - checkout
+            - yarn install -g prettier
+            - cd dashboard/v1.1 && yarn run prettier
