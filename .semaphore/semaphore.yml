@@ -1,0 +1,34 @@
+version: v1.0
+name: Go
+agent:
+  machine:
+    os_image: ubuntu1804
+    type: e1-standard-2
+blocks:
+  - dependencies: []
+    name: go tests
+    task:
+      jobs:
+        - commands:
+            - sem-version go 1.13
+            - export GO111MODULE=on
+            - export GOPATH=~/go
+            - 'export PATH=/home/semaphore/go/bin:$PATH'
+            - checkout
+            - go get ./...
+            - go test -v ./...
+          name: go test
+  - dependencies: []
+    name: go build all platforms
+    task:
+      jobs:
+        - commands:
+            - sem-version go 1.13
+            - export GO111MODULE=on
+            - export GOPATH=~/go
+            - 'export PATH=/home/semaphore/go/bin:$PATH'
+            - checkout
+            - go version
+            - go get ./...
+            - ./shell/release-bot.sh
+          name: create releases via release-bot
