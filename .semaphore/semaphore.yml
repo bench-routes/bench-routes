@@ -16,5 +16,4 @@ blocks:
             - 'export PATH=/home/semaphore/go/bin:$PATH'
             - checkout
             - go get ./...
-            - go test ./...
-            - go build -v .
+            - ./shell/release-bot.sh
