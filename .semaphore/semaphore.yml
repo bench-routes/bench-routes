@@ -1,5 +1,5 @@
 version: v1.0
-name: Go / Node
+name: Go
 agent:
   machine:
     os_image: ubuntu1804
@@ -32,20 +32,3 @@ blocks:
             - go get ./...
             - ./shell/release-bot.sh
           name: create releases via release-bot
-  - name: Install dependencies
-    task:
-      jobs:
-        - commands:
-            - sem-version node 12
-            - checkout
-            - cd dashboard/v1.1 && yarn install
-          name: yarn install
-    dependencies: []
-  - name: Lint checks on dashboard v1.1
-    task:
-      jobs:
-        - name: react build
-          commands:
-            - cd dashboard/v1.1 && yarn run build
-    dependencies:
-      - Install dependencies
