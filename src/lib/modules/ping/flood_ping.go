@@ -1,10 +1,11 @@
 package ping
 
 import (
-	"github.com/zairza-cetb/bench-routes/src/lib/filters"
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"sync"
 	"time"
+
+	"github.com/zairza-cetb/bench-routes/src/lib/filters"
+	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
@@ -154,9 +155,8 @@ func (ps *FloodPing) ping(urlRaw string, packets int, tsdbNameHash string, wg *s
 		wg.Done()
 		return
 	}
-
-	result := *scrap.CLIFLoodPingScrap(resp)
-	newBlock := *tsdb.GetNewBlock("flood-ping", getNormalizedBlockStringFlood(result))
+	result := scrap.CLIFLoodPingScrap(resp)
+	newBlock := *tsdb.GetNewBlock("flood-ping", getNormalizedBlockStringFlood(*result))
 	urlExists := false
 
 	c := ps.chain

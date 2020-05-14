@@ -160,8 +160,8 @@ func (ps *Ping) ping(urlRaw string, packets int, tsdbNameHash string, wg *sync.W
 		return
 	}
 
-	result := *scrap.CLIPingScrap(resp)
-	newBlock := *tsdb.GetNewBlock("ping", getNormalizedBlockString(result))
+	result := scrap.CLIPingScrap(resp)
+	newBlock := *tsdb.GetNewBlock("ping", getNormalizedBlockString(*result))
 	urlExists := false
 
 	for index := range chain {
