@@ -1,6 +1,6 @@
 os:
   - linux
-  # - mac
+  - osx
 
 addons:
   chrome: stable
