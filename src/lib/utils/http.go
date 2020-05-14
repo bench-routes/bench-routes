@@ -24,9 +24,13 @@ const (
 // Specifying addresses directly speeds the entire process manyfolds.
 func CLIPing(url string, packets int) (*string, error) {
 	url = *filters.HTTPPingFilter(&url)
-	cmd := exec.Command(CmdPingBasedOnPacketsNumber, "-c", strconv.Itoa(packets), url)
-	cmdOutput, err := cmd.CombinedOutput()
-	cmdStr := string(cmdOutput)
+	cmd, err := exec.Command(CmdPingBasedOnPacketsNumber, "-c", strconv.Itoa(packets), url).Output()
+	if err != nil {
+		// There was an issue
+		// executing the command.
+		panic(err)
+	}
+	cmdStr := string(cmd)
 	return &cmdStr, err
 }
 
@@ -37,6 +41,11 @@ func CLIFloodPing(url string, packets int, password string) (*string, error) {
 	cmd := fmt.Sprintf("%s -e \"%s\n\" | %s -S %s -f -c %s %s", CmdEcho, password, CmdAdministrator, CmdPingBasedOnPacketsNumber, strconv.Itoa(packets), url)
 	cmdPing := exec.Command("bash", "-c", cmd)
 	cmdOuput, err := cmdPing.CombinedOutput()
+	if err != nil {
+		// There was an issue
+		// executing the command.
+		panic(err)
+	}
 	cmdStr := string(cmdOuput)
 	return &cmdStr, err
 }
