@@ -1,7 +1,7 @@
 osx_instance:
   image: catalina-base
 
-mac_task:
+task:
   name: Tests (macos)
   script:
   - brew update
