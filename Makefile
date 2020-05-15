@@ -47,6 +47,10 @@ test: build
 	go clean -testcache
 	go test -v ./...
 
+test-non-verbose: build
+	go clean -testcache
+	go test ./...
+
 test-services: build
 	./bench-routes &
 	cd tests && yarn install
