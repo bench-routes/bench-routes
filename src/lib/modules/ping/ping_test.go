@@ -65,8 +65,7 @@ func Test_module_PING(T *testing.T) {
 	go ping.Iterate("stop", true)
 }
 
-// disabled due to issues in mac os tests.
-func disableCIFloodPing(T *testing.T) {
+func Test_module_FLOOD_PING(T *testing.T) {
 	initVars()
 	ping := Newf(configuration, TestInterval{OfType: "min", Duration: 0}, chainPing, "")
 	go ping.Iteratef("start", true)
