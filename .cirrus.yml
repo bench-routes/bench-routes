@@ -21,7 +21,6 @@ task:
   - make build-frontend
   - make build
   - make test
-  - make run
 
 docker_builder:
   name: Docker
