@@ -2,7 +2,7 @@ osx_instance:
   image: catalina-base
 
 task:
-  name: Tests (macos)
+  name: Tests - MacOS (catalina)
   script:
   - brew update
   - brew install golang
@@ -17,26 +17,6 @@ task:
   - make build
   - make test
 
-linux_fedora_task:
-  name: Tests (linux)
-  container:
-    image: fedora:latest
-  script:
-    - dnf install git golang diffutils make iputils -y
-    - mkdir -p $HOME/go
-    - echo 'export GOPATH=$HOME/go' >> $HOME/.bashrc
-    - source $HOME/.bashrc
-    - go env
-    - go version
-    - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
-    - export PATH=$GOPATH/bin:$PATH
-    - echo "checking linting in golang ..."
-    - golangci-lint run
-    - diff -u <(echo -n) <(gofmt -d ./src ./tsdb)
-    - make update
-    - make build
-    - make test
-
 docker_builder:
-  name: Docker-images build
+  name: Docker
   build_script: docker build -t bench-routes .
