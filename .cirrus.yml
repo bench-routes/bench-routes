@@ -1,7 +1,7 @@
 mac_task:
   name: Tests (macos)
   container:
-    image: catalina-xcode-11.4.1
+    image: catalina-base
   script:
   - brew update
   - brew install golang
@@ -14,7 +14,7 @@ mac_task:
   - diff -u <(echo -n) <(gofmt -d ./src ./tsdb)
   - make update
   - make build
-  - make test-non-verbose
+  - make test
 
 linux_fedora_task:
   name: Tests (linux)
@@ -34,7 +34,7 @@ linux_fedora_task:
     - diff -u <(echo -n) <(gofmt -d ./src ./tsdb)
     - make update
     - make build
-    - make test-non-verbose
+    - make test
 
 docker_builder:
   name: Docker-images build
