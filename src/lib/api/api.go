@@ -138,7 +138,7 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	// TODO: we do not capture the block streams in memory while querying yet. They are captured only when flushed.
 	// TODO: consider cmap while querying for fetching latest blocks after shifting tsdb to binary.
 
-	qry := querier.New(timeSeriesPath, "")
+	qry := querier.New(timeSeriesPath, "", querier.TypeRange)
 	query := qry.QueryBuilder()
 	query.SetRange(startTimestamp, endTimestamp)
 	a.Data = query.ExecWithoutEncode()
@@ -155,11 +155,11 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	curr := time.Now().UnixNano()
-	from := curr - (brt.Hour * 6)
+	from := curr - (brt.Minute * 20)
 
 	matrix := (*a.Matrix)[routeNameMatrix]
 	parallelQueryExec := func(path string, c chan querier.QueryResponse) {
-		qry := querier.New(path, "")
+		qry := querier.New(path, "", querier.TypeFirst)
 		query := qry.QueryBuilder()
 		query.SetRange(curr, from)
 		c <- query.ExecWithoutEncode()
@@ -168,17 +168,14 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		make(chan querier.QueryResponse),
 		make(chan querier.QueryResponse),
 		make(chan querier.QueryResponse),
-		make(chan querier.QueryResponse),
 	}
 	go parallelQueryExec(matrix.PingChain.Path, chans[0])
-	go parallelQueryExec(matrix.FPingChain.Path, chans[1])
-	go parallelQueryExec(matrix.JitterChain.Path, chans[2])
-	go parallelQueryExec(matrix.MonitorChain.Path, chans[3])
+	go parallelQueryExec(matrix.JitterChain.Path, chans[1])
+	go parallelQueryExec(matrix.MonitorChain.Path, chans[2])
 	matrixResponse := map[string]querier.QueryResponse{
 		"ping":    <-chans[0],
-		"fping":   <-chans[1],
-		"jitter":  <-chans[2],
-		"monitor": <-chans[3],
+		"jitter":  <-chans[1],
+		"monitor": <-chans[2],
 	}
 	a.Data = matrixResponse
 	a.send(w, a.marshalled())

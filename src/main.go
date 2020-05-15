@@ -457,6 +457,7 @@ func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 						Headers:      v.Header,
 						Params:       v.Params,
 						MonitorChain: resp,
+						Domain:       fmt.Sprintf("%s: %s/%s", v.Method, v.URL, v.Route),
 					}
 					break
 				}
