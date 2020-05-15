@@ -1,7 +1,7 @@
 mac_task:
   name: Tests (macos)
   container:
-    image: catalina-base
+    image: catalina-xcode-11.4.1
   script:
   - brew update
   - brew install golang

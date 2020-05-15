@@ -1,4 +1,4 @@
-password: your password
+password: password
 test_interval:
 - test: ping
   type: sec
@@ -60,7 +60,7 @@ utils:
     mode: 0
     mean: 0
   services-state:
-    ping: passive
-    flood-ping: active
+    ping: active
+    flood-ping: passive
     jitter: passive
     req-res-delay-or-monitoring: passive
