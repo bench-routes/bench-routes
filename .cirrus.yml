@@ -1,0 +1,8 @@
+osx_instance:
+  image: catalina-base
+
+task:
+  script:
+  - echo "Hello World from macOS!"
+  - echo "this is working"
+  - go env
