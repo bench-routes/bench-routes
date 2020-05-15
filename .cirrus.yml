@@ -1,0 +1,27 @@
+osx_instance:
+  image: catalina-base
+
+task:
+  name: Tests - MacOS (catalina)
+  script:
+  - brew update
+  - brew install golang
+  - brew install node
+  - go env
+  - go version
+  - node -v
+  - npm -v
+  - npm install -g yarn
+  - brew install golangci/tap/golangci-lint
+  - brew upgrade golangci/tap/golangci-lint
+  - echo "checking linting in golang ..."
+  - golangci-lint run
+  - diff -u <(echo -n) <(gofmt -d ./src ./tsdb)
+  - make update
+  - make build-frontend
+  - make build
+  - make test
+
+docker_builder:
+  name: Docker
+  build_script: docker build -t bench-routes .

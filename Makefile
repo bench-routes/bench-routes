@@ -47,6 +47,13 @@ test: build
 	go clean -testcache
 	go test -v ./...
 
+build-frontend:
+	cd dashboard/v1.1/ && yarn install && yarn build && mv -f build ../../ui-builds/v1.1
+
+test-non-verbose: build
+	go clean -testcache
+	go test ./...
+
 test-services: build
 	./bench-routes &
 	cd tests && yarn install

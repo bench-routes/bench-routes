@@ -43,7 +43,7 @@ var (
 )
 
 const (
-	uiPathV1 = "ui-builds/v1.0/"
+	uiPathV11 = "ui-builds/v1.1/"
 )
 
 func main() {
@@ -110,7 +110,7 @@ func main() {
 	p := time.Now()
 	wg.Add(4)
 
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Minute)
+	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
 
 	go initialise(&wg, &matrix, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
 	go initialise(&wg, &matrix, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
@@ -376,10 +376,10 @@ func main() {
 	{
 		// static servings.
 		{
-			router.Handle("/", http.FileServer(http.Dir(uiPathV1)))
-			router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(uiPathV1+"assets/"))))
-			router.PathPrefix("/manifest.json").Handler(http.StripPrefix("/manifest.json", http.FileServer(http.Dir(uiPathV1+"/manifest.json"))))
-			router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(uiPathV1+"static/"))))
+			router.Handle("/", http.FileServer(http.Dir(uiPathV11)))
+			router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(uiPathV11+"assets/"))))
+			router.PathPrefix("/manifest.json").Handler(http.StripPrefix("/manifest.json", http.FileServer(http.Dir(uiPathV11+"/manifest.json"))))
+			router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(uiPathV11+"static/"))))
 		}
 		router.HandleFunc("/br-live-check", api.Home)
 		router.HandleFunc("/test", api.TestTemplate)
