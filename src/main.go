@@ -110,7 +110,7 @@ func main() {
 	p := time.Now()
 	wg.Add(4)
 
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
+	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*50)
 
 	go initialise(&wg, &matrix, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
 	go initialise(&wg, &matrix, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
@@ -437,6 +437,7 @@ func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 					case "flood_ping":
 						(*matrix)[index].FPingChain = resp
 					}
+					break
 				}
 			}
 		}
@@ -458,6 +459,9 @@ func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 						Params:       v.Params,
 						MonitorChain: resp,
 						Domain:       fmt.Sprintf("%s: %s/%s", v.Method, v.URL, v.Route),
+						PingChain:    (*matrix)[k].PingChain,
+						JitterChain:  (*matrix)[k].JitterChain,
+						FPingChain:   (*matrix)[k].FPingChain,
 					}
 					break
 				}

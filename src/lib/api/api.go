@@ -185,18 +185,20 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 // passing into the querier's timeSeriesPath.
 func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 	var chainDetails []utils.ResponseTSDBChains
-	for _, v := range *a.Matrix {
+	for n, v := range *a.Matrix {
 		chainDetails = append(chainDetails, utils.ResponseTSDBChains{
 			Name: v.Domain,
 			Path: utils.ChainPath{
-				Ping:    v.PingChain.Path,
-				Jitter:  v.JitterChain.Path,
-				Fping:   v.FPingChain.Path,
-				Monitor: v.MonitorChain.Path,
+				MatrixName: n,
+				Ping:       v.PingChain.Path,
+				Jitter:     v.JitterChain.Path,
+				Fping:      v.FPingChain.Path,
+				Monitor:    v.MonitorChain.Path,
 			},
 		})
 	}
-	a.send(w, a.marshal(chainDetails))
+	a.Data = chainDetails
+	a.send(w, a.marshalled())
 }
 
 func (a *API) setRequestIPAddress(r *http.Request) {

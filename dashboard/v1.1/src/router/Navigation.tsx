@@ -3,7 +3,7 @@ import { HashRouter as Router, Route, Switch } from 'react-router-dom';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import FloodPing from '../pages/FloodPing';
 import Jitter from '../pages/Jitter';
-import Monitoring from '../pages/Monitoring';
+import Monitoring from '../pages/Monitoring/Monitoring';
 import Ping from '../pages/Ping';
 import Settings from '../pages/Settings';
 
@@ -20,7 +20,11 @@ const Navigator: FC<NavigatorProps> = ({ updateLoader }) => {
           path="/"
           render={props => <Dashboard updateLoader={updateLoader} />}
         />
-        <Route path="/monitoring" component={Monitoring} />
+        <Route
+          exact={true}
+          path="/monitoring"
+          render={props => <Monitoring updateLoader={updateLoader} />}
+        />
         <Route path="/ping" component={Ping} />
         <Route path="/floodping" component={FloodPing} />
         <Route path="/jitter" component={Jitter} />
