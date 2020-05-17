@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface Column {
   label: string;
   minWidth: number;
