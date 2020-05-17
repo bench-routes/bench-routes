@@ -22,6 +22,8 @@ const Monitoring: FC<MonitoringProps> = ({ updateLoader }) => {
     return (
       <Card>
         <CardContent>
+          <h4>Monitoring</h4>
+          <hr />
           <Alert severity="error">Unable to reach the service: error</Alert>
         </CardContent>
       </Card>
@@ -31,6 +33,8 @@ const Monitoring: FC<MonitoringProps> = ({ updateLoader }) => {
     return (
       <Card>
         <CardContent>
+          <h4>Monitoring</h4>
+          <hr />
           <Alert severity="info">Fetching data from sources</Alert>
         </CardContent>
       </Card>
@@ -40,6 +44,8 @@ const Monitoring: FC<MonitoringProps> = ({ updateLoader }) => {
   return (
     <Card>
       <CardContent>
+        <h4>Monitoring</h4>
+        <hr />
         <Matrix timeSeriesPath={response.data} />
       </CardContent>
     </Card>

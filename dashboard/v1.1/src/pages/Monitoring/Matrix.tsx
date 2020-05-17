@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import { useFetch } from '../../utils/useFetch';
 import { HOST_IP } from '../../utils/types';
 import { QueryResponse } from '../../utils/queryTypes';
@@ -11,6 +11,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import WarningOutlinedIcon from '@material-ui/icons/WarningOutlined';
 
 import { Badge } from 'reactstrap';
 
@@ -41,21 +42,46 @@ interface MatrixResponse {
   ping: QueryResponse;
 }
 
+type APIResponse<MatrixResponse> = { status: string; data?: MatrixResponse };
+
 const round = (n: string): number => {
   const num = parseInt(n, 10);
   return Math.round(num * 10) / 10;
 };
 
-const Element: FC<ElementProps> = ({ timeSeriesPath }) => {
-  const { response, error } = useFetch<MatrixResponse>(
-    `${HOST_IP}/query-matrix?routeNameMatrix=${timeSeriesPath.path.matrixName}`
-  );
-  const [, render] = useState();
-  if (error) {
-    return null;
-  }
+const Pad: FC<{}> = () => <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>;
 
-  if (!response.data) {
+const Element: FC<ElementProps> = ({ timeSeriesPath }) => {
+  const [data, setData] = useState<MatrixResponse>();
+  const [trigger, setTrigger] = useState<number>(0);
+  const [updating, setUpdating] = useState<boolean>(true);
+  const [warning, showWarning] = useState<boolean>(false);
+
+  useEffect(() => {
+    async function fetchMatrix(name: string) {
+      try {
+        setUpdating(true);
+        const response = await fetch(
+          `${HOST_IP}/query-matrix?routeNameMatrix=${name}`
+        );
+        const inMatrixResponse = (await response.json()) as APIResponse<
+          MatrixResponse
+        >;
+        setData(inMatrixResponse.data);
+        setTimeout(() => {
+          setUpdating(false);
+          showWarning(false);
+        }, 1000);
+      } catch (e) {
+        console.error(e);
+        showWarning(true);
+        return null;
+      }
+    }
+    fetchMatrix(timeSeriesPath.path.matrixName);
+  }, [trigger]);
+
+  if (!data) {
     return (
       <TableRow className="table-data-row" key={timeSeriesPath.path.matrixName}>
         <TableCell style={{ minWidth: 170, fontSize: 16 }} align="left">
@@ -71,18 +97,25 @@ const Element: FC<ElementProps> = ({ timeSeriesPath }) => {
         ></TableCell>
         <TableCell style={{ minWidth: 170 }} align="center"></TableCell>
         <TableCell style={{ minWidth: 170 }} align="center"></TableCell>
-        <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
-          <CircularProgress size={20} thickness={6} />
+        <TableCell
+          style={{ minWidth: 170, fontSize: 16 }}
+          align="center"
+        ></TableCell>
+        <TableCell style={{ minWidth: 10, fontSize: 16 }} align="center">
+          {updating ? (
+            <CircularProgress disableShrink size={15} thickness={4} />
+          ) : (
+            '&nbsp'
+          )}
         </TableCell>
       </TableRow>
     );
   }
 
-  console.warn(response.data);
-  const data = response.data;
-  // setTimeout(() => {
-  //   render({});
-  // }, 10 * 1000);
+  setTimeout(() => {
+    setTrigger(trigger + 1);
+  }, 5 * 1000);
+
   return (
     <TableRow>
       <TableCell style={{ minWidth: 170, fontSize: 16 }} align="left">
@@ -90,29 +123,53 @@ const Element: FC<ElementProps> = ({ timeSeriesPath }) => {
       </TableCell>
       <TableCell style={{ minWidth: 100, fontSize: 16 }} align="center">
         <Badge color="warning">
-          {round(data.ping.values[0].value.avgValue)} ms
+          {data.ping === undefined
+            ? '-'
+            : round(data.ping.values[0].value.avgValue)}{' '}
+          ms
         </Badge>
       </TableCell>
       <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
         <Badge color="warning">
-          {round(data.jitter.values[0].value.value)} ms
+          {data.jitter === undefined
+            ? '-'
+            : round(data.jitter.values[0].value.value)}{' '}
+          ms
         </Badge>
       </TableCell>
       <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
-        <Badge color="warning">{data.monitor.values[0].value.delay} ms</Badge>
+        <Badge color="warning">
+          {data.monitor === undefined
+            ? '-'
+            : data.monitor.values[0].value.delay}{' '}
+          ms
+        </Badge>
       </TableCell>
       <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
-        <Badge color="warning">{data.monitor.values[0].value.resLength}</Badge>
+        <Badge color="warning">
+          {data.monitor === undefined
+            ? '-'
+            : data.monitor.values[0].value.resLength}
+        </Badge>
       </TableCell>
       <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
         <Badge color="success">{'UP'}</Badge>
+      </TableCell>
+      <TableCell style={{ minWidth: 10, fontSize: 16 }} align="center">
+        {warning ? (
+          <WarningOutlinedIcon />
+        ) : updating ? (
+          <CircularProgress disableShrink size={15} thickness={4} />
+        ) : (
+          <Pad />
+        )}
       </TableCell>
     </TableRow>
   );
 };
 
 const Matrix: FC<MatrixProps> = ({ timeSeriesPath }) => (
-  <TableContainer>
+  <TableContainer style={{ maxHeight: '100vh', overflowY: 'hidden' }}>
     <Table stickyHeader>
       <TableHead>
         <TableRow>

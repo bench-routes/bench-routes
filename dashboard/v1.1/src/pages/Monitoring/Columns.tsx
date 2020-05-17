@@ -33,5 +33,11 @@ export const columns: Column[] = [
     minWidth: 170,
     align: 'center',
     format: (value: number) => value.toFixed(2)
+  },
+  {
+    label: '',
+    minWidth: 10,
+    align: 'center',
+    format: (value: number) => value.toFixed(2)
   }
 ];

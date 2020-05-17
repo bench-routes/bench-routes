@@ -221,15 +221,6 @@ func (a *API) marshalled() []byte {
 	return js
 }
 
-func (a *API) marshal(data interface{}) []byte {
-	js, err := json.Marshal(data)
-	if err != nil {
-		panic(err)
-	}
-
-	return js
-}
-
 func (a *API) send(w http.ResponseWriter, data []byte) {
 	if _, err := w.Write(data); err != nil {
 		panic(err)

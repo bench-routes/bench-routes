@@ -138,7 +138,11 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
     return <Alert severity="error">Unable to reach the service: error</Alert>;
   }
   if (!response.data) {
-    return <Alert severity="info">Fetching data from sources</Alert>;
+    return (
+      <>
+        <Alert severity="info">Fetching data from sources</Alert>
+      </>
+    );
   }
 
   const responseInFormat = segregateMetrics(response.data.values);
