@@ -47,9 +47,9 @@ interface MatrixResponse {
 }
 
 export interface RouteDetails {
-  ping: Promise<QueryResponse | null>;
-  jitter: Promise<QueryResponse | null>;
-  monitor: Promise<QueryResponse | null>;
+  ping: QueryResponse;
+  jitter: QueryResponse;
+  monitor: QueryResponse;
 }
 
 type APIResponse<MatrixResponse> = { status: string; data: MatrixResponse };
@@ -70,30 +70,39 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
 
   const fetchTimeSeriesDetails = async (instance: TimeSeriesPath) => {
     const monitoringDetails = new Promise<RouteDetails>((resolve, reject) => {
-      async function fetchDetails(url: string) {
+      async function fetchDetails(base: string) {
         try {
-          const response = await fetch(url);
-          return ((await response.json()) as APIResponse<QueryResponse>).data;
+          const pingRaw = await fetch(
+            `${base}=${instance.path.ping}&endTimestamp=${endTimestamp}`
+          );
+          const jitterRaw = await fetch(
+            `${base}=${instance.path.jitter}&endTimestamp=${endTimestamp}`
+          );
+          const monitorRaw = await fetch(
+            `${base}=${instance.path.monitor}&endTimestamp=${endTimestamp}`
+          );
+
+          const pingJSON = (await pingRaw.json()) as APIResponse<QueryResponse>;
+          const jitterJSON = (await jitterRaw.json()) as APIResponse<
+            QueryResponse
+          >;
+          const monitorJSON = (await monitorRaw.json()) as APIResponse<
+            QueryResponse
+          >;
+
+          const batch: RouteDetails = {
+            ping: pingJSON.data,
+            jitter: jitterJSON.data,
+            monitor: monitorJSON.data
+          };
+          resolve(batch);
         } catch (e) {
           console.error(e);
           showWarning(true);
           reject(e);
-          return null;
         }
       }
-
-      const batch: RouteDetails = {
-        ping: fetchDetails(
-          `${HOST_IP}/query?timeSeriesPath=${instance.path.ping}&endTimestamp=${endTimestamp}`
-        ),
-        jitter: fetchDetails(
-          `${HOST_IP}/query?timeSeriesPath=${instance.path.jitter}&endTimestamp=${endTimestamp}`
-        ),
-        monitor: fetchDetails(
-          `${HOST_IP}/query?timeSeriesPath=${instance.path.monitor}&endTimestamp=${endTimestamp}`
-        )
-      };
-      resolve(batch);
+      fetchDetails(`${HOST_IP}/query?timeSeriesPath`);
     });
 
     const details = await monitoringDetails;
@@ -158,7 +167,7 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
 
   setTimeout(() => {
     setTrigger(trigger + 1);
-  }, 15 * 1000);
+  }, 10 * 1000);
 
   return (
     <Slide direction="right" in={true} mountOnEnter timeout={1000}>

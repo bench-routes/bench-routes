@@ -124,11 +124,6 @@ export default function BaseLayout(): ReactElement {
             >
               Bench Routes
             </Typography>
-            <IconButton color="inherit">
-              <Badge badgeContent={4} color="secondary">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
           </Toolbar>
           {loader ? <LinearProgress /> : null}
         </AppBar>

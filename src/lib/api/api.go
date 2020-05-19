@@ -101,6 +101,7 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 		startTimestamp, endTimestamp int64
 		err                          error
 	)
+	fmt.Println("received")
 	timeSeriesPath := r.URL.Query().Get("timeSeriesPath")
 
 	startTimestampStr := r.URL.Query().Get("startTimestamp")
@@ -190,10 +191,10 @@ func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 			Name: v.Domain,
 			Path: utils.ChainPath{
 				MatrixName: n,
-				Ping:       v.PingChain.Path,
-				Jitter:     v.JitterChain.Path,
-				Fping:      v.FPingChain.Path,
-				Monitor:    v.MonitorChain.Path,
+				Ping:       trim(v.PingChain.Path),
+				Jitter:     trim(v.JitterChain.Path),
+				Fping:      trim(v.FPingChain.Path),
+				Monitor:    trim(v.MonitorChain.Path),
 			},
 		})
 	}
@@ -225,4 +226,9 @@ func (a *API) send(w http.ResponseWriter, data []byte) {
 	if _, err := w.Write(data); err != nil {
 		panic(err)
 	}
+}
+
+func trim(s string) string {
+	fmt.Println("trimmed ", s[0:len(s)-5])
+	return s[0 : len(s)-5]
 }
