@@ -72,41 +72,21 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
     const monitoringDetails = new Promise<RouteDetails>((resolve, reject) => {
       async function fetchDetails(base: string) {
         try {
-          const pingRaw = await fetch(
-            `${base}=${instance.path.ping}&endTimestamp=${endTimestamp}`
+          const response = await fetch(
+            `${HOST_IP}/query-matrix?routeNameMatrix=${instance.path.matrixName}`
           );
-          const jitterRaw = await fetch(
-            `${base}=${instance.path.jitter}&endTimestamp=${endTimestamp}`
-          );
-          const monitorRaw = await fetch(
-            `${base}=${instance.path.monitor}&endTimestamp=${endTimestamp}`
-          );
-
-          const pingJSON = (await pingRaw.json()) as APIResponse<QueryResponse>;
-          const jitterJSON = (await jitterRaw.json()) as APIResponse<
-            QueryResponse
-          >;
-          const monitorJSON = (await monitorRaw.json()) as APIResponse<
-            QueryResponse
-          >;
-
-          const batch: RouteDetails = {
-            ping: pingJSON.data,
-            jitter: jitterJSON.data,
-            monitor: monitorJSON.data
-          };
-          resolve(batch);
+          const matrix = (await response.json()) as APIResponse<RouteDetails>;
+          resolve(matrix.data);
         } catch (e) {
           console.error(e);
           showWarning(true);
           reject(e);
         }
       }
-      fetchDetails(`${HOST_IP}/query?timeSeriesPath`);
+      fetchDetails(`${HOST_IP}/query-matrix?routeNameMatrix`);
     });
 
     const details = await monitoringDetails;
-    console.warn('details are', details);
     showRouteDetails(true, details);
   };
 

@@ -170,9 +170,9 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		make(chan querier.QueryResponse),
 		make(chan querier.QueryResponse),
 	}
-	go parallelQueryExec(matrix.PingChain.Path, chans[0])
-	go parallelQueryExec(matrix.JitterChain.Path, chans[1])
-	go parallelQueryExec(matrix.MonitorChain.Path, chans[2])
+	go parallelQueryExec((matrix.PingChain.Path), chans[0])
+	go parallelQueryExec((matrix.JitterChain.Path), chans[1])
+	go parallelQueryExec((matrix.MonitorChain.Path), chans[2])
 	matrixResponse := map[string]querier.QueryResponse{
 		"ping":    <-chans[0],
 		"jitter":  <-chans[1],
@@ -229,6 +229,5 @@ func (a *API) send(w http.ResponseWriter, data []byte) {
 }
 
 func trim(s string) string {
-	fmt.Println("trimmed ", s[0:len(s)-5])
 	return s[0 : len(s)-5]
 }
