@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/pprof"
 	"os"
 	"os/signal"
 	"reflect"
@@ -388,6 +389,29 @@ func main() {
 		router.HandleFunc("/get-route-time-series", api.TSDBPathDetails)
 		router.HandleFunc("/query-matrix", api.SendMatrix)
 		router.HandleFunc("/query", api.Query)
+	}
+	// Pprof profiling routes.
+	{
+		/** Index responds with the pprof-formatted profile named by the request.
+		For example, "/debug/pprof/heap" serves the "heap" profile.
+		Index responds to a request for "/debug/pprof/" with an HTML page listing the available profiles. **/
+		router.HandleFunc("/debug/pprof/", pprof.Index)
+		/** Respective handlers for pprof.Index **/
+		router.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
+		router.Handle("/debug/pprof/heap", pprof.Handler("heap"))
+		router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
+		router.Handle("/debug/pprof/block", pprof.Handler("block"))
+		/** Cmdline responds with the running program's command line, with arguments separated by NUL bytes.
+		The package initialization registers it as /debug/pprof/cmdline. **/
+		router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		/** Profile responds with the pprof-formatted cpu profile.
+		Profiling lasts for duration specified in seconds GET parameter,
+		or for 30 seconds if not specified. The package initialization registers it as /debug/pprof/profile. **/
+		router.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		/** Symbol looks up the program counters listed in the request, responding
+		with a table mapping program counters to function names.
+		The package initialization registers it as /debug/pprof/symbol. **/
+		router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	}
 
 	logger.Terminal(http.ListenAndServe(port, cors.Default().Handler(router)).Error(), "f")
