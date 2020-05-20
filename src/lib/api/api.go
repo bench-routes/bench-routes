@@ -101,7 +101,6 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 		startTimestamp, endTimestamp int64
 		err                          error
 	)
-	fmt.Println("received")
 	timeSeriesPath := r.URL.Query().Get("timeSeriesPath")
 
 	startTimestampStr := r.URL.Query().Get("startTimestamp")
@@ -155,28 +154,63 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		a.send(w, a.marshalled())
 		return
 	}
-	curr := time.Now().UnixNano()
-	from := curr - (brt.Minute * 20)
-
-	matrix := (*a.Matrix)[routeNameMatrix]
-	parallelQueryExec := func(path string, c chan querier.QueryResponse) {
-		qry := querier.New(path, "", querier.TypeFirst)
-		query := qry.QueryBuilder()
-		query.SetRange(curr, from)
-		c <- query.ExecWithoutEncode()
-	}
+	matrixResponse := map[string]querier.QueryResponse{}
 	chans := []chan querier.QueryResponse{
 		make(chan querier.QueryResponse),
 		make(chan querier.QueryResponse),
 		make(chan querier.QueryResponse),
 	}
-	go parallelQueryExec((matrix.PingChain.Path), chans[0])
-	go parallelQueryExec((matrix.JitterChain.Path), chans[1])
-	go parallelQueryExec((matrix.MonitorChain.Path), chans[2])
-	matrixResponse := map[string]querier.QueryResponse{
-		"ping":    <-chans[0],
-		"jitter":  <-chans[1],
-		"monitor": <-chans[2],
+	startTimestampStr := r.URL.Query().Get("startTimestamp")
+	endTimestampStr := r.URL.Query().Get("endTimestamp")
+	parallelQueryExec := func(path string, Type uint8, curr, from int64, c chan querier.QueryResponse) {
+		qry := querier.New(path, "", Type)
+		query := qry.QueryBuilder()
+		query.SetRange(curr, from)
+		c <- query.ExecWithoutEncode()
+	}
+	matrix := (*a.Matrix)[routeNameMatrix]
+	if startTimestampStr == "" && endTimestampStr == "" {
+		curr := time.Now().UnixNano()
+		from := curr - (brt.Minute * 20)
+
+		go parallelQueryExec(matrix.PingChain.Path, querier.TypeFirst, curr, from, chans[0])
+		go parallelQueryExec(matrix.JitterChain.Path, querier.TypeFirst, curr, from, chans[1])
+		go parallelQueryExec(matrix.MonitorChain.Path, querier.TypeFirst, curr, from, chans[2])
+		matrixResponse = map[string]querier.QueryResponse{
+			"ping":    <-chans[0],
+			"jitter":  <-chans[1],
+			"monitor": <-chans[2],
+		}
+	} else {
+		var (
+			startTimestamp, endTimestamp int64
+			err                          error
+		)
+		if startTimestampStr == "" {
+			startTimestamp = int64(math.MaxInt64)
+		} else {
+			startTimestamp, err = strconv.ParseInt(startTimestampStr, 10, 64)
+			if err != nil {
+				logger.Terminal(fmt.Errorf("error in startTimestamp: %s", err.Error()).Error(), "p")
+			}
+		}
+		if endTimestampStr == "" {
+			endTimestamp = int64(math.MinInt64)
+		} else {
+			endTimestamp, err = strconv.ParseInt(endTimestampStr, 10, 64)
+			if err != nil {
+				logger.Terminal(fmt.Errorf("error in endTimestamp: %s", err.Error()).Error(), "p")
+			}
+		}
+
+		go parallelQueryExec(matrix.PingChain.Path, querier.TypeRange, startTimestamp, endTimestamp, chans[0])
+		go parallelQueryExec(matrix.JitterChain.Path, querier.TypeRange, startTimestamp, endTimestamp, chans[1])
+		go parallelQueryExec(matrix.MonitorChain.Path, querier.TypeRange, startTimestamp, endTimestamp, chans[2])
+		matrixResponse = map[string]querier.QueryResponse{
+			"ping":    <-chans[0],
+			"jitter":  <-chans[1],
+			"monitor": <-chans[2],
+		}
 	}
 	a.Data = matrixResponse
 	a.send(w, a.marshalled())

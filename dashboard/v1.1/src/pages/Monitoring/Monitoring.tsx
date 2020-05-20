@@ -2,6 +2,7 @@ import React, { FC, useEffect, useState } from 'react';
 import { useFetch } from '../../utils/useFetch';
 import { HOST_IP } from '../../utils/types';
 import Matrix, { TimeSeriesPath, RouteDetails } from './Matrix';
+import RouteDetailsComponent from './RouteDetails';
 
 import { Card, CardContent } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
@@ -15,8 +16,10 @@ const Monitoring: FC<MonitoringProps> = ({ updateLoader }) => {
     `${HOST_IP}/get-route-time-series`
   );
   const [showRouteDetails, setShowRouteDetails] = useState<boolean>(false);
+  const [routeDetailsData, setRouteDetailsData] = useState<RouteDetails>();
   const showDetails = (status: boolean, details: RouteDetails): void => {
     setShowRouteDetails(status);
+    setRouteDetailsData(details);
   };
   useEffect(() => {
     updateLoader(true);
@@ -47,7 +50,7 @@ const Monitoring: FC<MonitoringProps> = ({ updateLoader }) => {
   return (
     <Card>
       <CardContent>
-        {!showRouteDetails ? (
+        {!showRouteDetails || !routeDetailsData ? (
           <>
             <h4>Monitoring</h4>
             <hr />
@@ -57,7 +60,10 @@ const Monitoring: FC<MonitoringProps> = ({ updateLoader }) => {
             />
           </>
         ) : (
-          <p>routeDetails</p>
+          <RouteDetailsComponent
+            routesChains={routeDetailsData}
+            showDetails={showDetails}
+          />
         )}
       </CardContent>
     </Card>

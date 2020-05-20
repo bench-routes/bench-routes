@@ -220,18 +220,6 @@ func main() {
 				if e := ws.WriteMessage(1, filters.RouteYAMLtoJSONParser(m)); e != nil {
 					panic(e)
 				}
-
-				// Queries
-			case "Qping-route":
-				querier(ws, inStream, qPingRoute{})
-			case "Qjitter-route":
-				querier(ws, inStream, qJitterRoute{})
-			case "Qflood-ping-route":
-				querier(ws, inStream, qFloodPingRoute{})
-			case "Qrequest-monitor-delay-route":
-				querier(ws, inStream, qReqResDelayRoute{})
-			case "Qsystem-metrics":
-				querier(ws, inStream, qSysMetrics{})
 			}
 		}
 	})
@@ -474,107 +462,6 @@ func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 
 	logger.Terminal("finished "+Type+" chain", "p")
 	wg.Done()
-}
-
-func querier(ws *websocket.Conn, inComingStream []string, route interface{}) {
-	message := getMessageFromCompoundSignal(inComingStream[1:])
-	var response []interface{}
-	switch route.(type) {
-	case qPingRoute:
-		inst := qPingRoute{}
-		if e := json.Unmarshal(message, &inst); e != nil {
-			panic(e)
-		}
-
-		raw := getInBlocks(ws, "ping", inst.URL)
-		for i, b := range raw {
-			decRaw := utils.Decode(b)
-			dec, ok := decRaw.(utils.Ping)
-			if !ok {
-				panic("invalid interface type")
-			}
-			response = append(response, utils.PingResp{
-				Min:            dec.Min,
-				Mean:           dec.Mean,
-				Max:            dec.Max,
-				MDev:           dec.MDev,
-				NormalizedTime: b.GetNormalizedTime(),
-				Timestamp:      b.GetTimeStamp(),
-				Relative:       i,
-			})
-		}
-
-	case qJitterRoute:
-		inst := qJitterRoute{}
-		if e := json.Unmarshal(message, &inst); e != nil {
-			panic(e)
-		}
-
-		raw := getInBlocks(ws, "jitter", inst.URL)
-		for i, b := range raw {
-			decRaw, ok := utils.Decode(b).(float64)
-			if !ok {
-				panic("invalid interface type")
-			}
-			response = append(response, utils.JitterResp{
-				Datapoint:      decRaw,
-				NormalizedTime: b.GetNormalizedTime(),
-				Timestamp:      b.GetTimeStamp(),
-				Relative:       i,
-			})
-		}
-
-	case qFloodPingRoute:
-		inst := qFloodPingRoute{}
-		if e := json.Unmarshal(message, &inst); e != nil {
-			panic(e)
-		}
-
-		raw := getInBlocks(ws, "flood-ping", inst.URL)
-		for i, b := range raw {
-			dec, ok := utils.Decode(b).(utils.FloodPing)
-			if !ok {
-				panic("invalid interface type")
-			}
-			response = append(response, utils.FloodPingResp{
-				Min:            dec.Min,
-				Mean:           dec.Mean,
-				Max:            dec.Max,
-				MDev:           dec.MDev,
-				PacketLoss:     dec.PacketLoss,
-				NormalizedTime: b.GetNormalizedTime(),
-				Timestamp:      b.GetTimeStamp(),
-				Relative:       i,
-			})
-		}
-
-	case qReqResDelayRoute:
-		inst := qReqResDelayRoute{}
-		if e := json.Unmarshal(message, &inst); e != nil {
-			panic(e)
-		}
-
-		raw := getInBlocks(ws, "req-res-delay", inst.URL)
-		for i, b := range raw {
-			dec, ok := utils.Decode(b).(utils.Response)
-			if !ok {
-				panic("invalid interface type")
-			}
-			response = append(response, utils.ResponseResp{
-				ResLength:      dec.ResLength,
-				ResStatusCode:  dec.ResStatusCode,
-				Delay:          dec.Delay,
-				NormalizedTime: b.GetNormalizedTime(),
-				Timestamp:      b.GetTimeStamp(),
-				Relative:       i,
-			})
-		}
-
-	case qSysMetrics:
-		// inst := qSysMetrics{}
-
-	}
-	respond(ws, response)
 }
 
 func getInBlocks(ws *websocket.Conn, Type, URL string) []tsdb.Block {

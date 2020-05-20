@@ -13,7 +13,6 @@ import TableRow from '@material-ui/core/TableRow';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import WarningOutlinedIcon from '@material-ui/icons/WarningOutlined';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
-import Slide from '@material-ui/core/Slide';
 
 import { Badge } from 'reactstrap';
 
@@ -70,10 +69,10 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
 
   const fetchTimeSeriesDetails = async (instance: TimeSeriesPath) => {
     const monitoringDetails = new Promise<RouteDetails>((resolve, reject) => {
-      async function fetchDetails(base: string) {
+      async function fetchDetails() {
         try {
           const response = await fetch(
-            `${HOST_IP}/query-matrix?routeNameMatrix=${instance.path.matrixName}`
+            `${HOST_IP}/query-matrix?routeNameMatrix=${instance.path.matrixName}&endTimestamp=${endTimestamp}`
           );
           const matrix = (await response.json()) as APIResponse<RouteDetails>;
           resolve(matrix.data);
@@ -83,7 +82,7 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
           reject(e);
         }
       }
-      fetchDetails(`${HOST_IP}/query-matrix?routeNameMatrix`);
+      fetchDetails();
     });
 
     const details = await monitoringDetails;
@@ -150,59 +149,57 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
   }, 10 * 1000);
 
   return (
-    <Slide direction="right" in={true} mountOnEnter timeout={1000}>
-      <TableRow>
-        <TableCell style={{ minWidth: 170, fontSize: 16 }} align="left">
-          <Badge color="light">{timeSeriesPath.name}</Badge>
-        </TableCell>
-        <TableCell style={{ minWidth: 100, fontSize: 16 }} align="center">
-          <Badge color="warning">
-            {data.ping === undefined
-              ? '-'
-              : round(data.ping.values[0].value.avgValue)}{' '}
-            ms
-          </Badge>
-        </TableCell>
-        <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
-          <Badge color="warning">
-            {data.jitter === undefined
-              ? '-'
-              : round(data.jitter.values[0].value.value)}{' '}
-            ms
-          </Badge>
-        </TableCell>
-        <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
-          <Badge color="warning">
-            {data.monitor === undefined
-              ? '-'
-              : data.monitor.values[0].value.delay}{' '}
-            ms
-          </Badge>
-        </TableCell>
-        <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
-          <Badge color="warning">
-            {data.monitor === undefined
-              ? '-'
-              : data.monitor.values[0].value.resLength}
-          </Badge>
-        </TableCell>
-        <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
-          <Badge color="success">{'UP'}</Badge>
-        </TableCell>
-        <TableCell style={{ minWidth: 10, fontSize: 16 }} align="center">
-          {warning ? (
-            <WarningOutlinedIcon />
-          ) : updating ? (
-            // sizes are kept in accordance with the ArrowForwardIcon. Do not change them.
-            <CircularProgress disableShrink size={19} thickness={4} />
-          ) : (
-            <span onClick={() => fetchTimeSeriesDetails(timeSeriesPath)}>
-              <ArrowForwardIcon color="primary" />
-            </span>
-          )}
-        </TableCell>
-      </TableRow>
-    </Slide>
+    <TableRow>
+      <TableCell style={{ minWidth: 170, fontSize: 16 }} align="left">
+        <Badge color="light">{timeSeriesPath.name}</Badge>
+      </TableCell>
+      <TableCell style={{ minWidth: 100, fontSize: 16 }} align="center">
+        <Badge color="warning">
+          {data.ping === undefined
+            ? '-'
+            : round(data.ping.values[0].value.avgValue)}{' '}
+          ms
+        </Badge>
+      </TableCell>
+      <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
+        <Badge color="warning">
+          {data.jitter === undefined
+            ? '-'
+            : round(data.jitter.values[0].value.value)}{' '}
+          ms
+        </Badge>
+      </TableCell>
+      <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
+        <Badge color="warning">
+          {data.monitor === undefined
+            ? '-'
+            : data.monitor.values[0].value.delay}{' '}
+          ms
+        </Badge>
+      </TableCell>
+      <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
+        <Badge color="warning">
+          {data.monitor === undefined
+            ? '-'
+            : data.monitor.values[0].value.resLength}
+        </Badge>
+      </TableCell>
+      <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
+        <Badge color="success">{'UP'}</Badge>
+      </TableCell>
+      <TableCell style={{ minWidth: 10, fontSize: 16 }} align="center">
+        {warning ? (
+          <WarningOutlinedIcon />
+        ) : updating ? (
+          // sizes are kept in accordance with the ArrowForwardIcon. Do not change them.
+          <CircularProgress disableShrink size={19} thickness={4} />
+        ) : (
+          <span onClick={() => fetchTimeSeriesDetails(timeSeriesPath)}>
+            <ArrowForwardIcon color="primary" />
+          </span>
+        )}
+      </TableCell>
+    </TableRow>
   );
 };
 
