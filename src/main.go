@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -384,25 +383,6 @@ func main() {
 	logger.Terminal("Bench-routes is up and running", "p")
 }
 
-type qPingRoute struct {
-	URL string `json:"url"`
-}
-
-type qFloodPingRoute struct {
-	URL string `json:"url"`
-}
-
-type qJitterRoute struct {
-	URL string `json:"url"`
-}
-
-type qReqResDelayRoute struct {
-	URL    string `json:"url"`
-	Method string `json:"method"`
-}
-
-type qSysMetrics struct{}
-
 func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
 	msg := "forming " + Type + " chain ... "
 	logger.File(msg, "p")
@@ -464,25 +444,6 @@ func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 	wg.Done()
 }
 
-func getInBlocks(ws *websocket.Conn, Type, URL string) []tsdb.Block {
-	ql := getQuerier(ws, Type, URL, "", "")
-	return inBlocks(ql.FetchAllSeriesStringified())
-}
-
-func getQuerier(conn *websocket.Conn, serviceName, d, method, suff string) (inst tsdb.BRQuerier) {
-	inst = tsdb.BRQuerier{
-		ServiceName: serviceName,
-		Route:       tsdb.BQRoute{DomainIP: d, Method: method},
-		Suffix:      suff,
-		Connection:  conn,
-	}
-	return
-}
-
-func getMessageFromCompoundSignal(arg []string) []byte {
-	return []byte(strings.Join(arg, " "))
-}
-
 // setDefaultServicesState initializes all state values to passive.
 func setDefaultServicesState(configuration *parser.YAMLBenchRoutesType) {
 	configuration.Config.UtilsConf.ServicesSignal = parser.ServiceSignals{
@@ -492,23 +453,6 @@ func setDefaultServicesState(configuration *parser.YAMLBenchRoutesType) {
 		ReqResDelayMonitoring: "passive",
 	}
 	if _, e := configuration.Write(); e != nil {
-		panic(e)
-	}
-}
-
-func inBlocks(s string) (tmp []tsdb.Block) {
-	if err := json.Unmarshal([]byte(s), &tmp); err != nil {
-		panic(err)
-	}
-	return
-}
-
-func respond(ws *websocket.Conn, inf interface{}) {
-	js, err := json.Marshal(inf)
-	if err != nil {
-		panic(err)
-	}
-	if e := ws.WriteMessage(1, js); e != nil {
 		panic(e)
 	}
 }

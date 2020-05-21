@@ -154,7 +154,7 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		a.send(w, a.marshalled())
 		return
 	}
-	matrixResponse := map[string]querier.QueryResponse{}
+	var matrixResponse map[string]querier.QueryResponse
 	chans := []chan querier.QueryResponse{
 		make(chan querier.QueryResponse),
 		make(chan querier.QueryResponse),
