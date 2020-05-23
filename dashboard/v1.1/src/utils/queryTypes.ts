@@ -10,8 +10,8 @@ export interface queryValueMemoryUsedPercent {
 }
 
 export interface chartData {
-  x: number;
-  y: string;
+  x: string | number;
+  y: string | number;
 }
 
 export interface QueryRange {
@@ -43,7 +43,7 @@ export interface queryValueSystemMetrics {
 export interface QueryValues {
   normalizedTime: number;
   timestamp: string;
-  value: queryValueSystemMetrics;
+  value: queryValueSystemMetrics & ping & jitter & monitor;
 }
 
 export interface QueryResponse {
@@ -51,4 +51,46 @@ export interface QueryResponse {
   range: QueryRange;
   timeSeriesPath: string;
   values: QueryValues[];
+}
+
+export interface ping {
+  avgValue: string;
+  maxValue: string;
+  mdevValue: string;
+  minValue: string;
+}
+
+export interface jitter {
+  value: string;
+}
+
+export interface monitor {
+  delay: number;
+  resLength: number;
+  resStatusCode: number;
+}
+
+export interface Path {
+  fping: string;
+  jitter: string;
+  monitor: string;
+  ping: string;
+  matrixName: string;
+}
+
+export interface TimeSeriesPath {
+  name: string;
+  path: Path;
+}
+
+export interface MatrixResponse {
+  jitter: QueryResponse;
+  monitor: QueryResponse;
+  ping: QueryResponse;
+}
+
+export interface RouteDetails {
+  ping: QueryResponse;
+  jitter: QueryResponse;
+  monitor: QueryResponse;
 }

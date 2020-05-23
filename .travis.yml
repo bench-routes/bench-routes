@@ -26,6 +26,10 @@ matrix:
         - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
         - source ~/.bashrc
         - nvm install 12
+        - npm install --dev
+        - npm install
+        - npm install -g eslint electron electron-packager tslint prettier
+        - cd tests/ && npm install chromedriver@latest && cd ..
         - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
         - echo "checking linting in golang ..."
         - golangci-lint run

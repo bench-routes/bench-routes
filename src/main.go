@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/http/pprof"
 	"os"
 	"os/signal"
 	"reflect"
@@ -41,10 +39,6 @@ var (
 		WriteBufferSize: 4096,
 	}
 	conf *parser.YAMLBenchRoutesType
-)
-
-const (
-	uiPathV11 = "ui-builds/v1.1/"
 )
 
 func main() {
@@ -111,7 +105,7 @@ func main() {
 	p := time.Now()
 	wg.Add(4)
 
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
+	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*50)
 
 	go initialise(&wg, &matrix, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
 	go initialise(&wg, &matrix, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
@@ -123,7 +117,7 @@ func main() {
 
 	chainSet.Run()
 
-	service := struct {
+	service := &struct {
 		Ping    *ping.Ping
 		Jitter  *jitter.Jitter
 		PingF   *ping.FloodPing
@@ -135,8 +129,9 @@ func main() {
 		Monitor: monitor.New(conf, monitor.TestInterval{OfType: intervals[2].Type, Duration: *intervals[2].Duration}, utils.RespMonitoringc),
 	}
 
-	api := api.New(&matrix)
+	api := api.New(&matrix, conf, service)
 	router := mux.NewRouter()
+	api.Register(router)
 
 	// Persistent connection for real-time updates between UI and the service.
 	router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
@@ -221,18 +216,6 @@ func main() {
 				if e := ws.WriteMessage(1, filters.RouteYAMLtoJSONParser(m)); e != nil {
 					panic(e)
 				}
-
-				// Queries
-			case "Qping-route":
-				querier(ws, inStream, qPingRoute{})
-			case "Qjitter-route":
-				querier(ws, inStream, qJitterRoute{})
-			case "Qflood-ping-route":
-				querier(ws, inStream, qFloodPingRoute{})
-			case "Qrequest-monitor-delay-route":
-				querier(ws, inStream, qReqResDelayRoute{})
-			case "Qsystem-metrics":
-				querier(ws, inStream, qSysMetrics{})
 			}
 		}
 	})
@@ -372,72 +355,11 @@ func main() {
 		logger.Terminal(fmt.Sprintf("Alive %d goroutines after cleaning up.", runtime.NumGoroutine()), "p")
 		os.Exit(0)
 	}()
-
-	// API endpoints.
-	{
-		// static servings.
-		{
-			router.Handle("/", http.FileServer(http.Dir(uiPathV11)))
-			router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(uiPathV11+"assets/"))))
-			router.PathPrefix("/manifest.json").Handler(http.StripPrefix("/manifest.json", http.FileServer(http.Dir(uiPathV11+"/manifest.json"))))
-			router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(uiPathV11+"static/"))))
-		}
-		router.HandleFunc("/br-live-check", api.Home)
-		router.HandleFunc("/test", api.TestTemplate)
-		router.HandleFunc("/service-state", api.ServiceState)
-		router.HandleFunc("/routes-summary", api.RoutesSummary)
-		router.HandleFunc("/get-route-time-series", api.TSDBPathDetails)
-		router.HandleFunc("/query-matrix", api.SendMatrix)
-		router.HandleFunc("/query", api.Query)
-	}
-	// Pprof profiling routes.
-	{
-		/** Index responds with the pprof-formatted profile named by the request.
-		For example, "/debug/pprof/heap" serves the "heap" profile.
-		Index responds to a request for "/debug/pprof/" with an HTML page listing the available profiles. **/
-		router.HandleFunc("/debug/pprof/", pprof.Index)
-		/** Respective handlers for pprof.Index **/
-		router.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
-		router.Handle("/debug/pprof/heap", pprof.Handler("heap"))
-		router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
-		router.Handle("/debug/pprof/block", pprof.Handler("block"))
-		/** Cmdline responds with the running program's command line, with arguments separated by NUL bytes.
-		The package initialization registers it as /debug/pprof/cmdline. **/
-		router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		/** Profile responds with the pprof-formatted cpu profile.
-		Profiling lasts for duration specified in seconds GET parameter,
-		or for 30 seconds if not specified. The package initialization registers it as /debug/pprof/profile. **/
-		router.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		/** Symbol looks up the program counters listed in the request, responding
-		with a table mapping program counters to function names.
-		The package initialization registers it as /debug/pprof/symbol. **/
-		router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-	}
-
 	logger.Terminal(http.ListenAndServe(port, cors.Default().Handler(router)).Error(), "f")
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
 	// required resources for the application is up and healthy.
 	logger.Terminal("Bench-routes is up and running", "p")
 }
-
-type qPingRoute struct {
-	URL string `json:"url"`
-}
-
-type qFloodPingRoute struct {
-	URL string `json:"url"`
-}
-
-type qJitterRoute struct {
-	URL string `json:"url"`
-}
-
-type qReqResDelayRoute struct {
-	URL    string `json:"url"`
-	Method string `json:"method"`
-}
-
-type qSysMetrics struct{}
 
 func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
 	msg := "forming " + Type + " chain ... "
@@ -461,6 +383,7 @@ func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 					case "flood_ping":
 						(*matrix)[index].FPingChain = resp
 					}
+					break
 				}
 			}
 		}
@@ -481,6 +404,10 @@ func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 						Headers:      v.Header,
 						Params:       v.Params,
 						MonitorChain: resp,
+						Domain:       fmt.Sprintf("%s: %s/%s", v.Method, v.URL, v.Route),
+						PingChain:    (*matrix)[k].PingChain,
+						JitterChain:  (*matrix)[k].JitterChain,
+						FPingChain:   (*matrix)[k].FPingChain,
 					}
 					break
 				}
@@ -495,126 +422,6 @@ func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 	wg.Done()
 }
 
-func querier(ws *websocket.Conn, inComingStream []string, route interface{}) {
-	message := getMessageFromCompoundSignal(inComingStream[1:])
-	var response []interface{}
-	switch route.(type) {
-	case qPingRoute:
-		inst := qPingRoute{}
-		if e := json.Unmarshal(message, &inst); e != nil {
-			panic(e)
-		}
-
-		raw := getInBlocks(ws, "ping", inst.URL)
-		for i, b := range raw {
-			decRaw := utils.Decode(b)
-			dec, ok := decRaw.(utils.Ping)
-			if !ok {
-				panic("invalid interface type")
-			}
-			response = append(response, utils.PingResp{
-				Min:            dec.Min,
-				Mean:           dec.Mean,
-				Max:            dec.Max,
-				MDev:           dec.MDev,
-				NormalizedTime: b.GetNormalizedTime(),
-				Timestamp:      b.GetTimeStamp(),
-				Relative:       i,
-			})
-		}
-
-	case qJitterRoute:
-		inst := qJitterRoute{}
-		if e := json.Unmarshal(message, &inst); e != nil {
-			panic(e)
-		}
-
-		raw := getInBlocks(ws, "jitter", inst.URL)
-		for i, b := range raw {
-			decRaw, ok := utils.Decode(b).(float64)
-			if !ok {
-				panic("invalid interface type")
-			}
-			response = append(response, utils.JitterResp{
-				Datapoint:      decRaw,
-				NormalizedTime: b.GetNormalizedTime(),
-				Timestamp:      b.GetTimeStamp(),
-				Relative:       i,
-			})
-		}
-
-	case qFloodPingRoute:
-		inst := qFloodPingRoute{}
-		if e := json.Unmarshal(message, &inst); e != nil {
-			panic(e)
-		}
-
-		raw := getInBlocks(ws, "flood-ping", inst.URL)
-		for i, b := range raw {
-			dec, ok := utils.Decode(b).(utils.FloodPing)
-			if !ok {
-				panic("invalid interface type")
-			}
-			response = append(response, utils.FloodPingResp{
-				Min:            dec.Min,
-				Mean:           dec.Mean,
-				Max:            dec.Max,
-				MDev:           dec.MDev,
-				PacketLoss:     dec.PacketLoss,
-				NormalizedTime: b.GetNormalizedTime(),
-				Timestamp:      b.GetTimeStamp(),
-				Relative:       i,
-			})
-		}
-
-	case qReqResDelayRoute:
-		inst := qReqResDelayRoute{}
-		if e := json.Unmarshal(message, &inst); e != nil {
-			panic(e)
-		}
-
-		raw := getInBlocks(ws, "req-res-delay", inst.URL)
-		for i, b := range raw {
-			dec, ok := utils.Decode(b).(utils.Response)
-			if !ok {
-				panic("invalid interface type")
-			}
-			response = append(response, utils.ResponseResp{
-				ResLength:      dec.ResLength,
-				ResStatusCode:  dec.ResStatusCode,
-				Delay:          dec.Delay,
-				NormalizedTime: b.GetNormalizedTime(),
-				Timestamp:      b.GetTimeStamp(),
-				Relative:       i,
-			})
-		}
-
-	case qSysMetrics:
-		// inst := qSysMetrics{}
-
-	}
-	respond(ws, response)
-}
-
-func getInBlocks(ws *websocket.Conn, Type, URL string) []tsdb.Block {
-	ql := getQuerier(ws, Type, URL, "", "")
-	return inBlocks(ql.FetchAllSeriesStringified())
-}
-
-func getQuerier(conn *websocket.Conn, serviceName, d, method, suff string) (inst tsdb.BRQuerier) {
-	inst = tsdb.BRQuerier{
-		ServiceName: serviceName,
-		Route:       tsdb.BQRoute{DomainIP: d, Method: method},
-		Suffix:      suff,
-		Connection:  conn,
-	}
-	return
-}
-
-func getMessageFromCompoundSignal(arg []string) []byte {
-	return []byte(strings.Join(arg, " "))
-}
-
 // setDefaultServicesState initializes all state values to passive.
 func setDefaultServicesState(configuration *parser.YAMLBenchRoutesType) {
 	configuration.Config.UtilsConf.ServicesSignal = parser.ServiceSignals{
@@ -624,23 +431,6 @@ func setDefaultServicesState(configuration *parser.YAMLBenchRoutesType) {
 		ReqResDelayMonitoring: "passive",
 	}
 	if _, e := configuration.Write(); e != nil {
-		panic(e)
-	}
-}
-
-func inBlocks(s string) (tmp []tsdb.Block) {
-	if err := json.Unmarshal([]byte(s), &tmp); err != nil {
-		panic(err)
-	}
-	return
-}
-
-func respond(ws *websocket.Conn, inf interface{}) {
-	js, err := json.Marshal(inf)
-	if err != nil {
-		panic(err)
-	}
-	if e := ws.WriteMessage(1, js); e != nil {
 		panic(e)
 	}
 }

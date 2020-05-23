@@ -12,6 +12,7 @@ const Dashboard: FC<DashboardProps> = ({ updateLoader }) => {
     <Card>
       <CardContent>
         <h4>Dashboard</h4>
+        <hr />
         <SystemMetrics showLoader={updateLoader} />
       </CardContent>
     </Card>

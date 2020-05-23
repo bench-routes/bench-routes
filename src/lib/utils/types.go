@@ -60,9 +60,9 @@ type FloodPingResp struct {
 // This is the object that we return from resp_delay module
 // Contains delay in monitor and the monitor length
 type Response struct {
-	Delay         int
-	ResLength     int
-	ResStatusCode int
+	Delay         int `json:"delay"`
+	ResLength     int `json:"resLength"`
+	ResStatusCode int `json:"resStatusCode"`
 }
 
 // ResponseResp for responding the querier.
@@ -83,10 +83,11 @@ type ResponseTSDBChains struct {
 
 // ChainPath keeps the path of all chains corresponding to a matrix value.
 type ChainPath struct {
-	Ping    string `json:"ping"`
-	Jitter  string `json:"jitter"`
-	Fping   string `json:"fping"`
-	Monitor string `json:"monitor"`
+	MatrixName string `json:"matrixName"`
+	Ping       string `json:"ping"`
+	Jitter     string `json:"jitter"`
+	Fping      string `json:"fping"`
+	Monitor    string `json:"monitor"`
 }
 
 // MatrixResponse wraps the block stream of the chains.

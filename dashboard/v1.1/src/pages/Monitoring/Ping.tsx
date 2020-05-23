@@ -2,16 +2,25 @@ import React, { FC } from 'react';
 import Chart from 'react-apexcharts';
 import { chartData } from '../../utils/queryTypes';
 
-interface CPUUsageProps {
-  cpuMetrics: chartData[];
+interface PingProps {
+  min: chartData[];
+  mean: chartData[];
+  max: chartData[];
 }
 
-const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
-  const dataFormatted = cpuMetrics;
+const Ping: FC<PingProps> = ({ min, mean, max }) => {
   const series = [
     {
-      name: 'CPU',
-      data: dataFormatted
+      name: 'min',
+      data: min
+    },
+    {
+      name: 'mean',
+      data: mean
+    },
+    {
+      name: 'max',
+      data: max
     }
   ];
   const options = {
@@ -22,8 +31,8 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
         categories: [],
         labels: {
           show: true,
-          rotate: 45,
-          rotateAlways: true,
+          rotate: 0,
+          rotateAlways: false,
           hideOverlappingLabels: true,
           trim: true
         }
@@ -42,27 +51,9 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
         }
       },
       background: '#fff'
-    },
-    datalabels: {
-      enabled: false
-    },
-    stroke: {
-      show: true,
-      curve: 'straight',
-      lineCap: 'butt',
-      width: 3
-    },
-    subtitle: {
-      text: 'CPU usage (in percent)',
-      align: 'center'
     }
   };
-
-  return (
-    <>
-      <Chart series={series} options={options} height="300" />
-    </>
-  );
+  return <Chart series={series} options={options} height="300" />;
 };
 
-export default React.memo(CPUUsage);
+export default Ping;

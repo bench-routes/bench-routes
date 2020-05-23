@@ -11,7 +11,7 @@ import Alert from '@material-ui/lab/Alert';
 import MemoryUsagePercent from './MemoryUsage';
 import DiskUsage from './Disk';
 import MemoryDetails from './MemoryDetails';
-import TimeInstance from '../../utils/brt';
+import TimeInstance, { formatTime } from '../../utils/brt';
 import { HOST_IP } from '../../utils/types';
 import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 
@@ -67,38 +67,38 @@ const segregateMetrics = (metricValues: QueryValues[]) => {
   for (const metric of metricValues) {
     cpuUsageSlice.push({
       y: metric.value.cpuTotalUsage,
-      x: metric.normalizedTime
+      x: formatTime(metric.timestamp)
     });
 
     diskSliceCache.push({
       y: metric.value.disk.cached,
-      x: metric.normalizedTime
+      x: formatTime(metric.timestamp)
     });
     diskSliceDiskIO.push({
       y: metric.value.disk.diskIO,
-      x: metric.normalizedTime
+      x: formatTime(metric.timestamp)
     });
 
     memorySliceAvailableBytes.push({
       y: metric.value.memory.availableBytes,
-      x: metric.normalizedTime
+      x: formatTime(metric.timestamp)
     });
     memorySliceFreeBytes.push({
       y: metric.value.memory.freeBytes,
-      x: metric.normalizedTime
+      x: formatTime(metric.timestamp)
     });
     memorySliceTotalBytes.push({
       y: metric.value.memory.totalBytes,
-      x: metric.normalizedTime
+      x: formatTime(metric.timestamp)
     });
     memorySliceUsedBytes.push({
       y: metric.value.memory.usedBytes,
-      x: metric.normalizedTime
+      x: formatTime(metric.timestamp)
     });
 
     memoryUsedPercentSlice.push({
       y: metric.value.memory.usedPercent,
-      x: metric.normalizedTime
+      x: formatTime(metric.timestamp)
     });
   }
   return {
@@ -138,7 +138,11 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
     return <Alert severity="error">Unable to reach the service: error</Alert>;
   }
   if (!response.data) {
-    return <Alert severity="info">Fetching data from sources</Alert>;
+    return (
+      <>
+        <Alert severity="info">Fetching data from sources</Alert>
+      </>
+    );
   }
 
   const responseInFormat = segregateMetrics(response.data.values);

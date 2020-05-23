@@ -29,6 +29,8 @@ func (bd *BlockDecodingBR) Decode(block tsdb.Block) interface{} {
 		return jitterDecode(block.Datapoint)
 	case "flood-ping":
 		return floodPingDecode(block.Datapoint)
+	case "req-res":
+		return monitorDecode(block.Datapoint)
 	}
 	return nil
 }

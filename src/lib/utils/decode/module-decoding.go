@@ -2,10 +2,12 @@ package decode
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/metrics/system"
 )
 
@@ -35,7 +37,7 @@ func systemDecode(block string) system.Response {
 func pingDecode(block string) ping.Response {
 	arr := strings.Split(block, "|")
 	if len(arr) != 4 {
-		panic(fmt.Errorf("Invalid block segments length: Segments must be 8 in number: length: %d", len(arr)))
+		panic(fmt.Errorf("Invalid block segments length: Segments must be 4 in number: length: %d", len(arr)))
 	}
 	return ping.Response{
 		Min:  arr[0],
@@ -55,7 +57,7 @@ func jitterDecode(block string) jitter.Response {
 func floodPingDecode(block string) ping.FloodPingResponse {
 	arr := strings.Split(block, "|")
 	if len(arr) != 5 {
-		panic(fmt.Errorf("Invalid block segments length: Segments must be 8 in number: length: %d", len(arr)))
+		panic(fmt.Errorf("Invalid block segments length: Segments must be 5 in number: length: %d", len(arr)))
 	}
 	return ping.FloodPingResponse{
 		Min:   arr[0],
@@ -64,4 +66,24 @@ func floodPingDecode(block string) ping.FloodPingResponse {
 		Mdev:  arr[3],
 		Ploss: arr[4],
 	}
+}
+
+func monitorDecode(block string) utils.Response {
+	arr := strings.Split(block, "|")
+	if len(arr) != 3 {
+		panic(fmt.Errorf("Invalid block segments length: Segments must be 3 in number: length: %d", len(arr)))
+	}
+	return utils.Response{
+		Delay:         convertToInt(arr[0]),
+		ResLength:     convertToInt(arr[1]),
+		ResStatusCode: convertToInt(arr[2]),
+	}
+}
+
+func convertToInt(s string) int {
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	return v
 }

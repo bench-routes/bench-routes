@@ -1,22 +1,12 @@
 import { CssBaseline } from '@material-ui/core';
 import { Container } from '@material-ui/core';
-import {
-  AppBar,
-  Badge,
-  IconButton,
-  Toolbar,
-  Typography
-} from '@material-ui/core';
+import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { makeStyles } from '@material-ui/core/styles';
-import {
-  Menu as MenuIcon,
-  Notifications as NotificationsIcon
-} from '@material-ui/icons';
+import { Menu as MenuIcon } from '@material-ui/icons';
 import clsx from 'clsx';
 import React, { ReactElement, useCallback, useState } from 'react';
 import Navigator from '../router/Navigation';
-// import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 
 const drawerWidth = 240;
@@ -124,11 +114,6 @@ export default function BaseLayout(): ReactElement {
             >
               Bench Routes
             </Typography>
-            <IconButton color="inherit">
-              <Badge badgeContent={4} color="secondary">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
           </Toolbar>
           {loader ? <LinearProgress /> : null}
         </AppBar>

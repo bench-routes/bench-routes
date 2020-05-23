@@ -7,4 +7,10 @@ enum TimeInstance {
 	Day = 24 * 60 * 60000000000,
 };
 
+export const formatTime = (data: string) => {
+  const times = data.split('|');
+  const l = times.length;
+  return `${times[l-3]}:${times[l-2]}:${times[l-1]}`;
+};
+
 export default TimeInstance;
