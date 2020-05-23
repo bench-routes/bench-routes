@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"net/http/pprof"
 	"reflect"
 	"strconv"
 	"time"
@@ -52,6 +53,29 @@ func (a *API) Register(router *mux.Router) {
 		router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(uiPathV11+"assets/"))))
 		router.PathPrefix("/manifest.json").Handler(http.StripPrefix("/manifest.json", http.FileServer(http.Dir(uiPathV11+"/manifest.json"))))
 		router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(uiPathV11+"static/"))))
+	}
+	// Pprof profiling routes.
+	{
+		/** Index responds with the pprof-formatted profile named by the request.
+		For example, "/debug/pprof/heap" serves the "heap" profile.
+		Index responds to a request for "/debug/pprof/" with an HTML page listing the available profiles. **/
+		router.HandleFunc("/debug/pprof/", pprof.Index)
+		/** Respective handlers for pprof.Index **/
+		router.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
+		router.Handle("/debug/pprof/heap", pprof.Handler("heap"))
+		router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
+		router.Handle("/debug/pprof/block", pprof.Handler("block"))
+		/** Cmdline responds with the running program's command line, with arguments separated by NUL bytes.
+		The package initialization registers it as /debug/pprof/cmdline. **/
+		router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		/** Profile responds with the pprof-formatted cpu profile.
+		Profiling lasts for duration specified in seconds GET parameter,
+		or for 30 seconds if not specified. The package initialization registers it as /debug/pprof/profile. **/
+		router.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		/** Symbol looks up the program counters listed in the request, responding
+		with a table mapping program counters to function names.
+		The package initialization registers it as /debug/pprof/symbol. **/
+		router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	}
 	router.HandleFunc("/br-live-check", a.Home)
 	router.HandleFunc("/get-monitoring-services-state", a.GetMonitoringState)
@@ -302,7 +326,7 @@ func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Reque
 // GetMonitoringState returns the monitoring state.
 func (a *API) GetMonitoringState(w http.ResponseWriter, r *http.Request) {
 	services := a.config.Config.UtilsConf.ServicesSignal
-	if services.Jitter != services.Ping && services.Jitter != services.Jitter {
+	if services.Jitter != services.Ping && services.Jitter != services.ReqResDelayMonitoring {
 		panic("get-monitoring-state: services state not aligned")
 	}
 	a.Data = services.Jitter

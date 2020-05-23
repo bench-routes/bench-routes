@@ -355,7 +355,6 @@ func main() {
 		logger.Terminal(fmt.Sprintf("Alive %d goroutines after cleaning up.", runtime.NumGoroutine()), "p")
 		os.Exit(0)
 	}()
-
 	logger.Terminal(http.ListenAndServe(port, cors.Default().Handler(router)).Error(), "f")
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
 	// required resources for the application is up and healthy.
