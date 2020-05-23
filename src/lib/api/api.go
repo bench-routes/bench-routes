@@ -5,10 +5,15 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"reflect"
 	"strconv"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
+	"github.com/zairza-cetb/bench-routes/src/lib/modules/monitor"
+	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/brt"
@@ -19,20 +24,44 @@ import (
 const (
 	testFilesDir = "tests/"
 	uiPathV1     = "ui-builds/v1.0/index.html"
+	uiPathV11    = "ui-builds/v1.1/"
 )
 
 // API type for implementing the API interface.
 type API struct {
-	RequestIP string
-	Data      interface{}
-	Matrix    *utils.BRmap
+	ResponseStatus string
+	Data, Services interface{}
+	Matrix         *utils.BRmap
+	config         *parser.YAMLBenchRoutesType
 }
 
 // New returns the API type for implementing the API interface.
-func New(matrix *utils.BRmap) *API {
+func New(matrix *utils.BRmap, config *parser.YAMLBenchRoutesType, services interface{}) *API {
 	return &API{
-		Matrix: matrix,
+		Matrix:   matrix,
+		Services: services,
+		config:   config,
 	}
+}
+
+// Register registers the routes with the mux router.
+func (a *API) Register(router *mux.Router) {
+	// static servings.
+	{
+		router.Handle("/", http.FileServer(http.Dir(uiPathV11)))
+		router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(uiPathV11+"assets/"))))
+		router.PathPrefix("/manifest.json").Handler(http.StripPrefix("/manifest.json", http.FileServer(http.Dir(uiPathV11+"/manifest.json"))))
+		router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(uiPathV11+"static/"))))
+	}
+	router.HandleFunc("/br-live-check", a.Home)
+	router.HandleFunc("/get-monitoring-services-state", a.GetMonitoringState)
+	router.HandleFunc("/get-route-time-series", a.TSDBPathDetails)
+	router.HandleFunc("/query-matrix", a.SendMatrix)
+	router.HandleFunc("/query", a.Query)
+	router.HandleFunc("/routes-summary", a.RoutesSummary)
+	router.HandleFunc("/service-state", a.ServiceState)
+	router.HandleFunc("/test", a.TestTemplate)
+	router.HandleFunc("/update-monitoring-services-state", a.UpdateMonitoringServicesState)
 }
 
 // Home handles the requests for the home page.
@@ -69,7 +98,6 @@ func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
 		Jitter:     p.Config.UtilsConf.ServicesSignal.Jitter,
 		Monitoring: p.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring,
 	}
-	a.setRequestIPAddress(r)
 	a.send(w, a.marshalled())
 }
 
@@ -91,7 +119,6 @@ func (a *API) RoutesSummary(w http.ResponseWriter, r *http.Request) {
 		TestServicesRoutes: servicesRoutes,
 		MonitoringRoutes:   monitoringRoutes,
 	}
-	a.setRequestIPAddress(r)
 	a.send(w, a.marshalled())
 }
 
@@ -236,8 +263,50 @@ func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 	a.send(w, a.marshalled())
 }
 
-func (a *API) setRequestIPAddress(r *http.Request) {
-	a.RequestIP = r.RemoteAddr
+// UpdateMonitoringServicesState starts the monitoring services on request from the API.
+func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Request) {
+	state := r.URL.Query().Get("state")
+	if state != "start" && state != "stop" {
+		panic("start-monitoring: invalid state received: " + state)
+	}
+
+	service := reflect.ValueOf(a.Services).Elem()
+	sp, ok := service.FieldByName("Ping").Interface().(*ping.Ping)
+	if !ok {
+		panic("start-monitoring: ping not found")
+	}
+	if !sp.Iterate(state, false) {
+		panic("start-monitoring: triggering monitoring: ping")
+	}
+
+	sj, ok := service.FieldByName("Jitter").Interface().(*jitter.Jitter)
+	if !ok {
+		panic("start-monitoring: jitter not found")
+	}
+	if !sj.Iterate(state, false) {
+		panic("start-monitoring: triggering monitoring: jitter")
+	}
+
+	sm, ok := service.FieldByName("Monitor").Interface().(*monitor.Monitor)
+	if !ok {
+		panic("start-monitoring: monitor not found")
+	}
+	if !sm.Iterate(state, false) {
+		panic("start-monitoring: triggering monitoring: monitor")
+	}
+
+	a.Data = true
+	a.send(w, a.marshalled())
+}
+
+// GetMonitoringState returns the monitoring state.
+func (a *API) GetMonitoringState(w http.ResponseWriter, r *http.Request) {
+	services := a.config.Config.UtilsConf.ServicesSignal
+	if services.Jitter != services.Ping && services.Jitter != services.Jitter {
+		panic("get-monitoring-state: services state not aligned")
+	}
+	a.Data = services.Jitter
+	a.send(w, a.marshalled())
 }
 
 func (a *API) marshalled() []byte {
@@ -245,7 +314,7 @@ func (a *API) marshalled() []byte {
 		Status string      `json:"status"`
 		Data   interface{} `json:"data"`
 	}{
-		Status: a.RequestIP,
+		Status: a.ResponseStatus,
 		Data:   a.Data,
 	}
 	js, err := json.Marshal(response)

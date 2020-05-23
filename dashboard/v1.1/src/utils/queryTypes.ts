@@ -69,3 +69,28 @@ export interface monitor {
   resLength: number;
   resStatusCode: number;
 }
+
+export interface Path {
+  fping: string;
+  jitter: string;
+  monitor: string;
+  ping: string;
+  matrixName: string;
+}
+
+export interface TimeSeriesPath {
+  name: string;
+  path: Path;
+}
+
+export interface MatrixResponse {
+  jitter: QueryResponse;
+  monitor: QueryResponse;
+  ping: QueryResponse;
+}
+
+export interface RouteDetails {
+  ping: QueryResponse;
+  jitter: QueryResponse;
+  monitor: QueryResponse;
+}

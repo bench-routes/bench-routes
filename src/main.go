@@ -41,10 +41,6 @@ var (
 	conf *parser.YAMLBenchRoutesType
 )
 
-const (
-	uiPathV11 = "ui-builds/v1.1/"
-)
-
 func main() {
 	if len(os.Args) > 2 && os.Args[2] != "" {
 		enableProcessCollection, _ = strconv.ParseBool(os.Args[2])
@@ -121,7 +117,7 @@ func main() {
 
 	chainSet.Run()
 
-	service := struct {
+	service := &struct {
 		Ping    *ping.Ping
 		Jitter  *jitter.Jitter
 		PingF   *ping.FloodPing
@@ -133,8 +129,9 @@ func main() {
 		Monitor: monitor.New(conf, monitor.TestInterval{OfType: intervals[2].Type, Duration: *intervals[2].Duration}, utils.RespMonitoringc),
 	}
 
-	api := api.New(&matrix)
+	api := api.New(&matrix, conf, service)
 	router := mux.NewRouter()
+	api.Register(router)
 
 	// Persistent connection for real-time updates between UI and the service.
 	router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
@@ -358,24 +355,6 @@ func main() {
 		logger.Terminal(fmt.Sprintf("Alive %d goroutines after cleaning up.", runtime.NumGoroutine()), "p")
 		os.Exit(0)
 	}()
-
-	// API endpoints.
-	{
-		// static servings.
-		{
-			router.Handle("/", http.FileServer(http.Dir(uiPathV11)))
-			router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(uiPathV11+"assets/"))))
-			router.PathPrefix("/manifest.json").Handler(http.StripPrefix("/manifest.json", http.FileServer(http.Dir(uiPathV11+"/manifest.json"))))
-			router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(uiPathV11+"static/"))))
-		}
-		router.HandleFunc("/br-live-check", api.Home)
-		router.HandleFunc("/test", api.TestTemplate)
-		router.HandleFunc("/service-state", api.ServiceState)
-		router.HandleFunc("/routes-summary", api.RoutesSummary)
-		router.HandleFunc("/get-route-time-series", api.TSDBPathDetails)
-		router.HandleFunc("/query-matrix", api.SendMatrix)
-		router.HandleFunc("/query", api.Query)
-	}
 
 	logger.Terminal(http.ListenAndServe(port, cors.Default().Handler(router)).Error(), "f")
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the

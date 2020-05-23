@@ -1,6 +1,5 @@
 import React, { FC } from 'react';
-import { RouteDetails } from './Matrix';
-import { chartData } from '../../utils/queryTypes';
+import { chartData, RouteDetails } from '../../utils/queryTypes';
 import { formatTime } from '../../utils/brt';
 import ResLength from './ResLength';
 import Delay from './Delay';

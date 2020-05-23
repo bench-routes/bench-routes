@@ -1,6 +1,10 @@
 import React, { FC, useState, useEffect } from 'react';
 import { HOST_IP } from '../../utils/types';
-import { QueryResponse } from '../../utils/queryTypes';
+import {
+  TimeSeriesPath,
+  MatrixResponse,
+  RouteDetails
+} from '../../utils/queryTypes';
 import { columns } from './Columns';
 import TimeInstance from '../../utils/brt';
 
@@ -16,18 +20,7 @@ import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 
 import { Badge } from 'reactstrap';
 
-interface Path {
-  fping: string;
-  jitter: string;
-  monitor: string;
-  ping: string;
-  matrixName: string;
-}
-
-export interface TimeSeriesPath {
-  name: string;
-  path: Path;
-}
+type APIResponse<MatrixResponse> = { status: string; data: MatrixResponse };
 
 interface MatrixProps {
   timeSeriesPath: TimeSeriesPath[];
@@ -38,20 +31,6 @@ interface ElementProps {
   timeSeriesPath: TimeSeriesPath;
   showRouteDetails(status: boolean, details: RouteDetails): void;
 }
-
-interface MatrixResponse {
-  jitter: QueryResponse;
-  monitor: QueryResponse;
-  ping: QueryResponse;
-}
-
-export interface RouteDetails {
-  ping: QueryResponse;
-  jitter: QueryResponse;
-  monitor: QueryResponse;
-}
-
-type APIResponse<MatrixResponse> = { status: string; data: MatrixResponse };
 
 const round = (n: string): number => {
   const num = parseInt(n, 10);
