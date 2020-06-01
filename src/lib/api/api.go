@@ -56,25 +56,25 @@ func (a *API) Register(router *mux.Router) {
 	}
 	// Pprof profiling routes.
 	{
-		/** Index responds with the pprof-formatted profile named by the request.
-		For example, "/debug/pprof/heap" serves the "heap" profile.
-		Index responds to a request for "/debug/pprof/" with an HTML page listing the available profiles. **/
+		// Index responds with the pprof-formatted profile named by the request.
+		// For example, "/debug/pprof/heap" serves the "heap" profile.
+		// Index responds to a request for "/debug/pprof/" with an HTML page listing the available profiles.
 		router.HandleFunc("/debug/pprof/", pprof.Index)
-		/** Respective handlers for pprof.Index **/
+		// Respective handlers for pprof.Index
 		router.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
 		router.Handle("/debug/pprof/heap", pprof.Handler("heap"))
 		router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
 		router.Handle("/debug/pprof/block", pprof.Handler("block"))
-		/** Cmdline responds with the running program's command line, with arguments separated by NUL bytes.
-		The package initialization registers it as /debug/pprof/cmdline. **/
+		// Cmdline responds with the running program's command line, with arguments separated by NUL bytes.
+		// The package initialization registers it as /debug/pprof/cmdline.
 		router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		/** Profile responds with the pprof-formatted cpu profile.
-		Profiling lasts for duration specified in seconds GET parameter,
-		or for 30 seconds if not specified. The package initialization registers it as /debug/pprof/profile. **/
+		// Profile responds with the pprof-formatted cpu profile.
+		// Profiling lasts for duration specified in seconds GET parameter,
+		// or for 30 seconds if not specified. The package initialization registers it as /debug/pprof/profile.
 		router.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		/** Symbol looks up the program counters listed in the request, responding
-		with a table mapping program counters to function names.
-		The package initialization registers it as /debug/pprof/symbol. **/
+		// Symbol looks up the program counters listed in the request, responding
+		// with a table mapping program counters to function names.
+		// The package initialization registers it as /debug/pprof/symbol.
 		router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	}
 	router.HandleFunc("/br-live-check", a.Home)
