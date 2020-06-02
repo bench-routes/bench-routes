@@ -1,7 +1,9 @@
 package journal
 
 import (
+	"fmt"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -14,13 +16,23 @@ const (
 // Journal implements for collecting journal/systemd information.
 type Journal struct {
 	cmd
-	points
+	Points
 	warn, err string
 }
 
 type cmd struct{}
-type points struct {
-	cwarn, cerr, ckwarn, ckerr, cevents, ckevents int
+
+// Points are data-points for journal information counters.
+// C stands for count.
+// K stands for kernel.
+// CK for count kernel.
+type Points struct {
+	Cwarn    int `json:"cwarn"`
+	Cerr     int `json:"cerr"`
+	Ckwarn   int `json:"ckwarn"`
+	Ckerr    int `json:"ckerr"`
+	Cevents  int `json:"cevents"`
+	Ckevents int `json:"ckevents"`
 }
 
 // New returns a Journal.
@@ -29,26 +41,48 @@ func New() *Journal {
 }
 
 // Run runs and fetches the journal based information.
-func (j *Journal) Run() {
-	logs := make([]chan string, 2)
-	klogs := make([]chan int, 4)
-	go j.cmd.warnLog(logs[0])
-	go j.cmd.errLog(logs[1])
-	go j.cmd.logs(klogs[2], klogs[3])
-	j.warn = <-logs[0]
-	j.err = <-logs[1]
-	j.points.cevents = <-klogs[2]
-	j.points.ckevents = <-klogs[3]
-	go j.cmd.kernels(j.warn, klogs[0])
-	go j.cmd.kernels(j.err, klogs[1])
-	j.points.cwarn = len(strings.Split(j.warn, "\n"))
-	j.points.cerr = len(strings.Split(j.err, "\n"))
-	j.points.ckwarn = <-klogs[0]
-	j.points.ckerr = <-klogs[1]
+func (j *Journal) Run() *Points {
+	logs1 := make(chan string)
+	logs2 := make(chan string)
+	klogs1 := make(chan int)
+	klogs2 := make(chan int)
+	klogs3 := make(chan int)
+	klogs4 := make(chan int)
+
+	go j.cmd.warnLog(logs1)
+	go j.cmd.errLog(logs2)
+	go j.cmd.logs(klogs1, klogs2)
+
+	j.warn = <-logs1
+	j.err = <-logs2
+	j.Points.Cevents = <-klogs1
+	j.Points.Ckevents = <-klogs2
+
+	go j.cmd.kernels(j.warn, klogs3)
+	go j.cmd.kernels(j.err, klogs4)
+
+	j.Points.Cwarn = len(strings.Split(j.warn, "\n"))
+	j.Points.Cerr = len(strings.Split(j.err, "\n"))
+	j.Points.Ckwarn = <-klogs3
+	j.Points.Ckerr = <-klogs4
+
+	return &j.Points
+}
+
+// Get returns the data-points.
+func (p *Points) Get() *Points {
+	return p
+}
+
+// Encode encodes the data-points into br's tsdb compatible
+// blocks.
+func (p *Points) Encode() *string {
+	enc := fmt.Sprintf("%d|%d|%d|%d|%d|%d", p.Cerr, p.Cwarn, p.Ckerr, p.Ckwarn, p.Cevents, p.Ckevents)
+	return &enc
 }
 
 func (j *cmd) warnLog(c chan string) {
-	o, err := exec.Command("journalctl", "-p", "warning", "-b", "-o", "json-seq", "-b", "|", "cat").Output()
+	o, err := exec.Command("journalctl", "-p", "warning", "-b", "-o", "json-seq", "--no-pager").Output()
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +90,7 @@ func (j *cmd) warnLog(c chan string) {
 }
 
 func (j *cmd) errLog(c chan string) {
-	o, err := exec.Command("journalctl", "-p", "err", "-b", "-o", "json-seq", "-b", "|", "cat").Output()
+	o, err := exec.Command("journalctl", "-p", "err", "-b", "-o", "json-seq", "--no-pager").Output()
 	if err != nil {
 		panic(err)
 	}
@@ -64,7 +98,7 @@ func (j *cmd) errLog(c chan string) {
 }
 
 func (j *cmd) logs(c, ck chan int) {
-	o, err := exec.Command("journalctl", "-b", "|", "cat").Output()
+	o, err := exec.Command("journalctl", "-b", "--no-pager").Output()
 	if err != nil {
 		panic(err)
 	}
@@ -105,4 +139,40 @@ func (j *cmd) kernels(l string, count chan int) {
 		curr++
 	}
 	count <- c
+}
+
+// Decode converts the marshalled data-point to valid data-points.
+func Decode(datapoint string) *Points {
+	arr := strings.Split(datapoint, "|")
+	if len(arr) != 5 {
+		panic("invalid datapoint")
+	}
+	var p Points
+	for i, b := range arr {
+		switch i {
+		case 0:
+			p.Cerr = sToi(b)
+		case 1:
+			p.Cwarn = sToi(b)
+		case 2:
+			p.Ckerr = sToi(b)
+		case 3:
+			p.Ckwarn = sToi(b)
+		case 4:
+			p.Cevents = sToi(b)
+		case 5:
+			p.Ckevents = sToi(b)
+		default:
+			panic(fmt.Sprintf("invalid decoding with index: %d", i))
+		}
+	}
+	return &p
+}
+
+func sToi(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	return i
 }
