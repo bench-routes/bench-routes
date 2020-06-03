@@ -34,7 +34,7 @@ var (
 	port                        = ":9090" // default listen and serve at 9090
 	enableProcessCollection     = false   // default collection of process metrics in host of bench-routes
 	processCollectionScrapeTime = time.Second * 5
-	defaultScrapeTime           = time.Second * 10
+	defaultScrapeTime           = time.Second * 3
 	systemMetricsPath           = "storage/system.json"
 	journalMetricsPath          = "storage/journal.json"
 	upgrader                    = websocket.Upgrader{
@@ -108,7 +108,7 @@ func main() {
 	p := time.Now()
 	wg.Add(4)
 
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
+	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*5)
 
 	go initialise(&wg, &matrix, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
 	go initialise(&wg, &matrix, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
@@ -226,9 +226,10 @@ func main() {
 	go func() {
 		metrics := sysMetrics.New()
 		type metric struct {
-			cpu    string
-			memory sysMetrics.MemoryStats
-			disk   sysMetrics.DiskStats
+			cpu    *string
+			memory *sysMetrics.MemoryStats
+			disk   *sysMetrics.DiskStats
+			net    *sysMetrics.NetworkStats
 		}
 
 		chain := tsdb.NewChain(systemMetricsPath)
@@ -243,22 +244,24 @@ func main() {
 			// such that defaultScrapeTime >= duration(cpu|memory|disk)
 			// will meet excepted defaultScrapeTime. Anything other
 			// than this will be inaccurate.
-			cpu := make(chan string)
-			memory := make(chan sysMetrics.MemoryStats)
-			disk := make(chan sysMetrics.DiskStats)
+			cpu := make(chan *string)
+			memory := make(chan *sysMetrics.MemoryStats)
+			disk := make(chan *sysMetrics.DiskStats)
+			net := make(chan *sysMetrics.NetworkStats)
 
 			go metrics.GetTotalCPUUsage(cpu)
 			go metrics.GetVirtualMemoryStats(memory)
 			go metrics.GetDiskIOStats(disk)
+			go metrics.GetNetworkStats(net)
 
 			data := &metric{
 				cpu:    <-cpu,
 				memory: <-memory,
 				disk:   <-disk,
+				net:    <-net,
 			}
-
 			encoded := metrics.Combine(
-				metrics.Encode(data.cpu), metrics.Encode(data.memory), metrics.Encode(data.disk),
+				metrics.Encode(*data.cpu), metrics.Encode(*data.memory), metrics.Encode(*data.disk), metrics.Encode(*data.net),
 			)
 
 			block := tsdb.GetNewBlock("sys", encoded)

@@ -2,11 +2,18 @@ package system
 
 import (
 	"fmt"
+	"os/exec"
+	"strconv"
+	"strings"
 	"time"
 
 	disk "github.com/mackerelio/go-osstat/memory"
 	gostats "github.com/shirou/gopsutil/cpu"
 	gomem "github.com/shirou/gopsutil/mem"
+)
+
+const (
+	tcpSegmentSizeInBytes = 1200
 )
 
 // CPU interface for CPU related details.
@@ -38,13 +45,13 @@ func New() *SystemMetrics {
 
 // GetTotalCPUUsage returns the total CPU usage by all the
 // available cores over the previous second.
-func (s *SystemMetrics) GetTotalCPUUsage(c chan string) {
+func (s *SystemMetrics) GetTotalCPUUsage(c chan *string) {
 	usage, err := gostats.Percent(time.Duration(time.Second), false)
 	if err != nil {
 		panic(err)
 	}
-
-	c <- fmt.Sprintf("%.2f", usage[0])
+	str := fmt.Sprintf("%.2f", usage[0])
+	c <- &str
 }
 
 // GetTotalCPUStats returns the stats related to the CPU
@@ -77,13 +84,13 @@ type MemoryStatsStringified struct {
 }
 
 // GetVirtualMemoryStats returns the memory statistics of the host machine.
-func (s *SystemMetrics) GetVirtualMemoryStats(c chan MemoryStats) {
+func (s *SystemMetrics) GetVirtualMemoryStats(c chan *MemoryStats) {
 	stats, err := gomem.VirtualMemory()
 	if err != nil {
 		panic(err)
 	}
 
-	c <- MemoryStats{
+	c <- &MemoryStats{
 		// default is always in bytes. hence, convert into the required format.
 		Total:       stats.Total / 1000000,
 		Available:   stats.Available / 1000000,
@@ -106,7 +113,7 @@ type DiskStatsStringified struct {
 }
 
 // GetDiskIOStats returns the disk stats: IO per sec and cached volume.
-func (s *SystemMetrics) GetDiskIOStats(c chan DiskStats) {
+func (s *SystemMetrics) GetDiskIOStats(c chan *DiskStats) {
 	before, err := disk.Get()
 	if err != nil {
 		panic(err)
@@ -119,11 +126,105 @@ func (s *SystemMetrics) GetDiskIOStats(c chan DiskStats) {
 		panic(err)
 	}
 
-	c <- DiskStats{
+	c <- &DiskStats{
 		// default is always in bytes. hence, convert into the required format.
 		DiskIO: (int(now.Used) - int(before.Used)) / 1000, // in kilo-bytes
 		Cached: int(now.Cached / 1000000),                 // mega-bytes
 	}
+}
+
+// NetworkStats for the network stats.
+type NetworkStats struct {
+	// P stands for packets.
+	// S stands for size in kilo-bytes.
+	PtcpIncoming int `json:"PtcpIncoming"`
+	PtcpOutgoing int `json:"PtcpOutgoing"`
+	StcpIncoming int `json:"StcpIncoming"`
+	StcpOutgoing int `json:"StcpOutgoing"`
+	PudpIncoming int `json:"PudpIncoming"`
+	PudpOutgoing int `json:"PudpOutgoing"`
+}
+
+var (
+	// buff stores the previous values that are required
+	// for calculating the network speed.
+	buffIncoming, buffOutgoing int
+)
+
+// GetNetworkStats returns the network stats.
+func (s *SystemMetrics) GetNetworkStats(c chan *NetworkStats) {
+	o, err := exec.Command("netstat", "-s").Output()
+	if err != nil {
+		panic(err)
+	}
+	var netStats NetworkStats
+	str := string(o)
+	lines := strings.Split(str, "\n")
+	l := len(lines)
+	curr := -1
+	for {
+		curr++
+		if curr == l {
+			break
+		}
+		line := lines[curr]
+		if strings.TrimSpace(line) == "Tcp:" {
+			for {
+				curr++
+				if strings.Contains(lines[curr], "segments received") {
+					arr := strings.Split(strings.TrimSpace(lines[curr]), " ")
+					netStats.PtcpIncoming, err = strconv.Atoi(arr[0])
+					if err != nil {
+						panic(err)
+					}
+					if buffIncoming == 0 {
+						buffIncoming = netStats.PtcpIncoming
+					} else {
+						netStats.StcpIncoming = ((netStats.PtcpIncoming - buffIncoming) * tcpSegmentSizeInBytes) / 1024
+						buffIncoming = netStats.PtcpIncoming
+					}
+					continue
+				}
+				if strings.Contains(lines[curr], "segments sent out") {
+					arr := strings.Split(strings.TrimSpace(lines[curr]), " ")
+					netStats.PtcpOutgoing, err = strconv.Atoi(arr[0])
+					if err != nil {
+						panic(err)
+					}
+					if buffOutgoing == 0 {
+						buffOutgoing = netStats.PtcpOutgoing
+					} else {
+						netStats.StcpOutgoing = ((netStats.PtcpOutgoing - buffOutgoing) * tcpSegmentSizeInBytes) / 1024
+						buffOutgoing = netStats.PtcpOutgoing
+					}
+					break
+				}
+			}
+		}
+		if strings.TrimSpace(line) == "Udp:" {
+			for {
+				curr++
+				if strings.Contains(lines[curr], "packets received") {
+					arr := strings.Split(strings.TrimSpace(lines[curr]), " ")
+					netStats.PudpIncoming, err = strconv.Atoi(arr[0])
+					if err != nil {
+						panic(err)
+					}
+					continue
+				}
+				if strings.Contains(lines[curr], "packets sent") {
+					arr := strings.Split(strings.TrimSpace(lines[curr]), " ")
+					netStats.PudpOutgoing, err = strconv.Atoi(arr[0])
+					if err != nil {
+						panic(err)
+					}
+					break
+				}
+			}
+			break
+		}
+	}
+	c <- &netStats
 }
 
 // Encode encodes the blocks into format that can be consumed
@@ -136,13 +237,17 @@ func (s *SystemMetrics) Encode(block interface{}) string {
 		return fmt.Sprintf("%d|%d|%d|%f|%d",
 			node.Total, node.Available, node.Used, node.UsedPercent, node.Free,
 		)
+	case NetworkStats:
+		return fmt.Sprintf("%d|%d|%d|%d|%d|%d",
+			node.PtcpIncoming, node.PtcpOutgoing, node.StcpIncoming, node.StcpOutgoing, node.PudpIncoming, node.PudpOutgoing,
+		)
 	case string:
 		return node
 	}
 
 	data, ok := block.(string)
 	if !ok {
-		panic(fmt.Sprintf("Invalid block type: %v", block))
+		panic(fmt.Sprintf("Invalid block type: %v (block)", block))
 	}
 
 	return data
@@ -153,9 +258,10 @@ type Response struct {
 	CPUTotalUsage string                 `json:"cpuTotalUsage"`
 	Memory        MemoryStatsStringified `json:"memory"`
 	Disk          DiskStatsStringified   `json:"disk"`
+	Network       NetworkStats           `json:"network"`
 }
 
 // Combine combines segments into a single data point for a block.
-func (s *SystemMetrics) Combine(cpu, memory, disk string) string {
-	return cpu + "|" + memory + "|" + disk
+func (s *SystemMetrics) Combine(cpu, memory, disk, net string) string {
+	return cpu + "|" + memory + "|" + disk + "|" + net
 }
