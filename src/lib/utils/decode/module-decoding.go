@@ -8,6 +8,7 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/metrics/journal"
 	"github.com/zairza-cetb/bench-routes/src/metrics/system"
 )
 
@@ -88,7 +89,21 @@ func monitorDecode(block string) utils.Response {
 	}
 }
 
+func journalDecode(block string) journal.Points {
+	arr := strings.Split(block, "|")
+	if len(arr) != 6 {
+		panic(fmt.Errorf("Invalid block segments length: Segments must be 6 in number: length: %d", len(arr)))
+	}
+	return journal.Decode(arr)
+}
+
 func convertToInt(s string) int {
+	// Old unit tests in tsdb/querier have only 8 values and rest as empty strings.
+	// In order to make that working and as a general response, we can make empty
+	// strings return a zero value.
+	if s == "" {
+		return 0
+	}
 	v, err := strconv.Atoi(s)
 	if err != nil {
 		panic(err)

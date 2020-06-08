@@ -15,7 +15,7 @@ import TimeInstance, { formatTime } from '../../utils/brt';
 import { HOST_IP } from '../../utils/types';
 import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 
-function TabPanel(props) {
+export function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
   return (
@@ -37,14 +37,14 @@ TabPanel.propTypes = {
   value: PropTypes.any.isRequired
 };
 
-function a11yProps(index) {
+export function a11yProps(index) {
   return {
     id: `simple-tab-${index}`,
     'aria-controls': `simple-tabpanel-${index}`
   };
 }
 
-const useStyles = makeStyles(theme => ({
+export const useStyles = makeStyles(theme => ({
   root: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.paper

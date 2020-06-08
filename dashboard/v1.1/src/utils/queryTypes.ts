@@ -43,7 +43,7 @@ export interface queryValueSystemMetrics {
 export interface QueryValues {
   normalizedTime: number;
   timestamp: string;
-  value: queryValueSystemMetrics & ping & jitter & monitor;
+  value: queryValueSystemMetrics & ping & jitter & monitor & journal;
 }
 
 export interface QueryResponse {
@@ -51,6 +51,15 @@ export interface QueryResponse {
   range: QueryRange;
   timeSeriesPath: string;
   values: QueryValues[];
+}
+
+export interface journal {
+  cerr: number;
+  cevents: number;
+  ckerr: number;
+  ckevents: number;
+  ckwarn: number;
+  cwarn: number;
 }
 
 export interface ping {

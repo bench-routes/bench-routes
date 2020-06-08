@@ -142,13 +142,9 @@ func (j *cmd) kernels(l string, count chan int) {
 }
 
 // Decode converts the marshalled data-point to valid data-points.
-func Decode(datapoint string) *Points {
-	arr := strings.Split(datapoint, "|")
-	if len(arr) != 5 {
-		panic("invalid datapoint")
-	}
+func Decode(datapointArr []string) Points {
 	var p Points
-	for i, b := range arr {
+	for i, b := range datapointArr {
 		switch i {
 		case 0:
 			p.Cerr = sToi(b)
@@ -166,7 +162,7 @@ func Decode(datapoint string) *Points {
 			panic(fmt.Sprintf("invalid decoding with index: %d", i))
 		}
 	}
-	return &p
+	return p
 }
 
 func sToi(s string) int {
