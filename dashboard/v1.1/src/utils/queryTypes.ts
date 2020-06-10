@@ -1,4 +1,3 @@
-
 export interface queryValueCPUUsage {
   CPUUsage: string;
   normalizedTime: number;
@@ -53,6 +52,11 @@ export interface QueryResponse {
   values: QueryValues[];
 }
 
+export interface APIQueryResponse {
+  data: QueryResponse;
+  success: string;
+}
+
 export interface ping {
   avgValue: string;
   maxValue: string;
@@ -76,6 +80,15 @@ export interface Path {
   monitor: string;
   ping: string;
   matrixName: string;
+}
+
+export interface TestServicesRoutes {
+  testServicesRoutes: string[];
+}
+
+export interface RoutesSummary {
+  testServicesRoutes: string[];
+  monitoringRoutes: string[];
 }
 
 export interface TimeSeriesPath {

@@ -74,8 +74,8 @@ run-collector:
 
 fix:
 	go fmt ./...
-	cd dashboard/v1.0/ && npm run prettier-fix
-	cd dashboard/v1.0/ && npm run tlint-fix
+	cd dashboard/v1.1/ && npm run prettier-fix
+	cd dashboard/v1.1/ && npm run tlint-fix
 
 lint:
 	golangci-lint run
