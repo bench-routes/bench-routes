@@ -1,5 +1,17 @@
 import { useFetch } from './useFetch';
-import { HOST_IP, SystemValue, service_states } from './types';
+import { HOST_IP } from './types';
+
+export interface APIResponse<T> {
+  status: string;
+  data: T;
+}
+
+export const init = (): {status: string, data: any} => {
+  return {
+    status: '',
+    data: {}
+  }
+}
 
 const GetSystemData = () => {
 

@@ -1,22 +1,32 @@
-import React, { FC, useEffect } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import { useFetch } from '../../utils/useFetch';
+import { APIResponse, init } from '../../utils/service';
 import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 import { HOST_IP } from '../../utils/types';
 import TimeInstance, { formatTime } from '../../utils/brt';
 import { useStyles, TabPanel, a11yProps } from './SystemMetrics';
 
-const format = (data: QueryValues[]) => {
+const format = (data: QueryValues[] | any) => {
   const cerr: chartData[] = [];
   const cwarn: chartData[] = [];
   const cevents: chartData[] = [];
   const ckerr: chartData[] = [];
   const ckwarn: chartData[] = [];
   const ckevents: chartData[] = [];
+  if (!data) {
+    return {
+      cerr,
+      cwarn,
+      cevents,
+      ckerr,
+      ckwarn,
+      ckevents
+    };
+  }
   for (const value of data) {
     cerr.push({
       y: value.value.cerr,
@@ -38,7 +48,7 @@ const format = (data: QueryValues[]) => {
       y: value.value.ckwarn,
       x: formatTime(value.timestamp)
     });
-    cevents.push({
+    ckevents.push({
       y: value.value.ckevents,
       x: formatTime(value.timestamp)
     });
@@ -55,14 +65,28 @@ const format = (data: QueryValues[]) => {
 
 const JournalMetrics: FC<{}> = () => {
   const classes = useStyles();
-  const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour / 2;
+  const [response, setResponse] = useState(init());
+  const [error, setError] = useState('');
+  const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
   const [value, setValue] = React.useState(0);
   const handleChange = (_event, newValue) => {
     setValue(newValue);
   };
-  const { response, error } = useFetch<QueryResponse>(
-    `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${endTimestamp}`
-  );
+  useEffect(() => {
+    fetch(
+      `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${endTimestamp}`
+    )
+      .then(res => res.json())
+      .then(
+        (response: APIResponse<QueryResponse>) => {
+          setResponse(response);
+        },
+        (err: string) => {
+          setError(err);
+        }
+      );
+    // eslint-disable-next-line
+  }, []);
   if (error) {
     return <Alert severity="error">Unable to reach the service: error</Alert>;
   }

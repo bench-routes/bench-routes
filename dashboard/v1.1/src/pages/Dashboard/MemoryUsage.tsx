@@ -41,7 +41,7 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
       show: true,
       curve: 'straight',
       lineCap: 'butt',
-      width: 3
+      width: 2
     },
     subtitle: {
       text: 'Memory (RAM) usage  (in percent)',
