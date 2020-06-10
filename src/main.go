@@ -108,7 +108,7 @@ func main() {
 	p := time.Now()
 	wg.Add(4)
 
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*5)
+	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
 
 	go initialise(&wg, &matrix, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
 	go initialise(&wg, &matrix, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")

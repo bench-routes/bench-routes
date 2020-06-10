@@ -24,29 +24,16 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
   const optionsDiskIO = {
     chart: {
       type: 'area',
-      animations: {
-        enabled: true,
-        easing: 'easeinout',
-        speed: 800,
-        animateGradually: {
-          enabled: true,
-          delay: 150
-        },
-        dynamicAnimation: {
-          enabled: true,
-          speed: 350
-        }
-      },
       background: '#fff'
     },
-    datalabels: {
+    dataLabels: {
       enabled: false
     },
     stroke: {
       show: true,
       curve: 'straight',
       lineCap: 'butt',
-      width: 3
+      width: 1
     },
     subtitle: {
       text: 'Disk IO in bytes (+ve means write / -ve means read)',
@@ -71,28 +58,50 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
       },
       background: '#fff'
     },
-    datalabels: {
+    dataLabels: {
       enabled: false
     },
     stroke: {
       show: true,
       curve: 'straight',
       lineCap: 'butt',
-      width: 2
+      width: 1
     },
     subtitle: {
       text: 'Cache (in bytes)',
       align: 'center'
+    },
+    fill: {
+      opacity: 1,
+      type: 'gradient',
+      gradient: {
+        shade: 'dark',
+        type: 'vertical',
+        shadeIntensity: 0.6,
+        inverseColors: true,
+        opacityFrom: 1,
+        opacityTo: 0.2
+      }
     }
   };
 
   return (
     <div className="row">
       <div className="col-md-6">
-        <Chart series={seriesDiskIO} options={optionsDiskIO} height="300" />
+        <Chart
+          series={seriesDiskIO}
+          options={optionsDiskIO}
+          height="300"
+          type="area"
+        />
       </div>
       <div className="col-md-6">
-        <Chart series={seriesCache} options={optionsCache} height="300" />
+        <Chart
+          series={seriesCache}
+          options={optionsCache}
+          height="300"
+          type="area"
+        />
       </div>
     </div>
   );
