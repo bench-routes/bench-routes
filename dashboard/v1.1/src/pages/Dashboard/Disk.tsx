@@ -24,29 +24,16 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
   const optionsDiskIO = {
     chart: {
       type: 'area',
-      animations: {
-        enabled: true,
-        easing: 'easeinout',
-        speed: 800,
-        animateGradually: {
-          enabled: true,
-          delay: 150
-        },
-        dynamicAnimation: {
-          enabled: true,
-          speed: 350
-        }
-      },
       background: '#fff'
     },
-    datalabels: {
+    dataLabels: {
       enabled: false
     },
     stroke: {
       show: true,
       curve: 'straight',
       lineCap: 'butt',
-      width: 3
+      width: 1
     },
     subtitle: {
       text: 'Disk IO in bytes (+ve means write / -ve means read)',
