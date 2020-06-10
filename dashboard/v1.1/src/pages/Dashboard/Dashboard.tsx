@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
 import SystemMetrics from './SystemMetrics';
+import JournalMetrics from './JournalMetrics';
 import { Card, CardContent } from '@material-ui/core';
 
 interface DashboardProps {
@@ -14,6 +15,8 @@ const Dashboard: FC<DashboardProps> = ({ updateLoader }) => {
         <h4>Dashboard</h4>
         <hr />
         <SystemMetrics showLoader={updateLoader} />
+        <hr />
+        <JournalMetrics />
       </CardContent>
     </Card>
   );

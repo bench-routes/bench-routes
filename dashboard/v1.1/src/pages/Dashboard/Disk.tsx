@@ -78,7 +78,7 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
       show: true,
       curve: 'straight',
       lineCap: 'butt',
-      width: 3
+      width: 2
     },
     subtitle: {
       text: 'Cache (in bytes)',

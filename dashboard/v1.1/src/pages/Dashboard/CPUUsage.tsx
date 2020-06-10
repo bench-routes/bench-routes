@@ -50,7 +50,7 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
       show: true,
       curve: 'straight',
       lineCap: 'butt',
-      width: 3
+      width: 2
     },
     subtitle: {
       text: 'CPU usage (in percent)',

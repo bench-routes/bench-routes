@@ -8,14 +8,15 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/metrics/journal"
 	"github.com/zairza-cetb/bench-routes/src/metrics/system"
 )
 
 // systemDecode converts the block into Response type for easy http based JSON response.
 func systemDecode(block string) system.Response {
 	arr := strings.Split(block, "|")
-	if len(arr) != 8 {
-		panic(fmt.Errorf("Invalid block segments length: Segments must be 8 in number: length: %d", len(arr)))
+	if len(arr) != 14 {
+		panic(fmt.Errorf("Invalid block segments length: Segments must be 14 in number: length: %d", len(arr)))
 	}
 
 	return system.Response{
@@ -30,6 +31,14 @@ func systemDecode(block string) system.Response {
 		Disk: system.DiskStatsStringified{
 			DiskIO: arr[6],
 			Cached: arr[7],
+		},
+		Network: system.NetworkStats{
+			PtcpIncoming: convertToInt(arr[8]),
+			PtcpOutgoing: convertToInt(arr[9]),
+			StcpIncoming: convertToInt(arr[10]),
+			StcpOutgoing: convertToInt(arr[11]),
+			PudpIncoming: convertToInt(arr[12]),
+			PudpOutgoing: convertToInt(arr[13]),
 		},
 	}
 }
@@ -80,7 +89,21 @@ func monitorDecode(block string) utils.Response {
 	}
 }
 
+func journalDecode(block string) journal.Points {
+	arr := strings.Split(block, "|")
+	if len(arr) != 6 {
+		panic(fmt.Errorf("Invalid block segments length: Segments must be 6 in number: length: %d", len(arr)))
+	}
+	return journal.Decode(arr)
+}
+
 func convertToInt(s string) int {
+	// Old unit tests in tsdb/querier have only 8 values and rest as empty strings.
+	// In order to make that working and as a general response, we can make empty
+	// strings return a zero value.
+	if s == "" {
+		return 0
+	}
 	v, err := strconv.Atoi(s)
 	if err != nil {
 		panic(err)

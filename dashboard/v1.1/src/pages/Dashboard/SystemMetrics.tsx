@@ -1,5 +1,4 @@
-import React, { FC, useEffect } from 'react';
-import { useFetch } from '../../utils/useFetch';
+import React, { FC, useEffect, useState } from 'react';
 import CPUUsage from './CPUUsage';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
@@ -13,9 +12,10 @@ import DiskUsage from './Disk';
 import MemoryDetails from './MemoryDetails';
 import TimeInstance, { formatTime } from '../../utils/brt';
 import { HOST_IP } from '../../utils/types';
+import { APIResponse, init } from '../../utils/service';
 import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 
-function TabPanel(props) {
+export function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
   return (
@@ -37,14 +37,14 @@ TabPanel.propTypes = {
   value: PropTypes.any.isRequired
 };
 
-function a11yProps(index) {
+export function a11yProps(index) {
   return {
     id: `simple-tab-${index}`,
     'aria-controls': `simple-tabpanel-${index}`
   };
 }
 
-const useStyles = makeStyles(theme => ({
+export const useStyles = makeStyles(theme => ({
   root: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.paper
@@ -119,25 +119,38 @@ interface SystemMetricsProps {
 
 const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
   const classes = useStyles();
+  const [response, setResponse] = useState(init());
+  const [error, setError] = useState('');
   const [value, setValue] = React.useState(0);
   const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
 
   useEffect(() => {
     showLoader(true);
   }, [showLoader]);
+  useEffect(() => {
+    fetch(
+      `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${endTimestamp}`
+    )
+      .then(res => res.json())
+      .then(
+        (response: APIResponse<QueryResponse>) => {
+          setResponse(response);
+        },
+        (err: string) => {
+          setError(err);
+        }
+      );
+    // eslint-disable-next-line
+  }, []);
   const handleChange = (_event, newValue) => {
     setValue(newValue);
   };
-
-  const { response, error } = useFetch<QueryResponse>(
-    `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${endTimestamp}`
-  );
 
   if (error) {
     showLoader(false);
     return <Alert severity="error">Unable to reach the service: error</Alert>;
   }
-  if (!response.data) {
+  if (!response.data.values) {
     return (
       <>
         <Alert severity="info">Fetching data from sources</Alert>

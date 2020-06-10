@@ -27,7 +27,6 @@ test-views-v1.1:
 	cd dashboard/v1.1/ && yarn run lint
 	cd dashboard/v1.1/ && yarn run tlint
 	cd dashboard/v1.1/ && prettier '**/*.tsx' --list-different
-	cd dashboard/v1.1/ && yarn run test
 	cd dashboard/v1.1/ && yarn run build
 	cd dashboard/v1.1/ && yarn start &
 

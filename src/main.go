@@ -24,6 +24,7 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/metrics/journal"
 	"github.com/zairza-cetb/bench-routes/src/metrics/process"
 	sysMetrics "github.com/zairza-cetb/bench-routes/src/metrics/system"
 	"github.com/zairza-cetb/bench-routes/tsdb"
@@ -33,7 +34,9 @@ var (
 	port                        = ":9090" // default listen and serve at 9090
 	enableProcessCollection     = false   // default collection of process metrics in host of bench-routes
 	processCollectionScrapeTime = time.Second * 5
-	systemCollectionScrapeTime  = time.Second * 10
+	defaultScrapeTime           = time.Second * 3
+	systemMetricsPath           = "storage/system.json"
+	journalMetricsPath          = "storage/journal.json"
 	upgrader                    = websocket.Upgrader{
 		ReadBufferSize:  4096,
 		WriteBufferSize: 4096,
@@ -105,7 +108,7 @@ func main() {
 	p := time.Now()
 	wg.Add(4)
 
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*40)
+	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*5)
 
 	go initialise(&wg, &matrix, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
 	go initialise(&wg, &matrix, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
@@ -221,49 +224,64 @@ func main() {
 	})
 
 	go func() {
-		var (
-			metrics = sysMetrics.New()
-		)
-
+		metrics := sysMetrics.New()
 		type metric struct {
-			cpu    string
-			memory sysMetrics.MemoryStats
-			disk   sysMetrics.DiskStats
+			cpu    *string
+			memory *sysMetrics.MemoryStats
+			disk   *sysMetrics.DiskStats
+			net    *sysMetrics.NetworkStats
 		}
 
-		chain := tsdb.NewChain("storage/system.json")
+		chain := tsdb.NewChain(systemMetricsPath)
 		chain.Init()
 		chainSet.Register(chain.Name, chain)
 
 		for {
 			// collections for cpu, memory and disk run independently and are
 			// time dependent. Hence, running these serially will take more
-			// time than the actual `systemCollectionScrapeTime`. Hence, the
+			// time than the actual `defaultScrapeTime`. Hence, the
 			// best way is to run them in parallel and get data via channels,
-			// such that systemCollectionScrapeTime >= duration(cpu|memory|disk)
-			// will meet excepted systemCollectionScrapeTime. Anything other
+			// such that defaultScrapeTime >= duration(cpu|memory|disk)
+			// will meet excepted defaultScrapeTime. Anything other
 			// than this will be inaccurate.
-			cpu := make(chan string)
-			memory := make(chan sysMetrics.MemoryStats)
-			disk := make(chan sysMetrics.DiskStats)
+			cpu := make(chan *string)
+			memory := make(chan *sysMetrics.MemoryStats)
+			disk := make(chan *sysMetrics.DiskStats)
+			net := make(chan *sysMetrics.NetworkStats)
 
 			go metrics.GetTotalCPUUsage(cpu)
 			go metrics.GetVirtualMemoryStats(memory)
 			go metrics.GetDiskIOStats(disk)
+			go metrics.GetNetworkStats(net)
 
 			data := &metric{
 				cpu:    <-cpu,
 				memory: <-memory,
 				disk:   <-disk,
+				net:    <-net,
 			}
-
 			encoded := metrics.Combine(
-				metrics.Encode(data.cpu), metrics.Encode(data.memory), metrics.Encode(data.disk),
+				metrics.Encode(*data.cpu), metrics.Encode(*data.memory), metrics.Encode(*data.disk), metrics.Encode(*data.net),
 			)
 
 			block := tsdb.GetNewBlock("sys", encoded)
 			chain.Append(*block)
-			time.Sleep(systemCollectionScrapeTime)
+			time.Sleep(defaultScrapeTime)
+		}
+	}()
+
+	go func() {
+		metrics := journal.New()
+		chain := tsdb.NewChain(journalMetricsPath)
+		chain.Init()
+		chainSet.Register(chain.Name, chain)
+
+		for {
+			data := metrics.Run().Get()
+			datapoint := data.Encode()
+			block := tsdb.GetNewBlock("journal", *datapoint)
+			chain.Append(*block)
+			time.Sleep(defaultScrapeTime)
 		}
 	}()
 

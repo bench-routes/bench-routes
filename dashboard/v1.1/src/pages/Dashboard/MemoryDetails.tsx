@@ -58,7 +58,7 @@ const MemoryDetails: FC<MemoryDetailsProps> = ({
       show: true,
       curve: 'straight',
       lineCap: 'butt',
-      width: 3
+      width: 2
     },
     subtitle: {
       text: 'Memory (RAM) details (in kilo-bytes)',
