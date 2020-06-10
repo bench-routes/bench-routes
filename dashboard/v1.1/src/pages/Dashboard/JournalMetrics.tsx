@@ -93,7 +93,6 @@ const JournalMetrics: FC<{}> = () => {
   if (!response.data) {
     return <Alert severity="info">Fetching data from sources</Alert>;
   }
-  console.warn(response);
   const data = format(response.data.values);
 
   const seriesSystemd = [
