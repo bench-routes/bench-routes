@@ -126,65 +126,63 @@ const JournalMetrics: FC<{}> = () => {
   const optionsSystemd = {
     chart: {
       type: 'area',
-      animations: {
-        enabled: true,
-        easing: 'easeinout',
-        speed: 800,
-        animateGradually: {
-          enabled: true,
-          delay: 150
-        },
-        dynamicAnimation: {
-          enabled: true,
-          speed: 350
-        }
-      },
       background: '#fff'
     },
-    datalabels: {
+    dataLabels: {
       enabled: false
     },
     stroke: {
       show: true,
       curve: 'straight',
       lineCap: 'butt',
-      width: 3
+      width: 1
     },
     subtitle: {
       text: 'Systemd services',
       align: 'center'
+    },
+    fill: {
+      opacity: 1,
+      type: 'gradient',
+      gradient: {
+        shade: 'dark',
+        type: 'vertical',
+        shadeIntensity: 0.3,
+        inverseColors: true,
+        opacityFrom: 0.8,
+        opacityTo: 0.2
+      }
     }
   };
   const optionsKernel = {
     chart: {
       type: 'area',
-      animations: {
-        enabled: true,
-        easing: 'easeinout',
-        speed: 800,
-        animateGradually: {
-          enabled: true,
-          delay: 150
-        },
-        dynamicAnimation: {
-          enabled: true,
-          speed: 350
-        }
-      },
       background: '#fff'
     },
-    datalabels: {
+    dataLabels: {
       enabled: false
     },
     stroke: {
       show: true,
       curve: 'straight',
       lineCap: 'butt',
-      width: 3
+      width: 1
     },
     subtitle: {
       text: 'Kernel',
       align: 'center'
+    },
+    fill: {
+      opacity: 1,
+      type: 'gradient',
+      gradient: {
+        shade: 'dark',
+        type: 'vertical',
+        shadeIntensity: 0.3,
+        inverseColors: true,
+        opacityFrom: 0.8,
+        opacityTo: 0.2
+      }
     }
   };
   return (
@@ -198,7 +196,12 @@ const JournalMetrics: FC<{}> = () => {
       <TabPanel value={value} index={0}>
         <div className="row">
           <div className="col-md-12">
-            <Chart series={seriesKernel} options={optionsKernel} height="300" />
+            <Chart
+              series={seriesKernel}
+              options={optionsKernel}
+              height="300"
+              type="area"
+            />
           </div>
         </div>
       </TabPanel>
@@ -209,6 +212,7 @@ const JournalMetrics: FC<{}> = () => {
               series={seriesSystemd}
               options={optionsSystemd}
               height="300"
+              type="area"
             />
           </div>
         </div>

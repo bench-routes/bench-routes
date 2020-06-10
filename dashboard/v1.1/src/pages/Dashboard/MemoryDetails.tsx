@@ -51,24 +51,36 @@ const MemoryDetails: FC<MemoryDetailsProps> = ({
       },
       background: '#fff'
     },
-    datalabels: {
+    dataLabels: {
       enabled: false
     },
     stroke: {
       show: true,
       curve: 'straight',
       lineCap: 'butt',
-      width: 2
+      width: 1
     },
     subtitle: {
       text: 'Memory (RAM) details (in kilo-bytes)',
       align: 'center'
+    },
+    fill: {
+      opacity: 1,
+      type: 'gradient',
+      gradient: {
+        shade: 'dark',
+        type: 'vertical',
+        shadeIntensity: 0.1,
+        inverseColors: true,
+        opacityFrom: 0.8,
+        opacityTo: 0.2
+      }
     }
   };
 
   return (
     <>
-      <Chart series={series} options={options} height="500" />
+      <Chart series={series} options={options} height="500" type="area" />
     </>
   );
 };
