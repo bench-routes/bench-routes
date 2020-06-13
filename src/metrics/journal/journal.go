@@ -82,7 +82,7 @@ func (p *Points) Encode() *string {
 }
 
 func (j *cmd) warnLog(c chan string) {
-	o, err := exec.Command("journalctl", "-p", "warning", "-b", "-o", "json-seq", "--no-pager").Output()
+	o, err := exec.Command("journalctl", "-p", "warning", "-b", "-o", "short-full", "--no-pager").Output()
 	if err != nil {
 		panic(err)
 	}
@@ -90,7 +90,7 @@ func (j *cmd) warnLog(c chan string) {
 }
 
 func (j *cmd) errLog(c chan string) {
-	o, err := exec.Command("journalctl", "-p", "err", "-b", "-o", "json-seq", "--no-pager").Output()
+	o, err := exec.Command("journalctl", "-p", "err", "-b", "-o", "short-full", "--no-pager").Output()
 	if err != nil {
 		panic(err)
 	}
@@ -98,7 +98,7 @@ func (j *cmd) errLog(c chan string) {
 }
 
 func (j *cmd) logs(c, ck chan int) {
-	o, err := exec.Command("journalctl", "-b", "--no-pager").Output()
+	o, err := exec.Command("journalctl", "-b", "-o", "short-full", "--no-pager").Output()
 	if err != nil {
 		panic(err)
 	}
