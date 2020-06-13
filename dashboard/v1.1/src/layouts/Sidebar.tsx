@@ -16,7 +16,8 @@ import {
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
   NetworkCheck as NetworkCheckIcon,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  PostAdd as PostAddIcon
 } from '@material-ui/icons';
 import clsx from 'clsx';
 import React, { FC, useState } from 'react';
@@ -96,6 +97,12 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
           <AccessAlarmIcon />
         </ListItemIcon>
         <ListItemText primary="Monitoring" />
+      </ListItem>
+      <ListItem button={true} component={Link} to="/quick-input">
+        <ListItemIcon>
+          <PostAddIcon />
+        </ListItemIcon>
+        <ListItemText primary="Quick Input" />
       </ListItem>
       <ListItem button={true}>
         <ListItemIcon>

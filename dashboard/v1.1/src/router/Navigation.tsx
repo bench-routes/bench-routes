@@ -6,6 +6,7 @@ import JitterModule from '../pages/Jitter/JitterModule';
 import Monitoring from '../pages/Monitoring/Monitoring';
 import PingModule from '../pages/Ping/PingModule';
 import Settings from '../pages/Settings';
+import Input from '../pages/Input/Input';
 
 interface NavigatorProps {
   updateLoader(status: boolean): void;
@@ -29,6 +30,7 @@ const Navigator: FC<NavigatorProps> = ({ updateLoader }) => {
         <Route path="/floodping" component={FloodPing} />
         <Route path="/jitter" component={JitterModule} />
         <Route path="/settings" component={Settings} />
+        <Route path="/quick-input" component={Input} />
       </Switch>
     </Router>
   );
