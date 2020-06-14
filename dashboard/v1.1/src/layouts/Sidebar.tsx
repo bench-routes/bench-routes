@@ -16,8 +16,8 @@ import {
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
   NetworkCheck as NetworkCheckIcon,
-  Settings as SettingsIcon,
-  PostAdd as PostAddIcon
+  PostAdd as PostAddIcon,
+  Settings as SettingsIcon
 } from '@material-ui/icons';
 import clsx from 'clsx';
 import React, { FC, useState } from 'react';

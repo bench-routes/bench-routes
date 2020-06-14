@@ -17,14 +17,6 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-interface BlockProps {
-  name: string;
-}
-
-const Block: FC<BlockProps> = ({ name }) => (
-  <Button>{name.toUpperCase()}</Button>
-);
-
 interface TypeProps {
   slice: string[];
   getRequestType(type: string);

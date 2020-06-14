@@ -3,16 +3,16 @@ import TextField from '@material-ui/core/TextField';
 
 interface GridBodyProps {
   name: string;
+  updateParent: React.Dispatch<React.SetStateAction<pair[] | undefined>>;
 }
 
-interface pair {
+export interface pair {
   key: string;
   value: string;
 }
 
-const GridBody: FC<GridBodyProps> = ({ name }) => {
+const GridBody: FC<GridBodyProps> = ({ name, updateParent }) => {
   const [header, setHeader] = useState<pair[]>([{ key: '', value: '' }]);
-  const [items, setItems] = useState<number>(header.length);
   const [bodyValue, setBodyValue] = useState<string>('');
   const updateItems = (key: string, value: string, i: number) => {
     if (key === '') {
@@ -25,44 +25,55 @@ const GridBody: FC<GridBodyProps> = ({ name }) => {
       header.push({ key: '', value: '' });
     }
     setBodyValue(JSON.stringify(header, null, 4));
-    setItems(header.length);
+    updateParent(header);
+  };
+  const updateBody = (content: string) => {
+    setBodyValue(content);
+    const inJSON = JSON.parse(content) as pair[];
+    header.length = 0;
+    for (const pair of inJSON) {
+      header.push({
+        key: pair.key,
+        value: pair.value
+      });
+    }
+    setHeader(header);
+    updateParent(header);
   };
   return (
     <div>
-      <h6>{name}</h6>
+      <h6 style={{ fontWeight: 'bold' }}>{name}</h6>
       <hr />
       <div className="row">
         <div className="col-md-8" style={{ display: 'inline-grid' }}>
-          {/* Grid */}
-          {header.map((_, index) => {
-            return (
-              <div className="row" style={{ margin: '3px' }}>
-                <div className="col-md-6">
-                  <TextField
-                    id="outlined-basic"
-                    size="small"
-                    label="Key"
-                    style={{ width: '100%' }}
-                    variant="outlined"
-                    onChange={e => updateItems(e.target.value, '', index)}
-                  />
-                </div>
-                <div className="col-md-6">
-                  <TextField
-                    id="outlined-basic"
-                    size="small"
-                    style={{ width: '100%' }}
-                    label="value"
-                    variant="outlined"
-                    onChange={e => updateItems('', e.target.value, index)}
-                  />
-                </div>
+          {header.map((head, index) => (
+            <div className="row" style={{ margin: '3px' }} key={index}>
+              <div className="col-md-6">
+                <TextField
+                  id="outlined-basic"
+                  size="small"
+                  label="Key"
+                  value={head.key}
+                  style={{ width: '100%' }}
+                  variant="outlined"
+                  onChange={e => updateItems(e.target.value, '', index)}
+                />
               </div>
-            );
-          })}
+              <div className="col-md-6">
+                <TextField
+                  id="outlined-basic"
+                  size="small"
+                  value={head.value}
+                  style={{ width: '100%' }}
+                  label="value"
+                  variant="outlined"
+                  onChange={e => updateItems('', e.target.value, index)}
+                />
+              </div>
+            </div>
+          ))}
         </div>
         <div className="col-md-4">
-          {/* Body */}
           <TextField
             id="outlined-multiline-flexible"
             label="JSONified"
@@ -70,7 +81,12 @@ const GridBody: FC<GridBodyProps> = ({ name }) => {
             rows={header.length * 3}
             value={bodyValue}
             variant="outlined"
-            style={{ minHeight: '100%', width: '100%' }}
+            onChange={e => updateBody(e.target.value)}
+            style={{
+              minHeight: '100%',
+              width: '100%',
+              backgroundColor: '#f9f9f9'
+            }}
           />
         </div>
       </div>
