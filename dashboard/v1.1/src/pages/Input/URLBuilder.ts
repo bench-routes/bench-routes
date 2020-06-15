@@ -1,6 +1,19 @@
 import { pair } from './GridBody';
 
-export default class URLBuilder {
+export default class URLUtils {
+  static formatParams(params: pair[] | undefined): string {
+    if (params === undefined) {
+      return '';
+    }
+    let p: string = '';
+    for (const param of params) {
+      p += `${param.key}=${param.value}&`;
+    }
+    return p.substr(0, p.length - 1);
+  }
+} 
+
+export class URLBuilder {
   private url: string;
   private headers: pair[] | undefined;
   private params: pair[] | undefined;

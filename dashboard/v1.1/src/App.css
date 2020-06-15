@@ -40,3 +40,7 @@
 .table-data-row:hover {
   background-color: #f3f3f3;
 }
+
+.inner-head {
+  margin: '2% 0% 2% 0%'
+}

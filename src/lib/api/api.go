@@ -6,6 +6,8 @@ import (
 	"math"
 	"net/http"
 	"net/http/pprof"
+
+	// "net/url"
 	"reflect"
 	"strconv"
 	"time"
@@ -16,6 +18,7 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/monitor"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/parser"
+	"github.com/zairza-cetb/bench-routes/src/lib/request"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/brt"
 	"github.com/zairza-cetb/bench-routes/tsdb"
@@ -82,6 +85,7 @@ func (a *API) Register(router *mux.Router) {
 	router.HandleFunc("/get-route-time-series", a.TSDBPathDetails)
 	router.HandleFunc("/query-matrix", a.SendMatrix)
 	router.HandleFunc("/query", a.Query)
+	router.HandleFunc("/quick-input", a.QuickTestInput)
 	router.HandleFunc("/routes-summary", a.RoutesSummary)
 	router.HandleFunc("/service-state", a.ServiceState)
 	router.HandleFunc("/test", a.TestTemplate)
@@ -92,6 +96,34 @@ func (a *API) Register(router *mux.Router) {
 func (a *API) Home(w http.ResponseWriter, r *http.Request) {
 	msg := "ping from " + r.RemoteAddr + ", sent pong in monitor"
 	logger.Terminal(msg, "p")
+}
+
+// QuickTestInput tests the API input from the /quick-input route page
+// of the react-UI.
+func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		panic(err)
+	}
+	var t struct {
+		Method  string            `json:"method"`
+		URL     string            `json:"url"`
+		Params  map[string]string `json:"params"`
+		Headers map[string]string `json:"headers"`
+		Body    map[string]string `json:"body"`
+	}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&t); err != nil {
+		panic(err)
+	}
+	fmt.Println(t)
+	fmt.Println("url: ", t.URL)
+	fmt.Println("headers: ", t.Headers)
+	fmt.Println("params: ", t.Params)
+	req := request.New(t.URL, t.Headers, t.Params, t.Body)
+	response := make(chan string)
+	go req.Send(request.GET, response)
+	a.Data = <-response
+	a.send(w, a.marshalled())
 }
 
 // UIv1 serves the v1.0 version of user-interface of bench-routes.

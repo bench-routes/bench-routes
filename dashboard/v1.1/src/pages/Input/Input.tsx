@@ -1,4 +1,4 @@
-import React, { FC, useState, ChangeEvent, MouseEvent } from 'react';
+import React, { FC, useState, ChangeEvent } from 'react';
 import Type from './Groups';
 import GridBody, { pair } from './GridBody';
 import { Card, CardContent } from '@material-ui/core';
@@ -7,15 +7,30 @@ import TextField from '@material-ui/core/TextField';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
-import URLBuilder from './URLBuilder';
+import { HOST_IP } from '../../utils/types';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import MuiAlert, { AlertProps } from '@material-ui/lab/Alert';
+import Snackbar from '@material-ui/core/Snackbar';
+
+interface AlertSnackBar {
+  severity: 'success' | 'error' | 'warning' | 'info';
+  message: string;
+}
 
 const requestsTypeSupported = ['get', 'post', 'put', 'delete', 'patch'];
 
 const hyperTexts = ['https', 'http', 'manual'];
 
+function Alert(props: AlertProps) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
 const Input: FC<{}> = () => {
   const [requestType, setRequestType] = useState('');
-  const [hyperTextType, setHyperTextType] = useState('');
+  const [, setHyperTextType] = useState('');
 
   const [valueURLRoute, setValueURLRoute] = useState('');
 
@@ -27,6 +42,16 @@ const Input: FC<{}> = () => {
 
   const [applyBody, setApplyBody] = useState<boolean>(false);
   const [bodyValues, setBodyValues] = useState<pair[]>();
+
+  const [testInputResponse, setTestInputResponse] = useState<string>('');
+
+  const [openSnackBar, setOpenSnackBar] = useState<AlertSnackBar>({
+    severity: 'info',
+    message: ''
+  });
+  const [showSnackBar, setShowSnackBar] = useState<boolean>(false);
+  const [open, setOpen] = useState(false);
+  const [showResponseButton, setShowResponseButton] = useState<boolean>(false);
 
   const getRequestType = (type: string) => {
     setRequestType(type);
@@ -45,27 +70,88 @@ const Input: FC<{}> = () => {
   ) => {
     setValueURLRoute(e.target.value);
   };
+  const handleCancel = () => {
+    setShowResponseButton(false);
+    setRequestType('');
+    setHyperTextType('');
+    setValueURLRoute('');
+    setHeaderValues([]);
+    setParamsValues([]);
+    setBodyValues([]);
+    setApplyHeader(false);
+    setApplyParams(false);
+    setApplyBody(false);
+  };
   const testURL = () => {
-    // const url = new URLBuilder(valueURLRoute);
-    if (headerValues === undefined) {
+    const params = {};
+    const headers = {};
+    const body = {};
+    setShowResponseButton(false);
+    if (headerValues !== undefined) {
+      for (const h of headerValues) {
+        headers[h.key] = h.value;
+      }
+    } else {
       setHeaderValues([]);
     }
-    if (paramsValues === undefined) {
+
+    if (paramsValues !== undefined) {
+      for (const p of paramsValues) {
+        params[p.key] = p.value;
+      }
+    } else {
       setParamsValues([]);
     }
-    if (bodyValues === undefined) {
+
+    if (bodyValues !== undefined) {
+      for (const b of bodyValues) {
+        body[b.key] = b.value;
+      }
+    } else {
       setBodyValues(bodyValues);
     }
-    console.warn(headerValues);
-    console.warn(paramsValues);
-    console.warn(bodyValues);
-    const url = new URLBuilder(
-      valueURLRoute,
-      headerValues,
-      paramsValues,
-      bodyValues
-    );
-    url.send(requestType.toLowerCase());
+
+    fetch(`${HOST_IP}/quick-input`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        method: requestType,
+        url: valueURLRoute,
+        params: params,
+        headers: headers,
+        body: body
+      })
+    })
+      .then(response => response.json())
+      .then(
+        response => {
+          try {
+            const inJSON = JSON.stringify(
+              JSON.parse(response['data']),
+              null,
+              4
+            );
+            setTestInputResponse(inJSON);
+          } catch (e) {
+            setTestInputResponse(response['data']);
+          }
+          setOpenSnackBar({
+            severity: 'success',
+            message: 'success'
+          });
+          setShowSnackBar(true);
+          setShowResponseButton(true);
+        },
+        err => {
+          console.error(err);
+          setOpenSnackBar({
+            severity: 'error',
+            message:
+              'error occurred: please contact the dev team or open a issue at https://github.com/zairza-cetb/bench-routes'
+          });
+          setShowSnackBar(true);
+        }
+      );
   };
   return (
     <Card>
@@ -151,21 +237,43 @@ const Input: FC<{}> = () => {
             variant="contained"
             color="secondary"
             style={{ marginLeft: '1%' }}
-            onClick={() => {
-              setRequestType('');
-              setHyperTextType('');
-              setValueURLRoute('');
-              setHeaderValues([]);
-              setParamsValues([]);
-              setBodyValues([]);
-              setApplyHeader(false);
-              setApplyParams(false);
-              setApplyBody(false);
-            }}
+            onClick={() => handleCancel()}
           >
             Cancel
           </Button>
+          {showResponseButton ? (
+            <Button
+              variant="contained"
+              color="default"
+              style={{ marginLeft: '1%' }}
+              onClick={() => setOpen(true)}
+            >
+              Show Response
+            </Button>
+          ) : null}
         </div>
+        <Dialog aria-labelledby="customized-dialog-title" open={open}>
+          <DialogTitle id="customized-dialog-title">Response</DialogTitle>
+          <DialogContent dividers>
+            <Card>
+              <CardContent>
+                <pre style={{ fontWeight: 'bold' }}>{testInputResponse}</pre>
+              </CardContent>
+            </Card>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpen(false)} color="secondary">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Snackbar
+          open={showSnackBar}
+          autoHideDuration={6000}
+          onClose={() => setShowSnackBar(false)}
+        >
+          <Alert severity={openSnackBar.severity}>{openSnackBar.message}</Alert>
+        </Snackbar>
       </CardContent>
     </Card>
   );
