@@ -179,17 +179,6 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
           </div>
           <Divider />
           <List>{menuItems}</List>
-          <ListItem
-            button={true}
-            component={Link}
-            to="/settings"
-            className={classes.settings}
-          >
-            <ListItemIcon>
-              <SettingsIcon />
-            </ListItemIcon>
-            <ListItemText primary="Settings" />
-          </ListItem>
         </Drawer>
       </Router>
     </div>
