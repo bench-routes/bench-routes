@@ -153,6 +153,12 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
           </ListItem>
         </List>
       </Collapse>
+      <ListItem button={true} component={Link} to="/configurations">
+        <ListItemIcon>
+          <SettingsIcon />
+        </ListItemIcon>
+        <ListItemText primary="Config" />
+      </ListItem>
     </div>
   );
 

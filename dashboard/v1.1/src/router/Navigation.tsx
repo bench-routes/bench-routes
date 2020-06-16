@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
 import { HashRouter as Router, Route, Switch } from 'react-router-dom';
+import Config from '../pages/Config/Config';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import FloodPing from '../pages/FloodPing';
 import Input from '../pages/Input/Input';
@@ -31,6 +32,7 @@ const Navigator: FC<NavigatorProps> = ({ updateLoader }) => {
         <Route path="/jitter" component={JitterModule} />
         <Route path="/settings" component={Settings} />
         <Route path="/quick-input" component={Input} />
+        <Route path="/configurations" component={Config} />
       </Switch>
     </Router>
   );
