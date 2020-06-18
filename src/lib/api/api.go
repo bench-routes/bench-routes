@@ -6,18 +6,16 @@ import (
 	"math"
 	"net/http"
 	"net/http/pprof"
-
-	// "net/url"
 	"reflect"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
+	config "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/monitor"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/request"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/brt"
@@ -33,18 +31,30 @@ const (
 
 // API type for implementing the API interface.
 type API struct {
-	ResponseStatus string
-	Data, Services interface{}
-	Matrix         *utils.BRmap
-	config         *parser.YAMLBenchRoutesType
+	ResponseStatus      string
+	Data, Services      interface{}
+	Matrix              *utils.BRmap
+	config              *config.Config
+	reloadConfigURLs    *chan struct{}
+	receiveFinishSignal *chan struct{}
+}
+
+type inputRequest struct {
+	Method  string            `json:"method"`
+	URL     string            `json:"url"`
+	Params  map[string]string `json:"params"`
+	Headers map[string]string `json:"headers"`
+	Body    map[string]string `json:"body"`
 }
 
 // New returns the API type for implementing the API interface.
-func New(matrix *utils.BRmap, config *parser.YAMLBenchRoutesType, services interface{}) *API {
+func New(matrix *utils.BRmap, config *config.Config, services interface{}, reload, done *chan struct{}) *API {
 	return &API{
-		Matrix:   matrix,
-		Services: services,
-		config:   config,
+		Matrix:              matrix,
+		Services:            services,
+		config:              config,
+		reloadConfigURLs:    reload,
+		receiveFinishSignal: done,
 	}
 }
 
@@ -80,6 +90,7 @@ func (a *API) Register(router *mux.Router) {
 		// The package initialization registers it as /debug/pprof/symbol.
 		router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	}
+	router.HandleFunc("/add-route", a.AddRouteToMonitoring)
 	router.HandleFunc("/br-live-check", a.Home)
 	router.HandleFunc("/get-monitoring-services-state", a.GetMonitoringState)
 	router.HandleFunc("/get-route-time-series", a.TSDBPathDetails)
@@ -98,34 +109,6 @@ func (a *API) Home(w http.ResponseWriter, r *http.Request) {
 	logger.Terminal(msg, "p")
 }
 
-// QuickTestInput tests the API input from the /quick-input route page
-// of the react-UI.
-func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		panic(err)
-	}
-	var t struct {
-		Method  string            `json:"method"`
-		URL     string            `json:"url"`
-		Params  map[string]string `json:"params"`
-		Headers map[string]string `json:"headers"`
-		Body    map[string]string `json:"body"`
-	}
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&t); err != nil {
-		panic(err)
-	}
-	fmt.Println(t)
-	fmt.Println("url: ", t.URL)
-	fmt.Println("headers: ", t.Headers)
-	fmt.Println("params: ", t.Params)
-	req := request.New(t.URL, t.Headers, t.Params, t.Body)
-	response := make(chan string)
-	go req.Send(request.GET, response)
-	a.Data = <-response
-	a.send(w, a.marshalled())
-}
-
 // UIv1 serves the v1.0 version of user-interface of bench-routes.
 // ui-builds/v1.0 is served through this.
 func (a *API) UIv1(w http.ResponseWriter, r *http.Request) {
@@ -140,7 +123,7 @@ func (a *API) TestTemplate(w http.ResponseWriter, r *http.Request) {
 // ServiceState handles requests related to the state of the Services in
 // the application.
 func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
-	p := parser.New(utils.ConfigurationFilePath)
+	p := config.New(utils.ConfigurationFilePath)
 	p.Refresh()
 
 	a.Data = struct {
@@ -159,13 +142,13 @@ func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
 
 // RoutesSummary handles requests related to summarized-configuration details.
 func (a *API) RoutesSummary(w http.ResponseWriter, r *http.Request) {
-	p := parser.New(utils.ConfigurationFilePath)
+	p := config.New(utils.ConfigurationFilePath)
 	p.Refresh()
 
 	var servicesRoutes, monitoringRoutes []string
 	for _, r := range p.Config.Routes {
 		servicesRoutes = append(servicesRoutes, r.URL)
-		monitoringRoutes = append(monitoringRoutes, r.Method+": "+r.URL+"/"+r.Route)
+		monitoringRoutes = append(monitoringRoutes, r.Method+": "+r.URL)
 	}
 
 	a.Data = struct {
@@ -296,6 +279,55 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	a.Data = matrixResponse
+	a.send(w, a.marshalled())
+}
+
+// QuickTestInput tests the API input from the /quick-input route page
+// of the react-UI.
+func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		panic(err)
+	}
+	var (
+		t       inputRequest
+		decoder = json.NewDecoder(r.Body)
+	)
+	if err := decoder.Decode(&t); err != nil {
+		panic(err)
+	}
+	fmt.Println(t)
+	fmt.Println("url: ", t.URL)
+	fmt.Println("headers: ", t.Headers)
+	fmt.Println("params: ", t.Params)
+	req := request.New(t.URL, t.Headers, t.Params, t.Body)
+	response := make(chan string)
+	go req.Send(request.GET, response)
+	a.Data = <-response
+	a.send(w, a.marshalled())
+}
+
+// AddRouteToMonitoring adds a new route to the config.
+func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
+	var (
+		t       inputRequest
+		decoder = json.NewDecoder(r.Body)
+	)
+	if err := decoder.Decode(&t); err != nil {
+		panic(err)
+	}
+	requestInstance := request.New(t.URL, t.Headers, t.Params, t.Body)
+	a.config.AddRoute(
+		config.GetNewRouteType(
+			t.Method,
+			t.URL,
+			requestInstance.GetHeadersConfigFormatted(),
+			requestInstance.GetParamsConfigFormatted(),
+			requestInstance.GetBodyConfigFormatted(),
+		),
+	)
+	*a.reloadConfigURLs <- struct{}{}
+	<-*a.receiveFinishSignal
+	a.Data = "success"
 	a.send(w, a.marshalled())
 }
 

@@ -4,9 +4,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
-
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
@@ -15,15 +14,15 @@ import (
 
 // FloodPing is the structure that implements the Ping service.
 type FloodPing struct {
-	localConfig    *parser.YAMLBenchRoutesType
+	localConfig    *parser.Config
 	scrapeInterval TestInterval
-	chain          []*tsdb.Chain
+	chain          *[]*tsdb.Chain
 	password       string
 	test           bool
 }
 
 // Newf returns a Flood Ping type.
-func Newf(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval, chain []*tsdb.Chain, password string) *FloodPing {
+func Newf(configuration *parser.Config, scrapeInterval TestInterval, chain *[]*tsdb.Chain, password string) *FloodPing {
 	return &FloodPing{
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
@@ -160,10 +159,10 @@ func (ps *FloodPing) ping(urlRaw string, packets int, tsdbNameHash string, wg *s
 	urlExists := false
 
 	c := ps.chain
-	for index := range c {
-		if c[index].Path == tsdbNameHash || ps.test {
+	for index := range *c {
+		if (*c)[index].Path == tsdbNameHash || ps.test {
 			urlExists = true
-			c[index] = c[index].Append(newBlock)
+			(*c)[index] = (*c)[index].Append(newBlock)
 			if ps.test {
 				continue
 			}
@@ -180,30 +179,3 @@ func getNormalizedBlockStringFlood(v utils.TypeFloodPingScrap) string {
 	return fToS(v.Min) + tsdb.BlockDataSeparator + fToS(v.Avg) + tsdb.BlockDataSeparator +
 		fToS(v.Max) + tsdb.BlockDataSeparator + fToS(v.Mdev) + tsdb.BlockDataSeparator + fToS(v.PacketLoss)
 }
-
-//// HandleFloodPing is the main handler for flood ping operations
-//func HandleFloodPing(Jitterc []*tsdb.Chain, urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool, password string) {
-//
-//	tsdbNameHash = utils.PathFloodPing + "/" + "chunk_flood_ping_" + tsdbNameHash + ".json"
-//	resp, err := utils.CLIFloodPing(urlRaw, packets, password)
-//	if err != nil {
-//		logger.File(*resp, "p")
-//		wg.Done()
-//		return
-//	}
-//	result := *scrap.CLIFLoodPingScrap(resp)
-//	block := *tsdb.GetNewBlock("flood-ping", getNormalizedBlockStringFlood(result))
-//	urlExists := false
-//	for index := range Jitterc {
-//		if Jitterc[index].Path == tsdbNameHash {
-//			urlExists = true
-//			Jitterc[index] = Jitterc[index].Append(block)
-//			Jitterc[index]
-//			break
-//		}
-//	}
-//	if !urlExists && !isTest {
-//		panic("faulty hashing! impossible to look for a hash match.")
-//	}
-//	wg.Done()
-//}

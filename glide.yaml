@@ -1,5 +1,0 @@
-package: github.com/zairza-cetb/bench-routes
-import:
-- package: github.com/gorilla/websocket
-  version: v1.4.1
-- package: gopkg.in/yaml.v2

@@ -17,12 +17,12 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
 	"github.com/zairza-cetb/bench-routes/src/lib/api"
+	"github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/monitor"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/metrics/journal"
 	"github.com/zairza-cetb/bench-routes/src/metrics/process"
@@ -41,7 +41,8 @@ var (
 		ReadBufferSize:  4096,
 		WriteBufferSize: 4096,
 	}
-	conf *parser.YAMLBenchRoutesType
+	initializedChains map[string]bool
+	conf              *parser.Config
 )
 
 func main() {
@@ -52,87 +53,68 @@ func main() {
 		port = ":" + os.Args[1]
 	}
 
+	logger.Terminal("initializing...", "p")
 	conf = parser.New(utils.ConfigurationFilePath)
 	conf.Load().Validate()
-	intervals := conf.Config.Interval
-
-	logger.Terminal("initializing...", "p")
-	var ConfigURLs []string
-	matrix := make(utils.BRmap)
 	setDefaultServicesState(conf)
 
-	setMatrixKey := func(matrix utils.BRmap, url string) utils.BRmap {
-		var count int
-		for k := range matrix {
-			if k == url {
-				count++
-			}
-		}
-		if count != 0 {
-			if count == 1 {
-				delete(matrix, url)
-				tmp := fmt.Sprintf("%s-%d", url, count)
-				matrix[tmp] = &utils.BRMatrix{
-					Domain: tmp,
-				}
-			}
-			tmp := fmt.Sprintf("%s-%d", url, count+1)
-			matrix[tmp] = &utils.BRMatrix{
-				Domain: tmp,
-			}
-		} else {
-			matrix[url] = &utils.BRMatrix{
-				Domain: url,
-			}
-		}
-		return matrix
-	}
-
-	for _, r := range conf.Config.Routes {
-		var found bool
-		for _, i := range ConfigURLs {
-			if i == r.URL {
-				found = true
-				break
-			}
-		}
-		if !found {
-			filters.HTTPPingFilter(&r.URL)
-			ConfigURLs = append(ConfigURLs, r.URL)
-			utils.PingDBNames[r.URL] = utils.GetHash(r.URL)
-			utils.FloodPingDBNames[r.URL] = utils.GetHash(r.URL)
-		}
-		matrix = setMatrixKey(matrix, r.URL)
-	}
-	var wg sync.WaitGroup
-	p := time.Now()
-	wg.Add(4)
-
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
-
-	go initialise(&wg, &matrix, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
-	go initialise(&wg, &matrix, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
-	go initialise(&wg, &matrix, chainSet, &utils.Jitterc, ConfigURLs, utils.PathJitter, "jitter")
-	go initialise(&wg, &matrix, chainSet, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
-	wg.Wait()
-	msg := "initialization time: " + time.Since(p).String()
-	logger.Terminal(msg, "p")
-
-	chainSet.Run()
-
+	var ConfigURLs []string
+	matrix := make(utils.BRmap)
+	intervals := conf.Config.Interval
 	service := &struct {
 		Ping    *ping.Ping
 		Jitter  *jitter.Jitter
 		PingF   *ping.FloodPing
 		Monitor *monitor.Monitor
 	}{
-		Ping:    ping.New(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, utils.Pingc),
-		Jitter:  jitter.New(conf, jitter.TestInterval{OfType: intervals[0].Type, Duration: *intervals[1].Duration}, utils.Jitterc),
-		PingF:   ping.Newf(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, utils.FPingc, conf.Config.Password),
-		Monitor: monitor.New(conf, monitor.TestInterval{OfType: intervals[2].Type, Duration: *intervals[2].Duration}, utils.RespMonitoringc),
+		Ping:    ping.New(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, &utils.Pingc),
+		Jitter:  jitter.New(conf, jitter.TestInterval{OfType: intervals[0].Type, Duration: *intervals[1].Duration}, &utils.Jitterc),
+		PingF:   ping.Newf(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, &utils.FPingc, conf.Config.Password),
+		Monitor: monitor.New(conf, monitor.TestInterval{OfType: intervals[2].Type, Duration: *intervals[2].Duration}, &utils.RespMonitoringc),
 	}
 
-	api := api.New(&matrix, conf, service)
+	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
+
+	reload := make(chan struct{})
+	done := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-reload:
+			}
+			conf.Refresh()
+			for _, r := range conf.Config.Routes {
+				var found bool
+				for _, i := range ConfigURLs {
+					if i == r.URL {
+						found = true
+						break
+					}
+				}
+				if !found {
+					filters.HTTPPingFilter(&r.URL)
+					ConfigURLs = append(ConfigURLs, r.URL)
+					matrix = setMatrixKey(matrix, r.URL)
+				}
+			}
+			var wg sync.WaitGroup
+			p := time.Now()
+			wg.Add(4)
+			go initialize(&wg, &matrix, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
+			go initialize(&wg, &matrix, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
+			go initialize(&wg, &matrix, chainSet, &utils.Jitterc, ConfigURLs, utils.PathJitter, "jitter")
+			go initialize(&wg, &matrix, chainSet, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
+			wg.Wait()
+			msg := "initialization time: " + time.Since(p).String()
+			logger.Terminal(msg, "p")
+			done <- struct{}{}
+		}
+	}()
+	reload <- struct{}{}
+	<-done
+	chainSet.Run()
+
+	api := api.New(&matrix, conf, service, &reload, &done)
 	router := mux.NewRouter()
 	api.Register(router)
 
@@ -379,13 +361,43 @@ func main() {
 	logger.Terminal("Bench-routes is up and running", "p")
 }
 
-func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
+func setMatrixKey(matrix utils.BRmap, url string) utils.BRmap {
+	var count int
+	for k := range matrix {
+		if k == url {
+			count++
+		}
+	}
+	if count != 0 {
+		if count == 1 {
+			delete(matrix, url)
+			tmp := fmt.Sprintf("%s-%d", url, count)
+			matrix[tmp] = &utils.BRMatrix{
+				Domain: tmp,
+			}
+		}
+		tmp := fmt.Sprintf("%s-%d", url, count+1)
+		matrix[tmp] = &utils.BRMatrix{
+			Domain: tmp,
+		}
+	} else {
+		matrix[url] = &utils.BRMatrix{
+			Domain: url,
+		}
+	}
+	return matrix
+}
+
+func initialize(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
 	msg := "forming " + Type + " chain ... "
 	logger.File(msg, "p")
 	config, ok := conf.([]string)
 	if ok {
 		for _, v := range config {
 			path := basePath + "/chunk_" + Type + "_" + v + ".json"
+			if _, ok := initializedChains[path]; ok {
+				continue
+			}
 			resp := tsdb.NewChain(path)
 			resp.Init()
 			*chain = append(*chain, resp)
@@ -406,9 +418,12 @@ func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 			}
 		}
 	}
-	if configRes, ok := conf.([]parser.Routes); ok {
+	if configRes, ok := conf.([]parser.Route); ok {
 		for _, v := range configRes {
-			path := basePath + "/chunk_" + Type + "_" + filters.RouteDestroyer(v.URL+"_"+v.Route) + ".json"
+			path := basePath + "/chunk_" + Type + "_" + filters.RouteDestroyer(v.URL) + ".json"
+			if _, ok := initializedChains[path]; ok {
+				continue
+			}
 			resp := tsdb.NewChain(path)
 			resp.Init()
 			*chain = append(*chain, resp)
@@ -418,11 +433,10 @@ func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 					(*matrix)[k] = &utils.BRMatrix{
 						URL:          v.URL,
 						Method:       v.Method,
-						Route:        v.Route,
 						Headers:      v.Header,
 						Params:       v.Params,
 						MonitorChain: resp,
-						Domain:       fmt.Sprintf("%s: %s/%s", v.Method, v.URL, v.Route),
+						Domain:       fmt.Sprintf("%s: %s", v.Method, v.URL),
 						PingChain:    (*matrix)[k].PingChain,
 						JitterChain:  (*matrix)[k].JitterChain,
 						FPingChain:   (*matrix)[k].FPingChain,
@@ -441,7 +455,7 @@ func initialise(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 }
 
 // setDefaultServicesState initializes all state values to passive.
-func setDefaultServicesState(configuration *parser.YAMLBenchRoutesType) {
+func setDefaultServicesState(configuration *parser.Config) {
 	configuration.Config.UtilsConf.ServicesSignal = parser.ServiceSignals{
 		Ping:                  "passive",
 		Jitter:                "passive",

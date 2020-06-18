@@ -1,4 +1,13 @@
 password: your password
+utils:
+  monitor-length:
+    mode: 0
+    mean: 0
+  services-state:
+    ping: passive
+    flood-ping: passive
+    jitter: passive
+    req-res-delay-or-monitoring: passive
 test_interval:
 - test: ping
   type: sec
@@ -11,26 +20,25 @@ test_interval:
   duration: 3
 routes:
 - method: GET
-  url: https://www.google.co.in
-  route: search
+  url: https://www.google.co.in/search
   headers:
   - type: Content-Type
     value: application/json
   params:
   - name: q
     value: bench-routes
+  body: []
 - method: GET
-  url: https://www.facebook.com
-  route: search
+  url: https://www.facebook.com/search
   headers:
   - type: Content-Type
     value: application/json
   params:
   - name: q
     value: bench-routes
+  body: []
 - method: GET
-  url: https://in.search.yahoo.com
-  route: search
+  url: https://in.search.yahoo.com/search
   headers:
   - type: Content-Type
     value: application/json
@@ -45,12 +53,13 @@ routes:
     value: mss
   - name: ei
     value: UTF-8
-utils:
-  monitor-length:
-    mode: 0
-    mean: 0
-  services-state:
-    ping: passive
-    flood-ping: passive
-    jitter: passive
-    req-res-delay-or-monitoring: passive
+  body: []
+- method: GET
+  url: https://reqres.in/api/users
+  headers: []
+  params:
+  - name: page
+    value: "2"
+  - name: ""
+    value: ""
+  body: []

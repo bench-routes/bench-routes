@@ -4,7 +4,7 @@
 package utils
 
 import (
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
+	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
@@ -100,12 +100,10 @@ type MatrixResponse struct {
 
 // BRMatrix type for storing multi-dimensional information related to a route.
 type BRMatrix struct {
-	URL                                              string
-	Domain                                           string
-	Method                                           string
-	Route                                            string
+	URL, Domain, Method                              string
 	Headers                                          []parser.Headers
 	Params                                           []parser.Params
+	Body                                             []parser.Body
 	PingChain, JitterChain, FPingChain, MonitorChain *tsdb.Chain
 }
 

@@ -8,22 +8,22 @@ import (
 	"sync"
 	"time"
 
+	"github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 const (
-	// PathPing stores the default address of storage directory of ping data
+	// PathReqResDelay stores the default address of storage directory of ping data
 	PathReqResDelay = "storage/req-res-delay-monitoring"
 )
 
 // Monitor is the structure that implements the Monitoring service.
 type Monitor struct {
-	localConfig    *parser.YAMLBenchRoutesType
+	localConfig    *parser.Config
 	scrapeInterval TestInterval
-	chain          []*tsdb.Chain
+	chain          *[]*tsdb.Chain
 	test           bool
 }
 
@@ -34,7 +34,7 @@ type TestInterval struct {
 }
 
 // New returns a Monitor type.
-func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval, chain []*tsdb.Chain) *Monitor {
+func New(configuration *parser.Config, scrapeInterval TestInterval, chain *[]*tsdb.Chain) *Monitor {
 	return &Monitor{
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
@@ -131,9 +131,9 @@ func (ps *Monitor) perform() {
 	}
 }
 
-func (ps *Monitor) responseDelay(wg *sync.WaitGroup, route parser.Routes) {
+func (ps *Monitor) responseDelay(wg *sync.WaitGroup, route parser.Route) {
 	responseChains := ps.chain
-	routeSuffix := filters.RouteDestroyer(route.URL + "_" + route.Route)
+	routeSuffix := filters.RouteDestroyer(route.URL)
 	// Init paths for request-monitor-monitoring
 	path := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + ".json"
 
@@ -143,9 +143,9 @@ func (ps *Monitor) responseDelay(wg *sync.WaitGroup, route parser.Routes) {
 	g := getNormalizedBlockString(responseObject)
 	block := *tsdb.GetNewBlock("req-res", g)
 
-	for index := range responseChains {
-		if responseChains[index].Path == path || ps.test {
-			responseChains[index] = responseChains[index].Append(block)
+	for index := range *responseChains {
+		if (*responseChains)[index].Path == path || ps.test {
+			(*responseChains)[index] = (*responseChains)[index].Append(block)
 			if ps.test {
 				continue
 			}
@@ -173,7 +173,7 @@ func getInterval(intervals []parser.Interval, testName string) TestInterval {
 }
 
 // routeDispatcher dispatches a route to respective handlers based on it's request type
-func routeDispatcher(route parser.Routes, c chan utils.Response) utils.Response {
+func routeDispatcher(route parser.Route, c chan utils.Response) utils.Response {
 	if route.Method == "GET" {
 		return handleGetRequest(route.URL)
 	}

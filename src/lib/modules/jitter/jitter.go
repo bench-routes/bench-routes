@@ -6,18 +6,18 @@ import (
 	"sync"
 	"time"
 
+	"github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // Jitter is the structure that implements the Jitter service.
 type Jitter struct {
-	localConfig    *parser.YAMLBenchRoutesType
+	localConfig    *parser.Config
 	scrapeInterval TestInterval
-	chain          []*tsdb.Chain
+	chain          *[]*tsdb.Chain
 	test           bool
 }
 
@@ -33,7 +33,7 @@ type Response struct {
 }
 
 // New returns a Jitter type.
-func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval, chain []*tsdb.Chain) *Jitter {
+func New(configuration *parser.Config, scrapeInterval TestInterval, chain *[]*tsdb.Chain) *Jitter {
 	return &Jitter{
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
@@ -158,10 +158,10 @@ func (ps *Jitter) jitter(urlRaw string, packets int, tsdbNameHash string, wg *sy
 	result := scrap.CLIJitterScrap(resp)
 	newBlock := *tsdb.GetNewBlock("jitter", fToS(result))
 	urlExists := false
-	for index := range chain {
-		if chain[index].Path == tsdbNameHash || ps.test {
+	for index := range *chain {
+		if (*chain)[index].Path == tsdbNameHash || ps.test {
 			urlExists = true
-			chain[index].Append(newBlock)
+			(*chain)[index].Append(newBlock)
 			if ps.test {
 				continue
 			}

@@ -5,20 +5,24 @@ import (
 	"sync"
 	"time"
 
+	"github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // Ping is the structure that implements the Ping service.
 type Ping struct {
-	localConfig    *parser.YAMLBenchRoutesType
+	localConfig    *parser.Config
 	scrapeInterval TestInterval
-	chain          []*tsdb.Chain
+	chain          *[]*tsdb.Chain
 	test           bool
+	isRunning      bool
+	// signalStop is mostly used to reload the configurations of
+	// new urls.
+	signalStop chan struct{}
 }
 
 //TestInterval stores the value of the duration and the type of test
@@ -36,7 +40,7 @@ type Response struct {
 }
 
 // New returns a Ping type.
-func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval, chain []*tsdb.Chain) *Ping {
+func New(configuration *parser.Config, scrapeInterval TestInterval, chain *[]*tsdb.Chain) *Ping {
 	return &Ping{
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
@@ -61,14 +65,16 @@ func (ps *Ping) Iterate(signal string, isTest bool) bool {
 	switch signal {
 	case "start":
 		if pingServiceState == "passive" {
+			if ps.isRunning {
+				ps.signalStop <- struct{}{}
+			}
 			conf.Config.UtilsConf.ServicesSignal.Ping = "active"
 			_, e := conf.Write()
 			if e != nil {
 				panic(e)
 			}
-			go func() {
-				ps.setConfigurations()
-			}()
+			ps.isRunning = true
+			go ps.setConfigurations()
 			return true
 		}
 		// return handlePingStart(conf, pingServiceState)
@@ -108,6 +114,12 @@ func (ps *Ping) perform(urlStack map[string]string, pingInterval TestInterval) {
 	config := ps.localConfig
 
 	for {
+		select {
+		case <-ps.signalStop:
+			break
+		default:
+		}
+
 		i++
 		config.Refresh()
 
@@ -164,10 +176,10 @@ func (ps *Ping) ping(urlRaw string, packets int, tsdbNameHash string, wg *sync.W
 	newBlock := *tsdb.GetNewBlock("ping", getNormalizedBlockString(*result))
 	urlExists := false
 
-	for index := range chain {
-		if chain[index].Path == tsdbNameHash || ps.test {
+	for index := range *chain {
+		if (*chain)[index].Path == tsdbNameHash || ps.test {
 			urlExists = true
-			chain[index] = chain[index].Append(newBlock)
+			(*chain)[index] = (*chain)[index].Append(newBlock)
 			if ps.test {
 				continue
 			}
