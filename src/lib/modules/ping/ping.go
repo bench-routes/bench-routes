@@ -77,7 +77,6 @@ func (ps *Ping) Iterate(signal string, isTest bool) bool {
 			go ps.setConfigurations()
 			return true
 		}
-		// return handlePingStart(conf, pingServiceState)
 	case "stop":
 		conf.Config.UtilsConf.ServicesSignal.Ping = "passive"
 		_, e := conf.Write()

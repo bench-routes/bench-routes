@@ -25,6 +25,8 @@ type Monitor struct {
 	scrapeInterval TestInterval
 	chain          *[]*tsdb.Chain
 	test           bool
+	isRunning      bool
+	signalStop     chan struct{}
 }
 
 //TestInterval stores the value of the duration and the type of test
@@ -59,11 +61,15 @@ func (ps *Monitor) Iterate(signal string, isTest bool) bool {
 	switch signal {
 	case "start":
 		if serviceState == "passive" {
+			if ps.isRunning {
+				ps.signalStop <- struct{}{}
+			}
 			conf.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "active"
 			_, e := conf.Write()
 			if e != nil {
 				panic(e)
 			}
+			ps.isRunning = true
 			go ps.perform()
 			return true
 		}
@@ -86,6 +92,11 @@ func (ps *Monitor) perform() {
 	routes := ps.localConfig.Config.Routes
 
 	for {
+		select {
+		case <-ps.signalStop:
+			break
+		default:
+		}
 		config := ps.localConfig
 		config.Refresh()
 

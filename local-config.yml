@@ -29,6 +29,15 @@ routes:
     value: bench-routes
   body: []
 - method: GET
+  url: https://www.google.co.in/about
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: q
+    value: bench-routes
+  body: []
+- method: GET
   url: https://www.facebook.com/search
   headers:
   - type: Content-Type
@@ -53,6 +62,51 @@ routes:
     value: mss
   - name: ei
     value: UTF-8
+  body: []
+- method: GET
+  url: https://reqres.in/api/users
+  headers: []
+  params:
+  - name: page
+    value: "2"
+  - name: ""
+    value: ""
+  body: []
+- method: GET
+  url: https://reqres.in/api/users
+  headers: []
+  params:
+  - name: page
+    value: "2"
+  - name: ""
+    value: ""
+  body: []
+- method: GET
+  url: https://reqres.in/api/users
+  headers: []
+  params:
+  - name: page
+    value: "2"
+  - name: ""
+    value: ""
+  body: []
+- method: GET
+  url: https://reqres.in/api/users
+  headers: []
+  params:
+  - name: page
+    value: "2"
+  - name: ""
+    value: ""
+  body: []
+- method: GET
+  url: https://reqres.in/api/users
+  headers: []
+  params:
+  - name: page
+    value: "2"
+  - name: ""
+    value: ""
   body: []
 - method: GET
   url: https://reqres.in/api/users

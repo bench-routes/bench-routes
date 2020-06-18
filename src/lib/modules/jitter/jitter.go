@@ -19,6 +19,8 @@ type Jitter struct {
 	scrapeInterval TestInterval
 	chain          *[]*tsdb.Chain
 	test           bool
+	isRunning      bool
+	signalStop     chan struct{}
 }
 
 //TestInterval stores the value of the duration and the type of test
@@ -59,10 +61,14 @@ func (ps *Jitter) Iterate(signal string, isTest bool) bool {
 	case "start":
 		if pingServiceState == "passive" {
 			conf.Config.UtilsConf.ServicesSignal.Jitter = "active"
+			if ps.isRunning {
+				ps.signalStop <- struct{}{}
+			}
 			_, e := conf.Write()
 			if e != nil {
 				panic(e)
 			}
+			ps.isRunning = true
 			go ps.setConfigurations()
 			return true
 		}
@@ -103,6 +109,12 @@ func (ps *Jitter) perform(urlStack map[string]string, pingInterval TestInterval)
 	config := ps.localConfig
 
 	for {
+		select {
+		case <-ps.signalStop:
+			break
+		default:
+		}
+
 		i++
 		config.Refresh()
 

@@ -19,6 +19,8 @@ type FloodPing struct {
 	chain          *[]*tsdb.Chain
 	password       string
 	test           bool
+	isRunning      bool
+	signalStop     chan struct{}
 }
 
 // Newf returns a Flood Ping type.
@@ -56,15 +58,16 @@ func (ps *FloodPing) Iteratef(signal string, isTest bool) bool {
 	switch signal {
 	case "start":
 		if pingServiceState == "passive" {
-
+			if ps.isRunning {
+				ps.signalStop <- struct{}{}
+			}
 			conf.Config.UtilsConf.ServicesSignal.FloodPing = "active"
 			_, e := conf.Write()
 			if e != nil {
 				panic(e)
 			}
-			go func() {
-				ps.setConfigurations()
-			}()
+			ps.isRunning = true
+			go ps.setConfigurations()
 			return true
 		}
 		// return handlePingStart(conf, pingServiceState)
@@ -104,6 +107,12 @@ func (ps *FloodPing) perform(urlStack map[string]string, pingInterval TestInterv
 	config := ps.localConfig
 
 	for {
+		select {
+		case <-ps.signalStop:
+			break
+		default:
+		}
+
 		i++
 		config.Refresh()
 

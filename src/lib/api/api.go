@@ -215,8 +215,12 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 // dependent on a route name as in matrix key.
 func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 	routeNameMatrix := r.URL.Query().Get("routeNameMatrix")
-	if _, ok := (*a.Matrix)[routeNameMatrix]; !ok {
-		a.Data = "ROUTE_NAME_NOT_IN_MATRIX"
+	instanceKey, err := strconv.Atoi(routeNameMatrix)
+	if err != nil {
+		panic(err)
+	}
+	if _, ok := (*a.Matrix)[instanceKey]; !ok {
+		a.Data = "ROUTE_NAME_AKA_INSTANCE_KEY_NOT_IN_MATRIX"
 		a.send(w, a.marshalled())
 		return
 	}
@@ -234,7 +238,7 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		query.SetRange(curr, from)
 		c <- query.ExecWithoutEncode()
 	}
-	matrix := (*a.Matrix)[routeNameMatrix]
+	matrix := (*a.Matrix)[instanceKey]
 	if startTimestampStr == "" && endTimestampStr == "" {
 		curr := time.Now().UnixNano()
 		from := curr - (brt.Minute * 20)
@@ -327,6 +331,35 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 	)
 	*a.reloadConfigURLs <- struct{}{}
 	<-*a.receiveFinishSignal
+	service := reflect.ValueOf(a.Services).Elem()
+
+	// ping
+	sp, ok := service.FieldByName("Ping").Interface().(*ping.Ping)
+	if !ok {
+		panic("start-monitoring: ping not found")
+	}
+	if !sp.Iterate("start", false) {
+		panic("start-monitoring: triggering monitoring: ping")
+	}
+
+	// jitter
+	sj, ok := service.FieldByName("Jitter").Interface().(*jitter.Jitter)
+	if !ok {
+		panic("start-monitoring: jitter not found")
+	}
+	if !sj.Iterate("start", false) {
+		panic("start-monitoring: triggering monitoring: jitter")
+	}
+
+	// monitor
+	sm, ok := service.FieldByName("Monitor").Interface().(*monitor.Monitor)
+	if !ok {
+		panic("start-monitoring: monitor not found")
+	}
+	if !sm.Iterate("start", false) {
+		panic("start-monitoring: triggering monitoring: monitor")
+	}
+
 	a.Data = "success"
 	a.send(w, a.marshalled())
 }
@@ -336,14 +369,18 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 	var chainDetails []utils.ResponseTSDBChains
 	for n, v := range *a.Matrix {
+		fmt.Println("n is below")
+		fmt.Println(n)
+		fmt.Println("v is below")
+		fmt.Println(v)
 		chainDetails = append(chainDetails, utils.ResponseTSDBChains{
 			Name: v.Domain,
 			Path: utils.ChainPath{
-				MatrixName: n,
-				Ping:       trim(v.PingChain.Path),
-				Jitter:     trim(v.JitterChain.Path),
-				Fping:      trim(v.FPingChain.Path),
-				Monitor:    trim(v.MonitorChain.Path),
+				InstanceKey: n,
+				Ping:        trim(v.PingChain.Path),
+				Jitter:      trim(v.JitterChain.Path),
+				Fping:       trim(v.FPingChain.Path),
+				Monitor:     trim(v.MonitorChain.Path),
 			},
 		})
 	}

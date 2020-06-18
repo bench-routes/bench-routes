@@ -17,7 +17,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
 	"github.com/zairza-cetb/bench-routes/src/lib/api"
-	"github.com/zairza-cetb/bench-routes/src/lib/config"
+	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
@@ -41,8 +41,15 @@ var (
 		ReadBufferSize:  4096,
 		WriteBufferSize: 4096,
 	}
-	initializedChains map[string]bool
+	initializedChains = make(map[string]bool)
 	conf              *parser.Config
+	// matrix is a collection (as map) of instances where each
+	// instance is composed of ping, jitter, floodping and monitor
+	// chain paths. matrix is used in the monitoring screen to
+	// reduce the http request by grouping them based on routes.
+	// Without matrix, the http traffic would increase 4 times
+	// the current count.
+	matrix = make(utils.BRmap)
 )
 
 func main() {
@@ -59,7 +66,6 @@ func main() {
 	setDefaultServicesState(conf)
 
 	var ConfigURLs []string
-	matrix := make(utils.BRmap)
 	intervals := conf.Config.Interval
 	service := &struct {
 		Ping    *ping.Ping
@@ -92,9 +98,8 @@ func main() {
 					}
 				}
 				if !found {
-					filters.HTTPPingFilter(&r.URL)
 					ConfigURLs = append(ConfigURLs, r.URL)
-					matrix = setMatrixKey(matrix, r.URL)
+					setMatrixKey(&matrix, r.URL)
 				}
 			}
 			var wg sync.WaitGroup
@@ -361,31 +366,19 @@ func main() {
 	logger.Terminal("Bench-routes is up and running", "p")
 }
 
-func setMatrixKey(matrix utils.BRmap, url string) utils.BRmap {
-	var count int
-	for k := range matrix {
-		if k == url {
-			count++
+func setMatrixKey(matrix *utils.BRmap, url string) {
+	var urlExists bool
+	for instance := range *matrix {
+		if (*matrix)[instance].FullURL == url {
+			urlExists = true
+			break
 		}
 	}
-	if count != 0 {
-		if count == 1 {
-			delete(matrix, url)
-			tmp := fmt.Sprintf("%s-%d", url, count)
-			matrix[tmp] = &utils.BRMatrix{
-				Domain: tmp,
-			}
-		}
-		tmp := fmt.Sprintf("%s-%d", url, count+1)
-		matrix[tmp] = &utils.BRMatrix{
-			Domain: tmp,
-		}
-	} else {
-		matrix[url] = &utils.BRMatrix{
-			Domain: url,
+	if !urlExists {
+		(*matrix)[len(*matrix)] = &utils.BRMatrix{
+			FullURL: url,
 		}
 	}
-	return matrix
 }
 
 func initialize(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
@@ -394,17 +387,18 @@ func initialize(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 	config, ok := conf.([]string)
 	if ok {
 		for _, v := range config {
+			v = filters.HTTPPingFilterValue(v)
 			path := basePath + "/chunk_" + Type + "_" + v + ".json"
 			if _, ok := initializedChains[path]; ok {
 				continue
 			}
+			initializedChains[path] = true
 			resp := tsdb.NewChain(path)
 			resp.Init()
 			*chain = append(*chain, resp)
 			for k := range *matrix {
 				index := k
-				filters.HTTPPingFilter(&k)
-				if k == v {
+				if filters.HTTPPingFilterValue((*matrix)[k].FullURL) == v {
 					switch Type {
 					case "ping":
 						(*matrix)[index].PingChain = resp
@@ -413,7 +407,6 @@ func initialize(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 					case "flood_ping":
 						(*matrix)[index].FPingChain = resp
 					}
-					break
 				}
 			}
 		}
@@ -424,17 +417,14 @@ func initialize(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 			if _, ok := initializedChains[path]; ok {
 				continue
 			}
+			initializedChains[path] = true
 			resp := tsdb.NewChain(path)
 			resp.Init()
 			*chain = append(*chain, resp)
 			for k := range *matrix {
-				filters.HTTPPingFilter(&v.URL)
-				if k == v.URL {
+				if (*matrix)[k].FullURL == v.URL {
 					(*matrix)[k] = &utils.BRMatrix{
-						URL:          v.URL,
-						Method:       v.Method,
-						Headers:      v.Header,
-						Params:       v.Params,
+						FullURL:      v.URL,
 						MonitorChain: resp,
 						Domain:       fmt.Sprintf("%s: %s", v.Method, v.URL),
 						PingChain:    (*matrix)[k].PingChain,
