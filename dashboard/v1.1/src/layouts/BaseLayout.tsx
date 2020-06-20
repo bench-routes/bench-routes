@@ -1,4 +1,4 @@
-import { CssBaseline } from '@material-ui/core';
+import { CssBaseline, Switch, Tooltip } from '@material-ui/core';
 import { Container } from '@material-ui/core';
 import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
 import LinearProgress from '@material-ui/core/LinearProgress';
@@ -64,7 +64,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default function BaseLayout(): ReactElement {
+export default function BaseLayout(props: any): ReactElement {
   // Access styles
   const classes = useStyles();
   const _classes = _useStyles();
@@ -81,6 +81,11 @@ export default function BaseLayout(): ReactElement {
   };
   const handleDrawerClose = () => {
     setOpen(false);
+  };
+
+  const handleToggleDarkMode = () => {
+    const { darkMode, toggleDarkMode } = props;
+    toggleDarkMode(!darkMode);
   };
 
   return (
@@ -114,6 +119,15 @@ export default function BaseLayout(): ReactElement {
             >
               Bench Routes
             </Typography>
+            <Tooltip title="Dark Mode">
+              <Switch
+                checked={props.darkMode}
+                onChange={handleToggleDarkMode}
+                color="default"
+                name="checkedB"
+                inputProps={{ 'aria-label': 'primary checkbox' }}
+              />
+            </Tooltip>
           </Toolbar>
           {loader ? <LinearProgress /> : null}
         </AppBar>
