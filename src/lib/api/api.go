@@ -81,7 +81,10 @@ func (a *API) Register(router *mux.Router) {
 		router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	}
 	router.HandleFunc("/br-live-check", a.Home)
+	router.HandleFunc("/config/update-interval", a.ModifyIntervalDuration)
 	router.HandleFunc("/get-monitoring-services-state", a.GetMonitoringState)
+	router.HandleFunc("/get-config-intervals", a.GetConfigIntervals)
+	router.HandleFunc("/get-config-routes", a.GetConfigRoutes)
 	router.HandleFunc("/get-route-time-series", a.TSDBPathDetails)
 	router.HandleFunc("/query-matrix", a.SendMatrix)
 	router.HandleFunc("/query", a.Query)
@@ -362,6 +365,54 @@ func (a *API) GetMonitoringState(w http.ResponseWriter, r *http.Request) {
 		panic("get-monitoring-state: services state not aligned")
 	}
 	a.Data = services.Jitter
+	a.send(w, a.marshalled())
+}
+
+// Gets the config file data for the config screen
+func (a *API) GetConfigIntervals(w http.ResponseWriter, r *http.Request) {
+	a.Data = a.config.Config.Interval
+	a.send(w, a.marshalled())
+}
+
+// Gets the config file data for the config screen
+func (a *API) GetConfigRoutes(w http.ResponseWriter, r *http.Request) {
+	a.Data = a.config.Config.Routes
+	a.send(w, a.marshalled())
+}
+
+// Modifies a specific interval duration in the config file
+func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		panic(err)
+	}
+	var req struct {
+		IntervalName string `json:"intervalName"`
+		Value        string `json:"value"`
+	}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&req); err != nil {
+		panic(err)
+	}
+	if num, err := strconv.Atoi(req.Value); err == nil {
+		n := int64(num)
+		for i, interval := range a.config.Config.Interval {
+			if interval.Test == req.IntervalName {
+				a.config.Config.Interval[i].Duration = &n
+			}
+		}
+		_, err := a.config.Write()
+		if err == nil {
+			a.ResponseStatus = "200"
+			a.Data = a.config
+		} else {
+			a.ResponseStatus = "400"
+			a.Data = "Could not modify the config file"
+		}
+	} else {
+		// The string is not an integer.
+		a.ResponseStatus = "400"
+		a.Data = "The string passed is not an integer"
+	}
 	a.send(w, a.marshalled())
 }
 

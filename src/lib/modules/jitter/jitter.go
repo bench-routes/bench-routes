@@ -1,10 +1,11 @@
 package jitter
 
 import (
-	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"strconv"
 	"sync"
 	"time"
+
+	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
@@ -128,7 +129,7 @@ func (ps *Jitter) perform(urlStack map[string]string, pingInterval TestInterval)
 			return
 		}
 
-		intrv := time.Duration(pingInterval.Duration)
+		intrv := time.Duration(*ps.localConfig.Config.Interval[1].Duration)
 		switch pingInterval.OfType {
 		case "hr":
 			time.Sleep(intrv * time.Hour)

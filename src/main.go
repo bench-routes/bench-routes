@@ -270,20 +270,22 @@ func main() {
 		}
 	}()
 
-	go func() {
-		metrics := journal.New()
-		chain := tsdb.NewChain(journalMetricsPath)
-		chain.Init()
-		chainSet.Register(chain.Name, chain)
+	if !(runtime.GOOS == "windows" || runtime.GOOS == "darwin") {
+		go func() {
+			metrics := journal.New()
+			chain := tsdb.NewChain(journalMetricsPath)
+			chain.Init()
+			chainSet.Register(chain.Name, chain)
 
-		for {
-			data := metrics.Run().Get()
-			datapoint := data.Encode()
-			block := tsdb.GetNewBlock("journal", *datapoint)
-			chain.Append(*block)
-			time.Sleep(defaultScrapeTime)
-		}
-	}()
+			for {
+				data := metrics.Run().Get()
+				datapoint := data.Encode()
+				block := tsdb.GetNewBlock("journal", *datapoint)
+				chain.Append(*block)
+				time.Sleep(defaultScrapeTime)
+			}
+		}()
+	}
 
 	if enableProcessCollection {
 		go func() {

@@ -130,7 +130,7 @@ func (ps *FloodPing) perform(urlStack map[string]string, pingInterval TestInterv
 			return
 		}
 
-		intrv := time.Duration(pingInterval.Duration)
+		intrv := time.Duration(*ps.localConfig.Config.Interval[0].Duration)
 		switch pingInterval.OfType {
 		case "hr":
 			time.Sleep(intrv * time.Hour)
