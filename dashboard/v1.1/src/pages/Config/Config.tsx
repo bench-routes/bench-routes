@@ -31,6 +31,9 @@ const useStyles = makeStyles(theme => ({
   },
   cardStyle: {
     minHeight: '8vh'
+  },
+  h6: {
+    fontWeight: 'normal'
   }
 }));
 
@@ -151,7 +154,11 @@ const Config: FC<{}> = () => {
                 <CardContent>
                   <Grid container style={{ justifyContent: 'space-between' }}>
                     <Grid item>
-                      <Typography gutterBottom variant="h6">
+                      <Typography
+                        gutterBottom
+                        variant="h6"
+                        className={classes.h6}
+                      >
                         {truncate(
                           test.charAt(0).toUpperCase() + test.slice(1),
                           14
