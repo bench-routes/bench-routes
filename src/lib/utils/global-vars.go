@@ -19,10 +19,6 @@ const (
 )
 
 var (
-	// PingDBNames contains the name of the database corresponding to the unique config url
-	PingDBNames = make(map[string]string)
-	// FloodPingDBNames contains the name of the flood ping corresponding to the unique config url
-	FloodPingDBNames = make(map[string]string)
 	// Pingc contains chains of all the pings operating in bench-routes which has to be globally accessed
 	// This is necessary as it helps to retain the parent values which are required for concurreny
 	Pingc []*tsdb.Chain

@@ -4,12 +4,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
+	"github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 var (
-	configuration     *parser.YAMLBenchRoutesType
+	configuration     *parser.Config
 	chainPing         []*tsdb.Chain
 	configurationPath = "../testfiles/configuration.yaml"
 )
@@ -45,7 +45,7 @@ func initVars() {
 }
 
 // setDefaultServicesState initializes all state values to passive.
-func setDefaultServicesState(configuration *parser.YAMLBenchRoutesType) {
+func setDefaultServicesState(configuration *parser.Config) {
 	configuration.Config.UtilsConf.ServicesSignal = parser.ServiceSignals{
 		Ping:                  "passive",
 		Jitter:                "passive",
@@ -59,7 +59,7 @@ func setDefaultServicesState(configuration *parser.YAMLBenchRoutesType) {
 
 func Test_module_PING(T *testing.T) {
 	initVars()
-	ping := New(configuration, TestInterval{OfType: "min", Duration: 0}, chainPing)
+	ping := New(configuration, TestInterval{OfType: "min", Duration: 0}, &chainPing)
 	go ping.Iterate("start", true)
 	time.Sleep(time.Second * 30)
 	go ping.Iterate("stop", true)

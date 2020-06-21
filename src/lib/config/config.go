@@ -8,16 +8,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// YAMLParser parses the yaml configuration files which are used as a local storage
-type YAMLParser interface {
-	Load() (bool, error)
-	Write() (bool, error)
-	Validate() bool
-	Refresh() YAMLBenchRoutesType
-}
-
-// YAMLBenchRoutesType defines the structure type for implementing the interface
-type YAMLBenchRoutesType struct {
+// Config defines the structure type for implementing the interface
+type Config struct {
 	mutex   sync.RWMutex
 	Address string
 	Config  *ConfigurationBR
@@ -42,13 +34,19 @@ type Params struct {
 	Value string `yaml:"value"`
 }
 
-// Routes sets routes mentioned in configuration file
-type Routes struct {
+// Body type for parameters passed along the url for specific route
+type Body struct {
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
+}
+
+// Route sets routes mentioned in configuration file
+type Route struct {
 	Method string    `yaml:"method"`
 	URL    string    `yaml:"url"`
-	Route  string    `yaml:"route"`
 	Header []Headers `yaml:"headers"`
 	Params []Params  `yaml:"params"`
+	Body   []Body    `yaml:"body"`
 }
 
 // ResponseChangesConfig acts as a type for monitor-length configuration in config.yml
@@ -75,20 +73,20 @@ type UConfig struct {
 // ConfigurationBR sets a type for configuration file which also acts as a local DB
 type ConfigurationBR struct {
 	Password  string     `yaml:"password"`
-	Interval  []Interval `yaml:"test_interval"`
-	Routes    []Routes   `yaml:"routes"`
 	UtilsConf UConfig    `yaml:"utils"`
+	Interval  []Interval `yaml:"test_interval"`
+	Routes    []Route    `yaml:"routes"`
 }
 
 // New returns an type for implementing the parser interface.
-func New(path string) *YAMLBenchRoutesType {
-	return &YAMLBenchRoutesType{
+func New(path string) *Config {
+	return &Config{
 		Address: path,
 	}
 }
 
 // Load loads the configuration file on startup.
-func (inst *YAMLBenchRoutesType) Load() *YAMLBenchRoutesType {
+func (inst *Config) Load() *Config {
 	inst.mutex.RLock()
 	defer inst.mutex.RUnlock()
 
@@ -107,7 +105,7 @@ func (inst *YAMLBenchRoutesType) Load() *YAMLBenchRoutesType {
 }
 
 // Write force updates the configuration.
-func (inst *YAMLBenchRoutesType) Write() (bool, error) {
+func (inst *Config) Write() (bool, error) {
 	config := *inst.Config
 	r, e := yaml.Marshal(config)
 	if e != nil {
@@ -124,6 +122,27 @@ func (inst *YAMLBenchRoutesType) Write() (bool, error) {
 }
 
 // Refresh refreshes the Configuration settings.
-func (inst *YAMLBenchRoutesType) Refresh() {
+func (inst *Config) Refresh() {
 	inst.Load()
+}
+
+// AddRoute adds route to the Config.
+func (inst *Config) AddRoute(route Route) {
+	inst.mutex.Lock()
+	defer inst.mutex.Unlock()
+	inst.Config.Routes = append(inst.Config.Routes, route)
+	if _, err := inst.Write(); err != nil {
+		panic(err)
+	}
+}
+
+// GetNewRouteType returns a route based on the params provided.
+func GetNewRouteType(method, url string, headers []Headers, params []Params, body []Body) Route {
+	return Route{
+		Method: method,
+		URL:    url,
+		Header: headers,
+		Params: params,
+		Body:   body,
+	}
 }

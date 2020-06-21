@@ -1,23 +1,24 @@
 package ping
 
 import (
+	"fmt"
 	"strconv"
 	"sync"
 	"time"
 
+	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // Ping is the structure that implements the Ping service.
 type Ping struct {
-	localConfig    *parser.YAMLBenchRoutesType
+	localConfig    *parser.Config
 	scrapeInterval TestInterval
-	chain          []*tsdb.Chain
+	chain          *[]*tsdb.Chain
 	test           bool
 }
 
@@ -36,7 +37,7 @@ type Response struct {
 }
 
 // New returns a Ping type.
-func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval, chain []*tsdb.Chain) *Ping {
+func New(configuration *parser.Config, scrapeInterval TestInterval, chain *[]*tsdb.Chain) *Ping {
 	return &Ping{
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
@@ -53,36 +54,27 @@ func (ps *Ping) Iterate(signal string, isTest bool) bool {
 	if isTest {
 		ps.test = true
 	}
-
-	conf := ps.localConfig
-	conf.Refresh()
-	pingServiceState := conf.Config.UtilsConf.ServicesSignal.Ping
-
 	switch signal {
 	case "start":
-		if pingServiceState == "passive" {
-			conf.Config.UtilsConf.ServicesSignal.Ping = "active"
-			_, e := conf.Write()
-			if e != nil {
-				panic(e)
-			}
-			go func() {
-				ps.setConfigurations()
-			}()
-			return true
-		}
-		// return handlePingStart(conf, pingServiceState)
+		// if ps.isRunning {
+		// 	ps.signalStop <- struct{}{}
+		// }
+		ps.localConfig.Config.UtilsConf.ServicesSignal.Ping = "active"
+		// ps.isRunning = true
+		go ps.setConfigurations()
+		return true
 	case "stop":
-		conf.Config.UtilsConf.ServicesSignal.Ping = "passive"
-		_, e := conf.Write()
-		if e != nil {
-			panic(e)
-		}
+		ps.localConfig.Config.UtilsConf.ServicesSignal.Ping = "passive"
 		return true
 	default:
 		logger.Terminal("invalid signal", "f")
 	}
 	return false
+}
+
+// IsActive returns the current state of the service.
+func (ps *Ping) IsActive() bool {
+	return ps.localConfig.Config.UtilsConf.ServicesSignal.Ping == "active"
 }
 
 func (ps *Ping) setConfigurations() {
@@ -105,13 +97,18 @@ func (ps *Ping) setConfigurations() {
 
 func (ps *Ping) perform(urlStack map[string]string, pingInterval TestInterval) {
 	i := 0
-	config := ps.localConfig
 
 	for {
+		// select {
+		// case <-ps.signalStop:
+		// 	ps.isRunning = false
+		// 	break
+		// default:
+		// 	ps.isRunning = true
+		// }
 		i++
-		config.Refresh()
-
-		switch config.Config.UtilsConf.ServicesSignal.Ping {
+		fmt.Println("perform ping", i)
+		switch ps.localConfig.Config.UtilsConf.ServicesSignal.Ping {
 		case "active":
 			err, _ := utils.VerifyConnection()
 			if !err {
@@ -120,7 +117,7 @@ func (ps *Ping) perform(urlStack map[string]string, pingInterval TestInterval) {
 				var wg sync.WaitGroup
 				wg.Add(len(urlStack))
 				for _, u := range urlStack {
-					go ps.ping(u, 10, u, &wg)
+					go ps.ping(u, 3, u, &wg)
 				}
 				wg.Wait()
 			}
@@ -164,10 +161,10 @@ func (ps *Ping) ping(urlRaw string, packets int, tsdbNameHash string, wg *sync.W
 	newBlock := *tsdb.GetNewBlock("ping", getNormalizedBlockString(*result))
 	urlExists := false
 
-	for index := range chain {
-		if chain[index].Path == tsdbNameHash || ps.test {
+	for index := range *chain {
+		if (*chain)[index].Path == tsdbNameHash || ps.test {
 			urlExists = true
-			chain[index] = chain[index].Append(newBlock)
+			(*chain)[index] = (*chain)[index].Append(newBlock)
 			if ps.test {
 				continue
 			}

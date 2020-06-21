@@ -135,11 +135,36 @@ const Input: FC<{}> = () => {
           } catch (e) {
             setTestInputResponse(response['data']);
           }
-          setOpenSnackBar({
-            severity: 'success',
-            message: 'success'
-          });
-          setShowSnackBar(true);
+          fetch(`${HOST_IP}/add-route`, {
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              method: requestType,
+              url: valueURLRoute,
+              params: params,
+              headers: headers,
+              body: body
+            })
+          })
+            .then(response => response.json())
+            .then(
+              () => {
+                setOpenSnackBar({
+                  severity: 'success',
+                  message: 'success'
+                });
+                setShowSnackBar(true);
+              },
+              err => {
+                console.error(err);
+                setOpenSnackBar({
+                  severity: 'error',
+                  message:
+                    'error occurred: please contact the dev team or open a issue at https://github.com/zairza-cetb/bench-routes'
+                });
+                setShowSnackBar(true);
+              }
+            );
           setShowResponseButton(true);
         },
         err => {

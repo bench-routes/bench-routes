@@ -6,18 +6,16 @@ import (
 	"math"
 	"net/http"
 	"net/http/pprof"
-
-	// "net/url"
 	"reflect"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
+	config "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/monitor"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/request"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/brt"
@@ -33,18 +31,30 @@ const (
 
 // API type for implementing the API interface.
 type API struct {
-	ResponseStatus string
-	Data, Services interface{}
-	Matrix         *utils.BRmap
-	config         *parser.YAMLBenchRoutesType
+	ResponseStatus      string
+	Data, Services      interface{}
+	Matrix              *utils.BRmap
+	config              *config.Config
+	reloadConfigURLs    *chan struct{}
+	receiveFinishSignal *chan struct{}
+}
+
+type inputRequest struct {
+	Method  string            `json:"method"`
+	URL     string            `json:"url"`
+	Params  map[string]string `json:"params"`
+	Headers map[string]string `json:"headers"`
+	Body    map[string]string `json:"body"`
 }
 
 // New returns the API type for implementing the API interface.
-func New(matrix *utils.BRmap, config *parser.YAMLBenchRoutesType, services interface{}) *API {
+func New(matrix *utils.BRmap, config *config.Config, services interface{}, reload, done *chan struct{}) *API {
 	return &API{
-		Matrix:   matrix,
-		Services: services,
-		config:   config,
+		Matrix:              matrix,
+		Services:            services,
+		config:              config,
+		reloadConfigURLs:    reload,
+		receiveFinishSignal: done,
 	}
 }
 
@@ -80,6 +90,7 @@ func (a *API) Register(router *mux.Router) {
 		// The package initialization registers it as /debug/pprof/symbol.
 		router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	}
+	router.HandleFunc("/add-route", a.AddRouteToMonitoring)
 	router.HandleFunc("/br-live-check", a.Home)
 	router.HandleFunc("/config/update-interval", a.ModifyIntervalDuration)
 	router.HandleFunc("/get-monitoring-services-state", a.GetMonitoringState)
@@ -101,34 +112,6 @@ func (a *API) Home(w http.ResponseWriter, r *http.Request) {
 	logger.Terminal(msg, "p")
 }
 
-// QuickTestInput tests the API input from the /quick-input route page
-// of the react-UI.
-func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		panic(err)
-	}
-	var t struct {
-		Method  string            `json:"method"`
-		URL     string            `json:"url"`
-		Params  map[string]string `json:"params"`
-		Headers map[string]string `json:"headers"`
-		Body    map[string]string `json:"body"`
-	}
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&t); err != nil {
-		panic(err)
-	}
-	fmt.Println(t)
-	fmt.Println("url: ", t.URL)
-	fmt.Println("headers: ", t.Headers)
-	fmt.Println("params: ", t.Params)
-	req := request.New(t.URL, t.Headers, t.Params, t.Body)
-	response := make(chan string)
-	go req.Send(request.GET, response)
-	a.Data = <-response
-	a.send(w, a.marshalled())
-}
-
 // UIv1 serves the v1.0 version of user-interface of bench-routes.
 // ui-builds/v1.0 is served through this.
 func (a *API) UIv1(w http.ResponseWriter, r *http.Request) {
@@ -143,7 +126,7 @@ func (a *API) TestTemplate(w http.ResponseWriter, r *http.Request) {
 // ServiceState handles requests related to the state of the Services in
 // the application.
 func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
-	p := parser.New(utils.ConfigurationFilePath)
+	p := config.New(utils.ConfigurationFilePath)
 	p.Refresh()
 
 	a.Data = struct {
@@ -162,13 +145,13 @@ func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
 
 // RoutesSummary handles requests related to summarized-configuration details.
 func (a *API) RoutesSummary(w http.ResponseWriter, r *http.Request) {
-	p := parser.New(utils.ConfigurationFilePath)
+	p := config.New(utils.ConfigurationFilePath)
 	p.Refresh()
 
 	var servicesRoutes, monitoringRoutes []string
 	for _, r := range p.Config.Routes {
 		servicesRoutes = append(servicesRoutes, r.URL)
-		monitoringRoutes = append(monitoringRoutes, r.Method+": "+r.URL+"/"+r.Route)
+		monitoringRoutes = append(monitoringRoutes, r.Method+": "+r.URL)
 	}
 
 	a.Data = struct {
@@ -235,8 +218,12 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 // dependent on a route name as in matrix key.
 func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 	routeNameMatrix := r.URL.Query().Get("routeNameMatrix")
-	if _, ok := (*a.Matrix)[routeNameMatrix]; !ok {
-		a.Data = "ROUTE_NAME_NOT_IN_MATRIX"
+	instanceKey, err := strconv.Atoi(routeNameMatrix)
+	if err != nil {
+		panic(err)
+	}
+	if _, ok := (*a.Matrix)[instanceKey]; !ok {
+		a.Data = "ROUTE_NAME_AKA_INSTANCE_KEY_NOT_IN_MATRIX"
 		a.send(w, a.marshalled())
 		return
 	}
@@ -254,7 +241,7 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		query.SetRange(curr, from)
 		c <- query.ExecWithoutEncode()
 	}
-	matrix := (*a.Matrix)[routeNameMatrix]
+	matrix := (*a.Matrix)[instanceKey]
 	if startTimestampStr == "" && endTimestampStr == "" {
 		curr := time.Now().UnixNano()
 		from := curr - (brt.Minute * 20)
@@ -302,6 +289,55 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 	a.send(w, a.marshalled())
 }
 
+// QuickTestInput tests the API input from the /quick-input route page
+// of the react-UI.
+func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		panic(err)
+	}
+	var (
+		t       inputRequest
+		decoder = json.NewDecoder(r.Body)
+	)
+	if err := decoder.Decode(&t); err != nil {
+		panic(err)
+	}
+	fmt.Println(t)
+	fmt.Println("url: ", t.URL)
+	fmt.Println("headers: ", t.Headers)
+	fmt.Println("params: ", t.Params)
+	req := request.New(t.URL, t.Headers, t.Params, t.Body)
+	response := make(chan string)
+	go req.Send(request.GET, response)
+	a.Data = <-response
+	a.send(w, a.marshalled())
+}
+
+// AddRouteToMonitoring adds a new route to the config.
+func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
+	var (
+		t       inputRequest
+		decoder = json.NewDecoder(r.Body)
+	)
+	if err := decoder.Decode(&t); err != nil {
+		panic(err)
+	}
+	requestInstance := request.New(t.URL, t.Headers, t.Params, t.Body)
+	a.config.AddRoute(
+		config.GetNewRouteType(
+			t.Method,
+			t.URL,
+			requestInstance.GetHeadersConfigFormatted(),
+			requestInstance.GetParamsConfigFormatted(),
+			requestInstance.GetBodyConfigFormatted(),
+		),
+	)
+	*a.reloadConfigURLs <- struct{}{}
+	a.Data = "success"
+	a.send(w, a.marshalled())
+	<-*a.receiveFinishSignal
+}
+
 // TSDBPathDetails responds with the path details that will be used for
 // passing into the querier's timeSeriesPath.
 func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
@@ -310,11 +346,11 @@ func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 		chainDetails = append(chainDetails, utils.ResponseTSDBChains{
 			Name: v.Domain,
 			Path: utils.ChainPath{
-				MatrixName: n,
-				Ping:       trim(v.PingChain.Path),
-				Jitter:     trim(v.JitterChain.Path),
-				Fping:      trim(v.FPingChain.Path),
-				Monitor:    trim(v.MonitorChain.Path),
+				InstanceKey: n,
+				Ping:        trim(v.PingChain.Path),
+				Jitter:      trim(v.JitterChain.Path),
+				Fping:       trim(v.FPingChain.Path),
+				Monitor:     trim(v.MonitorChain.Path),
 			},
 		})
 	}
@@ -326,45 +362,60 @@ func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Request) {
 	state := r.URL.Query().Get("state")
 	if state != "start" && state != "stop" {
-		panic("start-monitoring: invalid state received: " + state)
+		fmt.Println("start-monitoring: invalid state received: " + state)
+		a.Data = "INVALID_STATE"
+	} else {
+		a.Data = true
 	}
-
 	service := reflect.ValueOf(a.Services).Elem()
 	sp, ok := service.FieldByName("Ping").Interface().(*ping.Ping)
 	if !ok {
 		panic("start-monitoring: ping not found")
 	}
-	if !sp.Iterate(state, false) {
-		panic("start-monitoring: triggering monitoring: ping")
+
+	sp.Iterate(state, false)
+
+	sj, ok := service.FieldByName("Jitter").Interface().(*jitter.Jitter)
+	if !ok {
+		panic("start-monitoring: jitter not found")
+	}
+	sj.Iterate(state, false)
+
+	sm, ok := service.FieldByName("Monitor").Interface().(*monitor.Monitor)
+	if !ok {
+		panic("start-monitoring: monitor not found")
+	}
+	sm.Iterate(state, false)
+	a.send(w, a.marshalled())
+}
+
+// GetMonitoringState returns the monitoring state.
+func (a *API) GetMonitoringState(w http.ResponseWriter, r *http.Request) {
+	service := reflect.ValueOf(a.Services).Elem()
+	sp, ok := service.FieldByName("Ping").Interface().(*ping.Ping)
+	if !ok {
+		panic("start-monitoring: ping not found")
 	}
 
 	sj, ok := service.FieldByName("Jitter").Interface().(*jitter.Jitter)
 	if !ok {
 		panic("start-monitoring: jitter not found")
 	}
-	if !sj.Iterate(state, false) {
-		panic("start-monitoring: triggering monitoring: jitter")
-	}
 
 	sm, ok := service.FieldByName("Monitor").Interface().(*monitor.Monitor)
 	if !ok {
 		panic("start-monitoring: monitor not found")
 	}
-	if !sm.Iterate(state, false) {
-		panic("start-monitoring: triggering monitoring: monitor")
+
+	if sp.IsActive() != sj.IsActive() || sm.IsActive() != sp.IsActive() || sm.IsActive() != sj.IsActive() {
+		panic("states not aligned")
 	}
 
-	a.Data = true
-	a.send(w, a.marshalled())
-}
-
-// GetMonitoringState returns the monitoring state.
-func (a *API) GetMonitoringState(w http.ResponseWriter, r *http.Request) {
-	services := a.config.Config.UtilsConf.ServicesSignal
-	if services.Jitter != services.Ping && services.Jitter != services.ReqResDelayMonitoring {
-		panic("get-monitoring-state: services state not aligned")
+	if sp.IsActive() {
+		a.Data = "active"
+	} else {
+		a.Data = "passive"
 	}
-	a.Data = services.Jitter
 	a.send(w, a.marshalled())
 }
 

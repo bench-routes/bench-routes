@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	config "github.com/zairza-cetb/bench-routes/src/lib/config"
 )
 
 // Type-inputs for sending requests.
@@ -45,7 +47,7 @@ func (q *QuickInput) Send(method uint, getResponse chan string) {
 		if err != nil {
 			panic(err)
 		}
-		q.formatHeaders(request)
+		q.applyHeaders(request)
 		response, err := client.Do(request)
 		defer response.Body.Close()
 		if err != nil {
@@ -78,11 +80,41 @@ func (q *QuickInput) formatParams() string {
 	return p[0 : len(p)-1]
 }
 
-func (q *QuickInput) formatHeaders(request *http.Request) {
+func (q *QuickInput) applyHeaders(request *http.Request) {
 	for k, v := range q.headers {
 		if k == "" {
 			continue
 		}
 		request.Header.Set(k, v)
 	}
+}
+
+// GetHeadersConfigFormatted converts the format of the headers
+// into a config valid header format.
+func (q *QuickInput) GetHeadersConfigFormatted() []config.Headers {
+	var headers []config.Headers
+	for k, v := range q.headers {
+		headers = append(headers, config.Headers{OfType: k, Value: v})
+	}
+	return headers
+}
+
+// GetParamsConfigFormatted converts the format of the params
+// into a config valid params format.
+func (q *QuickInput) GetParamsConfigFormatted() []config.Params {
+	var p []config.Params
+	for k, v := range q.params {
+		p = append(p, config.Params{Name: k, Value: v})
+	}
+	return p
+}
+
+// GetBodyConfigFormatted converts the format of the body
+// into a config valid body format.
+func (q *QuickInput) GetBodyConfigFormatted() []config.Body {
+	var p []config.Body
+	for k, v := range q.body {
+		p = append(p, config.Body{Name: k, Value: v})
+	}
+	return p
 }

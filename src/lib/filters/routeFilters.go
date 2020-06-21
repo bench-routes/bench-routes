@@ -3,7 +3,7 @@ package filters
 import (
 	"encoding/json"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
+	"github.com/zairza-cetb/bench-routes/src/lib/config"
 )
 
 // Params JSON implementation of config-parser.go
@@ -32,7 +32,7 @@ type RouteJSONParser struct {
 	Routes []Routes `json:"routes"`
 }
 
-func RouteYAMLtoJSONParser(r []parser.Routes) (rr []byte) {
+func RouteYAMLtoJSONParser(r []parser.Route) (rr []byte) {
 	var rp RouteJSONParser
 	for _, route := range r {
 		var tmpH []Headers
@@ -55,7 +55,6 @@ func RouteYAMLtoJSONParser(r []parser.Routes) (rr []byte) {
 		tmp := Routes{
 			Method: route.Method,
 			URL:    route.URL,
-			Route:  route.Route,
 			Header: tmpH,
 			Params: tmpP,
 		}

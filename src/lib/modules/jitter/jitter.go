@@ -7,18 +7,18 @@ import (
 
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 
+	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // Jitter is the structure that implements the Jitter service.
 type Jitter struct {
-	localConfig    *parser.YAMLBenchRoutesType
+	localConfig    *parser.Config
 	scrapeInterval TestInterval
-	chain          []*tsdb.Chain
+	chain          *[]*tsdb.Chain
 	test           bool
 }
 
@@ -34,7 +34,7 @@ type Response struct {
 }
 
 // New returns a Jitter type.
-func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval, chain []*tsdb.Chain) *Jitter {
+func New(configuration *parser.Config, scrapeInterval TestInterval, chain *[]*tsdb.Chain) *Jitter {
 	return &Jitter{
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
@@ -52,33 +52,27 @@ func (ps *Jitter) Iterate(signal string, isTest bool) bool {
 		ps.test = true
 	}
 
-	conf := ps.localConfig
-	conf.Refresh()
-	pingServiceState := conf.Config.UtilsConf.ServicesSignal.Jitter
-
 	switch signal {
 	case "start":
-		if pingServiceState == "passive" {
-			conf.Config.UtilsConf.ServicesSignal.Jitter = "active"
-			_, e := conf.Write()
-			if e != nil {
-				panic(e)
-			}
-			go ps.setConfigurations()
-			return true
-		}
+		// if ps.isRunning {
+		// 	ps.signalStop <- struct{}{}
+		// }
+		ps.localConfig.Config.UtilsConf.ServicesSignal.Jitter = "active"
+		// ps.isRunning = true
+		go ps.setConfigurations()
 		return true
 	case "stop":
-		conf.Config.UtilsConf.ServicesSignal.Jitter = "passive"
-		_, e := conf.Write()
-		if e != nil {
-			panic(e)
-		}
+		ps.localConfig.Config.UtilsConf.ServicesSignal.Jitter = "passive"
 		return true
 	default:
 		logger.Terminal("invalid signal", "f")
 	}
 	return false
+}
+
+// IsActive returns the current state of the service.
+func (ps *Jitter) IsActive() bool {
+	return ps.localConfig.Config.UtilsConf.ServicesSignal.Jitter == "active"
 }
 
 func (ps *Jitter) setConfigurations() {
@@ -101,13 +95,17 @@ func (ps *Jitter) setConfigurations() {
 
 func (ps *Jitter) perform(urlStack map[string]string, pingInterval TestInterval) {
 	i := 0
-	config := ps.localConfig
 
 	for {
+		// select {
+		// case <-ps.signalStop:
+		// 	ps.isRunning = false
+		// 	break
+		// default:
+		// 	ps.isRunning = true
+		// }
 		i++
-		config.Refresh()
-
-		switch config.Config.UtilsConf.ServicesSignal.Jitter {
+		switch ps.localConfig.Config.UtilsConf.ServicesSignal.Jitter {
 		case "active":
 			err, _ := utils.VerifyConnection()
 			if !err {
@@ -159,10 +157,10 @@ func (ps *Jitter) jitter(urlRaw string, packets int, tsdbNameHash string, wg *sy
 	result := scrap.CLIJitterScrap(resp)
 	newBlock := *tsdb.GetNewBlock("jitter", fToS(result))
 	urlExists := false
-	for index := range chain {
-		if chain[index].Path == tsdbNameHash || ps.test {
+	for index := range *chain {
+		if (*chain)[index].Path == tsdbNameHash || ps.test {
 			urlExists = true
-			chain[index].Append(newBlock)
+			(*chain)[index].Append(newBlock)
 			if ps.test {
 				continue
 			}

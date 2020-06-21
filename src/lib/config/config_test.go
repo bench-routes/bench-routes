@@ -9,7 +9,7 @@ const (
 )
 
 var (
-	inst = YAMLBenchRoutesType{
+	inst = Config{
 		Address: path,
 		Config:  &ConfigurationBR{},
 	}

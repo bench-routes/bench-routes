@@ -8,7 +8,7 @@ import (
 
 // ValidateRoutesProp validates the `routes` property
 // in the configuration file.
-func ValidateRoutesProp(routes []Routes) {
+func ValidateRoutesProp(routes []Route) {
 	if len(routes) == 0 {
 		logger.Terminal("`routes` property is missing.", "f")
 	} else {
@@ -70,7 +70,7 @@ func ValidatePasswordProp(password string) {
 }
 
 // Validate validates the local configuration file.
-func (inst *YAMLBenchRoutesType) Validate() bool {
+func (inst *Config) Validate() bool {
 	config := *inst.Config
 	ValidatePasswordProp(config.Password)
 	ValidateRoutesProp(config.Routes)

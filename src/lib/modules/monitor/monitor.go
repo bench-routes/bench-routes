@@ -1,29 +1,30 @@
 package monitor
 
 import (
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"io/ioutil"
 	"math"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+
+	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
-	"github.com/zairza-cetb/bench-routes/src/lib/parser"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 const (
-	// PathPing stores the default address of storage directory of ping data
+	// PathReqResDelay stores the default address of storage directory of ping data
 	PathReqResDelay = "storage/req-res-delay-monitoring"
 )
 
 // Monitor is the structure that implements the Monitoring service.
 type Monitor struct {
-	localConfig    *parser.YAMLBenchRoutesType
+	localConfig    *parser.Config
 	scrapeInterval TestInterval
-	chain          []*tsdb.Chain
+	chain          *[]*tsdb.Chain
 	test           bool
 }
 
@@ -34,7 +35,7 @@ type TestInterval struct {
 }
 
 // New returns a Monitor type.
-func New(configuration *parser.YAMLBenchRoutesType, scrapeInterval TestInterval, chain []*tsdb.Chain) *Monitor {
+func New(configuration *parser.Config, scrapeInterval TestInterval, chain *[]*tsdb.Chain) *Monitor {
 	return &Monitor{
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
@@ -52,28 +53,17 @@ func (ps *Monitor) Iterate(signal string, isTest bool) bool {
 		ps.test = true
 	}
 
-	conf := ps.localConfig
-	conf.Refresh()
-	serviceState := conf.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring
-
 	switch signal {
 	case "start":
-		if serviceState == "passive" {
-			conf.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "active"
-			_, e := conf.Write()
-			if e != nil {
-				panic(e)
-			}
-			go ps.perform()
-			return true
-		}
+		// if ps.isRunning {
+		// 	ps.signalStop <- struct{}{}
+		// }
+		ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "active"
+		// ps.isRunning = true
+		go ps.perform()
 		return true
 	case "stop":
-		conf.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "passive"
-		_, e := conf.Write()
-		if e != nil {
-			panic(e)
-		}
+		ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "passive"
 		return true
 	default:
 		logger.Terminal("invalid signal", "f")
@@ -81,17 +71,26 @@ func (ps *Monitor) Iterate(signal string, isTest bool) bool {
 	return false
 }
 
+// IsActive returns the current state of the service.
+func (ps *Monitor) IsActive() bool {
+	return ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring == "active"
+}
+
 // perform carries out monitoring activities.
 func (ps *Monitor) perform() {
 	routes := ps.localConfig.Config.Routes
 
 	for {
-		config := ps.localConfig
-		config.Refresh()
+		// select {
+		// case <-ps.signalStop:
+		// 	ps.isRunning = false
+		// 	break
+		// default:
+		// 	ps.isRunning = true
+		// }
 
 		reqResMonitoringServiceState := ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring
-
-		monitoringInterval := getInterval(config.Config.Interval, "req-res-delay-and-monitoring")
+		monitoringInterval := getInterval(ps.localConfig.Config.Interval, "req-res-delay-and-monitoring")
 		if monitoringInterval == (TestInterval{}) {
 			logger.Terminal("interval not found in configuration file for req-res monitoring", "f")
 			return
@@ -131,9 +130,9 @@ func (ps *Monitor) perform() {
 	}
 }
 
-func (ps *Monitor) responseDelay(wg *sync.WaitGroup, route parser.Routes) {
+func (ps *Monitor) responseDelay(wg *sync.WaitGroup, route parser.Route) {
 	responseChains := ps.chain
-	routeSuffix := filters.RouteDestroyer(route.URL + "_" + route.Route)
+	routeSuffix := filters.RouteDestroyer(route.URL)
 	// Init paths for request-monitor-monitoring
 	path := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + ".json"
 
@@ -143,9 +142,9 @@ func (ps *Monitor) responseDelay(wg *sync.WaitGroup, route parser.Routes) {
 	g := getNormalizedBlockString(responseObject)
 	block := *tsdb.GetNewBlock("req-res", g)
 
-	for index := range responseChains {
-		if responseChains[index].Path == path || ps.test {
-			responseChains[index] = responseChains[index].Append(block)
+	for index := range *responseChains {
+		if (*responseChains)[index].Path == path || ps.test {
+			(*responseChains)[index] = (*responseChains)[index].Append(block)
 			if ps.test {
 				continue
 			}
@@ -173,7 +172,7 @@ func getInterval(intervals []parser.Interval, testName string) TestInterval {
 }
 
 // routeDispatcher dispatches a route to respective handlers based on it's request type
-func routeDispatcher(route parser.Routes, c chan utils.Response) utils.Response {
+func routeDispatcher(route parser.Route, c chan utils.Response) utils.Response {
 	if route.Method == "GET" {
 		return handleGetRequest(route.URL)
 	}
