@@ -4,10 +4,10 @@ utils:
     mode: 0
     mean: 0
   services-state:
-    ping: active
+    ping: passive
     flood-ping: passive
-    jitter: active
-    req-res-delay-or-monitoring: active
+    jitter: passive
+    req-res-delay-or-monitoring: passive
 test_interval:
 - test: ping
   type: sec
