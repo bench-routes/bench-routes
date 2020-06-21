@@ -26,9 +26,7 @@ func CLIPing(url string, packets int) (*string, error) {
 	url = *filters.HTTPPingFilter(&url)
 	cmd, err := exec.Command(CmdPingBasedOnPacketsNumber, "-c", strconv.Itoa(packets), url).Output()
 	if err != nil {
-		// There was an issue
-		// executing the command.
-		panic(err)
+		return nil, fmt.Errorf("err: %s, url: %s", err.Error(), url)
 	}
 	cmdStr := string(cmd)
 	return &cmdStr, err
@@ -58,5 +56,4 @@ func SendGETRequest(url string) *http.Response {
 		fmt.Println(err)
 	}
 	return resp
-
 }

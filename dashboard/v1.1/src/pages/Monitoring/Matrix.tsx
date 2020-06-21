@@ -17,6 +17,7 @@ import TableRow from '@material-ui/core/TableRow';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import WarningOutlinedIcon from '@material-ui/icons/WarningOutlined';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import { Badge } from 'reactstrap';
 
@@ -95,7 +96,10 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
   if (!data) {
     return (
       <TableRow className="table-data-row" key={timeSeriesPath.path.matrixName}>
-        <TableCell style={{ minWidth: 170, fontSize: 16 }} align="left">
+        <TableCell
+          style={{ width: 170, fontSize: 16, overflowX: 'hidden' }}
+          align="left"
+        >
           <Badge color="light">{timeSeriesPath.name}</Badge>
         </TableCell>
         <TableCell
@@ -129,38 +133,70 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
 
   return (
     <TableRow>
-      <TableCell style={{ minWidth: 170, fontSize: 16 }} align="left">
-        <Badge color="light">{timeSeriesPath.name}</Badge>
+      <TableCell
+        style={{ maxWidth: 240, fontSize: 16, overflowX: 'hidden' }}
+        align="left"
+      >
+        <Badge color="light">
+          <Tooltip title={timeSeriesPath.name}>
+            <div>{timeSeriesPath.name}</div>
+          </Tooltip>
+        </Badge>
       </TableCell>
       <TableCell style={{ minWidth: 100, fontSize: 16 }} align="center">
         <Badge color="warning">
-          {data.ping === undefined
-            ? '-'
-            : round(data.ping.values[0].value.avgValue)}{' '}
+          {data.ping === undefined ? (
+            '-'
+          ) : (
+            <>
+              {data.ping.values === null
+                ? '-'
+                : round(data.ping.values[0].value.avgValue)}
+            </>
+          )}{' '}
+          ms
+        </Badge>
+      </TableCell>
+      <TableCell style={{ minWidth: 120, fontSize: 16 }} align="center">
+        <Badge color="warning">
+          {data.jitter === undefined ? (
+            '-'
+          ) : (
+            <>
+              {data.jitter.values === null
+                ? '-'
+                : round(data.jitter.values[0].value.value)}
+            </>
+          )}{' '}
+          ms
+        </Badge>
+      </TableCell>
+      <TableCell style={{ minWidth: 150, fontSize: 16 }} align="center">
+        <Badge color="warning">
+          {data.monitor === undefined ? (
+            '-'
+          ) : (
+            <>
+              {' '}
+              {data.monitor.values === null
+                ? '-'
+                : data.monitor.values[0].value.delay}{' '}
+            </>
+          )}{' '}
           ms
         </Badge>
       </TableCell>
       <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
         <Badge color="warning">
-          {data.jitter === undefined
-            ? '-'
-            : round(data.jitter.values[0].value.value)}{' '}
-          ms
-        </Badge>
-      </TableCell>
-      <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
-        <Badge color="warning">
-          {data.monitor === undefined
-            ? '-'
-            : data.monitor.values[0].value.delay}{' '}
-          ms
-        </Badge>
-      </TableCell>
-      <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
-        <Badge color="warning">
-          {data.monitor === undefined
-            ? '-'
-            : data.monitor.values[0].value.resLength}
+          {data.monitor === undefined ? (
+            '-'
+          ) : (
+            <>
+              {data.monitor.values === null
+                ? '-'
+                : data.monitor.values[0].value.resLength}
+            </>
+          )}
         </Badge>
       </TableCell>
       <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">

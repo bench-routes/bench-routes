@@ -1,12 +1,13 @@
 package jitter
 
 import (
-	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/config"
+	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
+
+	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
@@ -53,37 +54,27 @@ func (ps *Jitter) Iterate(signal string, isTest bool) bool {
 		ps.test = true
 	}
 
-	conf := ps.localConfig
-	conf.Refresh()
-	pingServiceState := conf.Config.UtilsConf.ServicesSignal.Jitter
-
 	switch signal {
 	case "start":
-		if pingServiceState == "passive" {
-			conf.Config.UtilsConf.ServicesSignal.Jitter = "active"
-			if ps.isRunning {
-				ps.signalStop <- struct{}{}
-			}
-			_, e := conf.Write()
-			if e != nil {
-				panic(e)
-			}
-			ps.isRunning = true
-			go ps.setConfigurations()
-			return true
-		}
+		// if ps.isRunning {
+		// 	ps.signalStop <- struct{}{}
+		// }
+		ps.localConfig.Config.UtilsConf.ServicesSignal.Jitter = "active"
+		// ps.isRunning = true
+		go ps.setConfigurations()
 		return true
 	case "stop":
-		conf.Config.UtilsConf.ServicesSignal.Jitter = "passive"
-		_, e := conf.Write()
-		if e != nil {
-			panic(e)
-		}
+		ps.localConfig.Config.UtilsConf.ServicesSignal.Jitter = "passive"
 		return true
 	default:
 		logger.Terminal("invalid signal", "f")
 	}
 	return false
+}
+
+// IsActive returns the current state of the service.
+func (ps *Jitter) IsActive() bool {
+	return ps.localConfig.Config.UtilsConf.ServicesSignal.Jitter == "active"
 }
 
 func (ps *Jitter) setConfigurations() {
@@ -106,19 +97,17 @@ func (ps *Jitter) setConfigurations() {
 
 func (ps *Jitter) perform(urlStack map[string]string, pingInterval TestInterval) {
 	i := 0
-	config := ps.localConfig
 
 	for {
-		select {
-		case <-ps.signalStop:
-			break
-		default:
-		}
-
+		// select {
+		// case <-ps.signalStop:
+		// 	ps.isRunning = false
+		// 	break
+		// default:
+		// 	ps.isRunning = true
+		// }
 		i++
-		config.Refresh()
-
-		switch config.Config.UtilsConf.ServicesSignal.Jitter {
+		switch ps.localConfig.Config.UtilsConf.ServicesSignal.Jitter {
 		case "active":
 			err, _ := utils.VerifyConnection()
 			if !err {

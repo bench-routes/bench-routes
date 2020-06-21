@@ -14,6 +14,9 @@ interface MonitoringProps {
 
 const ServicesState: FC<{}> = () => {
   const [isActive, setIsActive] = useState<boolean>(false);
+  useEffect(() => {
+    fetchState();
+  }, []);
   const fetchState = () => {
     fetch(`${HOST_IP}/get-monitoring-services-state`)
       .then(res => res.json())
@@ -34,11 +37,10 @@ const ServicesState: FC<{}> = () => {
       .then(res => res.json())
       .then((response: boolean) => {
         if (response) {
-          fetchState();
+          setIsActive(!isActive);
         }
       });
   };
-  fetchState();
   return (
     <Switch
       checked={isActive}

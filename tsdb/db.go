@@ -163,6 +163,7 @@ func (c *Chain) Init() *Chain {
 		c.LengthElements = 0
 		c.Size = unsafe.Sizeof(c)
 		c.Chain = []Block{}
+		c.commit()
 		return c
 	}
 
@@ -204,9 +205,6 @@ func (c *Chain) PopPreviousNBlocks(n int) (*Chain, error) {
 // Commit saves or commits the existing chain in the secondary memory.
 // Returns the success status
 func (c *Chain) commit() *Chain {
-	c.mux.Lock()
-	defer c.mux.Unlock()
-
 	logger.File("writing chain of length"+strconv.Itoa(len(c.Chain)), "p")
 	bytes := parseToJSON(c.Chain)
 	e := saveToHDD(c.Path, bytes)

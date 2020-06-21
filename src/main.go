@@ -88,6 +88,7 @@ func main() {
 			select {
 			case <-reload:
 			}
+			fmt.Println("reloading...")
 			conf.Refresh()
 			for _, r := range conf.Config.Routes {
 				var found bool
@@ -382,17 +383,18 @@ func setMatrixKey(matrix *utils.BRmap, url string) {
 }
 
 func initialize(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
-	msg := "forming " + Type + " chain ... "
+	var (
+		msg = "forming " + Type + " chain ... "
+		mux sync.RWMutex
+	)
 	logger.File(msg, "p")
 	config, ok := conf.([]string)
+	mux.Lock()
+	defer mux.Unlock()
 	if ok {
 		for _, v := range config {
 			v = filters.HTTPPingFilterValue(v)
 			path := basePath + "/chunk_" + Type + "_" + v + ".json"
-			if _, ok := initializedChains[path]; ok {
-				continue
-			}
-			initializedChains[path] = true
 			resp := tsdb.NewChain(path)
 			resp.Init()
 			*chain = append(*chain, resp)

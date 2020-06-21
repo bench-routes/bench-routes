@@ -1,14 +1,15 @@
 package monitor
 
 import (
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"io/ioutil"
 	"math"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/config"
+	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+
+	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
@@ -54,32 +55,17 @@ func (ps *Monitor) Iterate(signal string, isTest bool) bool {
 		ps.test = true
 	}
 
-	conf := ps.localConfig
-	conf.Refresh()
-	serviceState := conf.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring
-
 	switch signal {
 	case "start":
-		if serviceState == "passive" {
-			if ps.isRunning {
-				ps.signalStop <- struct{}{}
-			}
-			conf.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "active"
-			_, e := conf.Write()
-			if e != nil {
-				panic(e)
-			}
-			ps.isRunning = true
-			go ps.perform()
-			return true
-		}
+		// if ps.isRunning {
+		// 	ps.signalStop <- struct{}{}
+		// }
+		ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "active"
+		// ps.isRunning = true
+		go ps.perform()
 		return true
 	case "stop":
-		conf.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "passive"
-		_, e := conf.Write()
-		if e != nil {
-			panic(e)
-		}
+		ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "passive"
 		return true
 	default:
 		logger.Terminal("invalid signal", "f")
@@ -87,22 +73,26 @@ func (ps *Monitor) Iterate(signal string, isTest bool) bool {
 	return false
 }
 
+// IsActive returns the current state of the service.
+func (ps *Monitor) IsActive() bool {
+	return ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring == "active"
+}
+
 // perform carries out monitoring activities.
 func (ps *Monitor) perform() {
 	routes := ps.localConfig.Config.Routes
 
 	for {
-		select {
-		case <-ps.signalStop:
-			break
-		default:
-		}
-		config := ps.localConfig
-		config.Refresh()
+		// select {
+		// case <-ps.signalStop:
+		// 	ps.isRunning = false
+		// 	break
+		// default:
+		// 	ps.isRunning = true
+		// }
 
 		reqResMonitoringServiceState := ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring
-
-		monitoringInterval := getInterval(config.Config.Interval, "req-res-delay-and-monitoring")
+		monitoringInterval := getInterval(ps.localConfig.Config.Interval, "req-res-delay-and-monitoring")
 		if monitoringInterval == (TestInterval{}) {
 			logger.Terminal("interval not found in configuration file for req-res monitoring", "f")
 			return

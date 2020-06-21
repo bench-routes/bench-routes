@@ -330,38 +330,9 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 		),
 	)
 	*a.reloadConfigURLs <- struct{}{}
-	<-*a.receiveFinishSignal
-	service := reflect.ValueOf(a.Services).Elem()
-
-	// ping
-	sp, ok := service.FieldByName("Ping").Interface().(*ping.Ping)
-	if !ok {
-		panic("start-monitoring: ping not found")
-	}
-	if !sp.Iterate("start", false) {
-		panic("start-monitoring: triggering monitoring: ping")
-	}
-
-	// jitter
-	sj, ok := service.FieldByName("Jitter").Interface().(*jitter.Jitter)
-	if !ok {
-		panic("start-monitoring: jitter not found")
-	}
-	if !sj.Iterate("start", false) {
-		panic("start-monitoring: triggering monitoring: jitter")
-	}
-
-	// monitor
-	sm, ok := service.FieldByName("Monitor").Interface().(*monitor.Monitor)
-	if !ok {
-		panic("start-monitoring: monitor not found")
-	}
-	if !sm.Iterate("start", false) {
-		panic("start-monitoring: triggering monitoring: monitor")
-	}
-
 	a.Data = "success"
 	a.send(w, a.marshalled())
+	<-*a.receiveFinishSignal
 }
 
 // TSDBPathDetails responds with the path details that will be used for
@@ -369,10 +340,6 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 	var chainDetails []utils.ResponseTSDBChains
 	for n, v := range *a.Matrix {
-		fmt.Println("n is below")
-		fmt.Println(n)
-		fmt.Println("v is below")
-		fmt.Println(v)
 		chainDetails = append(chainDetails, utils.ResponseTSDBChains{
 			Name: v.Domain,
 			Path: utils.ChainPath{
@@ -392,45 +359,60 @@ func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Request) {
 	state := r.URL.Query().Get("state")
 	if state != "start" && state != "stop" {
-		panic("start-monitoring: invalid state received: " + state)
+		fmt.Println("start-monitoring: invalid state received: " + state)
+		a.Data = "INVALID_STATE"
+	} else {
+		a.Data = true
 	}
-
 	service := reflect.ValueOf(a.Services).Elem()
 	sp, ok := service.FieldByName("Ping").Interface().(*ping.Ping)
 	if !ok {
 		panic("start-monitoring: ping not found")
 	}
-	if !sp.Iterate(state, false) {
-		panic("start-monitoring: triggering monitoring: ping")
+
+	sp.Iterate(state, false)
+
+	sj, ok := service.FieldByName("Jitter").Interface().(*jitter.Jitter)
+	if !ok {
+		panic("start-monitoring: jitter not found")
+	}
+	sj.Iterate(state, false)
+
+	sm, ok := service.FieldByName("Monitor").Interface().(*monitor.Monitor)
+	if !ok {
+		panic("start-monitoring: monitor not found")
+	}
+	sm.Iterate(state, false)
+	a.send(w, a.marshalled())
+}
+
+// GetMonitoringState returns the monitoring state.
+func (a *API) GetMonitoringState(w http.ResponseWriter, r *http.Request) {
+	service := reflect.ValueOf(a.Services).Elem()
+	sp, ok := service.FieldByName("Ping").Interface().(*ping.Ping)
+	if !ok {
+		panic("start-monitoring: ping not found")
 	}
 
 	sj, ok := service.FieldByName("Jitter").Interface().(*jitter.Jitter)
 	if !ok {
 		panic("start-monitoring: jitter not found")
 	}
-	if !sj.Iterate(state, false) {
-		panic("start-monitoring: triggering monitoring: jitter")
-	}
 
 	sm, ok := service.FieldByName("Monitor").Interface().(*monitor.Monitor)
 	if !ok {
 		panic("start-monitoring: monitor not found")
 	}
-	if !sm.Iterate(state, false) {
-		panic("start-monitoring: triggering monitoring: monitor")
+
+	if sp.IsActive() != sj.IsActive() || sm.IsActive() != sp.IsActive() || sm.IsActive() != sj.IsActive() {
+		panic("states not aligned")
 	}
 
-	a.Data = true
-	a.send(w, a.marshalled())
-}
-
-// GetMonitoringState returns the monitoring state.
-func (a *API) GetMonitoringState(w http.ResponseWriter, r *http.Request) {
-	services := a.config.Config.UtilsConf.ServicesSignal
-	if services.Jitter != services.Ping && services.Jitter != services.ReqResDelayMonitoring {
-		panic("get-monitoring-state: services state not aligned")
+	if sp.IsActive() {
+		a.Data = "active"
+	} else {
+		a.Data = "passive"
 	}
-	a.Data = services.Jitter
 	a.send(w, a.marshalled())
 }
 

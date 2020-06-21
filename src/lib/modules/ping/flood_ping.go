@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/config"
+	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
@@ -51,37 +51,28 @@ func (ps *FloodPing) Iteratef(signal string, isTest bool) bool {
 	if isTest {
 		ps.test = true
 	}
-	conf := ps.localConfig
-	conf.Refresh()
-	pingServiceState := conf.Config.UtilsConf.ServicesSignal.FloodPing
 
 	switch signal {
 	case "start":
-		if pingServiceState == "passive" {
-			if ps.isRunning {
-				ps.signalStop <- struct{}{}
-			}
-			conf.Config.UtilsConf.ServicesSignal.FloodPing = "active"
-			_, e := conf.Write()
-			if e != nil {
-				panic(e)
-			}
-			ps.isRunning = true
-			go ps.setConfigurations()
-			return true
-		}
-		// return handlePingStart(conf, pingServiceState)
+		// if ps.isRunning {
+		// 	ps.signalStop <- struct{}{}
+		// }
+		ps.localConfig.Config.UtilsConf.ServicesSignal.FloodPing = "active"
+		// ps.isRunning = true
+		go ps.setConfigurations()
+		return true
 	case "stop":
-		conf.Config.UtilsConf.ServicesSignal.FloodPing = "passive"
-		_, e := conf.Write()
-		if e != nil {
-			panic(e)
-		}
+		ps.localConfig.Config.UtilsConf.ServicesSignal.FloodPing = "passive"
 		return true
 	default:
 		logger.Terminal("invalid signal", "f")
 	}
 	return false
+}
+
+// GetServiceState returns the current state of the service.
+func (ps *FloodPing) GetServiceState() bool {
+	return ps.localConfig.Config.UtilsConf.ServicesSignal.FloodPing == "active"
 }
 
 func (ps *FloodPing) setConfigurations() {
@@ -104,19 +95,14 @@ func (ps *FloodPing) setConfigurations() {
 
 func (ps *FloodPing) perform(urlStack map[string]string, pingInterval TestInterval) {
 	i := 0
-	config := ps.localConfig
-
 	for {
-		select {
-		case <-ps.signalStop:
-			break
-		default:
-		}
-
+		// select {
+		// case <-ps.signalStop:
+		// 	break
+		// default:
+		// }
 		i++
-		config.Refresh()
-
-		switch config.Config.UtilsConf.ServicesSignal.FloodPing {
+		switch ps.localConfig.Config.UtilsConf.ServicesSignal.FloodPing {
 		case "active":
 			err, _ := utils.VerifyConnection()
 			if !err {
