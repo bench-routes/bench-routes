@@ -19,8 +19,6 @@ type FloodPing struct {
 	chain          *[]*tsdb.Chain
 	password       string
 	test           bool
-	isRunning      bool
-	signalStop     chan struct{}
 }
 
 // Newf returns a Flood Ping type.

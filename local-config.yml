@@ -73,47 +73,32 @@ routes:
     value: ""
   body: []
 - method: GET
-  url: https://reqres.in/api/users
+  url: https://reqres.in/api/unknown
   headers: []
-  params:
-  - name: page
-    value: "2"
-  - name: ""
-    value: ""
+  params: []
   body: []
 - method: GET
-  url: https://reqres.in/api/users
+  url: https://reqres.in/api/users/2
   headers: []
-  params:
-  - name: page
-    value: "2"
-  - name: ""
-    value: ""
+  params: []
   body: []
 - method: GET
-  url: https://reqres.in/api/users
+  url: http://dummy.restapiexample.com/api/v1/employees
   headers: []
-  params:
-  - name: page
-    value: "2"
-  - name: ""
-    value: ""
+  params: []
   body: []
 - method: GET
-  url: https://reqres.in/api/users
+  url: https://www.bing.com/search?q=bench-routes&qs=n&form=QBRE&sp=-1&pq=bench-rotes&sc=8-11&sk=&cvid=63660D91E0DD40329FC8123C78DBACE2
   headers: []
-  params:
-  - name: page
-    value: "2"
-  - name: ""
-    value: ""
+  params: []
   body: []
 - method: GET
-  url: https://reqres.in/api/users
+  url: https://github.com/zairza-cetb/bench-routes/pull/274
   headers: []
-  params:
-  - name: page
-    value: "2"
-  - name: ""
-    value: ""
+  params: []
+  body: []
+- method: GET
+  url: https://material-ui.com/components/popover/
+  headers: []
+  params: []
   body: []

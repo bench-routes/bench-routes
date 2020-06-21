@@ -20,10 +20,6 @@ type Ping struct {
 	scrapeInterval TestInterval
 	chain          *[]*tsdb.Chain
 	test           bool
-	isRunning      bool
-	// signalStop is mostly used to reload the configurations of
-	// new urls.
-	signalStop chan struct{}
 }
 
 //TestInterval stores the value of the duration and the type of test

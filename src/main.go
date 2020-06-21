@@ -85,9 +85,7 @@ func main() {
 	done := make(chan struct{})
 	go func() {
 		for {
-			select {
-			case <-reload:
-			}
+			<-reload
 			fmt.Println("reloading...")
 			conf.Refresh()
 			for _, r := range conf.Config.Routes {

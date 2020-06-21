@@ -26,8 +26,6 @@ type Monitor struct {
 	scrapeInterval TestInterval
 	chain          *[]*tsdb.Chain
 	test           bool
-	isRunning      bool
-	signalStop     chan struct{}
 }
 
 //TestInterval stores the value of the duration and the type of test

@@ -131,7 +131,9 @@ func (inst *Config) AddRoute(route Route) {
 	inst.mutex.Lock()
 	defer inst.mutex.Unlock()
 	inst.Config.Routes = append(inst.Config.Routes, route)
-	inst.Write()
+	if _, err := inst.Write(); err != nil {
+		panic(err)
+	}
 }
 
 // GetNewRouteType returns a route based on the params provided.
