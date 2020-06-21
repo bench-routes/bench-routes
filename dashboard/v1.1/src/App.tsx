@@ -20,7 +20,18 @@ function App() {
       // secondary: <Color>,
     },
     typography: {
-      fontFamily: ['Lato', 'Raleway'].join(','),
+      fontFamily: [
+        '-apple-system',
+        'BlinkMacSystemFont',
+        '"Segoe UI"',
+        'Roboto',
+        '"Helvetica Neue"',
+        'Arial',
+        'sans-serif',
+        '"Apple Color Emoji"',
+        '"Segoe UI Emoji"',
+        '"Segoe UI Symbol"'
+      ].join(','),
       fontSize: 12
     },
     overrides: {

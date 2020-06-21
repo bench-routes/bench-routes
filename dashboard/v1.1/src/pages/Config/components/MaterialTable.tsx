@@ -10,7 +10,8 @@ const SearchTable = (props: any) => {
       style={{ marginTop: '10vh' }}
       options={{
         headerStyle: {
-          fontSize: 20
+          fontSize: 18,
+          fontWeight: 'normal'
         }
       }}
       {...props}
