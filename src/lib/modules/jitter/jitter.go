@@ -127,7 +127,7 @@ func (ps *Jitter) perform(urlStack map[string]string, pingInterval TestInterval)
 			return
 		}
 
-		intrv := time.Duration(pingInterval.Duration)
+		intrv := time.Duration(*ps.localConfig.Config.Interval[1].Duration)
 		switch pingInterval.OfType {
 		case "hr":
 			time.Sleep(intrv * time.Hour)

@@ -4,10 +4,10 @@ utils:
     mode: 0
     mean: 0
   services-state:
-    ping: passive
+    ping: active
     flood-ping: passive
-    jitter: passive
-    req-res-delay-or-monitoring: passive
+    jitter: active
+    req-res-delay-or-monitoring: active
 test_interval:
 - test: ping
   type: sec
@@ -99,6 +99,11 @@ routes:
   body: []
 - method: GET
   url: https://material-ui.com/components/popover/
+  headers: []
+  params: []
+  body: []
+- method: GET
+  url: https://hangouts.google.com/
   headers: []
   params: []
   body: []
