@@ -21,17 +21,20 @@ With an increase in server computational models, the probability of a complete r
 The primary goals of the project are:
 
 ```
-1. Benchmark route
-  (a) Load-handling of application on the individual route.
-  (b) Test various possibilities of data in params (Permutate params), like sending an empty param
-      to see how the server response behaves.
-2. Analyse network performance of the hosted application irrespectively of containerization
-  (a) Network ping
-  (b) Jitter analysis
-  (c) Packet loss
-3. Log error handling capability of the application
-4. Maintain a check on server-route output and alert on changes above the threshold
-5. Graphical view using ElectronJS
+1. Monitor:
+    (a) System level details
+    (b) Kernel and systemd logs
+    (c) Application behaviour
+    (d) Web application and its route-performance/analysis
+    (e) Network
+    (f) Prometheus exporters (TODO)
+2. Benchmark:
+    (a) Web application load
+3. Alert: on
+    (a) Service/route state down
+    (b) Errors/warnings in the kernel level
+    (b) OOR in the instantaneous gauge value in res-delay & length
+
 ```
 
 For installation instructions, please head-over to [INSTALL.md](https://github.com/zairza-cetb/bench-routes/blob/master/INSTALL.md).
@@ -51,6 +54,7 @@ Follow the commands to make the development process easier:
 
 1. Updating the dependencies: `make update`
 2. Executing the application (assuming all dependencies are installed): `make run`
+2. Run UI (assuming all dependencies in `dashboard/v1.1` are installed): `make view-v1.1`
 2. Building the application for the current OS: `make build`
 3. Testing Golang code: `make test`
 4. Complete testing include building for all OSs out there: `make test_complete`
@@ -90,12 +94,8 @@ For more information, regarding usage in different languages. Visit [Bench-Route
 - Ganesh Patro (ganeshpatro321@gmail.com) 
 - Muskan Khedia (muskan.khedia2000@gmail.com) 
 - Ankit Jena (ankitjena13@gmail.com)
-- Marut Pandya (pandyamarut@gmail.com)
-- Vatsal Trivedi (trivedivatsal005@gmail.com )
 
-Feel free to ask your queries!! 🙌
-
-### Gitter Channel
+### Community Channel
 
 - [bench-routes/community](https://gitter.im/bench-routes/community)
 
