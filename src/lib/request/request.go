@@ -2,8 +2,11 @@ package request
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
 
 	config "github.com/zairza-cetb/bench-routes/src/lib/config"
 )
@@ -15,6 +18,8 @@ const (
 	PUT
 	DELETE
 	PATCH
+	// keep NULL to the bottom.
+	NULL
 )
 
 // QuickInput implements the quick-input functionalities.
@@ -37,12 +42,12 @@ func New(url string, headers, params, body map[string]string) *QuickInput {
 // Send sends the requests to the host/target. It can be executed
 // parallely along with other goroutines.
 func (q *QuickInput) Send(method uint, getResponse chan string) {
+	var client http.Client
 	switch method {
 	case GET:
 		if len(q.params) != 0 {
 			q.url += "?" + q.formatParams()
 		}
-		var client http.Client
 		request, err := http.NewRequest("GET", q.url, nil)
 		if err != nil {
 			panic(err)
@@ -53,12 +58,22 @@ func (q *QuickInput) Send(method uint, getResponse chan string) {
 		if err != nil {
 			panic(err)
 		}
-		body, err := ioutil.ReadAll(response.Body)
+		done(response.Body, getResponse)
+	case POST:
+		var form url.Values
+		q.populateBody(&form)
+		request, err := http.NewRequest("POST", q.url, strings.NewReader(form.Encode()))
 		if err != nil {
 			panic(err)
 		}
-		inStr := string(body)
-		getResponse <- inStr
+		request.PostForm = form
+		q.applyHeaders(request)
+		response, err := client.Do(request)
+		defer response.Body.Close()
+		if err != nil {
+			panic(err)
+		}
+		done(response.Body, getResponse)
 	}
 }
 
@@ -89,6 +104,22 @@ func (q *QuickInput) applyHeaders(request *http.Request) {
 	}
 }
 
+// populateBody applies the body as values to be assigned to the request.
+func (q *QuickInput) populateBody(form *url.Values) {
+	for k, v := range q.body {
+		form.Add(k, v)
+	}
+}
+
+func done(_body io.ReadCloser, getResponse chan string) {
+	body, err := ioutil.ReadAll(_body)
+	if err != nil {
+		panic(err)
+	}
+	inStr := string(body)
+	getResponse <- inStr
+}
+
 // GetHeadersConfigFormatted converts the format of the headers
 // into a config valid header format.
 func (q *QuickInput) GetHeadersConfigFormatted() []config.Headers {
@@ -117,4 +148,42 @@ func (q *QuickInput) GetBodyConfigFormatted() []config.Body {
 		p = append(p, config.Body{Name: k, Value: v})
 	}
 	return p
+}
+
+// ToMap converts Headers, Params, Body slices to map.
+func ToMap(slice interface{}) map[string]string {
+	m := make(map[string]string)
+	switch s := slice.(type) {
+	case []config.Headers:
+		for _, el := range s {
+			m[el.OfType] = el.Value
+		}
+	case []config.Params:
+		for _, el := range s {
+			m[el.Name] = el.Value
+		}
+	case []config.Body:
+		for _, el := range s {
+			m[el.Name] = el.Value
+		}
+	}
+	return m
+}
+
+// MethodUintPresentation takes http-method and returns the
+// request compatible method input.
+func MethodUintPresentation(method string) uint {
+	switch method {
+	case "GET":
+		return GET
+	case "POST":
+		return POST
+	case "PUT":
+		return PUT
+	case "DELETE":
+		return DELETE
+	case "PATCH":
+		return PATCH
+	}
+	return NULL
 }
