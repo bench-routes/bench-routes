@@ -1,8 +1,6 @@
 package monitor
 
 import (
-	// "io/ioutil"
-	// "math"
 	"strconv"
 	"sync"
 	"time"
@@ -131,13 +129,12 @@ func (ps *Monitor) responseDelay(wg *sync.WaitGroup, route parser.Route) {
 	stamp := time.Now()
 	go req.Send(request.MethodUintPresentation(route.Method), response)
 	resp := <-response
-	c := utils.Response{
+
+	g := getNormalizedBlockString(utils.Response{
 		Delay:         time.Since(stamp).Seconds(),
 		ResLength:     len(resp),
 		ResStatusCode: 200,
-	}
-
-	g := getNormalizedBlockString(c)
+	})
 	block := *tsdb.GetNewBlock("req-res", g)
 
 	for index := range *responseChains {
