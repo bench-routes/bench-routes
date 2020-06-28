@@ -60,9 +60,9 @@ type FloodPingResp struct {
 // This is the object that we return from resp_delay module
 // Contains delay in monitor and the monitor length
 type Response struct {
-	Delay         int `json:"delay"`
-	ResLength     int `json:"resLength"`
-	ResStatusCode int `json:"resStatusCode"`
+	Delay         float64 `json:"delay"`
+	ResLength     int     `json:"resLength"`
+	ResStatusCode int     `json:"resStatusCode"`
 }
 
 // ResponseResp for responding the querier.

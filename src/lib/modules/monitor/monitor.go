@@ -1,8 +1,6 @@
 package monitor
 
 import (
-	"io/ioutil"
-	"math"
 	"strconv"
 	"sync"
 	"time"
@@ -11,6 +9,7 @@ import (
 
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
+	"github.com/zairza-cetb/bench-routes/src/lib/request"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
@@ -55,11 +54,7 @@ func (ps *Monitor) Iterate(signal string, isTest bool) bool {
 
 	switch signal {
 	case "start":
-		// if ps.isRunning {
-		// 	ps.signalStop <- struct{}{}
-		// }
 		ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "active"
-		// ps.isRunning = true
 		go ps.perform()
 		return true
 	case "stop":
@@ -81,14 +76,6 @@ func (ps *Monitor) perform() {
 	routes := ps.localConfig.Config.Routes
 
 	for {
-		// select {
-		// case <-ps.signalStop:
-		// 	ps.isRunning = false
-		// 	break
-		// default:
-		// 	ps.isRunning = true
-		// }
-
 		reqResMonitoringServiceState := ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring
 		monitoringInterval := getInterval(ps.localConfig.Config.Interval, "req-res-delay-and-monitoring")
 		if monitoringInterval == (TestInterval{}) {
@@ -136,10 +123,18 @@ func (ps *Monitor) responseDelay(wg *sync.WaitGroup, route parser.Route) {
 	// Init paths for request-monitor-monitoring
 	path := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + ".json"
 
-	c := make(chan utils.Response)
-	responseObject := routeDispatcher(route, c)
+	response := make(chan string)
+	req := request.New(route.URL, request.ToMap(route.Header), request.ToMap(route.Params), request.ToMap(route.Body))
+	// responseObject := routeDispatcher(route, c)
+	stamp := time.Now()
+	go req.Send(request.MethodUintPresentation(route.Method), response)
+	resp := <-response
 
-	g := getNormalizedBlockString(responseObject)
+	g := getNormalizedBlockString(utils.Response{
+		Delay:         time.Since(stamp).Seconds(),
+		ResLength:     len(resp),
+		ResStatusCode: 200,
+	})
 	block := *tsdb.GetNewBlock("req-res", g)
 
 	for index := range *responseChains {
@@ -171,42 +166,8 @@ func getInterval(intervals []parser.Interval, testName string) TestInterval {
 	return TestInterval{}
 }
 
-// routeDispatcher dispatches a route to respective handlers based on it's request type
-func routeDispatcher(route parser.Route, c chan utils.Response) utils.Response {
-	if route.Method == "GET" {
-		return handleGetRequest(route.URL)
-	}
-	// If fail, then
-	// send a very large integer to automatically rule out as it
-	// is much much larger than the threshold
-	return utils.Response{Delay: math.MaxInt32, ResLength: 0, ResStatusCode: 100}
-}
-
-// handleGetRequest specifically handles routes with GET Requests. Calculates timestamp before
-// and after processing of each request and returns the difference
-func handleGetRequest(url string) utils.Response {
-	start := time.Now().UnixNano()
-	resp := *utils.SendGETRequest(url)
-	defer resp.Body.Close()
-	content, err := ioutil.ReadAll(resp.Body)
-
-	if err != nil {
-		panic(err)
-	}
-	resLength := len(content)
-	respStatusCode := resp.StatusCode
-
-	end := time.Now().UnixNano()
-	diff := int((end - start) / int64(time.Millisecond))
-	if err := resp.Body.Close(); err != nil {
-		panic(err)
-	}
-
-	return utils.Response{Delay: diff, ResLength: resLength, ResStatusCode: respStatusCode}
-}
-
 // returns the stringified form of the combined data
 func getNormalizedBlockString(b utils.Response) string {
-	return strconv.Itoa(b.Delay) + tsdb.BlockDataSeparator + strconv.Itoa(b.ResLength) + tsdb.BlockDataSeparator +
+	return strconv.FormatFloat(b.Delay, 'f', -1, 64) + tsdb.BlockDataSeparator + strconv.Itoa(b.ResLength) + tsdb.BlockDataSeparator +
 		strconv.Itoa(b.ResStatusCode)
 }

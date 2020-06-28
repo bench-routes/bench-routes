@@ -56,11 +56,7 @@ func (ps *Ping) Iterate(signal string, isTest bool) bool {
 	}
 	switch signal {
 	case "start":
-		// if ps.isRunning {
-		// 	ps.signalStop <- struct{}{}
-		// }
 		ps.localConfig.Config.UtilsConf.ServicesSignal.Ping = "active"
-		// ps.isRunning = true
 		go ps.setConfigurations()
 		return true
 	case "stop":
@@ -99,13 +95,6 @@ func (ps *Ping) perform(urlStack map[string]string, pingInterval TestInterval) {
 	i := 0
 
 	for {
-		// select {
-		// case <-ps.signalStop:
-		// 	ps.isRunning = false
-		// 	break
-		// default:
-		// 	ps.isRunning = true
-		// }
 		i++
 		fmt.Println("perform ping", i)
 		switch ps.localConfig.Config.UtilsConf.ServicesSignal.Ping {

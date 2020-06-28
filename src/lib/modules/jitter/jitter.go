@@ -54,11 +54,7 @@ func (ps *Jitter) Iterate(signal string, isTest bool) bool {
 
 	switch signal {
 	case "start":
-		// if ps.isRunning {
-		// 	ps.signalStop <- struct{}{}
-		// }
 		ps.localConfig.Config.UtilsConf.ServicesSignal.Jitter = "active"
-		// ps.isRunning = true
 		go ps.setConfigurations()
 		return true
 	case "stop":
@@ -97,13 +93,6 @@ func (ps *Jitter) perform(urlStack map[string]string, pingInterval TestInterval)
 	i := 0
 
 	for {
-		// select {
-		// case <-ps.signalStop:
-		// 	ps.isRunning = false
-		// 	break
-		// default:
-		// 	ps.isRunning = true
-		// }
 		i++
 		switch ps.localConfig.Config.UtilsConf.ServicesSignal.Jitter {
 		case "active":

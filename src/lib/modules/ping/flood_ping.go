@@ -52,11 +52,7 @@ func (ps *FloodPing) Iteratef(signal string, isTest bool) bool {
 
 	switch signal {
 	case "start":
-		// if ps.isRunning {
-		// 	ps.signalStop <- struct{}{}
-		// }
 		ps.localConfig.Config.UtilsConf.ServicesSignal.FloodPing = "active"
-		// ps.isRunning = true
 		go ps.setConfigurations()
 		return true
 	case "stop":
@@ -94,11 +90,6 @@ func (ps *FloodPing) setConfigurations() {
 func (ps *FloodPing) perform(urlStack map[string]string, pingInterval TestInterval) {
 	i := 0
 	for {
-		// select {
-		// case <-ps.signalStop:
-		// 	break
-		// default:
-		// }
 		i++
 		switch ps.localConfig.Config.UtilsConf.ServicesSignal.FloodPing {
 		case "active":
