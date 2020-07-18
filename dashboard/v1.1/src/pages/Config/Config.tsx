@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useState, useEffect, lazy, Suspense } from 'react';
 import { HOST_IP, service_states } from '../../utils/types';
 import IntervalDetails from './components/IntervalDetails';
 import {
@@ -8,13 +8,15 @@ import {
   Typography,
   makeStyles,
   Chip,
-  Tooltip
+  Tooltip,
+  CircularProgress
 } from '@material-ui/core';
 import { Edit as EditIcon, Close as CloseIcon } from '@material-ui/icons';
-import SearchTable from './components/MaterialTable';
 import { truncate } from '../../utils/stringManipulations';
 import { useFetch } from '../../utils/useFetch';
 import { Alert } from '@material-ui/lab';
+
+const SearchTable = lazy(() => import('./components/MaterialTable'));
 
 interface IntervalType {
   test: string;
@@ -208,29 +210,82 @@ const Config: FC<{}> = () => {
           );
         })}
       </Grid>
-      <SearchTable
-        title=""
-        columns={columns}
-        data={getTableRoutes(configRoutes)}
-        editable={{
-          onRowUpdate: (newData, oldData) =>
-            new Promise((resolve, reject) => {
-              setTimeout(() => {
-                // const index = oldData.tableData.id;
-
-                resolve();
-              }, 1000);
-            }),
-          onRowDelete: oldData =>
-            new Promise((resolve, reject) => {
-              setTimeout(() => {
-                // const index = oldData.tableData.id;
-
-                resolve();
-              }, 1000);
-            })
-        }}
-      />
+      <Suspense fallback={<CircularProgress disableShrink />}>
+        <SearchTable
+          title=""
+          columns={columns}
+          data={getTableRoutes(configRoutes)}
+          editable={{
+            onRowUpdate: async (
+              newData: TableRouteType,
+              oldData: TableRouteType
+            ) => {
+              try {
+                await fetch(`${HOST_IP}/update-routes`, {
+                  method: 'post',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    action: 'edit',
+                    newRoute: newData.route,
+                    actualRoute: oldData.route
+                  })
+                })
+                  .then(resp => resp.json())
+                  .then(response => {
+                    const { data } = response;
+                    let configRoutes = new Map();
+                    data.forEach(route => {
+                      const uri = route['URL'];
+                      if (!configRoutes.has(uri)) {
+                        configRoutes.set(uri, [route['Method']]);
+                      } else {
+                        configRoutes.set(uri, [
+                          ...configRoutes.get(uri),
+                          route['Method']
+                        ]);
+                      }
+                    });
+                    setConfigRoutes(Array.from(configRoutes));
+                  });
+              } catch (e) {
+                console.log(e);
+              }
+            },
+            onRowDelete: async (oldData: TableRouteType) => {
+              try {
+                await fetch(`${HOST_IP}/update-routes`, {
+                  method: 'post',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    action: 'delete',
+                    newRoute: null,
+                    actualRoute: oldData.route
+                  })
+                })
+                  .then(resp => resp.json())
+                  .then(response => {
+                    const { data } = response;
+                    let configRoutes = new Map();
+                    data.forEach(route => {
+                      const uri = route['URL'];
+                      if (!configRoutes.has(uri)) {
+                        configRoutes.set(uri, [route['Method']]);
+                      } else {
+                        configRoutes.set(uri, [
+                          ...configRoutes.get(uri),
+                          route['Method']
+                        ]);
+                      }
+                    });
+                    setConfigRoutes(Array.from(configRoutes));
+                  });
+              } catch (e) {
+                console.log(e);
+              }
+            }
+          }}
+        />
+      </Suspense>
     </>
   );
 };

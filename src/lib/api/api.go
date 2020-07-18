@@ -97,6 +97,7 @@ func (a *API) Register(router *mux.Router) {
 	router.HandleFunc("/get-config-intervals", a.GetConfigIntervals)
 	router.HandleFunc("/get-config-routes", a.GetConfigRoutes)
 	router.HandleFunc("/get-route-time-series", a.TSDBPathDetails)
+	router.HandleFunc("/update-routes", a.ModifyConfigRoutes)
 	router.HandleFunc("/query-matrix", a.SendMatrix)
 	router.HandleFunc("/query", a.Query)
 	router.HandleFunc("/quick-input", a.QuickTestInput)
@@ -464,6 +465,49 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 		a.ResponseStatus = "400"
 		a.Data = "The string passed is not an integer"
 	}
+	a.send(w, a.marshalled())
+}
+
+// Edit or remove a route from the config screen.
+func (a *API) ModifyConfigRoutes(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		panic(err)
+	}
+	var req struct {
+		Action      string `json:"action"`
+		NewRoute    string `json:"newRoute"`
+		ActualRoute string `json:"actualRoute"`
+	}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&req); err != nil {
+		panic(err)
+	}
+	switch req.Action {
+	case "edit":
+		for i, route := range a.config.Config.Routes {
+			if route.URL == req.ActualRoute {
+				a.config.Config.Routes[i] = config.Route{
+					Method: a.config.Config.Routes[i].Method,
+					URL:    req.NewRoute,
+					Header: a.config.Config.Routes[i].Header,
+					Body:   a.config.Config.Routes[i].Body,
+					Params: a.config.Config.Routes[i].Params,
+				}
+			}
+		}
+	case "delete":
+		for i, route := range a.config.Config.Routes {
+			if route.URL == req.ActualRoute {
+				a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
+			}
+		}
+	}
+	_, err := a.config.Write()
+	if err != nil {
+		a.ResponseStatus = http.StatusText(400)
+	}
+	a.ResponseStatus = http.StatusText(200)
+	a.Data = a.config.Config.Routes
 	a.send(w, a.marshalled())
 }
 
