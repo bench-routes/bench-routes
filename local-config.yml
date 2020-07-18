@@ -118,3 +118,8 @@ routes:
     value: eve.holt@reqres.in
   - name: password
     value: pistol
+- method: POST
+  url: https://www.google.co.in/search
+  headers: []
+  params: []
+  body: []
