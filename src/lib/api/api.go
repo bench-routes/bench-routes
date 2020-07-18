@@ -8,6 +8,7 @@ import (
 	"net/http/pprof"
 	"reflect"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -37,6 +38,7 @@ type API struct {
 	config              *config.Config
 	reloadConfigURLs    *chan struct{}
 	receiveFinishSignal *chan struct{}
+	mux                 sync.RWMutex
 }
 
 type inputRequest struct {
@@ -93,6 +95,7 @@ func (a *API) Register(router *mux.Router) {
 	router.HandleFunc("/add-route", a.AddRouteToMonitoring)
 	router.HandleFunc("/br-live-check", a.Home)
 	router.HandleFunc("/config/update-interval", a.ModifyIntervalDuration)
+	router.HandleFunc("/delete-route", a.DeleteConfigRoutes)
 	router.HandleFunc("/get-monitoring-services-state", a.GetMonitoringState)
 	router.HandleFunc("/get-config-intervals", a.GetConfigIntervals)
 	router.HandleFunc("/get-config-routes", a.GetConfigRoutes)
@@ -104,6 +107,7 @@ func (a *API) Register(router *mux.Router) {
 	router.HandleFunc("/service-state", a.ServiceState)
 	router.HandleFunc("/test", a.TestTemplate)
 	router.HandleFunc("/update-monitoring-services-state", a.UpdateMonitoringServicesState)
+	router.HandleFunc("/update-route", a.UpdateRoute)
 }
 
 // Home handles the requests for the home page.
@@ -302,10 +306,6 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&t); err != nil {
 		panic(err)
 	}
-	fmt.Println(t)
-	fmt.Println("url: ", t.URL)
-	fmt.Println("headers: ", t.Headers)
-	fmt.Println("params: ", t.Params)
 	req := request.New(t.URL, t.Headers, t.Params, t.Body)
 	response := make(chan string)
 	go req.Send(request.GET, response)
@@ -464,6 +464,80 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 		a.ResponseStatus = "400"
 		a.Data = "The string passed is not an integer"
 	}
+	a.send(w, a.marshalled())
+}
+
+// Update a route in the local config
+func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		panic(err)
+	}
+	var (
+		req struct {
+			Method   string            `json:"method"`
+			URL      string            `json:"url"`
+			Params   map[string]string `json:"params"`
+			Headers  map[string]string `json:"headers"`
+			Body     map[string]string `json:"body"`
+			OrgRoute string            `json:"orgRoute"`
+		}
+		decoder = json.NewDecoder(r.Body)
+	)
+	if err := decoder.Decode(&req); err != nil {
+		panic(err)
+	}
+	requestInstance := request.New(req.URL, req.Headers, req.Params, req.Body)
+	for i, route := range a.config.Config.Routes {
+		if route.URL == req.OrgRoute && route.Method == req.Method {
+			a.mux.Lock()
+			a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
+			a.config.Config.Routes[i] = config.GetNewRouteType(
+				req.Method,
+				req.URL,
+				requestInstance.GetHeadersConfigFormatted(),
+				requestInstance.GetParamsConfigFormatted(),
+				requestInstance.GetBodyConfigFormatted(),
+			)
+			a.mux.Unlock()
+			*a.reloadConfigURLs <- struct{}{}
+			break
+		}
+	}
+	_, err := a.config.Write()
+	if err != nil {
+		a.ResponseStatus = http.StatusText(400)
+	}
+	a.ResponseStatus = http.StatusText(200)
+	a.Data = a.config.Config.Routes
+	a.send(w, a.marshalled())
+}
+
+// Remove a route from the config screen.
+func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		panic(err)
+	}
+	var req struct {
+		ActualRoute string `json:"actualRoute"`
+	}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&req); err != nil {
+		panic(err)
+	}
+	for i, route := range a.config.Config.Routes {
+		if route.URL == req.ActualRoute {
+			a.mux.Lock()
+			a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
+			a.mux.Unlock()
+			break
+		}
+	}
+	_, err := a.config.Write()
+	if err != nil {
+		a.ResponseStatus = http.StatusText(400)
+	}
+	a.ResponseStatus = http.StatusText(200)
+	a.Data = a.config.Config.Routes
 	a.send(w, a.marshalled())
 }
 
