@@ -1,5 +1,5 @@
 import React, { FC, useState, useEffect } from 'react';
-import { HOST_IP } from '../../utils/types';
+import { HOST_IP, service_states } from '../../utils/types';
 import IntervalDetails from './components/IntervalDetails';
 import {
   Grid,
@@ -13,6 +13,8 @@ import {
 import { Edit as EditIcon, Close as CloseIcon } from '@material-ui/icons';
 import SearchTable from './components/MaterialTable';
 import { truncate } from '../../utils/stringManipulations';
+import { useFetch } from '../../utils/useFetch';
+import { Alert } from '@material-ui/lab';
 
 interface IntervalType {
   test: string;
@@ -51,22 +53,30 @@ const Config: FC<{}> = () => {
     'req-res-delay-and-monitoring': false
   });
 
+  const { response, error } = useFetch<service_states>(
+    `${HOST_IP}/service-state`
+  );
+
   const fetchConfigIntervals = async () => {
-    const response = await fetch(`${HOST_IP}/get-config-intervals`).then(
-      resp => {
-        return resp.json();
-      }
-    );
-    const { data } = response;
-    let intervals: any = [];
-    data.forEach(interval => {
-      intervals.push({
-        test: interval['Test'],
-        duration: interval['Duration'],
-        unit: interval['Type']
+    try {
+      const response = await fetch(`${HOST_IP}/get-config-intervals`).then(
+        resp => {
+          return resp.json();
+        }
+      );
+      const { data } = response;
+      let intervals: any = [];
+      data.forEach(interval => {
+        intervals.push({
+          test: interval['Test'],
+          duration: interval['Duration'],
+          unit: interval['Type']
+        });
       });
-    });
-    setConfigIntervals(intervals);
+      setConfigIntervals(intervals);
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const fetchConfigRoutes = async () => {
@@ -76,7 +86,7 @@ const Config: FC<{}> = () => {
     const { data } = response;
     let configRoutes = new Map();
     data.forEach(route => {
-      const uri = route['URL'] + '/' + route['Route'];
+      const uri = route['URL'];
       if (!configRoutes.has(uri)) {
         configRoutes.set(uri, [route['Method']]);
       } else {
@@ -142,6 +152,13 @@ const Config: FC<{}> = () => {
         break;
     }
   };
+
+  if (error) {
+    return <Alert severity="error">Unable to reach the service: error</Alert>;
+  }
+  if (!response.data) {
+    return <Alert severity="info">Fetching from sources</Alert>;
+  }
 
   return (
     <>
