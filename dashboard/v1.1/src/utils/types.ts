@@ -43,3 +43,22 @@ interface diskDetails {
   diskIO: string;
   cached: string;
 }
+
+export interface routeType {
+  url: string,
+  methods: string[],
+  body: string[],
+  params: string[]
+}
+
+export interface routeEntryType {
+    route: string,
+    options: routeOptionsInterface[] | undefined
+}
+
+export interface routeOptionsInterface {
+  params: { Name: string; Value: string }[],
+  headers: { OfType: string; Value: string }[],
+  method: string,
+  body: { Name: string; Value: string }[],
+}
