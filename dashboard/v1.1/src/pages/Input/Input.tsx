@@ -167,13 +167,6 @@ const Input = (props: InputScreenProps) => {
     } else {
       setBodyValues(bodyValues);
     }
-    console.warn({
-      method: requestType,
-      url: valueURLRoute,
-      params: params,
-      headers: headers,
-      body: body
-    });
     fetch(`${HOST_IP}/quick-input`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
@@ -187,7 +180,6 @@ const Input = (props: InputScreenProps) => {
     })
       .then(resp => resp.json())
       .then(response => {
-        console.warn('got response');
         try {
           const inJSON = JSON.stringify(JSON.parse(response['data']), null, 4);
           setTestInputResponse(inJSON);
@@ -209,8 +201,7 @@ const Input = (props: InputScreenProps) => {
         })
           .then(resp => resp.json())
           .then(response => {
-            console.warn('getting response as', response);
-            // updateCurrModal(response);
+            updateCurrModal(response);
             setShowResponseButton(true);
           });
       });

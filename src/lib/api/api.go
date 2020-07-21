@@ -487,7 +487,6 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&req); err != nil {
 		panic(err)
 	}
-	fmt.Println(req)
 	requestInstance := request.New(req.URL, req.Headers, req.Params, req.Body)
 	for i, route := range a.config.Config.Routes {
 		if route.URL == req.OrgRoute && route.Method == req.Method {
