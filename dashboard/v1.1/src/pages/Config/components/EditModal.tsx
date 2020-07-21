@@ -41,7 +41,6 @@ const EditModal = (props: EditModalProps) => {
   };
 
   const updateCurrModal = routes => {
-    handleClose();
     updateConfigRoutes(routes);
   };
 

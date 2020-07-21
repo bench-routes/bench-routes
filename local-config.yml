@@ -20,27 +20,7 @@ test_interval:
   duration: 3
 routes:
 - method: GET
-  url: https://www.google.co.in/search
-  headers:
-  - type: Content-Type
-    value: application/json
-  params:
-  - name: q
-    value: bench-routes
-  body: []
-- method: POST
-  url: https://reqres.in/api/register
-  headers: []
-  params: []
-  body:
-  - name: ""
-    value: ""
-  - name: email
-    value: eve.holt@reqres.in
-  - name: password
-    value: pistol
-- method: POST
-  url: https://www.google.co.in/search
+  url: https://hangouts.google.com
   headers: []
   params: []
   body: []

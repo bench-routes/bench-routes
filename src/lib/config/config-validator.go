@@ -6,21 +6,6 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 )
 
-// ValidateRoutesProp validates the `routes` property
-// in the configuration file.
-func ValidateRoutesProp(routes []Route) {
-	if len(routes) == 0 {
-		logger.Terminal("`routes` property is missing.", "f")
-	} else {
-		for i, route := range routes {
-			if route.URL == "" {
-				msg := "`url` property for route #" + strconv.Itoa(i+1) + " is missing."
-				logger.Terminal(msg, "f")
-			}
-		}
-	}
-}
-
 // ValidateIntervalProp validates the `test_interval` property
 // in the configuration file.
 func ValidateIntervalProp(intervals []Interval) {
@@ -73,7 +58,6 @@ func ValidatePasswordProp(password string) {
 func (inst *Config) Validate() bool {
 	config := *inst.Config
 	ValidatePasswordProp(config.Password)
-	ValidateRoutesProp(config.Routes)
 	ValidateIntervalProp(config.Interval)
 	ValidateUtilsConf(&config.UtilsConf)
 	return true

@@ -482,31 +482,37 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 			OrgRoute string            `json:"orgRoute"`
 		}
 		decoder = json.NewDecoder(r.Body)
+		found   bool
 	)
 	if err := decoder.Decode(&req); err != nil {
 		panic(err)
 	}
+	fmt.Println(req)
 	requestInstance := request.New(req.URL, req.Headers, req.Params, req.Body)
 	for i, route := range a.config.Config.Routes {
 		if route.URL == req.OrgRoute && route.Method == req.Method {
 			a.mux.Lock()
+			found = true
 			a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
-			a.config.Config.Routes[i] = config.GetNewRouteType(
+			a.config.Config.Routes = append(a.config.Config.Routes, config.GetNewRouteType(
 				req.Method,
 				req.URL,
 				requestInstance.GetHeadersConfigFormatted(),
 				requestInstance.GetParamsConfigFormatted(),
 				requestInstance.GetBodyConfigFormatted(),
-			)
+			))
 			a.mux.Unlock()
-			*a.reloadConfigURLs <- struct{}{}
 			break
 		}
 	}
-	_, err := a.config.Write()
-	if err != nil {
+	if !found {
+		a.AddRouteToMonitoring(w, r)
+		return
+	}
+	if _, err := a.config.Write(); err != nil {
 		a.ResponseStatus = http.StatusText(400)
 	}
+	*a.reloadConfigURLs <- struct{}{}
 	a.ResponseStatus = http.StatusText(200)
 	a.Data = a.config.Config.Routes
 	a.send(w, a.marshalled())
