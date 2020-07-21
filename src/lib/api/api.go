@@ -8,6 +8,7 @@ import (
 	"net/http/pprof"
 	"reflect"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -37,6 +38,7 @@ type API struct {
 	config              *config.Config
 	reloadConfigURLs    *chan struct{}
 	receiveFinishSignal *chan struct{}
+	mux                 sync.RWMutex
 }
 
 type inputRequest struct {
@@ -98,7 +100,6 @@ func (a *API) Register(router *mux.Router) {
 	router.HandleFunc("/get-config-intervals", a.GetConfigIntervals)
 	router.HandleFunc("/get-config-routes", a.GetConfigRoutes)
 	router.HandleFunc("/get-route-time-series", a.TSDBPathDetails)
-	router.HandleFunc("/update-routes", a.ModifyConfigRoutes)
 	router.HandleFunc("/query-matrix", a.SendMatrix)
 	router.HandleFunc("/query", a.Query)
 	router.HandleFunc("/quick-input", a.QuickTestInput)
@@ -466,7 +467,7 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 	a.send(w, a.marshalled())
 }
 
-// UpdateRoute a route in the local config.
+// Update a route in the local config
 func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		panic(err)
@@ -488,6 +489,8 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	requestInstance := request.New(req.URL, req.Headers, req.Params, req.Body)
 	for i, route := range a.config.Config.Routes {
 		if route.URL == req.OrgRoute && route.Method == req.Method {
+			a.mux.Lock()
+			a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
 			a.config.Config.Routes[i] = config.GetNewRouteType(
 				req.Method,
 				req.URL,
@@ -495,6 +498,8 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 				requestInstance.GetParamsConfigFormatted(),
 				requestInstance.GetBodyConfigFormatted(),
 			)
+			a.mux.Unlock()
+			*a.reloadConfigURLs <- struct{}{}
 			break
 		}
 	}
@@ -507,7 +512,7 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	a.send(w, a.marshalled())
 }
 
-// Remove a route from the config screen.
+// DeleteConfigRoutes removes a route from the config screen.
 func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		panic(err)
@@ -521,7 +526,10 @@ func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	}
 	for i, route := range a.config.Config.Routes {
 		if route.URL == req.ActualRoute {
+			a.mux.Lock()
 			a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
+			a.mux.Unlock()
+			break
 		}
 	}
 	_, err := a.config.Write()

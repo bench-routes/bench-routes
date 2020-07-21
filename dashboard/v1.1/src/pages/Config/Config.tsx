@@ -25,8 +25,6 @@ import EditModal from './components/EditModal';
 
 const SearchTable = lazy(() => import('./components/MaterialTable'));
 
-const SearchTable = lazy(() => import('./components/MaterialTable'));
-
 interface IntervalType {
   test: string;
   duration: number;
@@ -299,7 +297,6 @@ const Config: FC<{}> = () => {
               icon: tableIcons.Edit,
               tooltip: 'Edit Route',
               onClick: (event, rowData: TableRowData) => {
-                console.log(configRoutes.get(rowData.route));
                 setSelectedRow({
                   route: rowData.route,
                   options: configRoutes.get(rowData.route)

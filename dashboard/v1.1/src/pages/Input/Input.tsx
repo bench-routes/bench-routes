@@ -180,24 +180,29 @@ const Input = (props: InputScreenProps) => {
     })
       .then(resp => resp.json())
       .then(response => {
-        if (response.data) {
-          fetch(`${HOST_IP}/update-route`, {
-            method: 'post',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              method: requestType,
-              url: valueURLRoute,
-              params: params,
-              headers: headers,
-              body: body,
-              orgRoute: route
-            })
-          })
-            .then(resp => resp.json())
-            .then(response => {
-              updateCurrModal(response);
-            });
+        try {
+          const inJSON = JSON.stringify(JSON.parse(response['data']), null, 4);
+          setTestInputResponse(inJSON);
+          setShowResponseButton(true);
+        } catch (e) {
+          setTestInputResponse(response['data']);
         }
+        fetch(`${HOST_IP}/update-route`, {
+          method: 'post',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            method: requestType,
+            url: valueURLRoute,
+            params: params,
+            headers: headers,
+            body: body,
+            orgRoute: route
+          })
+        })
+          .then(resp => resp.json())
+          .then(response => {
+            // updateCurrModal(response);
+          });
       });
   };
   const testURL = () => {
@@ -391,7 +396,7 @@ const Input = (props: InputScreenProps) => {
               color="primary"
               onClick={() => testAndEdit()}
             >
-              Test & Edit
+              Test & Save
             </Button>
           ) : (
             <Button
