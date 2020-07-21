@@ -1,5 +1,10 @@
 import React, { FC, useState, useEffect, lazy, Suspense } from 'react';
-import { HOST_IP, service_states } from '../../utils/types';
+import {
+  HOST_IP,
+  service_states,
+  routeEntryType,
+  routeOptionsInterface
+} from '../../utils/types';
 import IntervalDetails from './components/IntervalDetails';
 import {
   Grid,
@@ -15,6 +20,10 @@ import { Edit as EditIcon, Close as CloseIcon } from '@material-ui/icons';
 import { truncate } from '../../utils/stringManipulations';
 import { useFetch } from '../../utils/useFetch';
 import { Alert } from '@material-ui/lab';
+import { tableIcons } from '../../utils/tableIcons';
+import EditModal from './components/EditModal';
+
+const SearchTable = lazy(() => import('./components/MaterialTable'));
 
 const SearchTable = lazy(() => import('./components/MaterialTable'));
 
@@ -27,6 +36,12 @@ interface IntervalType {
 interface TableRouteType {
   route: string;
   methods: string[];
+}
+
+interface TableRowData {
+  methods: string[];
+  route: string;
+  tableData: { id: number };
 }
 
 const useStyles = makeStyles(theme => ({
@@ -46,13 +61,18 @@ const Config: FC<{}> = () => {
   const [configIntervals, setConfigIntervals] = useState<IntervalType[] | null>(
     null
   );
-  const [configRoutes, setConfigRoutes] = useState<[string, string[]][] | null>(
-    null
-  );
+  const [configRoutes, setConfigRoutes] = useState<
+    Map<string, routeOptionsInterface[]>
+  >(new Map());
   const [toggleResults, setToggleResults] = useState({
     ping: false,
     jitter: false,
     'req-res-delay-and-monitoring': false
+  });
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<routeEntryType>({
+    route: '',
+    options: []
   });
 
   const { response, error } = useFetch<service_states>(
@@ -90,24 +110,47 @@ const Config: FC<{}> = () => {
     data.forEach(route => {
       const uri = route['URL'];
       if (!configRoutes.has(uri)) {
-        configRoutes.set(uri, [route['Method']]);
+        configRoutes.set(uri, [
+          {
+            method: route['Method'],
+            body: route['Body'],
+            headers: route['Header'],
+            params: route['Params']
+          }
+        ]);
       } else {
-        configRoutes.set(uri, [...configRoutes.get(uri), route['Method']]);
+        configRoutes.set(uri, [
+          ...configRoutes.get(uri),
+          {
+            method: route['Method'],
+            body: route['Body'],
+            headers: route['Header'],
+            params: route['Params']
+          }
+        ]);
       }
     });
-    setConfigRoutes(Array.from(configRoutes));
+    setConfigRoutes(configRoutes);
   };
 
   useEffect(() => {
     fetchConfigIntervals().then(() => fetchConfigRoutes());
   }, []);
 
-  const getTableRoutes = (routes: [string, string[]][] | null) => {
+  const getTableData = (routes: [string, routeOptionsInterface[]][]) => {
     let tableData: TableRouteType[] = [];
-    routes?.forEach(r => {
+    routes.forEach(route => {
+      let methods: string[] = [];
+      route[1].forEach(option => {
+        Object.keys(option).forEach(k => {
+          if (k === 'method') {
+            methods.push(option[k]);
+          }
+        });
+      });
       tableData.push({
-        route: r[0],
-        methods: r[1]
+        route: route[0],
+        methods
       });
     });
     return tableData;
@@ -121,17 +164,47 @@ const Config: FC<{}> = () => {
     {
       field: 'methods',
       title: 'Methods',
-      render: (rowData: { methods: any[]; route: string }) =>
+      render: (rowData: TableRowData) =>
         rowData.methods.map(m => (
           <Chip
             key={rowData.route + m}
             variant="outlined"
             color="primary"
             label={m}
+            style={{ marginLeft: '2px' }}
           />
         ))
     }
   ];
+
+  const updateConfigRoutes = routes => {
+    const { data } = routes;
+    let configRoutes = new Map();
+    data.forEach(route => {
+      const uri = route['URL'];
+      if (!configRoutes.has(uri)) {
+        configRoutes.set(uri, [
+          {
+            method: route['Method'],
+            body: route['Body'],
+            headers: route['Header'],
+            params: route['Params']
+          }
+        ]);
+      } else {
+        configRoutes.set(uri, [
+          ...configRoutes.get(uri),
+          {
+            method: route['Method'],
+            body: route['Body'],
+            headers: route['Header'],
+            params: route['Params']
+          }
+        ]);
+      }
+    });
+    setConfigRoutes(configRoutes);
+  };
 
   const handleToggle = (intervalName: string) => {
     switch (intervalName) {
@@ -210,55 +283,38 @@ const Config: FC<{}> = () => {
           );
         })}
       </Grid>
+      <EditModal
+        isOpen={editModalOpen}
+        setOpen={(open: boolean) => setEditModalOpen(open)}
+        selectedRoute={selectedRow}
+        updateConfigRoutes={route => updateConfigRoutes(route)}
+      />
       <Suspense fallback={<CircularProgress disableShrink />}>
         <SearchTable
           title=""
           columns={columns}
-          data={getTableRoutes(configRoutes)}
-          editable={{
-            onRowUpdate: async (
-              newData: TableRouteType,
-              oldData: TableRouteType
-            ) => {
-              try {
-                await fetch(`${HOST_IP}/update-routes`, {
-                  method: 'post',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    action: 'edit',
-                    newRoute: newData.route,
-                    actualRoute: oldData.route
-                  })
-                })
-                  .then(resp => resp.json())
-                  .then(response => {
-                    const { data } = response;
-                    let configRoutes = new Map();
-                    data.forEach(route => {
-                      const uri = route['URL'];
-                      if (!configRoutes.has(uri)) {
-                        configRoutes.set(uri, [route['Method']]);
-                      } else {
-                        configRoutes.set(uri, [
-                          ...configRoutes.get(uri),
-                          route['Method']
-                        ]);
-                      }
-                    });
-                    setConfigRoutes(Array.from(configRoutes));
-                  });
-              } catch (e) {
-                console.log(e);
+          data={getTableData(Array.from(configRoutes))}
+          actions={[
+            {
+              icon: tableIcons.Edit,
+              tooltip: 'Edit Route',
+              onClick: (event, rowData: TableRowData) => {
+                console.log(configRoutes.get(rowData.route));
+                setSelectedRow({
+                  route: rowData.route,
+                  options: configRoutes.get(rowData.route)
+                });
+                setEditModalOpen(!editModalOpen);
               }
-            },
+            }
+          ]}
+          editable={{
             onRowDelete: async (oldData: TableRouteType) => {
               try {
-                await fetch(`${HOST_IP}/update-routes`, {
+                await fetch(`${HOST_IP}/delete-route`, {
                   method: 'post',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    action: 'delete',
-                    newRoute: null,
                     actualRoute: oldData.route
                   })
                 })
@@ -269,15 +325,27 @@ const Config: FC<{}> = () => {
                     data.forEach(route => {
                       const uri = route['URL'];
                       if (!configRoutes.has(uri)) {
-                        configRoutes.set(uri, [route['Method']]);
+                        configRoutes.set(uri, [
+                          {
+                            method: route['Method'],
+                            body: route['Body'],
+                            headers: route['Header'],
+                            params: route['Params']
+                          }
+                        ]);
                       } else {
                         configRoutes.set(uri, [
                           ...configRoutes.get(uri),
-                          route['Method']
+                          {
+                            method: route['Method'],
+                            body: route['Body'],
+                            headers: route['Header'],
+                            params: route['Params']
+                          }
                         ]);
                       }
                     });
-                    setConfigRoutes(Array.from(configRoutes));
+                    setConfigRoutes(configRoutes);
                   });
               } catch (e) {
                 console.log(e);

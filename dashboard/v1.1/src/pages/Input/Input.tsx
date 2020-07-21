@@ -1,4 +1,4 @@
-import React, { FC, useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent, useEffect } from 'react';
 import Type from './Groups';
 import GridBody, { pair } from './GridBody';
 import { Card, CardContent } from '@material-ui/core';
@@ -14,6 +14,17 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import MuiAlert, { AlertProps } from '@material-ui/lab/Alert';
 import Snackbar from '@material-ui/core/Snackbar';
+import PropTypes from 'prop-types';
+
+interface InputScreenProps {
+  screenType: string | undefined;
+  params: { Name: string; Value: string }[];
+  headers: { OfType: string; Value: string }[];
+  route: string;
+  body: { Name: string; Value: string }[];
+  method: string;
+  updateCurrModal: (routes: any) => void;
+}
 
 interface AlertSnackBar {
   severity: 'success' | 'error' | 'warning' | 'info';
@@ -28,10 +39,18 @@ function Alert(props: AlertProps) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
-const Input: FC<{}> = () => {
+const Input = (props: InputScreenProps) => {
+  const {
+    screenType,
+    headers,
+    params,
+    route,
+    body,
+    method,
+    updateCurrModal
+  } = props;
   const [requestType, setRequestType] = useState('');
   const [, setHyperTextType] = useState('');
-
   const [valueURLRoute, setValueURLRoute] = useState('');
 
   const [applyHeader, setApplyHeader] = useState<boolean>(false);
@@ -52,6 +71,37 @@ const Input: FC<{}> = () => {
   const [showSnackBar, setShowSnackBar] = useState<boolean>(false);
   const [open, setOpen] = useState(false);
   const [showResponseButton, setShowResponseButton] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (screenType === 'configScreen') {
+      let parameters: { key: string; value: string }[] = [];
+      let bodyValues: { key: string; value: string }[] = [];
+      let headerValues: { key: string; value: string }[] = [];
+      params?.forEach(param => {
+        parameters.push({
+          key: param.Name,
+          value: param.Value
+        });
+      });
+      body?.forEach(val => {
+        bodyValues.push({
+          key: val.Name,
+          value: val.Value
+        });
+      });
+      headers.forEach(header => {
+        headerValues.push({
+          key: header.OfType,
+          value: header.Value
+        });
+      });
+      setParamsValues(parameters);
+      setBodyValues(bodyValues);
+      setHeaderValues(headerValues);
+      setRequestType(method);
+      setValueURLRoute(route);
+    }
+  }, [body, headers, method, params, route, screenType]);
 
   const getRequestType = (type: string) => {
     setRequestType(type);
@@ -81,6 +131,74 @@ const Input: FC<{}> = () => {
     setApplyHeader(false);
     setApplyParams(false);
     setApplyBody(false);
+  };
+  const testAndEdit = () => {
+    const params = {};
+    const headers = {};
+    const body = {};
+    const { route } = props;
+    setShowResponseButton(false);
+    if (headerValues !== undefined) {
+      for (const h of headerValues) {
+        if (!(h.key === '' && h.value === '')) {
+          headers[h.key] = h.value;
+        }
+      }
+    } else {
+      setHeaderValues([]);
+    }
+
+    if (paramsValues !== undefined) {
+      for (const p of paramsValues) {
+        if (!(p.key === '' && p.value === '')) {
+          params[p.key] = p.value;
+        }
+      }
+    } else {
+      setParamsValues([]);
+    }
+
+    if (bodyValues !== undefined) {
+      for (const b of bodyValues) {
+        if (!(b.key === '' && b.value === '')) {
+          body[b.key] = b.value;
+        }
+      }
+    } else {
+      setBodyValues(bodyValues);
+    }
+    fetch(`${HOST_IP}/quick-input`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        method: requestType,
+        url: valueURLRoute,
+        params: params,
+        headers: headers,
+        body: body
+      })
+    })
+      .then(resp => resp.json())
+      .then(response => {
+        if (response.data) {
+          fetch(`${HOST_IP}/update-route`, {
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              method: requestType,
+              url: valueURLRoute,
+              params: params,
+              headers: headers,
+              body: body,
+              orgRoute: route
+            })
+          })
+            .then(resp => resp.json())
+            .then(response => {
+              updateCurrModal(response);
+            });
+        }
+      });
   };
   const testURL = () => {
     const params = {};
@@ -216,7 +334,7 @@ const Input: FC<{}> = () => {
             control={
               <Checkbox
                 color="primary"
-                checked={applyHeader}
+                checked={applyHeader || (headerValues || []).length > 0}
                 onClick={() => setApplyHeader(!applyHeader)}
               />
             }
@@ -226,7 +344,7 @@ const Input: FC<{}> = () => {
             control={
               <Checkbox
                 color="primary"
-                checked={applyParams}
+                checked={applyParams || (paramsValues || []).length > 0}
                 onClick={() => setApplyParams(!applyParams)}
               />
             }
@@ -236,7 +354,7 @@ const Input: FC<{}> = () => {
             control={
               <Checkbox
                 color="primary"
-                checked={applyBody}
+                checked={applyBody || (bodyValues || []).length > 0}
                 onClick={() => setApplyBody(!applyBody)}
               />
             }
@@ -244,20 +362,46 @@ const Input: FC<{}> = () => {
           />
         </div>
         <div style={{ margin: '2%' }}>
-          {applyHeader ? (
-            <GridBody name="Header" updateParent={setHeaderValues} />
+          {applyHeader || (headerValues || []).length > 0 ? (
+            <GridBody
+              name="Header"
+              headers={headerValues}
+              updateParent={setHeaderValues}
+            />
           ) : null}
-          {applyParams ? (
-            <GridBody name="Params" updateParent={setParamsValues} />
+          {applyParams || (paramsValues || []).length > 0 ? (
+            <GridBody
+              name="Params"
+              headers={paramsValues}
+              updateParent={setParamsValues}
+            />
           ) : null}
-          {applyBody ? (
-            <GridBody name="Body" updateParent={setBodyValues} />
+          {applyBody || (bodyValues || []).length > 0 ? (
+            <GridBody
+              name="Body"
+              headers={bodyValues}
+              updateParent={setBodyValues}
+            />
           ) : null}
         </div>
         <div>
-          <Button variant="contained" color="primary" onClick={() => testURL()}>
-            Test & Save
-          </Button>
+          {screenType === 'configScreen' ? (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => testAndEdit()}
+            >
+              Test & Edit
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => testURL()}
+            >
+              Test & Save
+            </Button>
+          )}
           <Button
             variant="contained"
             color="secondary"
@@ -302,6 +446,11 @@ const Input: FC<{}> = () => {
       </CardContent>
     </Card>
   );
+};
+
+Input.propTypes = {
+  screenType: PropTypes.string,
+  params: PropTypes.array
 };
 
 export default Input;
