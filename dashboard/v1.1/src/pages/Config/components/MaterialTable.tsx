@@ -19,15 +19,25 @@ export const columns = [
     field: 'methods',
     title: 'Methods',
     render: (rowData: TableRowData) =>
-      rowData.methods.map(m => (
-        <Chip
-          key={rowData.route + m}
-          variant="outlined"
-          color="primary"
-          label={m}
-          style={{ marginLeft: '2px' }}
-        />
-      ))
+      rowData.methods.map((m, i) =>
+        i % 2 ? (
+          <Chip
+            key={rowData.route + m}
+            color="secondary"
+            label={m}
+            size="small"
+            style={{ marginLeft: '1%' }}
+          />
+        ) : (
+          <Chip
+            key={rowData.route + m}
+            color="primary"
+            label={m}
+            size="small"
+            style={{ marginLeft: '1%' }}
+          />
+        )
+      )
   }
 ];
 

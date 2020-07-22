@@ -223,69 +223,71 @@ const Config: FC<{}> = () => {
         updateConfigRoutes={route => updateConfigRoutes(route)}
       />
       <Suspense fallback={<CircularProgress disableShrink />}>
-        <SearchTable
-          title=""
-          columns={columns}
-          data={getTableData(Array.from(configRoutes))}
-          actions={[
-            {
-              icon: tableIcons.Edit,
-              tooltip: 'Edit Route',
-              onClick: (event, rowData: TableRowData) => {
-                setSelectedRow({
-                  route: rowData.route,
-                  options: configRoutes.get(rowData.route)
-                });
-                setEditModalOpen(!editModalOpen);
+        <Paper elevation={0}>
+          <SearchTable
+            title="URL endpoints"
+            columns={columns}
+            data={getTableData(Array.from(configRoutes))}
+            actions={[
+              {
+                icon: tableIcons.Edit,
+                tooltip: 'Edit Route',
+                onClick: (event, rowData: TableRowData) => {
+                  setSelectedRow({
+                    route: rowData.route,
+                    options: configRoutes.get(rowData.route)
+                  });
+                  setEditModalOpen(!editModalOpen);
+                }
               }
-            }
-          ]}
-          editable={{
-            onRowDelete: (oldData: TableRouteType) => {
-              fetch(`${HOST_IP}/delete-route`, {
-                method: 'post',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  actualRoute: oldData.route
+            ]}
+            editable={{
+              onRowDelete: (oldData: TableRouteType) => {
+                fetch(`${HOST_IP}/delete-route`, {
+                  method: 'post',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    actualRoute: oldData.route
+                  })
                 })
-              })
-                .then(resp => resp.json())
-                .then(
-                  response => {
-                    const { data } = response;
-                    let configRoutes = new Map();
-                    data.forEach(route => {
-                      const uri = route['URL'];
-                      if (!configRoutes.has(uri)) {
-                        configRoutes.set(uri, [
-                          {
-                            method: route['Method'],
-                            body: route['Body'],
-                            headers: route['Header'],
-                            params: route['Params']
-                          }
-                        ]);
-                      } else {
-                        configRoutes.set(uri, [
-                          ...configRoutes.get(uri),
-                          {
-                            method: route['Method'],
-                            body: route['Body'],
-                            headers: route['Header'],
-                            params: route['Params']
-                          }
-                        ]);
-                      }
-                    });
-                    setConfigRoutes(configRoutes);
-                  },
-                  e => {
-                    console.error(e);
-                  }
-                );
-            }
-          }}
-        />
+                  .then(resp => resp.json())
+                  .then(
+                    response => {
+                      const { data } = response;
+                      let configRoutes = new Map();
+                      data.forEach(route => {
+                        const uri = route['URL'];
+                        if (!configRoutes.has(uri)) {
+                          configRoutes.set(uri, [
+                            {
+                              method: route['Method'],
+                              body: route['Body'],
+                              headers: route['Header'],
+                              params: route['Params']
+                            }
+                          ]);
+                        } else {
+                          configRoutes.set(uri, [
+                            ...configRoutes.get(uri),
+                            {
+                              method: route['Method'],
+                              body: route['Body'],
+                              headers: route['Header'],
+                              params: route['Params']
+                            }
+                          ]);
+                        }
+                      });
+                      setConfigRoutes(configRoutes);
+                    },
+                    e => {
+                      console.error(e);
+                    }
+                  );
+              }
+            }}
+          />
+        </Paper>
       </Suspense>
     </>
   );
