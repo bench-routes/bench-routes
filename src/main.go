@@ -41,15 +41,21 @@ var (
 		ReadBufferSize:  4096,
 		WriteBufferSize: 4096,
 	}
-	initializedChains = make(map[string]bool)
-	conf              *parser.Config
 	// matrix is a collection (as map) of instances where each
 	// instance is composed of ping, jitter, floodping and monitor
 	// chain paths. matrix is used in the monitoring screen to
 	// reduce the http request by grouping them based on routes.
 	// Without matrix, the http traffic would increase 4 times
 	// the current count.
-	matrix = make(utils.BRmap)
+	matrix            = make(utils.BRmap)
+	initializedChains = make(map[string]bool)
+	reload            = make(chan struct{})
+	done              = make(chan struct{})
+	// configURLs keeps the track of which URLs have been added to
+	// the matrix. This is done to avoid repetitive work.
+	configURLs []string
+	conf       *parser.Config
+	chainSet   = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
 )
 
 func main() {
@@ -64,9 +70,8 @@ func main() {
 	conf = parser.New(utils.ConfigurationFilePath)
 	conf.Load().Validate()
 	setDefaultServicesState(conf)
-
-	var ConfigURLs []string
 	intervals := conf.Config.Interval
+
 	service := &struct {
 		Ping    *ping.Ping
 		Jitter  *jitter.Jitter
@@ -79,10 +84,7 @@ func main() {
 		Monitor: monitor.New(conf, monitor.TestInterval{OfType: intervals[2].Type, Duration: *intervals[2].Duration}, &utils.RespMonitoringc),
 	}
 
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
-
-	reload := make(chan struct{})
-	done := make(chan struct{})
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	go func() {
 		for {
 			<-reload
@@ -90,23 +92,23 @@ func main() {
 			conf.Refresh()
 			for _, r := range conf.Config.Routes {
 				var found bool
-				for _, i := range ConfigURLs {
+				for _, i := range configURLs {
 					if i == r.URL {
 						found = true
 						break
 					}
 				}
 				if !found {
-					ConfigURLs = append(ConfigURLs, r.URL)
+					configURLs = append(configURLs, r.URL)
 					setMatrixKey(&matrix, r.URL)
 				}
 			}
 			var wg sync.WaitGroup
 			p := time.Now()
 			wg.Add(4)
-			go initialize(&wg, &matrix, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
-			go initialize(&wg, &matrix, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
-			go initialize(&wg, &matrix, chainSet, &utils.Jitterc, ConfigURLs, utils.PathJitter, "jitter")
+			go initialize(&wg, &matrix, chainSet, &utils.Pingc, configURLs, utils.PathPing, "ping")
+			go initialize(&wg, &matrix, chainSet, &utils.FPingc, configURLs, utils.PathFloodPing, "flood_ping")
+			go initialize(&wg, &matrix, chainSet, &utils.Jitterc, configURLs, utils.PathJitter, "jitter")
 			go initialize(&wg, &matrix, chainSet, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
 			wg.Wait()
 			msg := "initialization time: " + time.Since(p).String()
@@ -219,7 +221,9 @@ func main() {
 		}
 
 		chain := tsdb.NewChain(systemMetricsPath)
+		p := time.Now()
 		chain.Init()
+		fmt.Println("initialized system-metrics...", time.Since(p))
 		chainSet.Register(chain.Name, chain)
 
 		for {
@@ -260,7 +264,9 @@ func main() {
 		go func() {
 			metrics := journal.New()
 			chain := tsdb.NewChain(journalMetricsPath)
+			p := time.Now()
 			chain.Init()
+			fmt.Println("initialized journal-metrics...", time.Since(p))
 			chainSet.Register(chain.Name, chain)
 
 			for {
