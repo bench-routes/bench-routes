@@ -1,4 +1,13 @@
 password: password
+utils:
+  monitor-length:
+    mode: 0
+    mean: 0
+  services-state:
+    ping: passive
+    flood-ping: passive
+    jitter: passive
+    req-res-delay-or-monitoring: passive
 test_interval:
 - test: ping
   type: sec
@@ -6,41 +15,40 @@ test_interval:
 - test: jitter
   type: sec
   duration: 0
-- test: req-res-delay-and-monitoring
+- test: monitoring
   type: sec
   duration: 0
 routes:
 - method: GET
   url: https://www.google.co.in
-  route: search
   headers:
   - type: Content-Type
     value: application/json
   params:
   - name: q
     value: bench-routes
+  body: []
 - method: GET
   url: https://www.gitlab.com
-  route: ""
   headers: []
   params: []
+  body: []
 - method: GET
   url: https://www.youtube.com
-  route: ""
   headers: []
   params: []
+  body: []
 - method: GET
   url: https://www.facebook.com
-  route: search
   headers:
   - type: Content-Type
     value: application/json
   params:
   - name: q
     value: bench-routes
+  body: []
 - method: GET
   url: https://in.search.yahoo.com
-  route: search
   headers:
   - type: Content-Type
     value: application/json
@@ -55,12 +63,4 @@ routes:
     value: mss
   - name: ei
     value: UTF-8
-utils:
-  monitor-length:
-    mode: 0
-    mean: 0
-  services-state:
-    ping: passive
-    flood-ping: passive
-    jitter: passive
-    req-res-delay-or-monitoring: active
+  body: []
