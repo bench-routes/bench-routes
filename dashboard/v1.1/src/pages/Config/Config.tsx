@@ -8,7 +8,6 @@ import {
 import IntervalDetails from './components/IntervalDetails';
 import {
   Grid,
-  Card,
   CardContent,
   Typography,
   makeStyles,

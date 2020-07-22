@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Grid, TextField, Button, Typography } from '@material-ui/core';
+import { TextField, Button, Typography } from '@material-ui/core';
 import { HOST_IP } from '../../../utils/types';
 
 const IntervalDetails = (props: any) => {
