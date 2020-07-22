@@ -89,7 +89,7 @@ const Input = (props: InputScreenProps) => {
           value: val.Value
         });
       });
-      headers.forEach(header => {
+      headers?.forEach(header => {
         headerValues.push({
           key: header.OfType,
           value: header.Value

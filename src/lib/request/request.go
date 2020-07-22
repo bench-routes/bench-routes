@@ -48,19 +48,20 @@ func (q *QuickInput) Send(method uint, getResponse chan string) {
 		if len(q.params) != 0 {
 			q.url += "?" + q.formatParams()
 		}
+		fmt.Println("complete url", q.url)
 		request, err := http.NewRequest("GET", q.url, nil)
 		if err != nil {
 			panic(err)
 		}
 		q.applyHeaders(request)
 		response, err := client.Do(request)
-		defer response.Body.Close()
 		if err != nil {
 			panic(err)
 		}
+		defer response.Body.Close()
 		done(response.Body, getResponse)
 	case POST:
-		var form url.Values
+		form := make(url.Values)
 		q.populateBody(&form)
 		request, err := http.NewRequest("POST", q.url, strings.NewReader(form.Encode()))
 		if err != nil {
@@ -106,8 +107,12 @@ func (q *QuickInput) applyHeaders(request *http.Request) {
 
 // populateBody applies the body as values to be assigned to the request.
 func (q *QuickInput) populateBody(form *url.Values) {
+	fmt.Println("form is ", form)
 	for k, v := range q.body {
-		form.Add(k, v)
+		fmt.Println("hrere", form, "jk", k, v)
+		if k != "" || v != "" {
+			form.Add(k, v)
+		}
 	}
 }
 

@@ -19,8 +19,21 @@ test_interval:
   type: sec
   duration: 3
 routes:
-- method: GET
-  url: https://hangouts.google.com
+- method: POST
+  url: https://reqres.in/api/users
   headers: []
   params: []
+  body:
+  - name: name
+    value: morpheus
+  - name: job
+    value: leader
+  - name: ""
+    value: ""
+- method: GET
+  url: https://reqres.in/api/users
+  headers: []
+  params:
+  - name: page
+    value: "2"
   body: []
