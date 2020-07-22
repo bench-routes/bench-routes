@@ -106,7 +106,6 @@ func (q *QuickInput) applyHeaders(request *http.Request) {
 
 // populateBody applies the body as values to be assigned to the request.
 func (q *QuickInput) populateBody(form *url.Values) {
-	fmt.Println("form is ", form)
 	for k, v := range q.body {
 		if k != "" || v != "" {
 			form.Add(k, v)

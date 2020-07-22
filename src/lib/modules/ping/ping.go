@@ -1,7 +1,6 @@
 package ping
 
 import (
-	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -96,7 +95,6 @@ func (ps *Ping) perform(urlStack map[string]string, pingInterval TestInterval) {
 
 	for {
 		i++
-		fmt.Println("perform ping", i)
 		switch ps.localConfig.Config.UtilsConf.ServicesSignal.Ping {
 		case "active":
 			err, _ := utils.VerifyConnection()
