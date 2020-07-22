@@ -11,14 +11,21 @@ utils:
 test_interval:
 - test: ping
   type: sec
-  duration: 3
+  duration: 10
 - test: jitter
   type: sec
-  duration: 3
-- test: req-res-delay-and-monitoring
+  duration: 10
+- test: monitoring
   type: sec
-  duration: 3
+  duration: 10
 routes:
+- method: GET
+  url: https://reqres.in/api/users
+  headers: []
+  params:
+  - name: page
+    value: "2"
+  body: []
 - method: POST
   url: https://reqres.in/api/users
   headers: []
@@ -27,13 +34,4 @@ routes:
   - name: name
     value: morpheus
   - name: job
-    value: leader
-  - name: ""
-    value: ""
-- method: GET
-  url: https://reqres.in/api/users
-  headers: []
-  params:
-  - name: page
-    value: "2"
-  body: []
+    value: harki

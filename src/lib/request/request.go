@@ -48,7 +48,6 @@ func (q *QuickInput) Send(method uint, getResponse chan string) {
 		if len(q.params) != 0 {
 			q.url += "?" + q.formatParams()
 		}
-		fmt.Println("complete url", q.url)
 		request, err := http.NewRequest("GET", q.url, nil)
 		if err != nil {
 			panic(err)
@@ -109,7 +108,6 @@ func (q *QuickInput) applyHeaders(request *http.Request) {
 func (q *QuickInput) populateBody(form *url.Values) {
 	fmt.Println("form is ", form)
 	for k, v := range q.body {
-		fmt.Println("hrere", form, "jk", k, v)
 		if k != "" || v != "" {
 			form.Add(k, v)
 		}
