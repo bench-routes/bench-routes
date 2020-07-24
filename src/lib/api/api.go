@@ -294,13 +294,11 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 		t       inputRequest
 		decoder = json.NewDecoder(r.Body)
 	)
-	fmt.Println("inside")
 	if err := decoder.Decode(&t); err != nil {
 		panic(err)
 	}
 	req := request.New(t.URL, t.Headers, t.Params, t.Body)
 	response := make(chan string)
-	fmt.Println("till here")
 	switch t.Method {
 	case "GET":
 		go req.Send(request.GET, response)
@@ -310,7 +308,6 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("invalid request method: %s\n", t.Method)
 	}
 	a.Data = <-response
-	fmt.Println("sent response")
 	a.send(w, a.marshalled())
 }
 
@@ -420,19 +417,19 @@ func (a *API) GetMonitoringState(w http.ResponseWriter, r *http.Request) {
 	a.send(w, a.marshalled())
 }
 
-// Gets the config file data for the config screen
+// GetConfigIntervals gets the config file data for the config screen.
 func (a *API) GetConfigIntervals(w http.ResponseWriter, r *http.Request) {
 	a.Data = a.config.Config.Interval
 	a.send(w, a.marshalled())
 }
 
-// Gets the config file data for the config screen
+// GetConfigRoutes gets the config file data for the config screen.
 func (a *API) GetConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	a.Data = a.config.Config.Routes
 	a.send(w, a.marshalled())
 }
 
-// Modifies a specific interval duration in the config file
+// ModifyIntervalDuration modifies a specific interval duration in the config file.
 func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		panic(err)
@@ -468,7 +465,7 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 	a.send(w, a.marshalled())
 }
 
-// Update a route in the local config
+// UpdateRoute updates a route in the local config.
 func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		panic(err)
@@ -484,15 +481,12 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 		}
 		decoder = json.NewDecoder(r.Body)
 	)
-	fmt.Println("till here 1")
 	if err := decoder.Decode(&req); err != nil {
 		panic(err)
 	}
-	fmt.Println("till here 2")
 	requestInstance := request.New(req.URL, req.Headers, req.Params, req.Body)
 	for i, route := range a.config.Config.Routes {
 		if route.URL == req.OriginalRoute && route.Method == req.Method {
-			fmt.Println("in loop")
 			a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
 			a.config.Config.Routes = append(a.config.Config.Routes, config.GetNewRouteType(
 				req.Method,
@@ -504,11 +498,9 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	fmt.Println("writing")
 	if _, err := a.config.Write(); err != nil {
 		a.ResponseStatus = http.StatusText(400)
 	}
-	fmt.Println("done")
 	*a.reloadConfigURLs <- struct{}{}
 	a.ResponseStatus = http.StatusText(200)
 	a.Data = a.config.Config.Routes
@@ -535,8 +527,7 @@ func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	_, err := a.config.Write()
-	if err != nil {
+	if _, err := a.config.Write(); err != nil {
 		a.ResponseStatus = http.StatusText(400)
 	}
 	a.ResponseStatus = http.StatusText(200)
