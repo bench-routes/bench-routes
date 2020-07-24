@@ -55,14 +55,16 @@ func (q *QuickInput) Send(method uint, getResponse chan string) {
 		q.applyHeaders(request)
 		response, err := client.Do(request)
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
-		defer func() {
-			if err := response.Body.Close(); err != nil {
-				fmt.Printf("error closing response body: %s\n", err.Error())
-			}
-		}()
+		if response == nil {
+			fmt.Printf("nil response: %s\n", q.url)
+			return
+		}
 		done(response.Body, getResponse)
+		if err := response.Body.Close(); err != nil {
+			fmt.Printf("error closing response body: %s\n", err.Error())
+		}
 	case POST:
 		form := make(url.Values)
 		q.populateBody(&form)
@@ -73,15 +75,17 @@ func (q *QuickInput) Send(method uint, getResponse chan string) {
 		request.PostForm = form
 		q.applyHeaders(request)
 		response, err := client.Do(request)
-		defer func() {
-			if err := response.Body.Close(); err != nil {
-				fmt.Printf("error closing response body: %s", err.Error())
-			}
-		}()
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+		}
+		if response == nil {
+			fmt.Printf("nil response: %s\n", q.url)
+			return
 		}
 		done(response.Body, getResponse)
+		if err := response.Body.Close(); err != nil {
+			fmt.Printf("error closing response body: %s\n", err.Error())
+		}
 	}
 }
 

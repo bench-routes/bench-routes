@@ -11,11 +11,11 @@ utils:
 test_interval:
 - test: ping
   type: sec
-  duration: 3
+  duration: 20
 - test: jitter
   type: sec
-  duration: 3
-- test: req-res-delay-and-monitoring
+  duration: 15
+- test: monitoring
   type: sec
   duration: 3
 routes:
@@ -93,11 +93,6 @@ routes:
   params: []
   body: []
 - method: GET
-  url: https://github.com/zairza-cetb/bench-routes/pull/274
-  headers: []
-  params: []
-  body: []
-- method: GET
   url: https://material-ui.com/components/popover/
   headers: []
   params: []
@@ -118,3 +113,8 @@ routes:
     value: eve.holt@reqres.in
   - name: password
     value: pistol
+- method: GET
+  url: https://google.com
+  headers: []
+  params: []
+  body: []
