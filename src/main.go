@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -87,7 +86,6 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU() / 2)
 	go func() {
 		for {
-			fmt.Println("waiting")
 			<-reload
 			fmt.Println("reloading...")
 			conf.Refresh()
@@ -121,93 +119,6 @@ func main() {
 	api := api.New(&matrix, conf, service, reload, done)
 	router := mux.NewRouter()
 	api.Register(router)
-
-	// Persistent connection for real-time updates between UI and the service.
-	router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
-		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-		ws, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			msg := "error using upgrader" + err.Error()
-			logger.Terminal(msg, "f")
-			os.Exit(1)
-		}
-
-		format := func(b bool) []byte {
-			return []byte(strconv.FormatBool(b))
-		}
-
-		// capture client request for enabling series of responses unless its killed
-		for {
-			messageType, message, err := ws.ReadMessage()
-			if err != nil {
-				logger.Terminal("connection to the terminal lost.", "p")
-				logger.Terminal(err.Error(), "p")
-				return
-			}
-
-			// In order to support compound signals, we aim to format the messages as:
-			// <signal-name> <[optional] data>
-			// The first param refers to the signal for the operation to be carried out.
-			// The second param [optional] is a JSON object (stringified) which would be used for
-			// general communication with the UI.
-			// For example: > Qping-route {"url": "https://www.google.co.in"}		(compound signal)
-			// 				> force-start-ping										(simple signal)
-			inStream := strings.Split(string(message), " ")
-
-			sig := inStream[0] // Signal
-			msg := "type: " + strconv.Itoa(messageType) + " \n message: " + sig
-			logger.File(msg, "p")
-			// generate appropriate signals from incoming messages
-			switch sig {
-			// ping
-			case "force-start-ping":
-				if e := ws.WriteMessage(1, format(service.Ping.Iterate("start", false))); e != nil {
-					panic(e)
-				}
-			case "force-stop-ping":
-				if e := ws.WriteMessage(1, format(service.Ping.Iterate("stop", false))); e != nil {
-					panic(e)
-				}
-
-				// flood-ping
-			case "force-start-flood-ping":
-				if e := ws.WriteMessage(1, format(service.PingF.Iteratef("start", false))); e != nil {
-					panic(e)
-				}
-			case "force-stop-flood-ping":
-				if e := ws.WriteMessage(1, format(service.PingF.Iteratef("stop", false))); e != nil {
-					panic(e)
-				}
-
-				// jitter
-			case "force-start-jitter":
-				if e := ws.WriteMessage(1, format(service.Jitter.Iterate("start", false))); e != nil {
-					panic(e)
-				}
-			case "force-stop-jitter":
-				if e := ws.WriteMessage(1, format(service.Jitter.Iterate("start", false))); e != nil {
-					panic(e)
-				}
-
-				// request-monitor-monitoring
-			case "force-start-req-res-monitoring":
-				if e := ws.WriteMessage(1, format(service.Monitor.Iterate("start", false))); e != nil {
-					panic(e)
-				}
-			case "force-stop-req-res-monitoring":
-				if e := ws.WriteMessage(1, format(service.Monitor.Iterate("stop", false))); e != nil {
-					panic(e)
-				}
-
-				// Get config routes details
-			case "route-details":
-				m := conf.Config.Routes
-				if e := ws.WriteMessage(1, filters.RouteYAMLtoJSONParser(m)); e != nil {
-					panic(e)
-				}
-			}
-		}
-	})
 
 	go func() {
 		metrics := sysMetrics.New()

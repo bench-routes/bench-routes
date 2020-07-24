@@ -24,8 +24,8 @@ interface EditModalProps {
 
 const EditModal = (props: EditModalProps) => {
   const { isOpen, setOpen, selectedRoute, updateConfigRoutes } = props;
-  console.log(selectedRoute);
-  const [value, setValue] = useState(0);
+  const [modalUrl, setModalUrl] = useState<string>('');
+  const [value, setValue] = useState<number>(0);
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -43,9 +43,11 @@ const EditModal = (props: EditModalProps) => {
 
   useEffect(() => {
     setValue(0);
+    setModalUrl(selectedRoute.route);
   }, [selectedRoute]);
 
-  const updateCurrentModal = routes => {
+  const updateCurrentModal = (routes, URL: string) => {
+    setModalUrl(URL);
     updateConfigRoutes(routes);
   };
 
@@ -65,8 +67,9 @@ const EditModal = (props: EditModalProps) => {
                 {
                   <Chip
                     variant="outlined"
-                    size="small"
-                    label={selectedRoute.route}
+                    size="medium"
+                    style={{ fontSize: '14px' }}
+                    label={modalUrl}
                     clickable
                     color="primary"
                   />
@@ -85,7 +88,6 @@ const EditModal = (props: EditModalProps) => {
               >
                 {Object.keys(selectedRoute).length !== 0 ? (
                   selectedRoute?.options?.map((options, index) => {
-                    console.log(index);
                     return (
                       <Tab
                         key={index}
@@ -109,7 +111,9 @@ const EditModal = (props: EditModalProps) => {
                       body={options.body}
                       params={options.params}
                       route={selectedRoute.route}
-                      updateCurrentModal={routes => updateCurrentModal(routes)}
+                      updateCurrentModal={(routes, URL) =>
+                        updateCurrentModal(routes, URL)
+                      }
                       screenType="config-screen"
                     />
                   </TabPanel>

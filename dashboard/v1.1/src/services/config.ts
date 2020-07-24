@@ -27,7 +27,7 @@ export const fetchConfigIntervals = async (setConfigIntervals) => {
     });
     setConfigIntervals(intervals);
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 };
 

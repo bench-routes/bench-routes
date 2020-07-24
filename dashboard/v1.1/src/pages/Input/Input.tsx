@@ -24,7 +24,7 @@ interface InputScreenProps {
   route: string;
   body: { Name: string; Value: string }[];
   method: string;
-  updateCurrentModal: (routes: any) => void;
+  updateCurrentModal: (routes: any, URL: string) => void;
 }
 
 interface AlertSnackBar {
@@ -78,7 +78,6 @@ const Input = (props: InputScreenProps) => {
       let paramValues: paramsTransformValue[] = populateParams(params);
       let bodyValues: paramsTransformValue[] = populateParams(body);
       let headerValues: paramsTransformValue[] = populateParams(headers);
-      console.log(paramValues, bodyValues, headerValues);
       setParamsValues(paramValues);
       setBodyValues(bodyValues);
       setHeaderValues(headerValues);
@@ -185,7 +184,7 @@ const Input = (props: InputScreenProps) => {
         })
           .then(resp => resp.json())
           .then(response => {
-            updateCurrentModal(response);
+            updateCurrentModal(response, valueURLRoute);
             setShowResponseButton(true);
           });
       });
