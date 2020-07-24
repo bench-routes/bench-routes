@@ -44,13 +44,6 @@ interface diskDetails {
   cached: string;
 }
 
-export interface routeType {
-  url: string,
-  methods: string[],
-  body: string[],
-  params: string[]
-}
-
 export interface routeEntryType {
     route: string,
     options: routeOptionsInterface[] | undefined
@@ -61,4 +54,32 @@ export interface routeOptionsInterface {
   headers: { OfType: string; Value: string }[],
   method: string,
   body: { Name: string; Value: string }[],
+}
+
+export interface rootRouteObject {
+  URL: string,
+  Body: { Name: string; Value: string }[],
+  Params: { Name: string; Value: string }[],
+  Header: { OfType: string; Value: string }[],
+  Method: string,
+}
+
+export interface paramsTransformValue {
+  key: string;
+  value: string
+}
+
+export interface paramsObject {
+  Name: string;
+  Value: string;
+}
+
+export interface bodyObject {
+  Name: string;
+  Value: string;
+}
+
+export interface headersObject {
+  OfType: string;
+  Value: string
 }

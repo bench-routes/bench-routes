@@ -1,19 +1,12 @@
 import {
-  HOST_IP
-} from '../../utils/types';
+  HOST_IP,
+  rootRouteObject
+} from '../utils/types';
 
 interface interval {
   Test: string;
   Duration: string;
   Type: string;
-}
-
-export interface route {
-  URL: string;
-  Method: string;
-  Body: string;
-  Header: string;
-  Params: string;
 }
 
 export const fetchConfigIntervals = async (setConfigIntervals) => {
@@ -44,7 +37,7 @@ export const fetchConfigRoutes = async (setConfigRoutes) => {
   });
   const { data } = response;
   let configRoutes = new Map();
-  data.forEach((route: route) => {
+  data.forEach((route: rootRouteObject) => {
     const uri = route.URL
     if (!configRoutes.has(uri)) {
       configRoutes.set(uri, [{

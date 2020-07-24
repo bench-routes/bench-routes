@@ -7,7 +7,7 @@ import TextField from '@material-ui/core/TextField';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
-import { HOST_IP } from '../../utils/types';
+import { HOST_IP, paramsTransformValue } from '../../utils/types';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -15,6 +15,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import MuiAlert, { AlertProps } from '@material-ui/lab/Alert';
 import Snackbar from '@material-ui/core/Snackbar';
 import PropTypes from 'prop-types';
+import { populateParams } from '../../utils/parse';
 
 interface InputScreenProps {
   screenType: string | undefined;
@@ -23,7 +24,7 @@ interface InputScreenProps {
   route: string;
   body: { Name: string; Value: string }[];
   method: string;
-  updateCurrModal: (routes: any) => void;
+  updateCurrentModal: (routes: any) => void;
 }
 
 interface AlertSnackBar {
@@ -47,7 +48,7 @@ const Input = (props: InputScreenProps) => {
     route,
     body,
     method,
-    updateCurrModal
+    updateCurrentModal
   } = props;
   const [requestType, setRequestType] = useState('');
   const [, setHyperTextType] = useState('');
@@ -73,29 +74,12 @@ const Input = (props: InputScreenProps) => {
   const [showResponseButton, setShowResponseButton] = useState<boolean>(false);
 
   useEffect(() => {
-    if (screenType === 'configScreen') {
-      let parameters: { key: string; value: string }[] = [];
-      let bodyValues: { key: string; value: string }[] = [];
-      let headerValues: { key: string; value: string }[] = [];
-      params?.forEach(param => {
-        parameters.push({
-          key: param.Name,
-          value: param.Value
-        });
-      });
-      body?.forEach(val => {
-        bodyValues.push({
-          key: val.Name,
-          value: val.Value
-        });
-      });
-      headers?.forEach(header => {
-        headerValues.push({
-          key: header.OfType,
-          value: header.Value
-        });
-      });
-      setParamsValues(parameters);
+    if (screenType === 'config-screen') {
+      let paramValues: paramsTransformValue[] = populateParams(params);
+      let bodyValues: paramsTransformValue[] = populateParams(body);
+      let headerValues: paramsTransformValue[] = populateParams(headers);
+      console.log(paramValues, bodyValues, headerValues);
+      setParamsValues(paramValues);
       setBodyValues(bodyValues);
       setHeaderValues(headerValues);
       setRequestType(method);
@@ -201,7 +185,7 @@ const Input = (props: InputScreenProps) => {
         })
           .then(resp => resp.json())
           .then(response => {
-            updateCurrModal(response);
+            updateCurrentModal(response);
             setShowResponseButton(true);
           });
       });
@@ -391,7 +375,7 @@ const Input = (props: InputScreenProps) => {
           ) : null}
         </div>
         <div>
-          {screenType === 'configScreen' ? (
+          {screenType === 'config-screen' ? (
             <Button
               variant="contained"
               color="primary"

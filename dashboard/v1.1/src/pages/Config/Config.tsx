@@ -21,8 +21,9 @@ import { useFetch } from '../../utils/useFetch';
 import { Alert } from '@material-ui/lab';
 import { tableIcons } from '../../utils/tableIcons';
 import EditModal from './components/EditModal';
+import { getRoutesMap } from '../../utils/parse';
 // eslint-disable-next-line
-import { fetchConfigIntervals, fetchConfigRoutes, route } from './Services';
+import { fetchConfigIntervals, fetchConfigRoutes } from '../../services/config';
 import { columns, TableRowData } from './components/MaterialTable';
 
 const SearchTable = lazy(() => import('./components/MaterialTable'));
@@ -100,30 +101,7 @@ const Config: FC<{}> = () => {
 
   const updateConfigRoutes = routes => {
     const { data } = routes;
-    let configRoutes = new Map();
-    data.forEach((route: route) => {
-      const uri = route.URL;
-      if (!configRoutes.has(uri)) {
-        configRoutes.set(uri, [
-          {
-            method: route.Method,
-            body: route.Body,
-            headers: route.Header,
-            params: route.Params
-          }
-        ]);
-      } else {
-        configRoutes.set(uri, [
-          ...configRoutes.get(uri),
-          {
-            method: route.Method,
-            body: route.Body,
-            headers: route.Header,
-            params: route.Params
-          }
-        ]);
-      }
-    });
+    let configRoutes: Map<string, routeOptionsInterface[]> = getRoutesMap(data);
     setConfigRoutes(configRoutes);
   };
 
@@ -241,48 +219,27 @@ const Config: FC<{}> = () => {
               }
             ]}
             editable={{
-              onRowDelete: (oldData: TableRouteType) => {
-                fetch(`${HOST_IP}/delete-route`, {
-                  method: 'post',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    actualRoute: oldData.route
+              onRowDelete: async (oldData: TableRouteType) => {
+                try {
+                  fetch(`${HOST_IP}/delete-route`, {
+                    method: 'post',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      actualRoute: oldData.route
+                    })
                   })
-                })
-                  .then(resp => resp.json())
-                  .then(
-                    response => {
+                    .then(resp => resp.json())
+                    .then(response => {
                       const { data } = response;
-                      let configRoutes = new Map();
-                      data.forEach(route => {
-                        const uri = route['URL'];
-                        if (!configRoutes.has(uri)) {
-                          configRoutes.set(uri, [
-                            {
-                              method: route['Method'],
-                              body: route['Body'],
-                              headers: route['Header'],
-                              params: route['Params']
-                            }
-                          ]);
-                        } else {
-                          configRoutes.set(uri, [
-                            ...configRoutes.get(uri),
-                            {
-                              method: route['Method'],
-                              body: route['Body'],
-                              headers: route['Header'],
-                              params: route['Params']
-                            }
-                          ]);
-                        }
-                      });
+                      let configRoutes: Map<
+                        string,
+                        routeOptionsInterface[]
+                      > = getRoutesMap(data);
                       setConfigRoutes(configRoutes);
-                    },
-                    e => {
-                      console.error(e);
-                    }
-                  );
+                    });
+                } catch (e) {
+                  console.log(e);
+                }
               }
             }}
           />

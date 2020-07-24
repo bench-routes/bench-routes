@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import {
   AppBar,
   Button,
@@ -24,6 +24,7 @@ interface EditModalProps {
 
 const EditModal = (props: EditModalProps) => {
   const { isOpen, setOpen, selectedRoute, updateConfigRoutes } = props;
+  console.log(selectedRoute);
   const [value, setValue] = useState(0);
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -40,7 +41,11 @@ const EditModal = (props: EditModalProps) => {
     };
   };
 
-  const updateCurrModal = routes => {
+  useEffect(() => {
+    setValue(0);
+  }, [selectedRoute]);
+
+  const updateCurrentModal = routes => {
     updateConfigRoutes(routes);
   };
 
@@ -68,7 +73,7 @@ const EditModal = (props: EditModalProps) => {
                 }
               </div>
             ) : (
-              <div> </div>
+              <> </>
             )}
           </DialogTitle>
           <DialogContent>
@@ -80,6 +85,7 @@ const EditModal = (props: EditModalProps) => {
               >
                 {Object.keys(selectedRoute).length !== 0 ? (
                   selectedRoute?.options?.map((options, index) => {
+                    console.log(index);
                     return (
                       <Tab
                         key={index}
@@ -89,7 +95,7 @@ const EditModal = (props: EditModalProps) => {
                     );
                   })
                 ) : (
-                  <div> </div>
+                  <> </>
                 )}
               </Tabs>
             </AppBar>
@@ -103,14 +109,14 @@ const EditModal = (props: EditModalProps) => {
                       body={options.body}
                       params={options.params}
                       route={selectedRoute.route}
-                      updateCurrModal={routes => updateCurrModal(routes)}
-                      screenType="configScreen"
+                      updateCurrentModal={routes => updateCurrentModal(routes)}
+                      screenType="config-screen"
                     />
                   </TabPanel>
                 );
               })
             ) : (
-              <div> </div>
+              <> </>
             )}
           </DialogContent>
           <DialogActions>

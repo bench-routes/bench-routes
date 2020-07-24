@@ -11,27 +11,110 @@ utils:
 test_interval:
 - test: ping
   type: sec
-  duration: 10
+  duration: 3
 - test: jitter
   type: sec
-  duration: 10
-- test: monitoring
+  duration: 3
+- test: req-res-delay-and-monitoring
   type: sec
-  duration: 10
+  duration: 3
 routes:
+- method: GET
+  url: https://www.google.co.in/search
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: q
+    value: bench-routes
+  body: []
+- method: GET
+  url: https://www.google.co.in/about
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: q
+    value: bench-routes
+  body: []
+- method: GET
+  url: https://www.facebook.com/search
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: q
+    value: bench-routes
+  body: []
+- method: GET
+  url: https://in.search.yahoo.com/search
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: p
+    value: bench-routes
+  - name: fp
+    value: "1"
+  - name: toggle
+    value: "1"
+  - name: cop
+    value: mss
+  - name: ei
+    value: UTF-8
+  body: []
 - method: GET
   url: https://reqres.in/api/users
   headers: []
   params:
   - name: page
     value: "2"
+  - name: ""
+    value: ""
+  body: []
+- method: GET
+  url: https://reqres.in/api/unknown
+  headers: []
+  params: []
+  body: []
+- method: GET
+  url: https://reqres.in/api/users/2
+  headers: []
+  params: []
+  body: []
+- method: GET
+  url: http://dummy.restapiexample.com/api/v1/employees
+  headers: []
+  params: []
+  body: []
+- method: GET
+  url: https://www.bing.com/search?q=bench-routes&qs=n&form=QBRE&sp=-1&pq=bench-rotes&sc=8-11&sk=&cvid=63660D91E0DD40329FC8123C78DBACE2
+  headers: []
+  params: []
+  body: []
+- method: GET
+  url: https://github.com/zairza-cetb/bench-routes/pull/274
+  headers: []
+  params: []
+  body: []
+- method: GET
+  url: https://material-ui.com/components/popover/
+  headers: []
+  params: []
+  body: []
+- method: GET
+  url: https://hangouts.google.com/
+  headers: []
+  params: []
   body: []
 - method: POST
-  url: https://reqres.in/api/users
+  url: https://reqres.in/api/register
   headers: []
   params: []
   body:
-  - name: name
-    value: morpheus
-  - name: job
-    value: harki
+  - name: ""
+    value: ""
+  - name: email
+    value: eve.holt@reqres.in
+  - name: password
+    value: pistol
