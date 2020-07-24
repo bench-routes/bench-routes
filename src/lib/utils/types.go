@@ -105,4 +105,4 @@ type BRMatrix struct {
 }
 
 // BRmap forms a map of matrix that can be accessed with least possible time.
-type BRmap map[int]*BRMatrix
+type BRmap map[string]*BRMatrix

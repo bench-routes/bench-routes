@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -68,7 +67,7 @@ func main() {
 
 	var ConfigURLs []string
 	intervals := conf.Config.Interval
-	service := &struct {
+	workers := &struct {
 		Ping    *ping.Ping
 		Jitter  *jitter.Jitter
 		PingF   *ping.FloodPing
@@ -90,6 +89,8 @@ func main() {
 			fmt.Println("reloading...")
 			conf.Refresh()
 			for _, r := range conf.Config.Routes {
+				//_, ok := matrix
+				matrix[URLHash(r)] = &utils.BRMatrix{FullURL: r.URL}
 				var found bool
 				for _, i := range ConfigURLs {
 					if i == r.URL {
@@ -119,96 +120,9 @@ func main() {
 	<-done
 	chainSet.Run()
 
-	api := api.New(&matrix, conf, service, &reload, &done)
+	api := api.New(&matrix, conf, workers, &reload, &done)
 	router := mux.NewRouter()
 	api.Register(router)
-
-	// Persistent connection for real-time updates between UI and the service.
-	router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
-		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-		ws, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			msg := "error using upgrader" + err.Error()
-			logger.Terminal(msg, "f")
-			os.Exit(1)
-		}
-
-		format := func(b bool) []byte {
-			return []byte(strconv.FormatBool(b))
-		}
-
-		// capture client request for enabling series of responses unless its killed
-		for {
-			messageType, message, err := ws.ReadMessage()
-			if err != nil {
-				logger.Terminal("connection to the terminal lost.", "p")
-				logger.Terminal(err.Error(), "p")
-				return
-			}
-
-			// In order to support compound signals, we aim to format the messages as:
-			// <signal-name> <[optional] data>
-			// The first param refers to the signal for the operation to be carried out.
-			// The second param [optional] is a JSON object (stringified) which would be used for
-			// general communication with the UI.
-			// For example: > Qping-route {"url": "https://www.google.co.in"}		(compound signal)
-			// 				> force-start-ping										(simple signal)
-			inStream := strings.Split(string(message), " ")
-
-			sig := inStream[0] // Signal
-			msg := "type: " + strconv.Itoa(messageType) + " \n message: " + sig
-			logger.File(msg, "p")
-			// generate appropriate signals from incoming messages
-			switch sig {
-			// ping
-			case "force-start-ping":
-				if e := ws.WriteMessage(1, format(service.Ping.Iterate("start", false))); e != nil {
-					panic(e)
-				}
-			case "force-stop-ping":
-				if e := ws.WriteMessage(1, format(service.Ping.Iterate("stop", false))); e != nil {
-					panic(e)
-				}
-
-				// flood-ping
-			case "force-start-flood-ping":
-				if e := ws.WriteMessage(1, format(service.PingF.Iteratef("start", false))); e != nil {
-					panic(e)
-				}
-			case "force-stop-flood-ping":
-				if e := ws.WriteMessage(1, format(service.PingF.Iteratef("stop", false))); e != nil {
-					panic(e)
-				}
-
-				// jitter
-			case "force-start-jitter":
-				if e := ws.WriteMessage(1, format(service.Jitter.Iterate("start", false))); e != nil {
-					panic(e)
-				}
-			case "force-stop-jitter":
-				if e := ws.WriteMessage(1, format(service.Jitter.Iterate("start", false))); e != nil {
-					panic(e)
-				}
-
-				// request-monitor-monitoring
-			case "force-start-req-res-monitoring":
-				if e := ws.WriteMessage(1, format(service.Monitor.Iterate("start", false))); e != nil {
-					panic(e)
-				}
-			case "force-stop-req-res-monitoring":
-				if e := ws.WriteMessage(1, format(service.Monitor.Iterate("stop", false))); e != nil {
-					panic(e)
-				}
-
-				// Get config routes details
-			case "route-details":
-				m := conf.Config.Routes
-				if e := ws.WriteMessage(1, filters.RouteYAMLtoJSONParser(m)); e != nil {
-					panic(e)
-				}
-			}
-		}
-	})
 
 	go func() {
 		metrics := sysMetrics.New()
@@ -322,7 +236,7 @@ func main() {
 	// clean tsdb blocks in regular intervals.
 	go func() {
 		runtime.GC()
-		time.Sleep(time.Duration(time.Minute * 3))
+		time.Sleep(time.Minute * 3)
 	}()
 
 	// Reset Services.
@@ -349,13 +263,13 @@ func main() {
 			if node.state == "active" {
 				switch node.service {
 				case "Ping":
-					service.Ping.Iterate("stop", false)
+					workers.Ping.Iterate("stop", false)
 				case "FloodPing":
-					service.PingF.Iteratef("stop", false)
+					workers.PingF.Iteratef("stop", false)
 				case "Jitter":
-					service.Jitter.Iterate("stop", false)
+					workers.Jitter.Iterate("stop", false)
 				case "ReqResDelayMonitoring":
-					service.Monitor.Iterate("stop", false)
+					workers.Monitor.Iterate("stop", false)
 				}
 			}
 		}
