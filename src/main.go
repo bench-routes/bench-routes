@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -457,4 +458,29 @@ func setDefaultServicesState(configuration *parser.Config) {
 	if _, e := configuration.Write(); e != nil {
 		panic(e)
 	}
+}
+
+func URLHash(route parser.Route) string {
+	var (
+		method = route.Method
+		URL = route.URL
+		body = route.Body
+		headers = route.Header
+		params = route.Params
+		hashInput = fmt.Sprintf("%s%s", method, URL)
+	)
+	mbody, err := json.Marshal(body)
+	if err != nil {
+		panic(err)
+	}
+	mheaders, err := json.Marshal(headers)
+	if err != nil {
+		panic(err)
+	}
+	mparams, err := json.Marshal(params)
+	if err != nil {
+		panic(err)
+	}
+	hashInput += fmt.Sprintf("%s%s%s", mbody, mheaders, mparams)
+	return utils.GetHash(hashInput)
 }
