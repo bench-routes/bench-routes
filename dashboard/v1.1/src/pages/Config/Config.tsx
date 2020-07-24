@@ -1,31 +1,34 @@
-import React, { FC, useState, useEffect } from 'react';
-import { HOST_IP } from '../../utils/types';
+import React, { FC, useState, useEffect, lazy, Suspense } from 'react';
+import {
+  HOST_IP,
+  service_states,
+  routeEntryType,
+  routeOptionsInterface
+} from '../../utils/types';
 import IntervalDetails from './components/IntervalDetails';
 import {
   Grid,
-  Card,
   CardContent,
   Typography,
   makeStyles,
-  Chip,
-  Tooltip
+  Tooltip,
+  CircularProgress
 } from '@material-ui/core';
+import Paper from '@material-ui/core/Paper';
 import { Edit as EditIcon, Close as CloseIcon } from '@material-ui/icons';
-import SearchTable from './components/MaterialTable';
 import { truncate } from '../../utils/stringManipulations';
+import { useFetch } from '../../utils/useFetch';
+import { Alert } from '@material-ui/lab';
+import { tableIcons } from '../../utils/tableIcons';
+import EditModal from './components/EditModal';
+import { getRoutesMap } from '../../utils/parse';
+import { fetchConfigIntervals, fetchConfigRoutes } from '../../services/config';
+import { columns, TableRowData } from './components/MaterialTable';
+import { onRowDelete, TableRouteType, IntervalType } from './handles';
 
-interface IntervalType {
-  test: string;
-  duration: number;
-  unit: string;
-}
+const SearchTable = lazy(() => import('./components/MaterialTable'));
 
-interface TableRouteType {
-  route: string;
-  methods: string[];
-}
-
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_theme => ({
   root: {
     diplay: 'flex'
   },
@@ -42,84 +45,58 @@ const Config: FC<{}> = () => {
   const [configIntervals, setConfigIntervals] = useState<IntervalType[] | null>(
     null
   );
-  const [configRoutes, setConfigRoutes] = useState<[string, string[]][] | null>(
-    null
-  );
+
+  const [configRoutes, setConfigRoutes] = useState<
+    Map<string, routeOptionsInterface[]>
+  >(new Map());
+
   const [toggleResults, setToggleResults] = useState({
     ping: false,
     jitter: false,
     'req-res-delay-and-monitoring': false
   });
 
-  const fetchConfigIntervals = async () => {
-    const response = await fetch(`${HOST_IP}/get-config-intervals`).then(
-      resp => {
-        return resp.json();
-      }
-    );
-    const { data } = response;
-    let intervals: any = [];
-    data.forEach(interval => {
-      intervals.push({
-        test: interval['Test'],
-        duration: interval['Duration'],
-        unit: interval['Type']
-      });
-    });
-    setConfigIntervals(intervals);
-  };
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
-  const fetchConfigRoutes = async () => {
-    const response = await fetch(`${HOST_IP}/get-config-routes`).then(resp => {
-      return resp.json();
-    });
-    const { data } = response;
-    let configRoutes = new Map();
-    data.forEach(route => {
-      const uri = route['URL'] + '/' + route['Route'];
-      if (!configRoutes.has(uri)) {
-        configRoutes.set(uri, [route['Method']]);
-      } else {
-        configRoutes.set(uri, [...configRoutes.get(uri), route['Method']]);
-      }
-    });
-    setConfigRoutes(Array.from(configRoutes));
-  };
+  const [selectedRow, setSelectedRow] = useState<routeEntryType>({
+    route: '',
+    options: []
+  });
+
+  const { response, error } = useFetch<service_states>(
+    `${HOST_IP}/service-state`
+  );
 
   useEffect(() => {
-    fetchConfigIntervals().then(() => fetchConfigRoutes());
+    fetchConfigIntervals(setConfigIntervals).then(() =>
+      fetchConfigRoutes(setConfigRoutes)
+    );
   }, []);
 
-  const getTableRoutes = (routes: [string, string[]][] | null) => {
+  const getTableData = (routes: [string, routeOptionsInterface[]][]) => {
     let tableData: TableRouteType[] = [];
-    routes?.forEach(r => {
+    routes.forEach(route => {
+      let methods: string[] = [];
+      route[1].forEach(option => {
+        Object.keys(option).forEach(k => {
+          if (k === 'method') {
+            methods.push(option[k]);
+          }
+        });
+      });
       tableData.push({
-        route: r[0],
-        methods: r[1]
+        route: route[0],
+        methods
       });
     });
     return tableData;
   };
 
-  const columns = [
-    {
-      field: 'route',
-      title: 'Route'
-    },
-    {
-      field: 'methods',
-      title: 'Methods',
-      render: (rowData: { methods: any[]; route: string }) =>
-        rowData.methods.map(m => (
-          <Chip
-            key={rowData.route + m}
-            variant="outlined"
-            color="primary"
-            label={m}
-          />
-        ))
-    }
-  ];
+  const updateConfigRoutes = routes => {
+    const { data } = routes;
+    let configRoutes: Map<string, routeOptionsInterface[]> = getRoutesMap(data);
+    setConfigRoutes(configRoutes);
+  };
 
   const handleToggle = (intervalName: string) => {
     switch (intervalName) {
@@ -143,77 +120,102 @@ const Config: FC<{}> = () => {
     }
   };
 
+  if (error) {
+    return <Alert severity="error">Unable to reach the service: error</Alert>;
+  }
+  if (!response.data) {
+    return <Alert severity="info">Fetching from sources</Alert>;
+  }
+
   return (
     <>
-      <Grid container spacing={4}>
-        {configIntervals?.map(interval => {
-          const { test, duration, unit } = interval;
-          return (
-            <Grid item lg={3} sm={6} xl={3} xs={12} key={test}>
-              <Card className={classes.cardStyle}>
-                <CardContent>
-                  <Grid container style={{ justifyContent: 'space-between' }}>
-                    <Grid item>
-                      <Typography
-                        gutterBottom
-                        variant="h6"
-                        className={classes.h6}
-                      >
-                        {truncate(
-                          test.charAt(0).toUpperCase() + test.slice(1),
-                          14
+      <Paper elevation={0} style={{ marginBottom: '1%', padding: '1%' }}>
+        <CardContent>
+          <h4>Scrape Intervals</h4>
+          <hr />
+        </CardContent>
+        <Grid container spacing={1}>
+          {configIntervals?.map((interval: IntervalType) => {
+            const { test, duration, unit } = interval;
+            return (
+              <Grid item lg={3} sm={6} xl={3} xs={12} key={test}>
+                <Paper
+                  className={classes.cardStyle}
+                  elevation={0}
+                  variant="outlined"
+                >
+                  <CardContent>
+                    <Grid container style={{ justifyContent: 'space-between' }}>
+                      <Grid item>
+                        <Typography
+                          gutterBottom
+                          variant="h6"
+                          className={classes.h6}
+                        >
+                          {truncate(
+                            test.charAt(0).toUpperCase() + test.slice(1),
+                            14
+                          )}
+                        </Typography>
+                      </Grid>
+                      <Grid item>
+                        {toggleResults[test] ? (
+                          <Tooltip title="Cancel" style={{ cursor: 'pointer' }}>
+                            <CloseIcon onClick={() => handleToggle(test)} />
+                          </Tooltip>
+                        ) : (
+                          <Tooltip title="Edit" style={{ cursor: 'pointer' }}>
+                            <EditIcon onClick={() => handleToggle(test)} />
+                          </Tooltip>
                         )}
-                      </Typography>
+                      </Grid>
                     </Grid>
-                    <Grid item>
-                      {toggleResults[test] ? (
-                        <Tooltip title="Cancel" style={{ cursor: 'pointer' }}>
-                          <CloseIcon onClick={() => handleToggle(test)} />
-                        </Tooltip>
-                      ) : (
-                        <Tooltip title="Edit" style={{ cursor: 'pointer' }}>
-                          <EditIcon onClick={() => handleToggle(test)} />
-                        </Tooltip>
-                      )}
-                    </Grid>
-                  </Grid>
-                  <IntervalDetails
-                    reFetch={fetchConfigIntervals}
-                    toggleComponentView={(name: string) => handleToggle(name)}
-                    toggleResults={toggleResults}
-                    durationValue={duration}
-                    intervalName={test}
-                  />
-                  <Typography variant="body1">{unit}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          );
-        })}
-      </Grid>
-      <SearchTable
-        title=""
-        columns={columns}
-        data={getTableRoutes(configRoutes)}
-        editable={{
-          onRowUpdate: (newData, oldData) =>
-            new Promise((resolve, reject) => {
-              setTimeout(() => {
-                // const index = oldData.tableData.id;
-
-                resolve();
-              }, 1000);
-            }),
-          onRowDelete: oldData =>
-            new Promise((resolve, reject) => {
-              setTimeout(() => {
-                // const index = oldData.tableData.id;
-
-                resolve();
-              }, 1000);
-            })
-        }}
+                    <IntervalDetails
+                      reFetch={fetchConfigIntervals}
+                      toggleComponentView={(name: string) => handleToggle(name)}
+                      toggleResults={toggleResults}
+                      durationValue={duration}
+                      intervalName={test}
+                    />
+                    <Typography variant="body1" align="center">
+                      {unit}
+                    </Typography>
+                  </CardContent>
+                </Paper>
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Paper>
+      <EditModal
+        isOpen={editModalOpen}
+        setOpen={(open: boolean) => setEditModalOpen(open)}
+        selectedRoute={selectedRow}
+        updateConfigRoutes={route => updateConfigRoutes(route)}
       />
+      <Suspense fallback={<CircularProgress disableShrink />}>
+        <Paper elevation={0}>
+          <SearchTable
+            title="URL endpoints"
+            columns={columns}
+            data={getTableData(Array.from(configRoutes))}
+            actions={[
+              {
+                icon: tableIcons.Edit,
+                tooltip: 'Edit Route',
+                onClick: (_event: any, rowData: TableRowData) => {
+                  setSelectedRow({
+                    route: rowData.route,
+                    options: configRoutes.get(rowData.route)
+                  });
+                  setEditModalOpen(!editModalOpen);
+                }
+              }
+            ]}
+            editable={{ onRowDelete }}
+          />
+        </Paper>
+      </Suspense>
     </>
   );
 };

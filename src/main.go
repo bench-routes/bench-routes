@@ -8,13 +8,11 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
 	"github.com/zairza-cetb/bench-routes/src/lib/api"
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
@@ -37,19 +35,21 @@ var (
 	defaultScrapeTime           = time.Second * 3
 	systemMetricsPath           = "storage/system.json"
 	journalMetricsPath          = "storage/journal.json"
-	upgrader                    = websocket.Upgrader{
-		ReadBufferSize:  4096,
-		WriteBufferSize: 4096,
-	}
-	initializedChains = make(map[string]bool)
-	conf              *parser.Config
 	// matrix is a collection (as map) of instances where each
 	// instance is composed of ping, jitter, floodping and monitor
 	// chain paths. matrix is used in the monitoring screen to
 	// reduce the http request by grouping them based on routes.
 	// Without matrix, the http traffic would increase 4 times
 	// the current count.
-	matrix = make(utils.BRmap)
+	matrix            = make(utils.BRmap)
+	initializedChains = make(map[string]bool)
+	reload            = make(chan struct{})
+	done              = make(chan struct{})
+	// configURLs keeps the track of which URLs have been added to
+	// the matrix. This is done to avoid repetitive work.
+	configURLs []string
+	conf       *parser.Config
+	chainSet   = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
 )
 
 func main() {
@@ -64,9 +64,8 @@ func main() {
 	conf = parser.New(utils.ConfigurationFilePath)
 	conf.Load().Validate()
 	setDefaultServicesState(conf)
-
-	var ConfigURLs []string
 	intervals := conf.Config.Interval
+
 	service := &struct {
 		Ping    *ping.Ping
 		Jitter  *jitter.Jitter
@@ -79,10 +78,7 @@ func main() {
 		Monitor: monitor.New(conf, monitor.TestInterval{OfType: intervals[2].Type, Duration: *intervals[2].Duration}, &utils.RespMonitoringc),
 	}
 
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
-
-	reload := make(chan struct{})
-	done := make(chan struct{})
+	runtime.GOMAXPROCS(runtime.NumCPU() / 2)
 	go func() {
 		for {
 			<-reload
@@ -90,25 +86,22 @@ func main() {
 			conf.Refresh()
 			for _, r := range conf.Config.Routes {
 				var found bool
-				for _, i := range ConfigURLs {
+				for _, i := range configURLs {
 					if i == r.URL {
 						found = true
 						break
 					}
 				}
 				if !found {
-					ConfigURLs = append(ConfigURLs, r.URL)
+					configURLs = append(configURLs, r.URL)
 					setMatrixKey(&matrix, r.URL)
 				}
 			}
-			var wg sync.WaitGroup
 			p := time.Now()
-			wg.Add(4)
-			go initialize(&wg, &matrix, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
-			go initialize(&wg, &matrix, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
-			go initialize(&wg, &matrix, chainSet, &utils.Jitterc, ConfigURLs, utils.PathJitter, "jitter")
-			go initialize(&wg, &matrix, chainSet, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
-			wg.Wait()
+			initialize(&matrix, chainSet, &utils.Pingc, configURLs, utils.PathPing, "ping")
+			initialize(&matrix, chainSet, &utils.FPingc, configURLs, utils.PathFloodPing, "flood_ping")
+			initialize(&matrix, chainSet, &utils.Jitterc, configURLs, utils.PathJitter, "jitter")
+			initialize(&matrix, chainSet, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
 			msg := "initialization time: " + time.Since(p).String()
 			logger.Terminal(msg, "p")
 			done <- struct{}{}
@@ -118,96 +111,9 @@ func main() {
 	<-done
 	chainSet.Run()
 
-	api := api.New(&matrix, conf, service, &reload, &done)
+	api := api.New(&matrix, conf, service, reload, done)
 	router := mux.NewRouter()
 	api.Register(router)
-
-	// Persistent connection for real-time updates between UI and the service.
-	router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
-		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-		ws, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			msg := "error using upgrader" + err.Error()
-			logger.Terminal(msg, "f")
-			os.Exit(1)
-		}
-
-		format := func(b bool) []byte {
-			return []byte(strconv.FormatBool(b))
-		}
-
-		// capture client request for enabling series of responses unless its killed
-		for {
-			messageType, message, err := ws.ReadMessage()
-			if err != nil {
-				logger.Terminal("connection to the terminal lost.", "p")
-				logger.Terminal(err.Error(), "p")
-				return
-			}
-
-			// In order to support compound signals, we aim to format the messages as:
-			// <signal-name> <[optional] data>
-			// The first param refers to the signal for the operation to be carried out.
-			// The second param [optional] is a JSON object (stringified) which would be used for
-			// general communication with the UI.
-			// For example: > Qping-route {"url": "https://www.google.co.in"}		(compound signal)
-			// 				> force-start-ping										(simple signal)
-			inStream := strings.Split(string(message), " ")
-
-			sig := inStream[0] // Signal
-			msg := "type: " + strconv.Itoa(messageType) + " \n message: " + sig
-			logger.File(msg, "p")
-			// generate appropriate signals from incoming messages
-			switch sig {
-			// ping
-			case "force-start-ping":
-				if e := ws.WriteMessage(1, format(service.Ping.Iterate("start", false))); e != nil {
-					panic(e)
-				}
-			case "force-stop-ping":
-				if e := ws.WriteMessage(1, format(service.Ping.Iterate("stop", false))); e != nil {
-					panic(e)
-				}
-
-				// flood-ping
-			case "force-start-flood-ping":
-				if e := ws.WriteMessage(1, format(service.PingF.Iteratef("start", false))); e != nil {
-					panic(e)
-				}
-			case "force-stop-flood-ping":
-				if e := ws.WriteMessage(1, format(service.PingF.Iteratef("stop", false))); e != nil {
-					panic(e)
-				}
-
-				// jitter
-			case "force-start-jitter":
-				if e := ws.WriteMessage(1, format(service.Jitter.Iterate("start", false))); e != nil {
-					panic(e)
-				}
-			case "force-stop-jitter":
-				if e := ws.WriteMessage(1, format(service.Jitter.Iterate("start", false))); e != nil {
-					panic(e)
-				}
-
-				// request-monitor-monitoring
-			case "force-start-req-res-monitoring":
-				if e := ws.WriteMessage(1, format(service.Monitor.Iterate("start", false))); e != nil {
-					panic(e)
-				}
-			case "force-stop-req-res-monitoring":
-				if e := ws.WriteMessage(1, format(service.Monitor.Iterate("stop", false))); e != nil {
-					panic(e)
-				}
-
-				// Get config routes details
-			case "route-details":
-				m := conf.Config.Routes
-				if e := ws.WriteMessage(1, filters.RouteYAMLtoJSONParser(m)); e != nil {
-					panic(e)
-				}
-			}
-		}
-	})
 
 	go func() {
 		metrics := sysMetrics.New()
@@ -219,7 +125,9 @@ func main() {
 		}
 
 		chain := tsdb.NewChain(systemMetricsPath)
+		p := time.Now()
 		chain.Init()
+		fmt.Println("initialized system-metrics...", time.Since(p))
 		chainSet.Register(chain.Name, chain)
 
 		for {
@@ -260,7 +168,9 @@ func main() {
 		go func() {
 			metrics := journal.New()
 			chain := tsdb.NewChain(journalMetricsPath)
+			p := time.Now()
 			chain.Init()
+			fmt.Println("initialized journal-metrics...", time.Since(p))
 			chainSet.Register(chain.Name, chain)
 
 			for {
@@ -382,15 +292,12 @@ func setMatrixKey(matrix *utils.BRmap, url string) {
 	}
 }
 
-func initialize(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
+func initialize(matrix *utils.BRmap, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
 	var (
 		msg = "forming " + Type + " chain ... "
-		mux sync.RWMutex
 	)
 	logger.File(msg, "p")
 	config, ok := conf.([]string)
-	mux.Lock()
-	defer mux.Unlock()
 	if ok {
 		for _, v := range config {
 			v = filters.HTTPPingFilterValue(v)
@@ -441,9 +348,7 @@ func initialize(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 	for _, chain := range *chain {
 		chainSet.Register(chain.Name, chain)
 	}
-
 	logger.Terminal("finished "+Type+" chain", "p")
-	wg.Done()
 }
 
 // setDefaultServicesState initializes all state values to passive.

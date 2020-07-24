@@ -11,32 +11,14 @@ utils:
 test_interval:
 - test: ping
   type: sec
-  duration: 3
+  duration: 20
 - test: jitter
   type: sec
-  duration: 3
-- test: req-res-delay-and-monitoring
+  duration: 15
+- test: monitoring
   type: sec
   duration: 3
 routes:
-- method: GET
-  url: https://www.google.co.in/search
-  headers:
-  - type: Content-Type
-    value: application/json
-  params:
-  - name: q
-    value: bench-routes
-  body: []
-- method: GET
-  url: https://www.google.co.in/about
-  headers:
-  - type: Content-Type
-    value: application/json
-  params:
-  - name: q
-    value: bench-routes
-  body: []
 - method: GET
   url: https://www.facebook.com/search
   headers:
@@ -64,21 +46,7 @@ routes:
     value: UTF-8
   body: []
 - method: GET
-  url: https://reqres.in/api/users
-  headers: []
-  params:
-  - name: page
-    value: "2"
-  - name: ""
-    value: ""
-  body: []
-- method: GET
   url: https://reqres.in/api/unknown
-  headers: []
-  params: []
-  body: []
-- method: GET
-  url: https://reqres.in/api/users/2
   headers: []
   params: []
   body: []
@@ -89,11 +57,6 @@ routes:
   body: []
 - method: GET
   url: https://www.bing.com/search?q=bench-routes&qs=n&form=QBRE&sp=-1&pq=bench-rotes&sc=8-11&sk=&cvid=63660D91E0DD40329FC8123C78DBACE2
-  headers: []
-  params: []
-  body: []
-- method: GET
-  url: https://github.com/zairza-cetb/bench-routes/pull/274
   headers: []
   params: []
   body: []
@@ -118,3 +81,45 @@ routes:
     value: eve.holt@reqres.in
   - name: password
     value: pistol
+- method: GET
+  url: https://google.com
+  headers: []
+  params: []
+  body: []
+- method: POST
+  url: https://www.google.co.in/search
+  headers: []
+  params: []
+  body: []
+- method: GET
+  url: https://www.google.co.in/search
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: q
+    value: bench-routes
+  body: []
+- method: GET
+  url: https://www.google.co.in/about
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: q
+    value: bench-routes
+  body: []
+- method: GET
+  url: https://reqres.in/api/user
+  headers: []
+  params:
+  - name: page
+    value: "2"
+  - name: undefined
+    value: ""
+  body: []
+- method: GET
+  url: https://reqres.in/api/users/3
+  headers: []
+  params: []
+  body: []

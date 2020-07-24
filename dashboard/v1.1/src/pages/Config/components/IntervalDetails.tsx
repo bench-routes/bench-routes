@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Grid, TextField, Button, Typography } from '@material-ui/core';
+import { TextField, Button, Typography } from '@material-ui/core';
 import { HOST_IP } from '../../../utils/types';
 
 const IntervalDetails = (props: any) => {
@@ -31,7 +31,7 @@ const IntervalDetails = (props: any) => {
       });
   };
   return (
-    <Grid container>
+    <>
       {props.toggleResults[props.intervalName] ? (
         <div>
           <form
@@ -55,9 +55,13 @@ const IntervalDetails = (props: any) => {
           </form>
         </div>
       ) : (
-        <Typography variant="h5">{props.durationValue}</Typography>
+        <div style={{ textAlign: 'center' }}>
+          <Typography variant="h2" align="center">
+            {props.durationValue}
+          </Typography>
+        </div>
       )}
-    </Grid>
+    </>
   );
 };
 

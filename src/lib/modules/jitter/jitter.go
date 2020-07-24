@@ -137,7 +137,7 @@ func (ps *Jitter) jitter(urlRaw string, packets int, tsdbNameHash string, wg *sy
 
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {
-		msg := "Failure occured for " + urlRaw
+		msg := "unable to reach " + urlRaw
 		logger.Terminal(msg, "p")
 		wg.Done()
 		return
