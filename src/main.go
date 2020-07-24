@@ -49,7 +49,7 @@ var (
 	// the matrix. This is done to avoid repetitive work.
 	configURLs []string
 	conf       *parser.Config
-	chainSet   = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
+	chainSet   = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*10)
 )
 
 func main() {
