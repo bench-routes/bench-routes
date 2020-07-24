@@ -77,7 +77,7 @@ func (ps *Monitor) perform() {
 
 	for {
 		reqResMonitoringServiceState := ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring
-		monitoringInterval := getInterval(ps.localConfig.Config.Interval, "req-res-delay-and-monitoring")
+		monitoringInterval := getInterval(ps.localConfig.Config.Interval, "monitoring")
 		if monitoringInterval == (TestInterval{}) {
 			logger.Terminal("interval not found in configuration file for req-res monitoring", "f")
 			return
