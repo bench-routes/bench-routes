@@ -22,24 +22,13 @@ import { Alert } from '@material-ui/lab';
 import { tableIcons } from '../../utils/tableIcons';
 import EditModal from './components/EditModal';
 import { getRoutesMap } from '../../utils/parse';
-// eslint-disable-next-line
 import { fetchConfigIntervals, fetchConfigRoutes } from '../../services/config';
 import { columns, TableRowData } from './components/MaterialTable';
+import { onRowDelete, TableRouteType, IntervalType } from './handles';
 
 const SearchTable = lazy(() => import('./components/MaterialTable'));
 
-interface IntervalType {
-  test: string;
-  duration: number;
-  unit: string;
-}
-
-interface TableRouteType {
-  route: string;
-  methods: string[];
-}
-
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_theme => ({
   root: {
     diplay: 'flex'
   },
@@ -56,15 +45,19 @@ const Config: FC<{}> = () => {
   const [configIntervals, setConfigIntervals] = useState<IntervalType[] | null>(
     null
   );
+
   const [configRoutes, setConfigRoutes] = useState<
     Map<string, routeOptionsInterface[]>
   >(new Map());
+
   const [toggleResults, setToggleResults] = useState({
     ping: false,
     jitter: false,
     'req-res-delay-and-monitoring': false
   });
+
   const [editModalOpen, setEditModalOpen] = useState(false);
+
   const [selectedRow, setSelectedRow] = useState<routeEntryType>({
     route: '',
     options: []
@@ -139,9 +132,10 @@ const Config: FC<{}> = () => {
       <Paper elevation={0} style={{ marginBottom: '1%', padding: '1%' }}>
         <CardContent>
           <h4>Scrape Intervals</h4>
+          <hr />
         </CardContent>
-        <Grid container spacing={4}>
-          {configIntervals?.map(interval => {
+        <Grid container spacing={1}>
+          {configIntervals?.map((interval: IntervalType) => {
             const { test, duration, unit } = interval;
             return (
               <Grid item lg={3} sm={6} xl={3} xs={12} key={test}>
@@ -209,7 +203,7 @@ const Config: FC<{}> = () => {
               {
                 icon: tableIcons.Edit,
                 tooltip: 'Edit Route',
-                onClick: (event, rowData: TableRowData) => {
+                onClick: (_event: any, rowData: TableRowData) => {
                   setSelectedRow({
                     route: rowData.route,
                     options: configRoutes.get(rowData.route)
@@ -218,30 +212,7 @@ const Config: FC<{}> = () => {
                 }
               }
             ]}
-            editable={{
-              onRowDelete: async (oldData: TableRouteType) => {
-                try {
-                  fetch(`${HOST_IP}/delete-route`, {
-                    method: 'post',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      actualRoute: oldData.route
-                    })
-                  })
-                    .then(resp => resp.json())
-                    .then(response => {
-                      const { data } = response;
-                      let configRoutes: Map<
-                        string,
-                        routeOptionsInterface[]
-                      > = getRoutesMap(data);
-                      setConfigRoutes(configRoutes);
-                    });
-                } catch (e) {
-                  console.log(e);
-                }
-              }
-            }}
+            editable={{ onRowDelete }}
           />
         </Paper>
       </Suspense>
