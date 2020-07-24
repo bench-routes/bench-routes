@@ -87,6 +87,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU() / 2)
 	go func() {
 		for {
+			fmt.Println("waiting")
 			<-reload
 			fmt.Println("reloading...")
 			conf.Refresh()
@@ -117,7 +118,7 @@ func main() {
 	<-done
 	chainSet.Run()
 
-	api := api.New(&matrix, conf, service, &reload, &done)
+	api := api.New(&matrix, conf, service, reload, done)
 	router := mux.NewRouter()
 	api.Register(router)
 

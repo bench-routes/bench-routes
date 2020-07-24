@@ -36,8 +36,8 @@ type API struct {
 	Data, Services      interface{}
 	Matrix              *utils.BRmap
 	config              *config.Config
-	reloadConfigURLs    *chan struct{}
-	receiveFinishSignal *chan struct{}
+	reloadConfigURLs    chan struct{}
+	receiveFinishSignal chan struct{}
 	mux                 sync.RWMutex
 }
 
@@ -50,7 +50,7 @@ type inputRequest struct {
 }
 
 // New returns the API type for implementing the API interface.
-func New(matrix *utils.BRmap, config *config.Config, services interface{}, reload, done *chan struct{}) *API {
+func New(matrix *utils.BRmap, config *config.Config, services interface{}, reload, done chan struct{}) *API {
 	return &API{
 		Matrix:              matrix,
 		Services:            services,
@@ -330,10 +330,10 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 			requestInstance.GetBodyConfigFormatted(),
 		),
 	)
-	*a.reloadConfigURLs <- struct{}{}
+	a.reloadConfigURLs <- struct{}{}
 	a.Data = "success"
 	a.send(w, a.marshalled())
-	<-*a.receiveFinishSignal
+	<-a.receiveFinishSignal
 }
 
 // TSDBPathDetails responds with the path details that will be used for
@@ -501,7 +501,8 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	if _, err := a.config.Write(); err != nil {
 		a.ResponseStatus = http.StatusText(400)
 	}
-	*a.reloadConfigURLs <- struct{}{}
+	a.reloadConfigURLs <- struct{}{}
+	<-a.receiveFinishSignal
 	a.ResponseStatus = http.StatusText(200)
 	a.Data = a.config.Config.Routes
 	a.send(w, a.marshalled())

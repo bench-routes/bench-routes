@@ -20,15 +20,6 @@ test_interval:
   duration: 3
 routes:
 - method: GET
-  url: https://www.google.co.in/search
-  headers:
-  - type: Content-Type
-    value: application/json
-  params:
-  - name: q
-    value: bench-routes
-  body: []
-- method: GET
   url: https://www.google.co.in/about
   headers:
   - type: Content-Type
@@ -117,4 +108,18 @@ routes:
   url: https://google.com
   headers: []
   params: []
+  body: []
+- method: POST
+  url: https://www.google.co.in/search1
+  headers: []
+  params: []
+  body: []
+- method: GET
+  url: https://www.google.co.in/search1
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: q
+    value: bench-routes
   body: []
