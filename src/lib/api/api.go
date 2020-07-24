@@ -62,52 +62,43 @@ func New(matrix *utils.BRmap, config *config.Config, services interface{}, reloa
 
 // Register registers the routes with the mux router.
 func (a *API) Register(router *mux.Router) {
-	// static servings.
+	// Static servings.
 	{
 		router.Handle("/", http.FileServer(http.Dir(uiPathV11)))
 		router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(uiPathV11+"assets/"))))
 		router.PathPrefix("/manifest.json").Handler(http.StripPrefix("/manifest.json", http.FileServer(http.Dir(uiPathV11+"/manifest.json"))))
 		router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(uiPathV11+"static/"))))
 	}
-	// Pprof profiling routes.
+	// Profiling routes.
 	{
-		// Index responds with the pprof-formatted profile named by the request.
-		// For example, "/debug/pprof/heap" serves the "heap" profile.
-		// Index responds to a request for "/debug/pprof/" with an HTML page listing the available profiles.
 		router.HandleFunc("/debug/pprof/", pprof.Index)
-		// Respective handlers for pprof.Index
 		router.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
 		router.Handle("/debug/pprof/heap", pprof.Handler("heap"))
 		router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
 		router.Handle("/debug/pprof/block", pprof.Handler("block"))
-		// Cmdline responds with the running program's command line, with arguments separated by NUL bytes.
-		// The package initialization registers it as /debug/pprof/cmdline.
 		router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		// Profile responds with the pprof-formatted cpu profile.
-		// Profiling lasts for duration specified in seconds GET parameter,
-		// or for 30 seconds if not specified. The package initialization registers it as /debug/pprof/profile.
 		router.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		// Symbol looks up the program counters listed in the request, responding
-		// with a table mapping program counters to function names.
-		// The package initialization registers it as /debug/pprof/symbol.
 		router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	}
-	router.HandleFunc("/add-route", a.AddRouteToMonitoring)
-	router.HandleFunc("/br-live-check", a.Home)
-	router.HandleFunc("/config/update-interval", a.ModifyIntervalDuration)
-	router.HandleFunc("/delete-route", a.DeleteConfigRoutes)
-	router.HandleFunc("/get-monitoring-services-state", a.GetMonitoringState)
-	router.HandleFunc("/get-config-intervals", a.GetConfigIntervals)
-	router.HandleFunc("/get-config-routes", a.GetConfigRoutes)
-	router.HandleFunc("/get-route-time-series", a.TSDBPathDetails)
-	router.HandleFunc("/query-matrix", a.SendMatrix)
-	router.HandleFunc("/query", a.Query)
-	router.HandleFunc("/quick-input", a.QuickTestInput)
-	router.HandleFunc("/routes-summary", a.RoutesSummary)
-	router.HandleFunc("/service-state", a.ServiceState)
-	router.HandleFunc("/test", a.TestTemplate)
-	router.HandleFunc("/update-monitoring-services-state", a.UpdateMonitoringServicesState)
-	router.HandleFunc("/update-route", a.UpdateRoute)
+	// API endpoints.
+	{
+		router.HandleFunc("/add-route", a.AddRouteToMonitoring)
+		router.HandleFunc("/br-live-check", a.Home)
+		router.HandleFunc("/config/update-interval", a.ModifyIntervalDuration)
+		router.HandleFunc("/delete-route", a.DeleteConfigRoutes)
+		router.HandleFunc("/get-monitoring-services-state", a.GetMonitoringState)
+		router.HandleFunc("/get-config-intervals", a.GetConfigIntervals)
+		router.HandleFunc("/get-config-routes", a.GetConfigRoutes)
+		router.HandleFunc("/get-route-time-series", a.TSDBPathDetails)
+		router.HandleFunc("/query-matrix", a.SendMatrix)
+		router.HandleFunc("/query", a.Query)
+		router.HandleFunc("/quick-input", a.QuickTestInput)
+		router.HandleFunc("/routes-summary", a.RoutesSummary)
+		router.HandleFunc("/service-state", a.ServiceState)
+		router.HandleFunc("/test", a.TestTemplate)
+		router.HandleFunc("/update-monitoring-services-state", a.UpdateMonitoringServicesState)
+		router.HandleFunc("/update-route", a.UpdateRoute)
+	}
 }
 
 // Home handles the requests for the home page.
@@ -303,13 +294,23 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 		t       inputRequest
 		decoder = json.NewDecoder(r.Body)
 	)
+	fmt.Println("inside")
 	if err := decoder.Decode(&t); err != nil {
 		panic(err)
 	}
 	req := request.New(t.URL, t.Headers, t.Params, t.Body)
 	response := make(chan string)
-	go req.Send(request.GET, response)
+	fmt.Println("till here")
+	switch t.Method {
+	case "GET":
+		go req.Send(request.GET, response)
+	case "POST":
+		go req.Send(request.POST, response)
+	default:
+		fmt.Printf("invalid request method: %s\n", t.Method)
+	}
 	a.Data = <-response
+	fmt.Println("sent response")
 	a.send(w, a.marshalled())
 }
 
@@ -474,25 +475,24 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	}
 	var (
 		req struct {
-			Method   string            `json:"method"`
-			URL      string            `json:"url"`
-			Params   map[string]string `json:"params"`
-			Headers  map[string]string `json:"headers"`
-			Body     map[string]string `json:"body"`
-			OrgRoute string            `json:"orgRoute"`
+			Method        string            `json:"method"`
+			URL           string            `json:"url"`
+			Params        map[string]string `json:"params"`
+			Headers       map[string]string `json:"headers"`
+			Body          map[string]string `json:"body"`
+			OriginalRoute string            `json:"orgRoute"`
 		}
 		decoder = json.NewDecoder(r.Body)
-		found   bool
 	)
+	fmt.Println("till here 1")
 	if err := decoder.Decode(&req); err != nil {
 		panic(err)
 	}
-
+	fmt.Println("till here 2")
 	requestInstance := request.New(req.URL, req.Headers, req.Params, req.Body)
 	for i, route := range a.config.Config.Routes {
-		if route.URL == req.OrgRoute && route.Method == req.Method {
-			a.mux.Lock()
-			found = true
+		if route.URL == req.OriginalRoute && route.Method == req.Method {
+			fmt.Println("in loop")
 			a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
 			a.config.Config.Routes = append(a.config.Config.Routes, config.GetNewRouteType(
 				req.Method,
@@ -501,17 +501,14 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 				requestInstance.GetParamsConfigFormatted(),
 				requestInstance.GetBodyConfigFormatted(),
 			))
-			a.mux.Unlock()
 			break
 		}
 	}
-	if !found {
-		a.AddRouteToMonitoring(w, r)
-		return
-	}
+	fmt.Println("writing")
 	if _, err := a.config.Write(); err != nil {
 		a.ResponseStatus = http.StatusText(400)
 	}
+	fmt.Println("done")
 	*a.reloadConfigURLs <- struct{}{}
 	a.ResponseStatus = http.StatusText(200)
 	a.Data = a.config.Config.Routes

@@ -138,7 +138,7 @@ func (ps *Ping) ping(urlRaw string, packets int, tsdbNameHash string, wg *sync.W
 
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {
-		msg := "Failure occured for " + urlRaw
+		msg := "unable to reach " + urlRaw
 		logger.Terminal(msg, "p")
 		wg.Done()
 		return

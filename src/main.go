@@ -103,14 +103,11 @@ func main() {
 					setMatrixKey(&matrix, r.URL)
 				}
 			}
-			var wg sync.WaitGroup
 			p := time.Now()
-			wg.Add(4)
-			go initialize(&wg, &matrix, chainSet, &utils.Pingc, configURLs, utils.PathPing, "ping")
-			go initialize(&wg, &matrix, chainSet, &utils.FPingc, configURLs, utils.PathFloodPing, "flood_ping")
-			go initialize(&wg, &matrix, chainSet, &utils.Jitterc, configURLs, utils.PathJitter, "jitter")
-			go initialize(&wg, &matrix, chainSet, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
-			wg.Wait()
+			initialize(&matrix, chainSet, &utils.Pingc, configURLs, utils.PathPing, "ping")
+			initialize(&matrix, chainSet, &utils.FPingc, configURLs, utils.PathFloodPing, "flood_ping")
+			initialize(&matrix, chainSet, &utils.Jitterc, configURLs, utils.PathJitter, "jitter")
+			initialize(&matrix, chainSet, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
 			msg := "initialization time: " + time.Since(p).String()
 			logger.Terminal(msg, "p")
 			done <- struct{}{}
@@ -388,15 +385,12 @@ func setMatrixKey(matrix *utils.BRmap, url string) {
 	}
 }
 
-func initialize(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
+func initialize(matrix *utils.BRmap, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
 	var (
 		msg = "forming " + Type + " chain ... "
-		mux sync.RWMutex
 	)
 	logger.File(msg, "p")
 	config, ok := conf.([]string)
-	mux.Lock()
-	defer mux.Unlock()
 	if ok {
 		for _, v := range config {
 			v = filters.HTTPPingFilterValue(v)
@@ -447,9 +441,7 @@ func initialize(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet
 	for _, chain := range *chain {
 		chainSet.Register(chain.Name, chain)
 	}
-
 	logger.Terminal("finished "+Type+" chain", "p")
-	wg.Done()
 }
 
 // setDefaultServicesState initializes all state values to passive.

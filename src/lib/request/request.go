@@ -57,7 +57,11 @@ func (q *QuickInput) Send(method uint, getResponse chan string) {
 		if err != nil {
 			panic(err)
 		}
-		defer response.Body.Close()
+		defer func() {
+			if err := response.Body.Close(); err != nil {
+				fmt.Printf("error closing response body: %s\n", err.Error())
+			}
+		}()
 		done(response.Body, getResponse)
 	case POST:
 		form := make(url.Values)
@@ -69,7 +73,11 @@ func (q *QuickInput) Send(method uint, getResponse chan string) {
 		request.PostForm = form
 		q.applyHeaders(request)
 		response, err := client.Do(request)
-		defer response.Body.Close()
+		defer func() {
+			if err := response.Body.Close(); err != nil {
+				fmt.Printf("error closing response body: %s", err.Error())
+			}
+		}()
 		if err != nil {
 			panic(err)
 		}
