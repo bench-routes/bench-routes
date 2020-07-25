@@ -83,7 +83,7 @@ func monitorDecode(block string) utils.Response {
 		panic(fmt.Errorf("Invalid block segments length: Segments must be 3 in number: length: %d", len(arr)))
 	}
 	return utils.Response{
-		Delay:         convertToFloat64(arr[0]),
+		Delay:         int64(convertToInt(arr[0])),
 		ResLength:     convertToInt(arr[1]),
 		ResStatusCode: convertToInt(arr[2]),
 	}
@@ -105,17 +105,6 @@ func convertToInt(s string) int {
 		return 0
 	}
 	v, err := strconv.Atoi(s)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-func convertToFloat64(s string) float64 {
-	if s == "" {
-		return 0
-	}
-	v, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		panic(err)
 	}

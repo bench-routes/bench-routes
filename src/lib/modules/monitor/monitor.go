@@ -8,37 +8,31 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
-	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/request"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
-)
-
-const (
-	// PathReqResDelay stores the default address of storage directory of ping data
-	PathReqResDelay = "storage/req-res-delay-monitoring"
 )
 
 // Monitor is the structure that implements the Monitoring service.
 type Monitor struct {
 	localConfig    *parser.Config
 	scrapeInterval TestInterval
-	chain          *[]*tsdb.Chain
+	targets        *map[string]*utils.BRMatrix
 	test           bool
 }
 
-//TestInterval stores the value of the duration and the type of test
+// TestInterval stores the value of the duration and the type of test
 type TestInterval struct {
 	OfType   string
 	Duration int64
 }
 
 // New returns a Monitor type.
-func New(configuration *parser.Config, scrapeInterval TestInterval, chain *[]*tsdb.Chain) *Monitor {
+func New(configuration *parser.Config, scrapeInterval TestInterval, targets *map[string]*utils.BRMatrix) *Monitor {
 	return &Monitor{
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
-		chain:          chain,
+		targets:        targets,
 		test:           false,
 	}
 }
@@ -51,7 +45,6 @@ func (ps *Monitor) Iterate(signal string, isTest bool) bool {
 	if isTest {
 		ps.test = true
 	}
-
 	switch signal {
 	case "start":
 		ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "active"
@@ -73,8 +66,6 @@ func (ps *Monitor) IsActive() bool {
 
 // perform carries out monitoring activities.
 func (ps *Monitor) perform() {
-	routes := ps.localConfig.Config.Routes
-
 	for {
 		reqResMonitoringServiceState := ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring
 		monitoringInterval := getInterval(ps.localConfig.Config.Interval, "monitoring")
@@ -85,16 +76,12 @@ func (ps *Monitor) perform() {
 		switch reqResMonitoringServiceState {
 		case "active":
 			var wg sync.WaitGroup
-			wg.Add(len(routes))
-			// We send global chain arrays
-			// of monitor delay, length and
-			// statusCode in an array of type [][]*tsdb.Chain
-			for _, route := range routes {
-				go ps.responseDelay(&wg, route)
+			wg.Add(len(*ps.targets))
+			for matrixHash, matrix := range *ps.targets {
+				go ps.responseDelay(&wg, matrixHash, matrix.Route)
 			}
 			wg.Wait()
 		case "passive":
-			// terminate the goroutine
 			logger.Terminal("terminating req-res monitoring goroutine", "p")
 			return
 		default:
@@ -117,36 +104,19 @@ func (ps *Monitor) perform() {
 	}
 }
 
-func (ps *Monitor) responseDelay(wg *sync.WaitGroup, route parser.Route) {
-	responseChains := ps.chain
-	routeSuffix := filters.RouteDestroyer(route.URL)
-	// Init paths for request-monitor-monitoring
-	path := PathReqResDelay + "/" + "chunk_req_res_" + routeSuffix + ".json"
-
+func (ps *Monitor) responseDelay(wg *sync.WaitGroup, matrixHash string, route parser.Route) {
 	response := make(chan string)
 	req := request.New(route.URL, request.ToMap(route.Header), request.ToMap(route.Params), request.ToMap(route.Body))
-	// responseObject := routeDispatcher(route, c)
 	stamp := time.Now()
 	go req.Send(request.MethodUintPresentation(route.Method), response)
 	resp := <-response
-
 	g := getNormalizedBlockString(utils.Response{
-		Delay:         time.Since(stamp).Seconds(),
+		Delay:         time.Since(stamp).Milliseconds(),
 		ResLength:     len(resp),
 		ResStatusCode: 200,
 	})
 	block := *tsdb.GetNewBlock("req-res", g)
-
-	for index := range *responseChains {
-		if (*responseChains)[index].Path == path || ps.test {
-			(*responseChains)[index] = (*responseChains)[index].Append(block)
-			if ps.test {
-				continue
-			}
-			break
-		}
-	}
-
+	(*ps.targets)[matrixHash].MonitorChain = (*ps.targets)[matrixHash].MonitorChain.Append(block)
 	wg.Done()
 }
 
@@ -168,6 +138,6 @@ func getInterval(intervals []parser.Interval, testName string) TestInterval {
 
 // returns the stringified form of the combined data
 func getNormalizedBlockString(b utils.Response) string {
-	return strconv.FormatFloat(b.Delay, 'f', -1, 64) + tsdb.BlockDataSeparator + strconv.Itoa(b.ResLength) + tsdb.BlockDataSeparator +
+	return strconv.Itoa(int(b.Delay)) + tsdb.BlockDataSeparator + strconv.Itoa(b.ResLength) + tsdb.BlockDataSeparator +
 		strconv.Itoa(b.ResStatusCode)
 }

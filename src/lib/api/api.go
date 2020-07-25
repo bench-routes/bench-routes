@@ -34,7 +34,7 @@ const (
 type API struct {
 	ResponseStatus      string
 	Data, Services      interface{}
-	Matrix              *utils.BRmap
+	Matrix              *map[string]*utils.BRMatrix
 	config              *config.Config
 	reloadConfigURLs    chan struct{}
 	receiveFinishSignal chan struct{}
@@ -50,7 +50,7 @@ type inputRequest struct {
 }
 
 // New returns the API type for implementing the API interface.
-func New(matrix *utils.BRmap, config *config.Config, services interface{}, reload, done chan struct{}) *API {
+func New(matrix *map[string]*utils.BRMatrix, config *config.Config, services interface{}, reload, done chan struct{}) *API {
 	return &API{
 		Matrix:              matrix,
 		Services:            services,
@@ -102,14 +102,14 @@ func (a *API) Register(router *mux.Router) {
 }
 
 // Home handles the requests for the home page.
-func (a *API) Home(w http.ResponseWriter, r *http.Request) {
+func (a *API) Home(_ http.ResponseWriter, r *http.Request) {
 	msg := "ping from " + r.RemoteAddr + ", sent pong in monitor"
 	logger.Terminal(msg, "p")
 }
 
 // UIv1 serves the v1.0 version of user-interface of bench-routes.
 // ui-builds/v1.0 is served through this.
-func (a *API) UIv1(w http.ResponseWriter, r *http.Request) {
+func (a *API) UIv1(_ http.ResponseWriter, _ *http.Request) {
 	http.FileServer(http.Dir(uiPathV1))
 }
 
@@ -120,7 +120,7 @@ func (a *API) TestTemplate(w http.ResponseWriter, r *http.Request) {
 
 // ServiceState handles requests related to the state of the Services in
 // the application.
-func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
+func (a *API) ServiceState(w http.ResponseWriter, _ *http.Request) {
 	p := config.New(utils.ConfigurationFilePath)
 	p.Refresh()
 
@@ -139,7 +139,7 @@ func (a *API) ServiceState(w http.ResponseWriter, r *http.Request) {
 }
 
 // RoutesSummary handles requests related to summarized-configuration details.
-func (a *API) RoutesSummary(w http.ResponseWriter, r *http.Request) {
+func (a *API) RoutesSummary(w http.ResponseWriter, _ *http.Request) {
 	p := config.New(utils.ConfigurationFilePath)
 	p.Refresh()
 
@@ -212,12 +212,8 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 // SendMatrix responds by sending the multi-dimensional data (called matrix)
 // dependent on a route name as in matrix key.
 func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
-	routeNameMatrix := r.URL.Query().Get("routeNameMatrix")
-	instanceKey, err := strconv.Atoi(routeNameMatrix)
-	if err != nil {
-		panic(err)
-	}
-	if _, ok := (*a.Matrix)[instanceKey]; !ok {
+	routeHashMatrix := r.URL.Query().Get("routeNameMatrix")
+	if _, ok := (*a.Matrix)[routeHashMatrix]; !ok {
 		a.Data = "ROUTE_NAME_AKA_INSTANCE_KEY_NOT_IN_MATRIX"
 		a.send(w, a.marshalled())
 		return
@@ -236,7 +232,7 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		query.SetRange(curr, from)
 		c <- query.ExecWithoutEncode()
 	}
-	matrix := (*a.Matrix)[instanceKey]
+	matrix := (*a.Matrix)[routeHashMatrix]
 	if startTimestampStr == "" && endTimestampStr == "" {
 		curr := time.Now().UnixNano()
 		from := curr - (brt.Minute * 20)
@@ -340,11 +336,11 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 // passing into the querier's timeSeriesPath.
 func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 	var chainDetails []utils.ResponseTSDBChains
-	for n, v := range *a.Matrix {
+	for hash, v := range *a.Matrix {
 		chainDetails = append(chainDetails, utils.ResponseTSDBChains{
-			Name: v.Domain,
+			Name: v.FullURL,
 			Path: utils.ChainPath{
-				InstanceKey: n,
+				InstanceKey: hash,
 				Ping:        trim(v.PingChain.Path),
 				Jitter:      trim(v.JitterChain.Path),
 				Fping:       trim(v.FPingChain.Path),
@@ -388,7 +384,7 @@ func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Reque
 }
 
 // GetMonitoringState returns the monitoring state.
-func (a *API) GetMonitoringState(w http.ResponseWriter, r *http.Request) {
+func (a *API) GetMonitoringState(w http.ResponseWriter, _ *http.Request) {
 	service := reflect.ValueOf(a.Services).Elem()
 	sp, ok := service.FieldByName("Ping").Interface().(*ping.Ping)
 	if !ok {
@@ -418,13 +414,13 @@ func (a *API) GetMonitoringState(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetConfigIntervals gets the config file data for the config screen.
-func (a *API) GetConfigIntervals(w http.ResponseWriter, r *http.Request) {
+func (a *API) GetConfigIntervals(w http.ResponseWriter, _ *http.Request) {
 	a.Data = a.config.Config.Interval
 	a.send(w, a.marshalled())
 }
 
 // GetConfigRoutes gets the config file data for the config screen.
-func (a *API) GetConfigRoutes(w http.ResponseWriter, r *http.Request) {
+func (a *API) GetConfigRoutes(w http.ResponseWriter, _ *http.Request) {
 	a.Data = a.config.Config.Routes
 	a.send(w, a.marshalled())
 }

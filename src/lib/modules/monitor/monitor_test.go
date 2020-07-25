@@ -1,66 +1,67 @@
 package monitor
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/config"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 var (
+	worker            *Monitor
 	configuration     *parser.Config
-	chain             []*tsdb.Chain
+	chainSet          = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*1)
 	configurationPath = "../testfiles/configuration.yaml"
+	targets           = make(map[string]*utils.BRMatrix)
 )
 
 func initVars() {
 	configuration = parser.New(configurationPath)
 	configuration.Load().Validate()
-
-	setDefaultServicesState(configuration)
-
-	chain = []*tsdb.Chain{
-		tsdb.NewChain("../testfiles/Test_Monitor_1.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_2.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_3.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_4.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_5.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_6.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_7.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_8.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_9.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_10.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_11.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_12.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_13.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_14.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_15.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_16.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_17.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_18.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_19.json").Init(),
-		tsdb.NewChain("../testfiles/Test_Monitor_20.json").Init(),
-	}
-}
-
-// setDefaultServicesState initializes all state values to passive.
-func setDefaultServicesState(configuration *parser.Config) {
-	configuration.Config.UtilsConf.ServicesSignal = parser.ServiceSignals{
-		Ping:                  "passive",
-		Jitter:                "passive",
-		FloodPing:             "passive",
-		ReqResDelayMonitoring: "passive",
-	}
-	if _, e := configuration.Write(); e != nil {
-		panic(e)
+	worker = New(configuration, TestInterval{OfType: "sec", Duration: 2}, &targets)
+	chainSet.Run()
+	for _, r := range configuration.Config.Routes {
+		hash := URLHash(r)
+		if _, ok := targets[hash]; !ok {
+			path := fmt.Sprintf("../testfiles/%s_monitor.json", hash)
+			targets[hash] = &utils.BRMatrix{FullURL: r.URL, Route: r, MonitorChain: tsdb.NewChain(path).Init()}
+			chainSet.Register(hash, targets[hash].MonitorChain)
+		}
 	}
 }
 
 func Test_module_MONITOR(T *testing.T) {
 	initVars()
-	ping := New(configuration, TestInterval{OfType: "min", Duration: 0}, &chain)
-	go ping.Iterate("start", true)
+	go worker.Iterate("start", true)
 	time.Sleep(time.Second * 30)
-	go ping.Iterate("stop", true)
+	go worker.Iterate("stop", true)
+}
+
+func URLHash(route parser.Route) string {
+	var (
+		method    = route.Method
+		URL       = route.URL
+		body      = route.Body
+		headers   = route.Header
+		params    = route.Params
+		hashInput = fmt.Sprintf("%s%s", method, URL)
+	)
+	mBody, err := json.Marshal(body)
+	if err != nil {
+		panic(err)
+	}
+	mHeaders, err := json.Marshal(headers)
+	if err != nil {
+		panic(err)
+	}
+	mParams, err := json.Marshal(params)
+	if err != nil {
+		panic(err)
+	}
+	hashInput += fmt.Sprintf("%s%s%s", mBody, mHeaders, mParams)
+	return utils.GetHash(hashInput)
 }

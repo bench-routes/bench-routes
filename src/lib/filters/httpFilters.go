@@ -5,7 +5,7 @@ import (
 )
 
 // HTTPPingFilter filters the illegal characters that may panic the ping
-// subprocess running from the terminal
+// sub process running from the terminal
 func HTTPPingFilter(s *string) *string {
 	urlParts := strings.Split(*s, "/")
 	for _, urlPart := range urlParts {

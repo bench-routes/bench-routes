@@ -5,7 +5,6 @@ import (
 	"time"
 
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
-	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
@@ -16,18 +15,18 @@ import (
 type FloodPing struct {
 	localConfig    *parser.Config
 	scrapeInterval TestInterval
-	chain          *[]*tsdb.Chain
+	targets        *map[string]*utils.MachineType
 	password       string
 	test           bool
 }
 
 // Newf returns a Flood Ping type.
-func Newf(configuration *parser.Config, scrapeInterval TestInterval, chain *[]*tsdb.Chain, password string) *FloodPing {
+func Newf(configuration *parser.Config, scrapeInterval TestInterval, password string, targets *map[string]*utils.MachineType) *FloodPing {
 	return &FloodPing{
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
-		chain:          chain,
 		password:       password,
+		targets:        targets,
 		test:           false,
 	}
 }
@@ -49,7 +48,6 @@ func (ps *FloodPing) Iteratef(signal string, isTest bool) bool {
 	if isTest {
 		ps.test = true
 	}
-
 	switch signal {
 	case "start":
 		ps.localConfig.Config.UtilsConf.ServicesSignal.FloodPing = "active"
@@ -70,37 +68,22 @@ func (ps *FloodPing) GetServiceState() bool {
 }
 
 func (ps *FloodPing) setConfigurations() {
-	pingConfig := ps.localConfig.Config.Routes
 	pingInterval := ps.scrapeInterval
-
-	urlStack := make(map[string]string)
-	for _, route := range pingConfig {
-		url := route.URL
-		urlHash := utils.GetHash(url)
-		// maintain urls uniquely
-		_, ok := urlStack[urlHash]
-		if !ok {
-			urlStack[urlHash] = *filters.HTTPPingFilter(&url)
-		}
-	}
-
-	ps.perform(urlStack, pingInterval)
+	ps.perform(pingInterval)
 }
 
-func (ps *FloodPing) perform(urlStack map[string]string, pingInterval TestInterval) {
-	i := 0
+func (ps *FloodPing) perform(pingInterval TestInterval) {
 	for {
-		i++
 		switch ps.localConfig.Config.UtilsConf.ServicesSignal.FloodPing {
 		case "active":
 			err, _ := utils.VerifyConnection()
 			if !err {
-				logger.Terminal("Not able to connect to externel network please check you internet connection", "p")
+				logger.Terminal("Not able to connect to external network please check you internet connection", "p")
 			} else {
 				var wg sync.WaitGroup
-				wg.Add(len(urlStack))
-				for _, u := range urlStack {
-					go ps.ping(u, 10, u, &wg, false)
+				wg.Add(len(*ps.targets))
+				for machineHash, machineIP := range *ps.targets {
+					go ps.ping(machineIP.IPDomain, machineHash, 10, &wg)
 				}
 				wg.Wait()
 			}
@@ -128,10 +111,8 @@ func (ps *FloodPing) perform(urlStack map[string]string, pingInterval TestInterv
 	}
 }
 
-func (ps *FloodPing) ping(urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
-	tsdbNameHash = utils.PathFloodPing + "/" + "chunk_flood_ping_" + tsdbNameHash + ".json"
+func (ps *FloodPing) ping(urlRaw, machineHash string, packets int, wg *sync.WaitGroup) {
 	password := ps.password
-
 	resp, err := utils.CLIFloodPing(urlRaw, packets, password)
 	if err != nil {
 		logger.File(*resp, "p")
@@ -140,22 +121,7 @@ func (ps *FloodPing) ping(urlRaw string, packets int, tsdbNameHash string, wg *s
 	}
 	result := scrap.CLIFLoodPingScrap(resp)
 	newBlock := *tsdb.GetNewBlock("flood-ping", getNormalizedBlockStringFlood(*result))
-	urlExists := false
-
-	c := ps.chain
-	for index := range *c {
-		if (*c)[index].Path == tsdbNameHash || ps.test {
-			urlExists = true
-			(*c)[index] = (*c)[index].Append(newBlock)
-			if ps.test {
-				continue
-			}
-			break
-		}
-	}
-	if !urlExists && !isTest {
-		panic("faulty hashing! impossible to look for a hash match.")
-	}
+	(*ps.targets)[machineHash].FPing = (*ps.targets)[machineHash].FPing.Append(newBlock)
 	wg.Done()
 }
 

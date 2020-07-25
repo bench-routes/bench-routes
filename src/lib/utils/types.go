@@ -5,6 +5,7 @@ package utils
 
 import (
 	// parser "github.com/zairza-cetb/bench-routes/src/lib/config"
+	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
@@ -60,9 +61,9 @@ type FloodPingResp struct {
 // This is the object that we return from resp_delay module
 // Contains delay in monitor and the monitor length
 type Response struct {
-	Delay         float64 `json:"delay"`
-	ResLength     int     `json:"resLength"`
-	ResStatusCode int     `json:"resStatusCode"`
+	Delay         int64 `json:"delay"`
+	ResLength     int   `json:"resLength"`
+	ResStatusCode int   `json:"resStatusCode"`
 }
 
 // ResponseResp for responding the querier.
@@ -83,7 +84,7 @@ type ResponseTSDBChains struct {
 
 // ChainPath keeps the path of all chains corresponding to a matrix value.
 type ChainPath struct {
-	InstanceKey int    `json:"matrixName"`
+	InstanceKey string `json:"matrixName"`
 	Ping        string `json:"ping"`
 	Jitter      string `json:"jitter"`
 	Fping       string `json:"fping"`
@@ -100,9 +101,17 @@ type MatrixResponse struct {
 
 // BRMatrix type for storing multi-dimensional information related to a route.
 type BRMatrix struct {
-	FullURL, Domain                                  string
-	PingChain, JitterChain, FPingChain, MonitorChain *tsdb.Chain
+	FullURL                  string
+	Route                    parser.Route
+	PingChain, JitterChain   *tsdb.Chain
+	FPingChain, MonitorChain *tsdb.Chain
 }
 
-// BRmap forms a map of matrix that can be accessed with least possible time.
-type BRmap map[int]*BRMatrix
+// MachineType type for targets. These are servers/vm-instances/load-balancer
+// that are accessible through pure IP/domain address.
+type MachineType struct {
+	Ping     *tsdb.Chain
+	Jitter   *tsdb.Chain
+	FPing    *tsdb.Chain
+	IPDomain string
+}

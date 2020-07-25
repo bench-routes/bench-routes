@@ -333,6 +333,7 @@ func (cs *ChainSet) Run() {
 					return
 				default:
 				}
+				cs.mux.Lock()
 				for _, chain := range cs.Cmap {
 					if chain.containsNewBlocks {
 						chain.commit()
@@ -341,6 +342,7 @@ func (cs *ChainSet) Run() {
 						chain.inActiveIterations++
 					}
 				}
+				cs.mux.Unlock()
 				time.Sleep(cs.FlushDuration)
 			}
 		}()

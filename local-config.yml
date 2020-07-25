@@ -123,3 +123,28 @@ routes:
   headers: []
   params: []
   body: []
+- method: GET
+  url: https://www.youtube.com/
+  headers: []
+  params: []
+  body: []
+- method: GET
+  url: https://www.youtube.com/watch?v=ga1ccmEJuSM
+  headers: []
+  params: []
+  body: []
+- method: GET
+  url: https://msn.com
+  headers: []
+  params: []
+  body: []
+- method: GET
+  url: https://postman-echo.com/
+  headers: []
+  params: []
+  body: []
+- method: GET
+  url: https://reqbin.com/req/nfilsyk5/get-request-example
+  headers: []
+  params: []
+  body: []

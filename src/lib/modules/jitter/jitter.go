@@ -8,7 +8,6 @@ import (
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
-	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
@@ -17,12 +16,12 @@ import (
 // Jitter is the structure that implements the Jitter service.
 type Jitter struct {
 	localConfig    *parser.Config
+	targets        *map[string]*utils.MachineType
 	scrapeInterval TestInterval
-	chain          *[]*tsdb.Chain
 	test           bool
 }
 
-//TestInterval stores the value of the duration and the type of test
+// TestInterval stores the value of the duration and the type of test
 type TestInterval struct {
 	OfType   string
 	Duration int64
@@ -34,11 +33,11 @@ type Response struct {
 }
 
 // New returns a Jitter type.
-func New(configuration *parser.Config, scrapeInterval TestInterval, chain *[]*tsdb.Chain) *Jitter {
+func New(configuration *parser.Config, scrapeInterval TestInterval, targets *map[string]*utils.MachineType) *Jitter {
 	return &Jitter{
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
-		chain:          chain,
+		targets:        targets,
 		test:           false,
 	}
 }
@@ -51,7 +50,6 @@ func (ps *Jitter) Iterate(signal string, isTest bool) bool {
 	if isTest {
 		ps.test = true
 	}
-
 	switch signal {
 	case "start":
 		ps.localConfig.Config.UtilsConf.ServicesSignal.Jitter = "active"
@@ -72,38 +70,22 @@ func (ps *Jitter) IsActive() bool {
 }
 
 func (ps *Jitter) setConfigurations() {
-	config := ps.localConfig.Config.Routes
 	interval := ps.scrapeInterval
-
-	urlStack := make(map[string]string)
-	for _, route := range config {
-		url := route.URL
-		urlHash := utils.GetHash(url)
-		// maintain urls uniquely
-		_, ok := urlStack[urlHash]
-		if !ok {
-			urlStack[urlHash] = *filters.HTTPPingFilter(&url)
-		}
-	}
-
-	ps.perform(urlStack, interval)
+	ps.perform(interval)
 }
 
-func (ps *Jitter) perform(urlStack map[string]string, pingInterval TestInterval) {
-	i := 0
-
+func (ps *Jitter) perform(pingInterval TestInterval) {
 	for {
-		i++
 		switch ps.localConfig.Config.UtilsConf.ServicesSignal.Jitter {
 		case "active":
 			err, _ := utils.VerifyConnection()
 			if !err {
-				logger.Terminal("Not able to connect to externel network please check you internet connection", "p")
+				logger.Terminal("Not able to connect to external network please check you internet connection", "p")
 			} else {
 				var wg sync.WaitGroup
-				wg.Add(len(urlStack))
-				for _, u := range urlStack {
-					go ps.jitter(u, 10, u, &wg, false)
+				wg.Add(len(*ps.targets))
+				for machineHash, machineIP := range *ps.targets {
+					go ps.jitter(machineIP.IPDomain, machineHash, 3, &wg)
 				}
 				wg.Wait()
 			}
@@ -131,10 +113,7 @@ func (ps *Jitter) perform(urlStack map[string]string, pingInterval TestInterval)
 	}
 }
 
-func (ps *Jitter) jitter(urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup, isTest bool) {
-	chain := ps.chain
-	tsdbNameHash = utils.PathJitter + "/" + "chunk_jitter_" + tsdbNameHash + ".json"
-
+func (ps *Jitter) jitter(urlRaw, machineHash string, packets int, wg *sync.WaitGroup) {
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {
 		msg := "unable to reach " + urlRaw
@@ -142,25 +121,9 @@ func (ps *Jitter) jitter(urlRaw string, packets int, tsdbNameHash string, wg *sy
 		wg.Done()
 		return
 	}
-
 	result := scrap.CLIJitterScrap(resp)
 	newBlock := *tsdb.GetNewBlock("jitter", fToS(result))
-	urlExists := false
-	for index := range *chain {
-		if (*chain)[index].Path == tsdbNameHash || ps.test {
-			urlExists = true
-			(*chain)[index].Append(newBlock)
-			if ps.test {
-				continue
-			}
-			break
-		}
-	}
-
-	if !urlExists && !isTest {
-		panic("faulty hashing! impossible to look for a hash match.")
-	}
-
+	(*ps.targets)[machineHash].Jitter = (*ps.targets)[machineHash].Jitter.Append(newBlock)
 	wg.Done()
 }
 

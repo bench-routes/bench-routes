@@ -6,7 +6,6 @@ import (
 	"time"
 
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
-	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
@@ -16,12 +15,12 @@ import (
 // Ping is the structure that implements the Ping service.
 type Ping struct {
 	localConfig    *parser.Config
+	targets        *map[string]*utils.MachineType
 	scrapeInterval TestInterval
-	chain          *[]*tsdb.Chain
 	test           bool
 }
 
-//TestInterval stores the value of the duration and the type of test
+// TestInterval stores the value of the duration and the type of test
 type TestInterval struct {
 	OfType   string
 	Duration int64
@@ -36,12 +35,12 @@ type Response struct {
 }
 
 // New returns a Ping type.
-func New(configuration *parser.Config, scrapeInterval TestInterval, chain *[]*tsdb.Chain) *Ping {
+func New(configuration *parser.Config, scrapeInterval TestInterval, targets *map[string]*utils.MachineType) *Ping {
 	return &Ping{
 		localConfig:    configuration,
 		scrapeInterval: scrapeInterval,
-		chain:          chain,
 		test:           false,
+		targets:        targets,
 	}
 }
 
@@ -73,38 +72,22 @@ func (ps *Ping) IsActive() bool {
 }
 
 func (ps *Ping) setConfigurations() {
-	pingConfig := ps.localConfig.Config.Routes
 	pingInterval := ps.scrapeInterval
-
-	urlStack := make(map[string]string)
-	for _, route := range pingConfig {
-		url := route.URL
-		urlHash := utils.GetHash(url)
-		// maintain urls uniquely
-		_, ok := urlStack[urlHash]
-		if !ok {
-			urlStack[urlHash] = *filters.HTTPPingFilter(&url)
-		}
-	}
-
-	ps.perform(urlStack, pingInterval)
+	ps.perform(pingInterval)
 }
 
-func (ps *Ping) perform(urlStack map[string]string, pingInterval TestInterval) {
-	i := 0
-
+func (ps *Ping) perform(pingInterval TestInterval) {
 	for {
-		i++
 		switch ps.localConfig.Config.UtilsConf.ServicesSignal.Ping {
 		case "active":
 			err, _ := utils.VerifyConnection()
 			if !err {
-				logger.Terminal("Not able to connect to externel network please check you internet connection", "p")
+				logger.Terminal("unable to connect external network. please check you internet connection", "p")
 			} else {
 				var wg sync.WaitGroup
-				wg.Add(len(urlStack))
-				for _, u := range urlStack {
-					go ps.ping(u, 3, u, &wg)
+				wg.Add(len(*ps.targets))
+				for machineHash, machineIP := range *ps.targets {
+					go ps.ping(machineIP.IPDomain, machineHash, 3, &wg)
 				}
 				wg.Wait()
 			}
@@ -132,10 +115,7 @@ func (ps *Ping) perform(urlStack map[string]string, pingInterval TestInterval) {
 	}
 }
 
-func (ps *Ping) ping(urlRaw string, packets int, tsdbNameHash string, wg *sync.WaitGroup) {
-	chain := ps.chain
-	tsdbNameHash = utils.PathPing + "/" + "chunk_ping_" + tsdbNameHash + ".json"
-
+func (ps *Ping) ping(urlRaw, machineHash string, packets int, wg *sync.WaitGroup) {
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {
 		msg := "unable to reach " + urlRaw
@@ -143,26 +123,9 @@ func (ps *Ping) ping(urlRaw string, packets int, tsdbNameHash string, wg *sync.W
 		wg.Done()
 		return
 	}
-
 	result := scrap.CLIPingScrap(resp)
 	newBlock := *tsdb.GetNewBlock("ping", getNormalizedBlockString(*result))
-	urlExists := false
-
-	for index := range *chain {
-		if (*chain)[index].Path == tsdbNameHash || ps.test {
-			urlExists = true
-			(*chain)[index] = (*chain)[index].Append(newBlock)
-			if ps.test {
-				continue
-			}
-			break
-		}
-	}
-
-	if !urlExists {
-		panic("faulty hashing! impossible to look for a hash match.")
-	}
-
+	(*ps.targets)[machineHash].Ping = (*ps.targets)[machineHash].Ping.Append(newBlock)
 	wg.Done()
 }
 
