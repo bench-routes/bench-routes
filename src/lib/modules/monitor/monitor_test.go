@@ -59,7 +59,7 @@ func setDefaultServicesState(configuration *parser.Config) {
 
 func Test_module_MONITOR(T *testing.T) {
 	initVars()
-	ping := New(configuration, testInterval{OfType: "min", Duration: 0}, &chain)
+	ping := New(configuration, TestInterval{OfType: "min", Duration: 0}, &chain)
 	go ping.Iterate("start", true)
 	time.Sleep(time.Second * 30)
 	go ping.Iterate("stop", true)

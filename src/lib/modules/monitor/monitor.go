@@ -1,7 +1,6 @@
 package monitor
 
 import (
-	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -107,18 +106,16 @@ func (ps *Monitor) perform() {
 
 func (ps *Monitor) responseDelay(wg *sync.WaitGroup, matrixHash string, route parser.Route) {
 	response := make(chan string)
-	fmt.Println("monitoring", route.URL)
 	req := request.New(route.URL, request.ToMap(route.Header), request.ToMap(route.Params), request.ToMap(route.Body))
 	stamp := time.Now()
 	go req.Send(request.MethodUintPresentation(route.Method), response)
 	resp := <-response
 	g := getNormalizedBlockString(utils.Response{
-		Delay:         time.Since(stamp).Seconds(),
+		Delay:         time.Since(stamp).Milliseconds(),
 		ResLength:     len(resp),
 		ResStatusCode: 200,
 	})
 	block := *tsdb.GetNewBlock("req-res", g)
-	fmt.Println("content => ", route.URL, block)
 	(*ps.targets)[matrixHash].MonitorChain = (*ps.targets)[matrixHash].MonitorChain.Append(block)
 	wg.Done()
 }
@@ -141,6 +138,6 @@ func getInterval(intervals []parser.Interval, testName string) TestInterval {
 
 // returns the stringified form of the combined data
 func getNormalizedBlockString(b utils.Response) string {
-	return strconv.FormatFloat(b.Delay, 'f', -1, 64) + tsdb.BlockDataSeparator + strconv.Itoa(b.ResLength) + tsdb.BlockDataSeparator +
+	return strconv.Itoa(int(b.Delay)) + tsdb.BlockDataSeparator + strconv.Itoa(b.ResLength) + tsdb.BlockDataSeparator +
 		strconv.Itoa(b.ResStatusCode)
 }

@@ -93,7 +93,7 @@ func main() {
 						pathFloodPing = fmt.Sprintf("%s/chunk_flood_ping_%s.json", utils.PathFloodPing, hash)
 						pathMonitor   = fmt.Sprintf("%s/chunk_monitor_%s.json", utils.PathMonitoring, hash)
 					)
-					uHash := utils.GetHash(r.URL)
+					uHash := utils.GetHash(filters.HTTPPingFilterValue(r.URL))
 					if _, ok := targetMachineCalc[uHash]; !ok {
 						targetMachineCalc[uHash] = &utils.MachineType{
 							IPDomain: filters.HTTPPingFilterValue(r.URL),
@@ -101,6 +101,9 @@ func main() {
 							Jitter:   tsdb.NewChain(pathJitter).Init(),
 							FPing:    tsdb.NewChain(pathFloodPing).Init(),
 						}
+						chainSet.Register(fmt.Sprintf("%s-ping", uHash), targetMachineCalc[uHash].Ping)
+						chainSet.Register(fmt.Sprintf("%s-jitter", uHash), targetMachineCalc[uHash].Jitter)
+						chainSet.Register(fmt.Sprintf("%s-fping", uHash), targetMachineCalc[uHash].FPing)
 					}
 					matrix[hash] = &utils.BRMatrix{
 						FullURL:      r.URL,
@@ -110,6 +113,7 @@ func main() {
 						FPingChain:   targetMachineCalc[uHash].FPing,
 						MonitorChain: tsdb.NewChain(pathMonitor).Init(),
 					}
+					chainSet.Register(fmt.Sprintf("%s-monitor", uHash), matrix[hash].MonitorChain)
 				}
 			}
 			msg := "initialization time: " + time.Since(p).String()

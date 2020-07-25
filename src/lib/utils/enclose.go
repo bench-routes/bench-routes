@@ -45,7 +45,7 @@ func Decode(b tsdb.Block) interface{} {
 	case "req-res":
 		arr := strings.Split(b.GetDatapointEnc(), tsdb.BlockDataSeparator)
 		return Response{
-			Delay:         sTof(arr[0]),
+			Delay:         int64(sToI(arr[0])),
 			ResLength:     sToI(arr[1]),
 			ResStatusCode: sToI(arr[2]),
 		}
