@@ -7,8 +7,8 @@ COPY . $GOPATH/src/github.com/zairza-cetb/bench-routes
 RUN cd $GOPATH/src/github.com/zairza-cetb/bench-routes/src && go get -v ./...
 RUN go build $GOPATH/src/github.com/zairza-cetb/bench-routes/src/main.go
 RUN mv main bench-routes
-RUN npm install -g react-scripts
-RUN cd dashboard/v1.1/ && npm install && npm run build
+RUN npm install -g react-scripts yarn
+RUN cd dashboard/v1.1/ && yarn install && yarn run build
 RUN rm -R ui-builds/v1.1
 RUN cp -r dashboard/v1.1/build ui-builds/v1.1
 EXPOSE 9090

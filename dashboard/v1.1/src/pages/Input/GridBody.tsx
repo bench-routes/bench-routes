@@ -1,8 +1,9 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import TextField from '@material-ui/core/TextField';
 
 interface GridBodyProps {
   name: string;
+  headers?: { key: string; value: string }[];
   updateParent: React.Dispatch<React.SetStateAction<pair[] | undefined>>;
 }
 
@@ -11,7 +12,7 @@ export interface pair {
   value: string;
 }
 
-const GridBody: FC<GridBodyProps> = ({ name, updateParent }) => {
+const GridBody: FC<GridBodyProps> = ({ name, headers, updateParent }) => {
   const [header, setHeader] = useState<pair[]>([{ key: '', value: '' }]);
   const [bodyValue, setBodyValue] = useState<string>('');
   const updateItems = (key: string, value: string, i: number) => {
@@ -40,6 +41,23 @@ const GridBody: FC<GridBodyProps> = ({ name, updateParent }) => {
     setHeader(header);
     updateParent(header);
   };
+  useEffect(() => {
+    let parameters: { key: string; value: string }[] | undefined = headers;
+    (parameters || []).push({
+      key: '',
+      value: ''
+    });
+    if (parameters === undefined) {
+      parameters = [
+        {
+          key: '',
+          value: ''
+        }
+      ];
+    }
+    setHeader(parameters);
+    setBodyValue(JSON.stringify(parameters, null, 2));
+  }, [headers]);
   return (
     <div>
       <h6 style={{ fontWeight: 'bold' }}>{name}</h6>

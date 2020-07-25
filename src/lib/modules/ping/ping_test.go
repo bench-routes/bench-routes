@@ -59,7 +59,7 @@ func setDefaultServicesState(configuration *parser.Config) {
 
 func Test_module_PING(T *testing.T) {
 	initVars()
-	ping := New(configuration, TestInterval{OfType: "min", Duration: 0}, &chainPing)
+	ping := New(configuration, testInterval{OfType: "min", Duration: 0}, &chainPing)
 	go ping.Iterate("start", true)
 	time.Sleep(time.Second * 30)
 	go ping.Iterate("stop", true)
@@ -68,7 +68,7 @@ func Test_module_PING(T *testing.T) {
 // TODO: fails on mac VM in cirrus-ci
 // func Test_module_FLOOD_PING(T *testing.T) {
 // 	initVars()
-// 	ping := Newf(configuration, TestInterval{OfType: "min", Duration: 0}, chainPing, "")
+// 	ping := Newf(configuration, testInterval{OfType: "min", Duration: 0}, chainPing, "")
 // 	go ping.Iteratef("start", true)
 // 	time.Sleep(time.Second * 30)
 // 	go ping.Iteratef("stop", true)

@@ -15,7 +15,7 @@ const (
 	// PathFloodPing stores the defualt address of storage directory of flood ping data
 	PathFloodPing = "storage/flood-ping"
 	// PathReqResDelayMonitoring stores the defualt address of storage directory of req-res and monitoring data
-	PathReqResDelayMonitoring = "storage/req-res-delay-monitoring"
+	PathMonitoring = "storage/req-res-delay-monitoring"
 )
 
 var (

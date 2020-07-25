@@ -24,11 +24,13 @@ const Type: FC<TypeProps> = ({ slice, getRequestType }) => {
         variant="contained"
         aria-label="outlined primary button group"
       >
-        {slice.map((type: string) => (
-          <Button onClick={() => sendType(type.toUpperCase())}>
-            {type.toUpperCase()}
-          </Button>
-        ))}
+        {slice.map((type: string, index: number) => {
+          return (
+            <Button key={index} onClick={() => sendType(type.toUpperCase())}>
+              {type.toUpperCase()}
+            </Button>
+          );
+        })}
       </ButtonGroup>
       {showDone ? (
         <>

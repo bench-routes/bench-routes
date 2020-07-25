@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,11 +15,9 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
 	"github.com/zairza-cetb/bench-routes/src/lib/api"
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
-	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/monitor"
@@ -37,19 +36,20 @@ var (
 	defaultScrapeTime           = time.Second * 3
 	systemMetricsPath           = "storage/system.json"
 	journalMetricsPath          = "storage/journal.json"
-	upgrader                    = websocket.Upgrader{
-		ReadBufferSize:  4096,
-		WriteBufferSize: 4096,
-	}
-	initializedChains = make(map[string]bool)
-	conf              *parser.Config
 	// matrix is a collection (as map) of instances where each
-	// instance is composed of ping, jitter, floodping and monitor
+	// instance is composed of ping, jitter, flood-ping and monitor
 	// chain paths. matrix is used in the monitoring screen to
 	// reduce the http request by grouping them based on routes.
 	// Without matrix, the http traffic would increase 4 times
 	// the current count.
-	matrix = make(utils.BRmap)
+	matrix   = make(map[string]*utils.BRMatrix)
+	reload   = make(chan struct{})
+	done     = make(chan struct{})
+	conf     *parser.Config
+	chainSet = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*10)
+	// targetMachineCalc contains calculations that are machine/vm/load-balancer
+	// specific. These involve use of IP addresses/Domain names respectively.
+	targetMachineCalc = make(map[string]*utils.MachineType)
 )
 
 func main() {
@@ -64,8 +64,6 @@ func main() {
 	conf = parser.New(utils.ConfigurationFilePath)
 	conf.Load().Validate()
 	setDefaultServicesState(conf)
-
-	var ConfigURLs []string
 	intervals := conf.Config.Interval
 	workers := &struct {
 		Ping    *ping.Ping
@@ -73,44 +71,47 @@ func main() {
 		PingF   *ping.FloodPing
 		Monitor *monitor.Monitor
 	}{
-		Ping:    ping.New(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, &utils.Pingc),
-		Jitter:  jitter.New(conf, jitter.TestInterval{OfType: intervals[0].Type, Duration: *intervals[1].Duration}, &utils.Jitterc),
-		PingF:   ping.Newf(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, &utils.FPingc, conf.Config.Password),
-		Monitor: monitor.New(conf, monitor.TestInterval{OfType: intervals[2].Type, Duration: *intervals[2].Duration}, &utils.RespMonitoringc),
+		Ping:    ping.New(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, &targetMachineCalc),
+		Jitter:  jitter.New(conf, jitter.TestInterval{OfType: intervals[0].Type, Duration: *intervals[1].Duration}, &targetMachineCalc),
+		PingF:   ping.Newf(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, conf.Config.Password, &targetMachineCalc),
+		Monitor: monitor.New(conf, monitor.TestInterval{OfType: intervals[2].Type, Duration: *intervals[2].Duration}, &matrix),
 	}
 
-	chainSet := tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*30)
-
-	reload := make(chan struct{})
-	done := make(chan struct{})
+	runtime.GOMAXPROCS(runtime.NumCPU() / 2)
 	go func() {
 		for {
 			<-reload
 			fmt.Println("reloading...")
 			conf.Refresh()
+			p := time.Now()
 			for _, r := range conf.Config.Routes {
-				//_, ok := matrix
-				matrix[URLHash(r)] = &utils.BRMatrix{FullURL: r.URL}
-				var found bool
-				for _, i := range ConfigURLs {
-					if i == r.URL {
-						found = true
-						break
+				hash := URLHash(r)
+				if _, ok := matrix[hash]; !ok {
+					var (
+						pathPing      = fmt.Sprintf("%s/chunk_ping_%s.json", utils.PathPing, hash)
+						pathJitter    = fmt.Sprintf("%s/chunk_jitter_%s.json", utils.PathJitter, hash)
+						pathFloodPing = fmt.Sprintf("%s/chunk_flood_ping_%s.json", utils.PathFloodPing, hash)
+						pathMonitor   = fmt.Sprintf("%s/chunk_monitor_%s.json", utils.PathMonitoring, hash)
+					)
+					uHash := utils.GetHash(r.URL)
+					if _, ok := targetMachineCalc[uHash]; !ok {
+						targetMachineCalc[uHash] = &utils.MachineType{
+							IPDomain: filters.HTTPPingFilterValue(r.URL),
+							Ping:     tsdb.NewChain(pathPing).Init(),
+							Jitter:   tsdb.NewChain(pathJitter).Init(),
+							FPing:    tsdb.NewChain(pathFloodPing).Init(),
+						}
+					}
+					matrix[hash] = &utils.BRMatrix{
+						FullURL:      r.URL,
+						Route:        r,
+						PingChain:    targetMachineCalc[uHash].Ping,
+						JitterChain:  targetMachineCalc[uHash].Jitter,
+						FPingChain:   targetMachineCalc[uHash].FPing,
+						MonitorChain: tsdb.NewChain(pathMonitor).Init(),
 					}
 				}
-				if !found {
-					ConfigURLs = append(ConfigURLs, r.URL)
-					setMatrixKey(&matrix, r.URL)
-				}
 			}
-			var wg sync.WaitGroup
-			p := time.Now()
-			wg.Add(4)
-			go initialize(&wg, &matrix, chainSet, &utils.Pingc, ConfigURLs, utils.PathPing, "ping")
-			go initialize(&wg, &matrix, chainSet, &utils.FPingc, ConfigURLs, utils.PathFloodPing, "flood_ping")
-			go initialize(&wg, &matrix, chainSet, &utils.Jitterc, ConfigURLs, utils.PathJitter, "jitter")
-			go initialize(&wg, &matrix, chainSet, &utils.RespMonitoringc, conf.Config.Routes, utils.PathReqResDelayMonitoring, "req_res")
-			wg.Wait()
 			msg := "initialization time: " + time.Since(p).String()
 			logger.Terminal(msg, "p")
 			done <- struct{}{}
@@ -120,9 +121,9 @@ func main() {
 	<-done
 	chainSet.Run()
 
-	api := api.New(&matrix, conf, workers, &reload, &done)
+	apiInstance := api.New(&matrix, conf, workers, reload, done)
 	router := mux.NewRouter()
-	api.Register(router)
+	apiInstance.Register(router)
 
 	go func() {
 		metrics := sysMetrics.New()
@@ -134,7 +135,9 @@ func main() {
 		}
 
 		chain := tsdb.NewChain(systemMetricsPath)
+		p := time.Now()
 		chain.Init()
+		fmt.Println("initialized system-metrics...", time.Since(p))
 		chainSet.Register(chain.Name, chain)
 
 		for {
@@ -175,7 +178,9 @@ func main() {
 		go func() {
 			metrics := journal.New()
 			chain := tsdb.NewChain(journalMetricsPath)
+			p := time.Now()
 			chain.Init()
+			fmt.Println("initialized journal-metrics...", time.Since(p))
 			chainSet.Register(chain.Name, chain)
 
 			for {
@@ -282,85 +287,6 @@ func main() {
 	logger.Terminal("Bench-routes is up and running", "p")
 }
 
-func setMatrixKey(matrix *utils.BRmap, url string) {
-	var urlExists bool
-	for instance := range *matrix {
-		if (*matrix)[instance].FullURL == url {
-			urlExists = true
-			break
-		}
-	}
-	if !urlExists {
-		(*matrix)[len(*matrix)] = &utils.BRMatrix{
-			FullURL: url,
-		}
-	}
-}
-
-func initialize(wg *sync.WaitGroup, matrix *utils.BRmap, chainSet *tsdb.ChainSet, chain *[]*tsdb.Chain, conf interface{}, basePath, Type string) {
-	var (
-		msg = "forming " + Type + " chain ... "
-		mux sync.RWMutex
-	)
-	logger.File(msg, "p")
-	config, ok := conf.([]string)
-	mux.Lock()
-	defer mux.Unlock()
-	if ok {
-		for _, v := range config {
-			v = filters.HTTPPingFilterValue(v)
-			path := basePath + "/chunk_" + Type + "_" + v + ".json"
-			resp := tsdb.NewChain(path)
-			resp.Init()
-			*chain = append(*chain, resp)
-			for k := range *matrix {
-				index := k
-				if filters.HTTPPingFilterValue((*matrix)[k].FullURL) == v {
-					switch Type {
-					case "ping":
-						(*matrix)[index].PingChain = resp
-					case "jitter":
-						(*matrix)[index].JitterChain = resp
-					case "flood_ping":
-						(*matrix)[index].FPingChain = resp
-					}
-				}
-			}
-		}
-	}
-	if configRes, ok := conf.([]parser.Route); ok {
-		for _, v := range configRes {
-			path := basePath + "/chunk_" + Type + "_" + filters.RouteDestroyer(v.URL) + ".json"
-			if _, ok := initializedChains[path]; ok {
-				continue
-			}
-			initializedChains[path] = true
-			resp := tsdb.NewChain(path)
-			resp.Init()
-			*chain = append(*chain, resp)
-			for k := range *matrix {
-				if (*matrix)[k].FullURL == v.URL {
-					(*matrix)[k] = &utils.BRMatrix{
-						FullURL:      v.URL,
-						MonitorChain: resp,
-						Domain:       fmt.Sprintf("%s: %s", v.Method, v.URL),
-						PingChain:    (*matrix)[k].PingChain,
-						JitterChain:  (*matrix)[k].JitterChain,
-						FPingChain:   (*matrix)[k].FPingChain,
-					}
-					break
-				}
-			}
-		}
-	}
-	for _, chain := range *chain {
-		chainSet.Register(chain.Name, chain)
-	}
-
-	logger.Terminal("finished "+Type+" chain", "p")
-	wg.Done()
-}
-
 // setDefaultServicesState initializes all state values to passive.
 func setDefaultServicesState(configuration *parser.Config) {
 	configuration.Config.UtilsConf.ServicesSignal = parser.ServiceSignals{
@@ -376,25 +302,25 @@ func setDefaultServicesState(configuration *parser.Config) {
 
 func URLHash(route parser.Route) string {
 	var (
-		method = route.Method
-		URL = route.URL
-		body = route.Body
-		headers = route.Header
-		params = route.Params
+		method    = route.Method
+		URL       = route.URL
+		body      = route.Body
+		headers   = route.Header
+		params    = route.Params
 		hashInput = fmt.Sprintf("%s%s", method, URL)
 	)
-	mbody, err := json.Marshal(body)
+	mBody, err := json.Marshal(body)
 	if err != nil {
 		panic(err)
 	}
-	mheaders, err := json.Marshal(headers)
+	mHeaders, err := json.Marshal(headers)
 	if err != nil {
 		panic(err)
 	}
-	mparams, err := json.Marshal(params)
+	mParams, err := json.Marshal(params)
 	if err != nil {
 		panic(err)
 	}
-	hashInput += fmt.Sprintf("%s%s%s", mbody, mheaders, mparams)
+	hashInput += fmt.Sprintf("%s%s%s", mBody, mHeaders, mParams)
 	return utils.GetHash(hashInput)
 }

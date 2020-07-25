@@ -54,13 +54,19 @@ func (q *QuickInput) Send(method uint, getResponse chan string) {
 		}
 		q.applyHeaders(request)
 		response, err := client.Do(request)
-		defer response.Body.Close()
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+		}
+		if response == nil {
+			fmt.Printf("nil response: %s\n", q.url)
+			return
 		}
 		done(response.Body, getResponse)
+		if err := response.Body.Close(); err != nil {
+			fmt.Printf("error closing response body: %s\n", err.Error())
+		}
 	case POST:
-		var form url.Values
+		form := make(url.Values)
 		q.populateBody(&form)
 		request, err := http.NewRequest("POST", q.url, strings.NewReader(form.Encode()))
 		if err != nil {
@@ -69,11 +75,17 @@ func (q *QuickInput) Send(method uint, getResponse chan string) {
 		request.PostForm = form
 		q.applyHeaders(request)
 		response, err := client.Do(request)
-		defer response.Body.Close()
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+		}
+		if response == nil {
+			fmt.Printf("nil response: %s\n", q.url)
+			return
 		}
 		done(response.Body, getResponse)
+		if err := response.Body.Close(); err != nil {
+			fmt.Printf("error closing response body: %s\n", err.Error())
+		}
 	}
 }
 
@@ -107,7 +119,9 @@ func (q *QuickInput) applyHeaders(request *http.Request) {
 // populateBody applies the body as values to be assigned to the request.
 func (q *QuickInput) populateBody(form *url.Values) {
 	for k, v := range q.body {
-		form.Add(k, v)
+		if k != "" || v != "" {
+			form.Add(k, v)
+		}
 	}
 }
 

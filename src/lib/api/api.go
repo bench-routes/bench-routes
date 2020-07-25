@@ -8,6 +8,7 @@ import (
 	"net/http/pprof"
 	"reflect"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -33,10 +34,11 @@ const (
 type API struct {
 	ResponseStatus      string
 	Data, Services      interface{}
-	Matrix              *utils.BRmap
+	Matrix              *map[string]*utils.BRMatrix
 	config              *config.Config
-	reloadConfigURLs    *chan struct{}
-	receiveFinishSignal *chan struct{}
+	reloadConfigURLs    chan struct{}
+	receiveFinishSignal chan struct{}
+	mux                 sync.RWMutex
 }
 
 type inputRequest struct {
@@ -48,7 +50,7 @@ type inputRequest struct {
 }
 
 // New returns the API type for implementing the API interface.
-func New(matrix *utils.BRmap, config *config.Config, services interface{}, reload, done *chan struct{}) *API {
+func New(matrix *map[string]*utils.BRMatrix, config *config.Config, services interface{}, reload, done chan struct{}) *API {
 	return &API{
 		Matrix:              matrix,
 		Services:            services,
@@ -60,50 +62,43 @@ func New(matrix *utils.BRmap, config *config.Config, services interface{}, reloa
 
 // Register registers the routes with the mux router.
 func (a *API) Register(router *mux.Router) {
-	// static servings.
+	// Static servings.
 	{
 		router.Handle("/", http.FileServer(http.Dir(uiPathV11)))
 		router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(uiPathV11+"assets/"))))
 		router.PathPrefix("/manifest.json").Handler(http.StripPrefix("/manifest.json", http.FileServer(http.Dir(uiPathV11+"/manifest.json"))))
 		router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(uiPathV11+"static/"))))
 	}
-	// Pprof profiling routes.
+	// Profiling routes.
 	{
-		// Index responds with the pprof-formatted profile named by the request.
-		// For example, "/debug/pprof/heap" serves the "heap" profile.
-		// Index responds to a request for "/debug/pprof/" with an HTML page listing the available profiles.
 		router.HandleFunc("/debug/pprof/", pprof.Index)
-		// Respective handlers for pprof.Index
 		router.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
 		router.Handle("/debug/pprof/heap", pprof.Handler("heap"))
 		router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
 		router.Handle("/debug/pprof/block", pprof.Handler("block"))
-		// Cmdline responds with the running program's command line, with arguments separated by NUL bytes.
-		// The package initialization registers it as /debug/pprof/cmdline.
 		router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		// Profile responds with the pprof-formatted cpu profile.
-		// Profiling lasts for duration specified in seconds GET parameter,
-		// or for 30 seconds if not specified. The package initialization registers it as /debug/pprof/profile.
 		router.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		// Symbol looks up the program counters listed in the request, responding
-		// with a table mapping program counters to function names.
-		// The package initialization registers it as /debug/pprof/symbol.
 		router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	}
-	router.HandleFunc("/add-route", a.AddRouteToMonitoring)
-	router.HandleFunc("/br-live-check", a.Home)
-	router.HandleFunc("/config/update-interval", a.ModifyIntervalDuration)
-	router.HandleFunc("/get-monitoring-services-state", a.GetMonitoringState)
-	router.HandleFunc("/get-config-intervals", a.GetConfigIntervals)
-	router.HandleFunc("/get-config-routes", a.GetConfigRoutes)
-	router.HandleFunc("/get-route-time-series", a.TSDBPathDetails)
-	router.HandleFunc("/query-matrix", a.SendMatrix)
-	router.HandleFunc("/query", a.Query)
-	router.HandleFunc("/quick-input", a.QuickTestInput)
-	router.HandleFunc("/routes-summary", a.RoutesSummary)
-	router.HandleFunc("/service-state", a.ServiceState)
-	router.HandleFunc("/test", a.TestTemplate)
-	router.HandleFunc("/update-monitoring-services-state", a.UpdateMonitoringServicesState)
+	// API endpoints.
+	{
+		router.HandleFunc("/add-route", a.AddRouteToMonitoring)
+		router.HandleFunc("/br-live-check", a.Home)
+		router.HandleFunc("/config/update-interval", a.ModifyIntervalDuration)
+		router.HandleFunc("/delete-route", a.DeleteConfigRoutes)
+		router.HandleFunc("/get-monitoring-services-state", a.GetMonitoringState)
+		router.HandleFunc("/get-config-intervals", a.GetConfigIntervals)
+		router.HandleFunc("/get-config-routes", a.GetConfigRoutes)
+		router.HandleFunc("/get-route-time-series", a.TSDBPathDetails)
+		router.HandleFunc("/query-matrix", a.SendMatrix)
+		router.HandleFunc("/query", a.Query)
+		router.HandleFunc("/quick-input", a.QuickTestInput)
+		router.HandleFunc("/routes-summary", a.RoutesSummary)
+		router.HandleFunc("/service-state", a.ServiceState)
+		router.HandleFunc("/test", a.TestTemplate)
+		router.HandleFunc("/update-monitoring-services-state", a.UpdateMonitoringServicesState)
+		router.HandleFunc("/update-route", a.UpdateRoute)
+	}
 }
 
 // Home handles the requests for the home page.
@@ -217,12 +212,8 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 // SendMatrix responds by sending the multi-dimensional data (called matrix)
 // dependent on a route name as in matrix key.
 func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
-	routeNameMatrix := r.URL.Query().Get("routeNameMatrix")
-	instanceKey, err := strconv.Atoi(routeNameMatrix)
-	if err != nil {
-		panic(err)
-	}
-	if _, ok := (*a.Matrix)[instanceKey]; !ok {
+	routeHashMatrix := r.URL.Query().Get("routeNameMatrix")
+	if _, ok := (*a.Matrix)[routeHashMatrix]; !ok {
 		a.Data = "ROUTE_NAME_AKA_INSTANCE_KEY_NOT_IN_MATRIX"
 		a.send(w, a.marshalled())
 		return
@@ -241,7 +232,7 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		query.SetRange(curr, from)
 		c <- query.ExecWithoutEncode()
 	}
-	matrix := (*a.Matrix)[instanceKey]
+	matrix := (*a.Matrix)[routeHashMatrix]
 	if startTimestampStr == "" && endTimestampStr == "" {
 		curr := time.Now().UnixNano()
 		from := curr - (brt.Minute * 20)
@@ -302,13 +293,16 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&t); err != nil {
 		panic(err)
 	}
-	fmt.Println(t)
-	fmt.Println("url: ", t.URL)
-	fmt.Println("headers: ", t.Headers)
-	fmt.Println("params: ", t.Params)
 	req := request.New(t.URL, t.Headers, t.Params, t.Body)
 	response := make(chan string)
-	go req.Send(request.GET, response)
+	switch t.Method {
+	case "GET":
+		go req.Send(request.GET, response)
+	case "POST":
+		go req.Send(request.POST, response)
+	default:
+		fmt.Printf("invalid request method: %s\n", t.Method)
+	}
 	a.Data = <-response
 	a.send(w, a.marshalled())
 }
@@ -332,21 +326,21 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 			requestInstance.GetBodyConfigFormatted(),
 		),
 	)
-	*a.reloadConfigURLs <- struct{}{}
+	a.reloadConfigURLs <- struct{}{}
 	a.Data = "success"
 	a.send(w, a.marshalled())
-	<-*a.receiveFinishSignal
+	<-a.receiveFinishSignal
 }
 
 // TSDBPathDetails responds with the path details that will be used for
 // passing into the querier's timeSeriesPath.
 func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 	var chainDetails []utils.ResponseTSDBChains
-	for n, v := range *a.Matrix {
+	for hash, v := range *a.Matrix {
 		chainDetails = append(chainDetails, utils.ResponseTSDBChains{
-			Name: v.Domain,
+			Name: v.FullURL,
 			Path: utils.ChainPath{
-				InstanceKey: n,
+				InstanceKey: hash,
 				Ping:        trim(v.PingChain.Path),
 				Jitter:      trim(v.JitterChain.Path),
 				Fping:       trim(v.FPingChain.Path),
@@ -419,19 +413,19 @@ func (a *API) GetMonitoringState(w http.ResponseWriter, r *http.Request) {
 	a.send(w, a.marshalled())
 }
 
-// Gets the config file data for the config screen
+// GetConfigIntervals gets the config file data for the config screen.
 func (a *API) GetConfigIntervals(w http.ResponseWriter, r *http.Request) {
 	a.Data = a.config.Config.Interval
 	a.send(w, a.marshalled())
 }
 
-// Gets the config file data for the config screen
+// GetConfigRoutes gets the config file data for the config screen.
 func (a *API) GetConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	a.Data = a.config.Config.Routes
 	a.send(w, a.marshalled())
 }
 
-// Modifies a specific interval duration in the config file
+// ModifyIntervalDuration modifies a specific interval duration in the config file.
 func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		panic(err)
@@ -464,6 +458,77 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 		a.ResponseStatus = "400"
 		a.Data = "The string passed is not an integer"
 	}
+	a.send(w, a.marshalled())
+}
+
+// UpdateRoute updates a route in the local config.
+func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		panic(err)
+	}
+	var (
+		req struct {
+			Method        string            `json:"method"`
+			URL           string            `json:"url"`
+			Params        map[string]string `json:"params"`
+			Headers       map[string]string `json:"headers"`
+			Body          map[string]string `json:"body"`
+			OriginalRoute string            `json:"orgRoute"`
+		}
+		decoder = json.NewDecoder(r.Body)
+	)
+	if err := decoder.Decode(&req); err != nil {
+		panic(err)
+	}
+	requestInstance := request.New(req.URL, req.Headers, req.Params, req.Body)
+	for i, route := range a.config.Config.Routes {
+		if route.URL == req.OriginalRoute && route.Method == req.Method {
+			a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
+			a.config.Config.Routes = append(a.config.Config.Routes, config.GetNewRouteType(
+				req.Method,
+				req.URL,
+				requestInstance.GetHeadersConfigFormatted(),
+				requestInstance.GetParamsConfigFormatted(),
+				requestInstance.GetBodyConfigFormatted(),
+			))
+			break
+		}
+	}
+	if _, err := a.config.Write(); err != nil {
+		a.ResponseStatus = http.StatusText(400)
+	}
+	a.reloadConfigURLs <- struct{}{}
+	<-a.receiveFinishSignal
+	a.ResponseStatus = http.StatusText(200)
+	a.Data = a.config.Config.Routes
+	a.send(w, a.marshalled())
+}
+
+// DeleteConfigRoutes removes a route from the config screen.
+func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		panic(err)
+	}
+	var req struct {
+		ActualRoute string `json:"actualRoute"`
+	}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&req); err != nil {
+		panic(err)
+	}
+	for i, route := range a.config.Config.Routes {
+		if route.URL == req.ActualRoute {
+			a.mux.Lock()
+			a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
+			a.mux.Unlock()
+			break
+		}
+	}
+	if _, err := a.config.Write(); err != nil {
+		a.ResponseStatus = http.StatusText(400)
+	}
+	a.ResponseStatus = http.StatusText(200)
+	a.Data = a.config.Config.Routes
 	a.send(w, a.marshalled())
 }
 
