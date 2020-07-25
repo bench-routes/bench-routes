@@ -3,11 +3,11 @@ package monitor
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"testing"
 	"time"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/config"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
