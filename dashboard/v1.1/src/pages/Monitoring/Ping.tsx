@@ -51,6 +51,16 @@ const Ping: FC<PingProps> = ({ min, mean, max }) => {
         }
       },
       background: '#fff'
+    },
+    yaxis: {
+      title: {
+        text: 'milliseconds'
+      }
+    },
+    xaxis: {
+      title: {
+        text: 'Time'
+      }
     }
   };
   return <Chart series={series} options={options} height="300" />;

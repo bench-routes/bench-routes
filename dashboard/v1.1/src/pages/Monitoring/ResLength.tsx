@@ -9,7 +9,7 @@ interface ResLengthProps {
 const ResLength: FC<ResLengthProps> = ({ resLength }) => {
   const series = [
     {
-      name: 'CPU',
+      name: 'Response length',
       data: resLength
     }
   ];
@@ -30,6 +30,16 @@ const ResLength: FC<ResLengthProps> = ({ resLength }) => {
         }
       },
       background: '#fff'
+    },
+    yaxis: {
+      title: {
+        text: 'Length'
+      }
+    },
+    xaxis: {
+      title: {
+        text: 'Time'
+      }
     }
   };
   return <Chart series={series} options={options} height="300" />;

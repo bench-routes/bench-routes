@@ -52,8 +52,10 @@ const JitterModule: FC<{}> = () => {
       });
   }, []);
 
-  async function getChartsData(v: any) {
-    const res = filterUrl(v);
+  async function getChartsData(v: string) {
+    let res = filterUrl(v);
+    res = res.substring(0, res.indexOf('/'));
+
     try {
       const response = await fetch(
         `${HOST_IP}/query?timeSeriesPath=storage/jitter/chunk_jitter_${res}`

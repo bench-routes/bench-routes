@@ -9,7 +9,7 @@ interface DelayProps {
 const Delay: FC<DelayProps> = ({ delay }) => {
   const series = [
     {
-      name: 'CPU',
+      name: 'Delay',
       data: delay
     }
   ];
@@ -30,6 +30,16 @@ const Delay: FC<DelayProps> = ({ delay }) => {
         }
       },
       background: '#fff'
+    },
+    yaxis: {
+      title: {
+        text: 'Response (in ms)'
+      }
+    },
+    xaxis: {
+      title: {
+        text: 'Time'
+      }
     }
   };
   return <Chart series={series} options={options} height="300" />;
