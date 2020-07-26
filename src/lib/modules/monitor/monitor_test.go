@@ -8,6 +8,7 @@ import (
 
 	"github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
@@ -17,6 +18,7 @@ var (
 	chainSet          = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*1)
 	configurationPath = "../testfiles/configuration.yaml"
 	targets           = make(map[string]*utils.BRMatrix)
+	endpointMetrics   = prom.EndpointMetrics()
 )
 
 func initVars() {
@@ -28,7 +30,11 @@ func initVars() {
 		hash := URLHash(r)
 		if _, ok := targets[hash]; !ok {
 			path := fmt.Sprintf("../testfiles/%s_monitor.json", hash)
-			targets[hash] = &utils.BRMatrix{FullURL: r.URL, Route: r, MonitorChain: tsdb.NewChain(path).Init()}
+			targets[hash] = &utils.BRMatrix{FullURL: r.URL,
+				Route:        r,
+				MonitorChain: tsdb.NewChain(path).Init(),
+				Metrics:      endpointMetrics,
+			}
 			chainSet.Register(hash, targets[hash].MonitorChain)
 		}
 	}
@@ -37,7 +43,7 @@ func initVars() {
 func Test_module_MONITOR(T *testing.T) {
 	initVars()
 	go worker.Iterate("start", true)
-	time.Sleep(time.Second * 30)
+	time.Sleep(time.Second * 5)
 	go worker.Iterate("stop", true)
 }
 

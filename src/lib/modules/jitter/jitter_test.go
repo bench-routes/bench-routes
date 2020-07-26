@@ -8,15 +8,17 @@ import (
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 var (
-	worker            *Jitter
-	configuration     *parser.Config
-	configurationPath = "../testfiles/configuration.yaml"
-	targets           = make(map[string]*utils.MachineType)
-	chainSet          = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*1)
+	worker               *Jitter
+	configuration        *parser.Config
+	configurationPath    = "../testfiles/configuration.yaml"
+	targets              = make(map[string]*utils.MachineType)
+	chainSet             = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*1)
+	targetMachineMetrics = prom.MachineMetrics()
 )
 
 func initVars() {
@@ -28,7 +30,11 @@ func initVars() {
 		hash := utils.GetHash(filters.HTTPPingFilterValue(r.URL))
 		if _, ok := targets[hash]; !ok {
 			path := fmt.Sprintf("../testfiles/%s_jitter.json", hash)
-			targets[hash] = &utils.MachineType{IPDomain: filters.HTTPPingFilterValue(r.URL), Jitter: tsdb.NewChain(path).Init()}
+			targets[hash] = &utils.MachineType{
+				IPDomain: filters.HTTPPingFilterValue(r.URL),
+				Jitter:   tsdb.NewChain(path).Init(),
+				Metrics:  targetMachineMetrics,
+			}
 			chainSet.Register(hash, targets[hash].Jitter)
 		}
 	}
