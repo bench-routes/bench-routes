@@ -6,7 +6,7 @@ import {
   RouteDetails
 } from '../../utils/queryTypes';
 import { columns } from './Columns';
-import TimeInstance from '../../utils/brt';
+import TimeInstance, { formatResLength, round } from '../../utils/brt';
 
 import TableContainer from '@material-ui/core/TableContainer';
 import Table from '@material-ui/core/Table';
@@ -32,11 +32,6 @@ interface ElementProps {
   timeSeriesPath: TimeSeriesPath;
   showRouteDetails(status: boolean, details: RouteDetails): void;
 }
-
-const round = (n: string): number => {
-  const num = parseInt(n, 10);
-  return Math.round(num * 10) / 10;
-};
 
 const Pad: FC<{}> = () => <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>;
 
@@ -180,7 +175,7 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
               {' '}
               {data.monitor.values === null
                 ? '-'
-                : data.monitor.values[0].value.delay}{' '}
+                : data.monitor.values[0].value.delay.toFixed(2)}{' '}
             </>
           )}{' '}
           ms
@@ -194,7 +189,7 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
             <>
               {data.monitor.values === null
                 ? '-'
-                : data.monitor.values[0].value.resLength}
+                : formatResLength(data.monitor.values[0].value.resLength)}
             </>
           )}
         </Badge>

@@ -53,7 +53,7 @@ const Config: FC<{}> = () => {
   const [toggleResults, setToggleResults] = useState({
     ping: false,
     jitter: false,
-    'req-res-delay-and-monitoring': false
+    monitoring: false
   });
 
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -75,17 +75,19 @@ const Config: FC<{}> = () => {
 
   const getTableData = (routes: [string, routeOptionsInterface[]][]) => {
     let tableData: TableRouteType[] = [];
-    routes.forEach(route => {
+    routes.forEach((route: [string, routeOptionsInterface[]]) => {
       let methods: string[] = [];
-      route[1].forEach(option => {
+      route[1].forEach((option: routeOptionsInterface) => {
         Object.keys(option).forEach(k => {
           if (k === 'method') {
             methods.push(option[k]);
           }
         });
       });
+      let routename =
+        route[0].substring(0, 40) + (route[0].length > 40 ? '...' : '');
       tableData.push({
-        route: route[0],
+        route: routename,
         methods
       });
     });
@@ -109,12 +111,10 @@ const Config: FC<{}> = () => {
           jitter: !toggleResults['jitter']
         });
         break;
-      case 'req-res-delay-and-monitoring':
+      case 'monitoring':
         setToggleResults({
           ...toggleResults,
-          'req-res-delay-and-monitoring': !toggleResults[
-            'req-res-delay-and-monitoring'
-          ]
+          monitoring: !toggleResults['monitoring']
         });
         break;
     }
@@ -171,7 +171,7 @@ const Config: FC<{}> = () => {
                       </Grid>
                     </Grid>
                     <IntervalDetails
-                      reFetch={fetchConfigIntervals}
+                      reFetch={() => fetchConfigIntervals(setConfigIntervals)}
                       toggleComponentView={(name: string) => handleToggle(name)}
                       toggleResults={toggleResults}
                       durationValue={duration}

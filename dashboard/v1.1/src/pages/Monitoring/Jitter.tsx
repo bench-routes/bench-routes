@@ -30,6 +30,16 @@ const Jitter: FC<JitterProps> = ({ value }) => {
         }
       },
       background: '#fff'
+    },
+    yaxis: {
+      title: {
+        text: 'milliseconds'
+      }
+    },
+    xaxis: {
+      title: {
+        text: 'Time'
+      }
     }
   };
   return <Chart series={series} options={options} height="300" />;

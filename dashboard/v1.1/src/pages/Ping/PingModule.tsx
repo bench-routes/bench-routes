@@ -66,8 +66,10 @@ const PingModule: FC<{}> = () => {
       });
   }, []);
 
-  async function getChartsData(v: any) {
-    const res = filterUrl(v);
+  async function getChartsData(v: string) {
+    let res = filterUrl(v);
+    res = res.substring(0, res.indexOf('/'));
+
     try {
       const response = await fetch(
         `${HOST_IP}/query?timeSeriesPath=storage/ping/chunk_ping_${res}`
