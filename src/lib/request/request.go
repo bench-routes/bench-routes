@@ -28,6 +28,12 @@ type QuickInput struct {
 	url                   string
 }
 
+// ResponseWrapper wraps the response string with its status code.
+type ResponseWrapper struct {
+	Status             int
+	ReponseStringified string
+}
+
 // New returns a new quick-input type for implementing the
 // quick-input testing functionality.
 func New(url string, headers, params, body map[string]string) *QuickInput {
@@ -41,7 +47,7 @@ func New(url string, headers, params, body map[string]string) *QuickInput {
 
 // Send sends the requests to the host/target. It can be executed
 // parallely along with other goroutines.
-func (q *QuickInput) Send(method uint, getResponse chan string) {
+func (q *QuickInput) Send(method uint, getResponse chan ResponseWrapper) {
 	var client http.Client
 	switch method {
 	case GET:
@@ -61,7 +67,7 @@ func (q *QuickInput) Send(method uint, getResponse chan string) {
 			fmt.Printf("nil response: %s\n", q.url)
 			return
 		}
-		done(response.Body, getResponse)
+		done(response.Body, response.StatusCode, getResponse)
 		if err := response.Body.Close(); err != nil {
 			fmt.Printf("error closing response body: %s\n", err.Error())
 		}
@@ -82,7 +88,7 @@ func (q *QuickInput) Send(method uint, getResponse chan string) {
 			fmt.Printf("nil response: %s\n", q.url)
 			return
 		}
-		done(response.Body, getResponse)
+		done(response.Body, response.StatusCode, getResponse)
 		if err := response.Body.Close(); err != nil {
 			fmt.Printf("error closing response body: %s\n", err.Error())
 		}
@@ -125,14 +131,14 @@ func (q *QuickInput) populateBody(form *url.Values) {
 	}
 }
 
-func done(_body io.ReadCloser, getResponse chan string) {
+func done(_body io.ReadCloser, status int, getResponse chan ResponseWrapper) {
 	body, err := ioutil.ReadAll(_body)
 	if err != nil {
 		fmt.Println("err while reading body: ", err.Error())
 		body = []byte("")
 	}
 	inStr := string(body)
-	getResponse <- inStr
+	getResponse <- ResponseWrapper{ReponseStringified: inStr, Status: status}
 }
 
 // GetHeadersConfigFormatted converts the format of the headers

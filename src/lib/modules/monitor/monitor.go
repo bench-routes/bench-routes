@@ -107,15 +107,15 @@ func (ps *Monitor) perform() {
 }
 
 func (ps *Monitor) responseDelay(wg *sync.WaitGroup, matrixHash string, route parser.Route) {
-	response := make(chan string)
+	response := make(chan request.ResponseWrapper)
 	req := request.New(route.URL, request.ToMap(route.Header), request.ToMap(route.Params), request.ToMap(route.Body))
 	stamp := time.Now()
 	go req.Send(request.MethodUintPresentation(route.Method), response)
 	resp := <-response
 	var (
 		delay      = time.Since(stamp).Milliseconds()
-		resLength  = len(resp)
-		statusCode = 200
+		resLength  = len(resp.ReponseStringified)
+		statusCode = resp.Status
 	)
 	(*ps.targets)[matrixHash].Metrics.ResponseDelay.With(map[string]string{
 		prom.LabelMethod: route.Method,
@@ -139,8 +139,8 @@ func (ps *Monitor) responseDelay(wg *sync.WaitGroup, matrixHash string, route pa
 	}).Inc()
 	g := getNormalizedBlockString(utils.Response{
 		Delay:         delay,
-		ResLength:     resLength,
-		ResStatusCode: statusCode,
+		ResLength:     len(resp.ReponseStringified),
+		ResStatusCode: resp.Status,
 	})
 	block := *tsdb.GetNewBlock("req-res", g)
 	(*ps.targets)[matrixHash].MonitorChain = (*ps.targets)[matrixHash].MonitorChain.Append(block)

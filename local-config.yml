@@ -148,3 +148,8 @@ routes:
   headers: []
   params: []
   body: []
+- method: GET
+  url: https://muskankhedi.github.io/
+  headers: []
+  params: []
+  body: []

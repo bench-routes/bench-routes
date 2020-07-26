@@ -25,17 +25,23 @@ type APIResponse<MatrixResponse> = { status: string; data: MatrixResponse };
 
 interface MatrixProps {
   timeSeriesPath: TimeSeriesPath[];
+  isMonitoringActive: boolean;
   showRouteDetails(status: boolean, details: RouteDetails): void;
 }
 
 interface ElementProps {
   timeSeriesPath: TimeSeriesPath;
+  isMonitoringActive: boolean;
   showRouteDetails(status: boolean, details: RouteDetails): void;
 }
 
 const Pad: FC<{}> = () => <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>;
 
-const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
+const Element: FC<ElementProps> = ({
+  timeSeriesPath,
+  isMonitoringActive,
+  showRouteDetails
+}) => {
   const [data, setData] = useState<MatrixResponse>();
   const [trigger, setTrigger] = useState<number>(0);
   const [updating, setUpdating] = useState<boolean>(true);
@@ -123,7 +129,9 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
   }
 
   setTimeout(() => {
-    setTrigger(trigger + 1);
+    if (isMonitoringActive) {
+      setTrigger(trigger + 1);
+    }
   }, 10 * 1000);
 
   return (
@@ -140,7 +148,7 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
       </TableCell>
       <TableCell style={{ minWidth: 100, fontSize: 16 }} align="center">
         <Badge color="warning">
-          {data.ping === undefined ? (
+          {!data.ping ? (
             '-'
           ) : (
             <>
@@ -154,7 +162,7 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
       </TableCell>
       <TableCell style={{ minWidth: 120, fontSize: 16 }} align="center">
         <Badge color="warning">
-          {data.jitter === undefined ? (
+          {!data.jitter ? (
             '-'
           ) : (
             <>
@@ -168,7 +176,7 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
       </TableCell>
       <TableCell style={{ minWidth: 150, fontSize: 16 }} align="center">
         <Badge color="warning">
-          {data.monitor === undefined ? (
+          {!data.monitor ? (
             '-'
           ) : (
             <>
@@ -183,7 +191,7 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
       </TableCell>
       <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
         <Badge color="warning">
-          {data.monitor === undefined ? (
+          {!data.monitor ? (
             '-'
           ) : (
             <>
@@ -195,7 +203,19 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
         </Badge>
       </TableCell>
       <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
-        <Badge color="success">{'UP'}</Badge>
+        {!data.monitor ? (
+          <Badge color="warning"> {'-'} </Badge>
+        ) : (
+          <>
+            {data.monitor.values === null ? (
+              <Badge color="warning"> {'-'} </Badge>
+            ) : data.monitor.values[0].value.resStatusCode === 200 ? (
+              <Badge color="success">UP</Badge>
+            ) : (
+              <Badge color="danger">DOWN</Badge>
+            )}
+          </>
+        )}
       </TableCell>
       <TableCell style={{ minWidth: 10, fontSize: 16 }} align="center">
         {warning ? (
@@ -213,7 +233,11 @@ const Element: FC<ElementProps> = ({ timeSeriesPath, showRouteDetails }) => {
   );
 };
 
-const Matrix: FC<MatrixProps> = ({ timeSeriesPath, showRouteDetails }) => (
+const Matrix: FC<MatrixProps> = ({
+  timeSeriesPath,
+  isMonitoringActive,
+  showRouteDetails
+}) => (
   <TableContainer style={{ maxHeight: '100vh', overflowY: 'hidden' }}>
     <Table stickyHeader>
       <TableHead>
@@ -238,6 +262,7 @@ const Matrix: FC<MatrixProps> = ({ timeSeriesPath, showRouteDetails }) => (
           <Element
             timeSeriesPath={series}
             showRouteDetails={showRouteDetails}
+            isMonitoringActive={isMonitoringActive}
             key={i}
           />
         ))}

@@ -299,7 +299,7 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	req := request.New(t.URL, t.Headers, t.Params, t.Body)
-	response := make(chan string)
+	response := make(chan request.ResponseWrapper)
 	switch t.Method {
 	case "GET":
 		go req.Send(request.GET, response)
