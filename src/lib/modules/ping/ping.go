@@ -1,6 +1,7 @@
 package ping
 
 import (
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
 	"strconv"
 	"sync"
 	"time"
@@ -124,6 +125,25 @@ func (ps *Ping) ping(urlRaw, machineHash string, packets int, wg *sync.WaitGroup
 		return
 	}
 	result := scrap.CLIPingScrap(resp)
+	(*ps.targets)[machineHash].Metrics.Ping.With(map[string]string{
+		prom.LabelDomain:    urlRaw,
+		prom.LabelPingTypes: "min",
+	}).Set(result.Min)
+	(*ps.targets)[machineHash].Metrics.Ping.With(map[string]string{
+		prom.LabelDomain:    urlRaw,
+		prom.LabelPingTypes: "mean",
+	}).Set(result.Avg)
+	(*ps.targets)[machineHash].Metrics.Ping.With(map[string]string{
+		prom.LabelDomain:    urlRaw,
+		prom.LabelPingTypes: "max",
+	}).Set(result.Max)
+	(*ps.targets)[machineHash].Metrics.Ping.With(map[string]string{
+		prom.LabelDomain:    urlRaw,
+		prom.LabelPingTypes: "mdev",
+	}).Set(result.Mdev)
+	(*ps.targets)[machineHash].Metrics.PingCount.With(map[string]string{
+		prom.LabelDomain: urlRaw,
+	}).Inc()
 	newBlock := *tsdb.GetNewBlock("ping", getNormalizedBlockString(*result))
 	(*ps.targets)[machineHash].Ping = (*ps.targets)[machineHash].Ping.Append(newBlock)
 	wg.Done()

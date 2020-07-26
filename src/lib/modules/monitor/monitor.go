@@ -1,6 +1,8 @@
 package monitor
 
 import (
+	"github.com/zairza-cetb/bench-routes/src/lib/filters"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
 	"strconv"
 	"sync"
 	"time"
@@ -110,10 +112,35 @@ func (ps *Monitor) responseDelay(wg *sync.WaitGroup, matrixHash string, route pa
 	stamp := time.Now()
 	go req.Send(request.MethodUintPresentation(route.Method), response)
 	resp := <-response
+	var (
+		delay      = time.Since(stamp).Milliseconds()
+		resLength  = len(resp)
+		statusCode = 200
+	)
+	(*ps.targets)[matrixHash].Metrics.ResponseDelay.With(map[string]string{
+		prom.LabelMethod: route.Method,
+		prom.LabelDomain: filters.HTTPPingFilterValue(route.URL),
+		prom.LabelURL:    route.URL,
+	}).Set(float64(delay))
+	(*ps.targets)[matrixHash].Metrics.ResponseLength.With(map[string]string{
+		prom.LabelMethod: route.Method,
+		prom.LabelDomain: filters.HTTPPingFilterValue(route.URL),
+		prom.LabelURL:    route.URL,
+	}).Set(float64(resLength))
+	(*ps.targets)[matrixHash].Metrics.StatusCode.With(map[string]string{
+		prom.LabelMethod: route.Method,
+		prom.LabelDomain: filters.HTTPPingFilterValue(route.URL),
+		prom.LabelURL:    route.URL,
+	}).Set(float64(statusCode))
+	(*ps.targets)[matrixHash].Metrics.MonitorCount.With(map[string]string{
+		prom.LabelMethod: route.Method,
+		prom.LabelDomain: filters.HTTPPingFilterValue(route.URL),
+		prom.LabelURL:    route.URL,
+	}).Inc()
 	g := getNormalizedBlockString(utils.Response{
-		Delay:         time.Since(stamp).Milliseconds(),
-		ResLength:     len(resp),
-		ResStatusCode: 200,
+		Delay:         delay,
+		ResLength:     resLength,
+		ResStatusCode: statusCode,
 	})
 	block := *tsdb.GetNewBlock("req-res", g)
 	(*ps.targets)[matrixHash].MonitorChain = (*ps.targets)[matrixHash].MonitorChain.Append(block)

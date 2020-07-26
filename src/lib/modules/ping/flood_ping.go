@@ -1,6 +1,7 @@
 package ping
 
 import (
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
 	"sync"
 	"time"
 
@@ -120,6 +121,29 @@ func (ps *FloodPing) ping(urlRaw, machineHash string, packets int, wg *sync.Wait
 		return
 	}
 	result := scrap.CLIFLoodPingScrap(resp)
+	(*ps.targets)[machineHash].Metrics.FPing.With(map[string]string{
+		prom.LabelDomain:    urlRaw,
+		prom.LabelPingTypes: "min",
+	}).Set(result.Min)
+	(*ps.targets)[machineHash].Metrics.FPing.With(map[string]string{
+		prom.LabelDomain:    urlRaw,
+		prom.LabelPingTypes: "mean",
+	}).Set(result.Avg)
+	(*ps.targets)[machineHash].Metrics.FPing.With(map[string]string{
+		prom.LabelDomain:    urlRaw,
+		prom.LabelPingTypes: "max",
+	}).Set(result.Max)
+	(*ps.targets)[machineHash].Metrics.FPing.With(map[string]string{
+		prom.LabelDomain:    urlRaw,
+		prom.LabelPingTypes: "mdev",
+	}).Set(result.Mdev)
+	(*ps.targets)[machineHash].Metrics.FPing.With(map[string]string{
+		prom.LabelDomain:    urlRaw,
+		prom.LabelPingTypes: "packet_loss",
+	}).Set(result.PacketLoss)
+	(*ps.targets)[machineHash].Metrics.FPingCount.With(map[string]string{
+		prom.LabelDomain: urlRaw,
+	}).Inc()
 	newBlock := *tsdb.GetNewBlock("flood-ping", getNormalizedBlockStringFlood(*result))
 	(*ps.targets)[machineHash].FPing = (*ps.targets)[machineHash].FPing.Append(newBlock)
 	wg.Done()
