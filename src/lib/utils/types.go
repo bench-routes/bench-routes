@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"github.com/prometheus/client_golang/prometheus"
 	// parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/tsdb"
@@ -105,13 +106,34 @@ type BRMatrix struct {
 	Route                    parser.Route
 	PingChain, JitterChain   *tsdb.Chain
 	FPingChain, MonitorChain *tsdb.Chain
+	Metrics                  *EndpointMetrics
 }
 
 // MachineType type for targets. These are servers/vm-instances/load-balancer
 // that are accessible through pure IP/domain address.
 type MachineType struct {
+	IPDomain string
 	Ping     *tsdb.Chain
 	Jitter   *tsdb.Chain
 	FPing    *tsdb.Chain
-	IPDomain string
+	Metrics  *MachineMetrics
+}
+
+// MachineMetrics represent the prometheus metrics for each
+// target machine/IP/load-balancer.
+type MachineMetrics struct {
+	Ping        *prometheus.GaugeVec
+	PingCount   *prometheus.CounterVec
+	Jitter      *prometheus.GaugeVec
+	JitterCount *prometheus.CounterVec
+	FPing       *prometheus.GaugeVec
+	FPingCount  *prometheus.CounterVec
+}
+
+// EndpointMetrics represent the metrics based on API endpoints.
+type EndpointMetrics struct {
+	ResponseLength *prometheus.GaugeVec
+	ResponseDelay  *prometheus.GaugeVec
+	StatusCode     *prometheus.GaugeVec
+	MonitorCount   *prometheus.CounterVec
 }

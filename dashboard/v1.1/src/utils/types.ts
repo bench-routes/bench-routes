@@ -1,4 +1,4 @@
-export const HOST_IP = 'http://localhost:9090';
+export const HOST_IP = 'http://localhost:9990';
 
 export interface service_states {
   ping: string;

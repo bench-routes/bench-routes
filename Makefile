@@ -66,7 +66,7 @@ test_complete: build
 run:
 	echo "compiling go-code and executing bench-routes"
 	echo "using 9090 as default service listener port"
-	go run src/*.go 9090
+	go run src/*.go 9990
 
 run-collector:
 	go run src/collector/main.go

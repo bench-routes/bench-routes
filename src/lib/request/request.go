@@ -128,7 +128,8 @@ func (q *QuickInput) populateBody(form *url.Values) {
 func done(_body io.ReadCloser, getResponse chan string) {
 	body, err := ioutil.ReadAll(_body)
 	if err != nil {
-		panic(err)
+		fmt.Println("err while reading body: ", err.Error())
+		body = []byte("")
 	}
 	inStr := string(body)
 	getResponse <- inStr

@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"math"
 	"net/http"
 	"net/http/pprof"
@@ -79,6 +80,10 @@ func (a *API) Register(router *mux.Router) {
 		router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 		router.HandleFunc("/debug/pprof/profile", pprof.Profile)
 		router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	}
+	// Prometheus metrics.
+	{
+		router.Handle("/metrics", promhttp.Handler())
 	}
 	// API endpoints.
 	{

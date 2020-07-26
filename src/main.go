@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
 	"os"
 	"os/signal"
@@ -23,6 +24,7 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/monitor"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
 	"github.com/zairza-cetb/bench-routes/src/metrics/journal"
 	"github.com/zairza-cetb/bench-routes/src/metrics/process"
 	sysMetrics "github.com/zairza-cetb/bench-routes/src/metrics/system"
@@ -30,7 +32,7 @@ import (
 )
 
 var (
-	port                        = ":9090" // default listen and serve at 9090
+	port                        = ":9990" // default listen and serve at 9090
 	enableProcessCollection     = false   // default collection of process metrics in host of bench-routes
 	processCollectionScrapeTime = time.Second * 5
 	defaultScrapeTime           = time.Second * 3
@@ -49,7 +51,9 @@ var (
 	chainSet = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*10)
 	// targetMachineCalc contains calculations that are machine/vm/load-balancer
 	// specific. These involve use of IP addresses/Domain names respectively.
-	targetMachineCalc = make(map[string]*utils.MachineType)
+	targetMachineCalc    = make(map[string]*utils.MachineType)
+	targetMachineMetrics = prom.MachineMetrics()
+	endpointMetrics      = prom.EndpointMetrics()
 )
 
 func main() {
@@ -59,7 +63,6 @@ func main() {
 	} else if len(os.Args) > 1 {
 		port = ":" + os.Args[1]
 	}
-
 	logger.Terminal("initializing...", "p")
 	conf = parser.New(utils.ConfigurationFilePath)
 	conf.Load().Validate()
@@ -76,8 +79,19 @@ func main() {
 		PingF:   ping.Newf(conf, ping.TestInterval{OfType: intervals[0].Type, Duration: *intervals[0].Duration}, conf.Config.Password, &targetMachineCalc),
 		Monitor: monitor.New(conf, monitor.TestInterval{OfType: intervals[2].Type, Duration: *intervals[2].Duration}, &matrix),
 	}
-
 	runtime.GOMAXPROCS(runtime.NumCPU() / 2)
+	prometheus.MustRegister(
+		targetMachineMetrics.Ping,
+		targetMachineMetrics.PingCount,
+		targetMachineMetrics.Jitter,
+		targetMachineMetrics.JitterCount,
+		targetMachineMetrics.FPing,
+		targetMachineMetrics.FPingCount,
+		endpointMetrics.ResponseDelay,
+		endpointMetrics.ResponseLength,
+		endpointMetrics.StatusCode,
+		endpointMetrics.MonitorCount,
+	)
 	go func() {
 		for {
 			<-reload
@@ -100,6 +114,7 @@ func main() {
 							Ping:     tsdb.NewChain(pathPing).Init(),
 							Jitter:   tsdb.NewChain(pathJitter).Init(),
 							FPing:    tsdb.NewChain(pathFloodPing).Init(),
+							Metrics:  targetMachineMetrics,
 						}
 						chainSet.Register(fmt.Sprintf("%s-ping", uHash), targetMachineCalc[uHash].Ping)
 						chainSet.Register(fmt.Sprintf("%s-jitter", uHash), targetMachineCalc[uHash].Jitter)
@@ -112,6 +127,7 @@ func main() {
 						JitterChain:  targetMachineCalc[uHash].Jitter,
 						FPingChain:   targetMachineCalc[uHash].FPing,
 						MonitorChain: tsdb.NewChain(pathMonitor).Init(),
+						Metrics:      endpointMetrics,
 					}
 					chainSet.Register(fmt.Sprintf("%s-monitor", uHash), matrix[hash].MonitorChain)
 				}

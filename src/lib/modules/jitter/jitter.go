@@ -1,6 +1,7 @@
 package jitter
 
 import (
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
 	"strconv"
 	"sync"
 	"time"
@@ -122,6 +123,12 @@ func (ps *Jitter) jitter(urlRaw, machineHash string, packets int, wg *sync.WaitG
 		return
 	}
 	result := scrap.CLIJitterScrap(resp)
+	(*ps.targets)[machineHash].Metrics.Jitter.With(map[string]string{
+		prom.LabelDomain: urlRaw,
+	}).Set(result)
+	(*ps.targets)[machineHash].Metrics.JitterCount.With(map[string]string{
+		prom.LabelDomain: urlRaw,
+	}).Inc()
 	newBlock := *tsdb.GetNewBlock("jitter", fToS(result))
 	(*ps.targets)[machineHash].Jitter = (*ps.targets)[machineHash].Jitter.Append(newBlock)
 	wg.Done()
