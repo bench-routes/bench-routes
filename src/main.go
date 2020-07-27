@@ -320,6 +320,7 @@ func setDefaultServicesState(configuration *parser.Config) {
 	}
 }
 
+// URLHash hashes the passed route to a unique value.
 func URLHash(route parser.Route) string {
 	var (
 		method    = route.Method

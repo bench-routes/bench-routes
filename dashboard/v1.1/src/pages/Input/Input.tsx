@@ -164,11 +164,15 @@ const Input = (props: InputScreenProps) => {
       .then(resp => resp.json())
       .then(response => {
         try {
-          const inJSON = JSON.stringify(JSON.parse(response['data']), null, 4);
+          const inJSON = JSON.stringify(
+            JSON.parse(response.data.ReponseStringified),
+            null,
+            4
+          );
           setTestInputResponse(inJSON);
           setShowResponseButton(true);
         } catch (e) {
-          setTestInputResponse(response['data']);
+          setTestInputResponse(response.data.ReponseStringified);
         }
         fetch(`${HOST_IP}/update-route`, {
           method: 'post',
