@@ -107,7 +107,7 @@ func (ps *Monitor) perform() {
 
 func (ps *Monitor) responseDelay(wg *sync.WaitGroup, matrixHash string, route parser.Route) {
 	response := make(chan request.ResponseWrapper)
-	req := request.New(route.URL, request.ToMap(route.Header), request.ToMap(route.Params), request.ToMap(route.Body))
+	req := request.New(route.URL, request.ToMap(route.Header), request.ToMap(route.Params), request.ToMap(route.Body), route.Labels)
 	stamp := time.Now()
 	go req.Send(request.MethodUintPresentation(route.Method), response)
 	resp := <-response

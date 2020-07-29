@@ -1,9 +1,10 @@
 package parser
 
 import (
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"sync"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/prometheus/common/log"
 )
@@ -47,6 +48,7 @@ type Route struct {
 	Header []Headers `yaml:"headers"`
 	Params []Params  `yaml:"params"`
 	Body   []Body    `yaml:"body"`
+	Labels []string  `yaml:"labels"`
 }
 
 // ResponseChangesConfig acts as a type for monitor-length configuration in config.yml
@@ -136,13 +138,15 @@ func (inst *Config) AddRoute(route Route) {
 	}
 }
 
+// TODO: Edit this to include labels
 // GetNewRouteType returns a route based on the params provided.
-func GetNewRouteType(method, url string, headers []Headers, params []Params, body []Body) Route {
+func GetNewRouteType(method, url string, headers []Headers, params []Params, body []Body, labels []string) Route {
 	return Route{
 		Method: method,
 		URL:    url,
 		Header: headers,
 		Params: params,
 		Body:   body,
+		Labels: labels,
 	}
 }

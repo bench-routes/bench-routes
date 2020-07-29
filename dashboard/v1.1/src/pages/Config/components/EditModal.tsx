@@ -14,6 +14,7 @@ import {
 import { TabPanel } from '../../Dashboard/SystemMetrics';
 import Input from '../../Input/Input';
 import { routeEntryType } from '../../../utils/types';
+import { truncate } from '../../../utils/stringManipulations';
 
 interface EditModalProps {
   isOpen: boolean;
@@ -69,7 +70,7 @@ const EditModal = (props: EditModalProps) => {
                     variant="outlined"
                     size="medium"
                     style={{ fontSize: '14px' }}
-                    label={modalUrl}
+                    label={truncate(modalUrl, 100)}
                     clickable
                     color="primary"
                   />
@@ -110,6 +111,7 @@ const EditModal = (props: EditModalProps) => {
                       headers={options.headers}
                       body={options.body}
                       params={options.params}
+                      labels={options.labels}
                       route={selectedRoute.route}
                       updateCurrentModal={(routes, URL) =>
                         updateCurrentModal(routes, URL)

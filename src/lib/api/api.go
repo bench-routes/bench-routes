@@ -49,6 +49,7 @@ type inputRequest struct {
 	Params  map[string]string `json:"params"`
 	Headers map[string]string `json:"headers"`
 	Body    map[string]string `json:"body"`
+	Labels  []string          `json:"labels"`
 }
 
 // New returns the API type for implementing the API interface.
@@ -103,6 +104,7 @@ func (a *API) Register(router *mux.Router) {
 		router.HandleFunc("/get-monitoring-services-state", a.GetMonitoringState)
 		router.HandleFunc("/get-config-intervals", a.GetConfigIntervals)
 		router.HandleFunc("/get-config-routes", a.GetConfigRoutes)
+		router.HandleFunc("/get-labels", a.GetLabels)
 		router.HandleFunc("/get-route-time-series", a.TSDBPathDetails)
 		router.HandleFunc("/query-matrix", a.SendMatrix)
 		router.HandleFunc("/query", a.Query)
@@ -309,7 +311,7 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&t); err != nil {
 		panic(err)
 	}
-	req := request.New(t.URL, t.Headers, t.Params, t.Body)
+	req := request.New(t.URL, t.Headers, t.Params, t.Body, t.Labels)
 	response := make(chan request.ResponseWrapper)
 	switch t.Method {
 	case "GET":
@@ -332,7 +334,7 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&t); err != nil {
 		panic(err)
 	}
-	requestInstance := request.New(t.URL, t.Headers, t.Params, t.Body)
+	requestInstance := request.New(t.URL, t.Headers, t.Params, t.Body, t.Labels)
 	a.config.AddRoute(
 		config.GetNewRouteType(
 			t.Method,
@@ -340,6 +342,7 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 			requestInstance.GetHeadersConfigFormatted(),
 			requestInstance.GetParamsConfigFormatted(),
 			requestInstance.GetBodyConfigFormatted(),
+			t.Labels,
 		),
 	)
 	a.reloadConfigURLs <- struct{}{}
@@ -490,13 +493,14 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 			Headers       map[string]string `json:"headers"`
 			Body          map[string]string `json:"body"`
 			OriginalRoute string            `json:"orgRoute"`
+			Labels        []string          `json:"labels"`
 		}
 		decoder = json.NewDecoder(r.Body)
 	)
 	if err := decoder.Decode(&req); err != nil {
 		panic(err)
 	}
-	requestInstance := request.New(req.URL, req.Headers, req.Params, req.Body)
+	requestInstance := request.New(req.URL, req.Headers, req.Params, req.Body, req.Labels)
 	for i, route := range a.config.Config.Routes {
 		if route.URL == req.OriginalRoute && route.Method == req.Method {
 			a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
@@ -506,6 +510,7 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 				requestInstance.GetHeadersConfigFormatted(),
 				requestInstance.GetParamsConfigFormatted(),
 				requestInstance.GetBodyConfigFormatted(),
+				req.Labels,
 			))
 			break
 		}
@@ -545,6 +550,25 @@ func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	}
 	a.ResponseStatus = http.StatusText(200)
 	a.Data = a.config.Config.Routes
+	a.send(w, a.marshalled())
+}
+
+// GetLabels gets route labels from the config file
+func (a *API) GetLabels(w http.ResponseWriter, r *http.Request) {
+	var (
+		uniqueLabels []string
+		m            = make(map[string]bool)
+	)
+	for _, route := range a.config.Config.Routes {
+		for _, label := range route.Labels {
+			if _, value := m[label]; !value {
+				m[label] = true
+				uniqueLabels = append(uniqueLabels, label)
+			}
+		}
+	}
+	a.ResponseStatus = http.StatusText(200)
+	a.Data = uniqueLabels
 	a.send(w, a.marshalled())
 }
 

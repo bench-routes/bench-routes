@@ -26,6 +26,7 @@ const (
 // QuickInput implements the quick-input functionalities.
 type QuickInput struct {
 	headers, params, body map[string]string
+	labels                []string
 	url                   string
 }
 
@@ -37,12 +38,13 @@ type ResponseWrapper struct {
 
 // New returns a new quick-input type for implementing the
 // quick-input testing functionality.
-func New(url string, headers, params, body map[string]string) *QuickInput {
+func New(url string, headers, params, body map[string]string, labels []string) *QuickInput {
 	return &QuickInput{
 		url:     url,
 		headers: headers,
 		params:  params,
 		body:    body,
+		labels:  labels,
 	}
 }
 

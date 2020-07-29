@@ -98,6 +98,7 @@ export interface routeOptionsInterface {
   headers: { OfType: string; Value: string }[],
   method: string,
   body: { Name: string; Value: string }[],
+  labels: string[]
 }
 
 export interface rootRouteObject {
@@ -106,6 +107,7 @@ export interface rootRouteObject {
   Params: { Name: string; Value: string }[],
   Header: { OfType: string; Value: string }[],
   Method: string,
+  Labels: string[]
 }
 
 export interface paramsTransformValue {
@@ -126,4 +128,9 @@ export interface bodyObject {
 export interface headersObject {
   OfType: string;
   Value: string
+}
+
+export interface LabelType {
+  name: string;
+  color: string;
 }

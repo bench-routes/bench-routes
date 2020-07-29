@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import {
   HOST_IP,
   service_states,
@@ -40,7 +40,7 @@ const useStyles = makeStyles(_theme => ({
   }
 }));
 
-const Config: FC<{}> = () => {
+const Config = () => {
   const classes = useStyles();
   const [configIntervals, setConfigIntervals] = useState<IntervalType[] | null>(
     null
@@ -84,10 +84,8 @@ const Config: FC<{}> = () => {
           }
         });
       });
-      let routename =
-        route[0].substring(0, 40) + (route[0].length > 40 ? '...' : '');
       tableData.push({
-        route: routename,
+        route: route[0],
         methods
       });
     });

@@ -1,21 +1,32 @@
 import React, { useState, ChangeEvent, useEffect } from 'react';
-import Type from './Groups';
 import GridBody, { pair } from './GridBody';
-import { Card, CardContent } from '@material-ui/core';
-import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined';
+import {
+  Card,
+  CardContent,
+  Container,
+  Grid,
+  Typography
+} from '@material-ui/core';
+import MaterialSelect from './components/MaterialSelect';
+import MaterialLabelSelector from './components/MaterialLabelSelector';
 import TextField from '@material-ui/core/TextField';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
-import { HOST_IP, paramsTransformValue } from '../../utils/types';
+import { HOST_IP, LabelType, paramsTransformValue } from '../../utils/types';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import MuiAlert, { AlertProps } from '@material-ui/lab/Alert';
+import { Alert } from '@material-ui/lab';
 import Snackbar from '@material-ui/core/Snackbar';
 import PropTypes from 'prop-types';
-import { populateParams } from '../../utils/parse';
+import { populateLabels, populateParams } from '../../utils/parse';
+import {
+  defaultHTTPMethodsList,
+  defaultRequestMethodsList
+} from '../../services/input';
+import useStyles from './styles/main';
 
 interface InputScreenProps {
   screenType: string | undefined;
@@ -24,6 +35,7 @@ interface InputScreenProps {
   route: string;
   body: { Name: string; Value: string }[];
   method: string;
+  labels?: string[];
   updateCurrentModal: (routes: any, URL: string) => void;
 }
 
@@ -32,15 +44,8 @@ interface AlertSnackBar {
   message: string;
 }
 
-const requestsTypeSupported = ['get', 'post', 'put', 'delete', 'patch'];
-
-const hyperTexts = ['https', 'http', 'manual'];
-
-function Alert(props: AlertProps) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
-
 const Input = (props: InputScreenProps) => {
+  const classes = useStyles();
   const {
     screenType,
     headers,
@@ -48,10 +53,11 @@ const Input = (props: InputScreenProps) => {
     route,
     body,
     method,
+    labels,
     updateCurrentModal
   } = props;
   const [requestType, setRequestType] = useState('');
-  const [, setHyperTextType] = useState('');
+  const [hyperTextType, setHyperTextType] = useState('');
   const [valueURLRoute, setValueURLRoute] = useState('');
 
   const [applyHeader, setApplyHeader] = useState<boolean>(false);
@@ -62,6 +68,8 @@ const Input = (props: InputScreenProps) => {
 
   const [applyBody, setApplyBody] = useState<boolean>(false);
   const [bodyValues, setBodyValues] = useState<pair[]>();
+
+  const [selectedLabels, setSelectedLabels] = useState<LabelType[]>([]);
 
   const [testInputResponse, setTestInputResponse] = useState<string>('');
 
@@ -78,13 +86,17 @@ const Input = (props: InputScreenProps) => {
       let paramValues: paramsTransformValue[] = populateParams(params);
       let bodyValues: paramsTransformValue[] = populateParams(body);
       let headerValues: paramsTransformValue[] = populateParams(headers);
+      if (labels) {
+        const labelValues: LabelType[] = populateLabels(labels);
+        setSelectedLabels(labelValues);
+      }
       setParamsValues(paramValues);
       setBodyValues(bodyValues);
       setHeaderValues(headerValues);
       setRequestType(method);
       setValueURLRoute(route);
     }
-  }, [body, headers, method, params, route, screenType]);
+  }, [body, headers, method, params, route, screenType, labels]);
 
   const getRequestType = (type: string) => {
     setRequestType(type);
@@ -119,7 +131,18 @@ const Input = (props: InputScreenProps) => {
     const params = {};
     const headers = {};
     const body = {};
+    const labels: string[] = [];
     const { route } = props;
+
+    // Is Label selection is mandatory?
+    // If yes, then display a dialog
+    // to allow user to set them.
+    if (selectedLabels.length) {
+      selectedLabels.forEach((label: LabelType) => {
+        labels.push(label.name);
+      });
+    }
+
     setShowResponseButton(false);
     if (headerValues !== undefined) {
       for (const h of headerValues) {
@@ -158,17 +181,14 @@ const Input = (props: InputScreenProps) => {
         url: valueURLRoute,
         params: params,
         headers: headers,
-        body: body
+        body: body,
+        labels
       })
     })
       .then(resp => resp.json())
       .then(response => {
         try {
-          const inJSON = JSON.stringify(
-            JSON.parse(response.data.ReponseStringified),
-            null,
-            4
-          );
+          const inJSON = JSON.stringify(response['data'], undefined, 4);
           setTestInputResponse(inJSON);
           setShowResponseButton(true);
         } catch (e) {
@@ -183,7 +203,8 @@ const Input = (props: InputScreenProps) => {
             params: params,
             headers: headers,
             body: body,
-            orgRoute: route
+            orgRoute: route,
+            labels
           })
         })
           .then(resp => resp.json())
@@ -197,7 +218,15 @@ const Input = (props: InputScreenProps) => {
     const params = {};
     const headers = {};
     const body = {};
+    const labels: string[] = [];
     setShowResponseButton(false);
+
+    if (selectedLabels.length) {
+      selectedLabels.forEach((label: LabelType) => {
+        labels.push(label.name);
+      });
+    }
+
     if (headerValues !== undefined) {
       for (const h of headerValues) {
         headers[h.key] = h.value;
@@ -230,18 +259,15 @@ const Input = (props: InputScreenProps) => {
         url: valueURLRoute,
         params: params,
         headers: headers,
-        body: body
+        body: body,
+        labels
       })
     })
       .then(response => response.json())
       .then(
         response => {
           try {
-            const inJSON = JSON.stringify(
-              JSON.parse(response['data']),
-              null,
-              4
-            );
+            const inJSON = JSON.stringify(response['data'], null, 4);
             setTestInputResponse(inJSON);
           } catch (e) {
             setTestInputResponse(response['data']);
@@ -254,7 +280,8 @@ const Input = (props: InputScreenProps) => {
               url: valueURLRoute,
               params: params,
               headers: headers,
-              body: body
+              body: body,
+              labels
             })
           })
             .then(response => response.json())
@@ -289,155 +316,199 @@ const Input = (props: InputScreenProps) => {
         }
       );
   };
+  const updateLabels = (labels: LabelType[]) => {
+    setSelectedLabels(labels);
+  };
   return (
-    <Card>
-      <CardContent>
-        <h3 style={{ marginBottom: '2%' }}>Quick Input</h3>
-        <h6 style={{ color: 'cadetblue' }}>
-          <InfoOutlinedIcon /> Input routes into bench-routes for monitoring
-        </h6>
-        <hr />
-        <div style={{ margin: '2% 0% 2% 0%' }}>
-          <h6>HTTP methods</h6>
-          <Type slice={requestsTypeSupported} getRequestType={getRequestType} />
-        </div>
-        <div style={{ margin: '2% 0% 2% 0%' }}>
-          <h6>URL</h6>
-          <Type slice={hyperTexts} getRequestType={getHyperTextType} />
-          <TextField
-            id="outlined-basic"
-            style={{ margin: '3vh 0vh 0vh 1vh', width: '100%' }}
-            value={valueURLRoute}
-            onChange={updateURLRouteValue}
-            size="medium"
-            label="URL route"
-            variant="outlined"
-          />
-        </div>
-        <div
-          style={{
-            border: '1px solid #c4c4c4',
-            borderRadius: '1vh',
-            padding: '2vh'
-          }}
+    <>
+      <Typography variant="h3" className={classes.pageheader}>
+        Quick Input
+      </Typography>
+      <Container className={classes.container}>
+        {/* URL */}
+        <Grid container spacing={1} className={classes.controls}>
+          <Grid item lg={9} sm={9}>
+            <TextField
+              id="outlined-basic"
+              style={{ width: '100%' }}
+              value={valueURLRoute}
+              onChange={updateURLRouteValue}
+              size="medium"
+              label="URL route"
+              variant="outlined"
+            />
+          </Grid>
+          <Grid item lg={3} sm={3}>
+            {screenType === 'config-screen' ? (
+              <Button
+                className={classes.btn}
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={() => testAndEdit()}
+              >
+                Test and Save
+              </Button>
+            ) : (
+              <Button
+                className={classes.btn}
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={() => testURL()}
+              >
+                Test and Save
+              </Button>
+            )}
+          </Grid>
+        </Grid>
+        <Grid
+          className={classes.additionalParams}
+          container
+          spacing={4}
+          alignContent="space-between"
         >
-          <h6>Apply</h6>
-          <hr />
-          <FormControlLabel
-            control={
-              <Checkbox
-                color="primary"
-                checked={applyHeader || (headerValues || []).length > 0}
-                onClick={() => setApplyHeader(!applyHeader)}
-              />
-            }
-            label="Header"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                color="primary"
-                checked={applyParams || (paramsValues || []).length > 0}
-                onClick={() => setApplyParams(!applyParams)}
-              />
-            }
-            label="Params"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                color="primary"
-                checked={applyBody || (bodyValues || []).length > 0}
-                onClick={() => setApplyBody(!applyBody)}
-              />
-            }
-            label="Body"
-          />
-        </div>
-        <div style={{ margin: '2%' }}>
-          {applyHeader || (headerValues || []).length > 0 ? (
-            <GridBody
-              name="Header"
-              headers={headerValues}
-              updateParent={setHeaderValues}
+          {/* HTTP methods */}
+          <Grid item lg={4} sm={4}>
+            <MaterialSelect
+              variant="outlined"
+              dropdownitems={defaultHTTPMethodsList}
+              id="http-methods"
+              defaultValue={hyperTextType}
+              label="HTTP Method"
+              onSelection={type => getHyperTextType(type)}
             />
-          ) : null}
-          {applyParams || (paramsValues || []).length > 0 ? (
-            <GridBody
-              name="Params"
-              headers={paramsValues}
-              updateParent={setParamsValues}
+          </Grid>
+          {/* Request Type */}
+          <Grid item lg={4} sm={4}>
+            <MaterialSelect
+              variant="outlined"
+              dropdownitems={defaultRequestMethodsList}
+              id="http-methods"
+              defaultValue={requestType}
+              label="Request Type"
+              onSelection={type => getRequestType(type)}
             />
-          ) : null}
-          {applyBody || (bodyValues || []).length > 0 ? (
-            <GridBody
-              name="Body"
-              headers={bodyValues}
-              updateParent={setBodyValues}
+          </Grid>
+          {/* Labels */}
+          <Grid item lg={4} sm={4}>
+            <MaterialLabelSelector
+              defaultLabels={selectedLabels}
+              updateLabels={labels => updateLabels(labels)}
             />
-          ) : null}
-        </div>
-        <div>
-          {screenType === 'config-screen' ? (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => testAndEdit()}
-            >
-              Test & Save
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => testURL()}
-            >
-              Test & Save
-            </Button>
-          )}
+          </Grid>
+        </Grid>
+        <Grid className={classes.additionalParams}>
           <Button
+            className={classes.marginRtSm}
             variant="contained"
-            color="secondary"
-            style={{ marginLeft: '1%' }}
+            color="primary"
+            disableElevation
             onClick={() => handleCancel()}
           >
-            Cancel
+            Reset
           </Button>
           {showResponseButton ? (
             <Button
               variant="contained"
-              color="default"
-              style={{ marginLeft: '1%' }}
+              color="primary"
+              disableElevation
               onClick={() => setOpen(true)}
             >
               Show Response
             </Button>
           ) : null}
-        </div>
-        <Dialog aria-labelledby="customized-dialog-title" open={open}>
-          <DialogTitle id="customized-dialog-title">Response</DialogTitle>
-          <DialogContent dividers>
-            <Card>
-              <CardContent>
-                <pre style={{ fontWeight: 'bold' }}>{testInputResponse}</pre>
-              </CardContent>
-            </Card>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpen(false)} color="secondary">
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
-        <Snackbar
-          open={showSnackBar}
-          autoHideDuration={6000}
-          onClose={() => setShowSnackBar(false)}
-        >
-          <Alert severity={openSnackBar.severity}>{openSnackBar.message}</Alert>
-        </Snackbar>
-      </CardContent>
-    </Card>
+          <Dialog aria-labelledby="customized-dialog-title" open={open}>
+            <DialogTitle id="customized-dialog-title">Response</DialogTitle>
+            <DialogContent dividers>
+              <Card>
+                <CardContent>
+                  <pre style={{ fontWeight: 'bold' }}>{testInputResponse}</pre>
+                </CardContent>
+              </Card>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpen(false)} color="secondary">
+                Close
+              </Button>
+            </DialogActions>
+          </Dialog>
+          <Snackbar
+            open={showSnackBar}
+            autoHideDuration={6000}
+            onClose={() => setShowSnackBar(false)}
+          >
+            <Alert
+              elevation={6}
+              variant="filled"
+              severity={openSnackBar.severity}
+            >
+              {openSnackBar.message}
+            </Alert>
+          </Snackbar>
+        </Grid>
+      </Container>
+      {/* Headers, params and others */}
+      <Container className={classes.container}>
+        <Grid container className={classes.marginTopMd}>
+          <Grid item lg={12} sm={12}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  color="primary"
+                  checked={applyHeader || (headerValues || []).length > 0}
+                  onClick={() => setApplyHeader(!applyHeader)}
+                />
+              }
+              label="Header"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  color="primary"
+                  checked={applyParams || (paramsValues || []).length > 0}
+                  onClick={() => setApplyParams(!applyParams)}
+                />
+              }
+              label="Params"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  color="primary"
+                  checked={applyBody || (bodyValues || []).length > 0}
+                  onClick={() => setApplyBody(!applyBody)}
+                />
+              }
+              label="Body"
+            />
+            <div className={classes.params}>
+              {applyHeader || (headerValues || []).length > 0 ? (
+                <GridBody
+                  name="Header"
+                  headers={headerValues}
+                  updateParent={setHeaderValues}
+                />
+              ) : null}
+              {applyParams || (paramsValues || []).length > 0 ? (
+                <GridBody
+                  name="Params"
+                  headers={paramsValues}
+                  updateParent={setParamsValues}
+                />
+              ) : null}
+              {applyBody || (bodyValues || []).length > 0 ? (
+                <GridBody
+                  name="Body"
+                  headers={bodyValues}
+                  updateParent={setBodyValues}
+                />
+              ) : null}
+            </div>
+          </Grid>
+        </Grid>
+      </Container>
+    </>
   );
 };
 
