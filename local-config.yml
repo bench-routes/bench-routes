@@ -4,10 +4,10 @@ utils:
     mode: 0
     mean: 0
   services-state:
-    ping: passive
+    ping: active
     flood-ping: passive
-    jitter: passive
-    req-res-delay-or-monitoring: passive
+    jitter: active
+    req-res-delay-or-monitoring: active
 test_interval:
 - test: ping
   type: sec
@@ -17,7 +17,7 @@ test_interval:
   duration: 15
 - test: monitoring
   type: sec
-  duration: 3
+  duration: 10
 routes:
 - method: GET
   url: https://www.facebook.com/search
