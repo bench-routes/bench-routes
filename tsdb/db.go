@@ -130,15 +130,6 @@ type TSDB interface {
 	// Returns address of the chain in RAM.
 	Init() (*[]Block, Chain)
 
-	// GetPositionalIndexNormalized accepts the normalized time, searches for the block with that time
-	// using jump search, and returns the address of the block having the specified normalized
-	// time.
-	GetPositionalIndexNormalized(n int64) (int, error)
-
-	// PopPreviousNBlocks pops or removes **n** previous blocks from the chain and returns
-	// success status.
-	PopPreviousNBlocks(n uint64) (Chain, error)
-
 	// GetChain returns the positional pointer address of the first element of the chain.
 	GetChain() *[]Block
 }
@@ -173,17 +164,6 @@ func (c *Chain) Append(b Block) *Chain {
 	return c
 }
 
-// PopPreviousNBlocks pops last n elements from chain.
-func (c *Chain) PopPreviousNBlocks(n int) (*Chain, error) {
-	c.mux.Lock()
-	defer c.mux.Unlock()
-	c.LengthElements = len(c.Chain)
-	l := c.LengthElements
-	c.Chain = c.Chain[:len(c.Chain)-n]
-	c.LengthElements = l - n
-	return c, nil
-}
-
 // Commit saves or commits the existing chain in the secondary memory.
 // Returns the success status
 func (c *Chain) commit() *Chain {
@@ -202,33 +182,6 @@ func (c *Chain) commit() *Chain {
 	c.containsNewBlocks = false
 	c.mux.Unlock()
 	return c
-}
-
-// GetPositionalIndexNormalized Returns block by searching the chain for the NormalizedTime
-func (c *Chain) GetPositionalIndexNormalized(n int64) (int, error) {
-	c.mux.Lock()
-	defer c.mux.Unlock()
-
-	c.LengthElements = len(c.Chain)
-	if c.Chain[c.LengthElements-1].NormalizedTime < n || c.Chain[0].NormalizedTime > n {
-		return 0, errors.New("normalized time not in Chain range")
-	}
-	l, r, m := 0, c.LengthElements, 0
-
-	for l <= r {
-		m = l + (r-l)/2
-		if c.Chain[m].NormalizedTime == n {
-			return m, nil
-		}
-
-		if c.Chain[m].NormalizedTime < n {
-			l = m + 1
-		} else {
-			r = m - 1
-		}
-	}
-
-	return 0, errors.New("normalized time not found in chain")
 }
 
 // VerifyChainPathExists verifies the existence of chain in the tsdb directory.
