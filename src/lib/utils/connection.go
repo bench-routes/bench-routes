@@ -3,16 +3,15 @@ package utils
 import (
 	"net/http"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+	"github.com/prometheus/common/log"
 )
 
 // VerifyConnection verifies the connectivity of the program with the external network
 func VerifyConnection() (bool, int) {
 	res, err := http.Get("http://clients3.google.com/generate_204")
 	if err != nil {
-		logger.Terminal("unable to ping external network", "p")
+		log.Infoln("unable to ping external network")
 		return false, -1
 	}
-	logger.File("external connection verified", "p")
 	return true, res.StatusCode
 }

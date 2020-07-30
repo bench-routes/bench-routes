@@ -1,29 +1,25 @@
 package parser
 
 import (
+	"github.com/prometheus/common/log"
 	"strconv"
-
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 )
 
 // ValidateIntervalProp validates the `test_interval` property
 // in the configuration file.
 func ValidateIntervalProp(intervals []Interval) {
 	if len(intervals) == 0 {
-		logger.Terminal("`test_interval` property is missing.", "f")
+		log.Errorln("`test_interval` property is missing.")
 	} else {
 		for i, interval := range intervals {
 			if interval.Test == "" {
-				msg := "`test` property for interval #" + strconv.Itoa(i+1) + " is missing."
-				logger.Terminal(msg, "f")
+				log.Errorln("`test` property for interval #" + strconv.Itoa(i+1) + " is missing.")
 			}
 			if interval.Type == "" {
-				msg := "`type` property for interval #" + strconv.Itoa(i+1) + " is missing."
-				logger.Terminal(msg, "f")
+				log.Errorln("`type` property for interval #" + strconv.Itoa(i+1) + " is missing.")
 			}
 			if interval.Duration == nil {
-				msg := "`duration` property for interval #" + strconv.Itoa(i+1) + " is missing."
-				logger.Terminal(msg, "f")
+				log.Errorln("`duration` property for interval #" + strconv.Itoa(i+1) + " is missing.")
 			}
 		}
 	}
@@ -33,16 +29,16 @@ func ValidateIntervalProp(intervals []Interval) {
 // in the configuration file.
 func ValidateUtilsConf(config *UConfig) {
 	if config.ServicesSignal.FloodPing == "" {
-		logger.Terminal("`flood-ping` property under `Services-state` is missing.", "f")
+		log.Errorln("`flood-ping` property under `Services-state` is missing.")
 	}
 	if config.ServicesSignal.Jitter == "" {
-		logger.Terminal("`jitter` property under `Services-state` is missing.", "f")
+		log.Errorln("`jitter` property under `Services-state` is missing.")
 	}
 	if config.ServicesSignal.Ping == "" {
-		logger.Terminal("`ping` property under `Services-state` is missing.", "f")
+		log.Errorln("`ping` property under `Services-state` is missing.")
 	}
 	if config.ServicesSignal.ReqResDelayMonitoring == "" {
-		logger.Terminal("`req-res-delay-or-monitoring` property under `Services-state` is missing.", "f")
+		log.Errorln("`req-res-delay-or-monitoring` property under `Services-state` is missing.")
 	}
 }
 
@@ -50,7 +46,7 @@ func ValidateUtilsConf(config *UConfig) {
 // the configuration file.
 func ValidatePasswordProp(password string) {
 	if password == "" {
-		logger.Terminal("`password` property is missing.", "f")
+		log.Errorln("`password` property is missing.")
 	}
 }
 

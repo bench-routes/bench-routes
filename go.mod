@@ -9,6 +9,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/mackerelio/go-osstat v0.1.0
 	github.com/prometheus/client_golang v1.7.1
+	github.com/prometheus/common v0.10.0
 	github.com/rs/cors v1.7.0
 	github.com/shirou/gopsutil v2.20.4+incompatible
 	github.com/stretchr/testify v1.5.1 // indirect

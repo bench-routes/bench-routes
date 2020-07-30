@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+	"github.com/prometheus/common/log"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 )
 
@@ -60,12 +60,12 @@ func CLIFLoodPingScrap(s *string) (a *utils.TypeFloodPingScrap) {
 	// if we could not find suitable parameters in the
 	// ping command's output.
 	if packetLossLine == "" || pingValuesLine == "" {
-		logger.Terminal("p", "couldn't find a suitable response which contains packet loss")
+		log.Infoln("couldn't find a suitable response which contains packet loss")
 	}
 	words := strings.Split(packetLossLine, ", ")
 	packetLoss := strings.Split(words[2], " ")[0]
 
-	pingValuesString := strings.Split((strings.Split(pingValuesLine, "= ")[1]), " ms")[0]
+	pingValuesString := strings.Split(strings.Split(pingValuesLine, "= ")[1], " ms")[0]
 	pingValues := strings.Split(pingValuesString, "/")
 	a = &utils.TypeFloodPingScrap{
 		Min:        strToFloat64(pingValues[0]),

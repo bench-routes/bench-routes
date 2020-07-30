@@ -1,13 +1,13 @@
 package ping
 
 import (
+	"github.com/prometheus/common/log"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
 	"sync"
 	"time"
 
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
@@ -58,7 +58,7 @@ func (ps *FloodPing) Iteratef(signal string, isTest bool) bool {
 		ps.localConfig.Config.UtilsConf.ServicesSignal.FloodPing = "passive"
 		return true
 	default:
-		logger.Terminal("invalid signal", "f")
+		log.Errorln("invalid signal")
 	}
 	return false
 }
@@ -79,7 +79,7 @@ func (ps *FloodPing) perform(pingInterval TestInterval) {
 		case "active":
 			err, _ := utils.VerifyConnection()
 			if !err {
-				logger.Terminal("Not able to connect to external network please check you internet connection", "p")
+				log.Warnln("Not able to connect to external network please check you internet connection")
 			} else {
 				var wg sync.WaitGroup
 				wg.Add(len(*ps.targets))
@@ -90,10 +90,10 @@ func (ps *FloodPing) perform(pingInterval TestInterval) {
 			}
 		case "passive":
 			// terminate the goroutine
-			logger.Terminal("terminating ping goroutine", "p")
+			log.Infoln("terminating ping goroutine")
 			return
 		default:
-			logger.Terminal("invalid service-state value of ping", "f")
+			log.Infoln("invalid service-state value of ping")
 			return
 		}
 
@@ -106,7 +106,7 @@ func (ps *FloodPing) perform(pingInterval TestInterval) {
 		case "sec":
 			time.Sleep(intrv * time.Second)
 		default:
-			logger.Terminal("invalid interval-type for ping", "f")
+			log.Errorln("invalid interval-type for ping")
 			return
 		}
 	}
@@ -116,7 +116,6 @@ func (ps *FloodPing) ping(urlRaw, machineHash string, packets int, wg *sync.Wait
 	password := ps.password
 	resp, err := utils.CLIFloodPing(urlRaw, packets, password)
 	if err != nil {
-		logger.File(*resp, "p")
 		wg.Done()
 		return
 	}

@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/log"
 	"math"
 	"net/http"
 	"net/http/pprof"
@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	config "github.com/zairza-cetb/bench-routes/src/lib/config"
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/monitor"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
@@ -107,9 +107,11 @@ func (a *API) Register(router *mux.Router) {
 }
 
 // Home handles the requests for the home page.
-func (a *API) Home(_ http.ResponseWriter, r *http.Request) {
+func (a *API) Home(w http.ResponseWriter, r *http.Request) {
 	msg := "ping from " + r.RemoteAddr + ", sent pong in monitor"
-	logger.Terminal(msg, "p")
+	log.Infoln(msg)
+	a.Data = msg
+	a.send(w, a.marshalled())
 }
 
 // UIv1 serves the v1.0 version of user-interface of bench-routes.
@@ -178,7 +180,7 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	} else {
 		startTimestamp, err = strconv.ParseInt(startTimestampStr, 10, 64)
 		if err != nil {
-			logger.Terminal(fmt.Errorf("error in startTimestamp: %s", err.Error()).Error(), "p")
+			log.Warnln(fmt.Errorf("error in startTimestamp: %s", err.Error()).Error())
 		}
 	}
 
@@ -188,7 +190,7 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	} else {
 		endTimestamp, err = strconv.ParseInt(endTimestampStr, 10, 64)
 		if err != nil {
-			logger.Terminal(fmt.Errorf("error in endTimestamp: %s", err.Error()).Error(), "p")
+			log.Warnln(fmt.Errorf("error in endTimestamp: %s", err.Error()).Error())
 		}
 	}
 
@@ -198,7 +200,7 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	// %s/system.json -> system metric
 
 	// verify if chain path exists
-	timeSeriesPath = timeSeriesPath + tsdb.TSDBFileExtension
+	timeSeriesPath = timeSeriesPath + tsdb.FileExtension
 	if ok := tsdb.VerifyChainPathExists(timeSeriesPath); !ok {
 		a.send(w, []byte("INVALID_PATH"))
 		return
@@ -260,7 +262,7 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		} else {
 			startTimestamp, err = strconv.ParseInt(startTimestampStr, 10, 64)
 			if err != nil {
-				logger.Terminal(fmt.Errorf("error in startTimestamp: %s", err.Error()).Error(), "p")
+				log.Warnln(fmt.Errorf("error in startTimestamp: %s", err.Error()).Error())
 			}
 		}
 		if endTimestampStr == "" {
@@ -268,7 +270,7 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		} else {
 			endTimestamp, err = strconv.ParseInt(endTimestampStr, 10, 64)
 			if err != nil {
-				logger.Terminal(fmt.Errorf("error in endTimestamp: %s", err.Error()).Error(), "p")
+				log.Warnln(fmt.Errorf("error in endTimestamp: %s", err.Error()).Error())
 			}
 		}
 

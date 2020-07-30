@@ -9,7 +9,6 @@ var (
 		Path:           "../tests/loadFromStorage_testdata/test1.json",
 		LengthElements: 0,
 		Chain:          []Block{},
-		Size:           0,
 	}
 )
 
