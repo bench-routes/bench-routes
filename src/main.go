@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,6 +14,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/log"
 	"github.com/rs/cors"
 	"github.com/zairza-cetb/bench-routes/src/lib/api"
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
@@ -51,9 +51,16 @@ var (
 	chainSet = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*300)
 	// targetMachineCalc contains calculations that are machine/vm/load-balancer
 	// specific. These involve use of IP addresses/Domain names respectively.
-	targetMachineCalc    = make(map[string]*utils.MachineType)
-	targetMachineMetrics = prom.MachineMetrics()
-	endpointMetrics      = prom.EndpointMetrics()
+	targetMachineCalc     = make(map[string]*utils.MachineType)
+	targetMachineMetrics  = prom.MachineMetrics()
+	endpointMetrics       = prom.EndpointMetrics()
+	configurationFilePath = "local-config.yml"
+	// Storage paths.
+	storageDir     = "storage"
+	pathPing       = fmt.Sprintf("%s/ping", storageDir)
+	pathJitter     = fmt.Sprintf("%s/jitter", storageDir)
+	pathFloodPing  = fmt.Sprintf("%s/flood-ping", storageDir)
+	pathMonitoring = fmt.Sprintf("%s/monitoring", storageDir)
 )
 
 func main() {
@@ -64,7 +71,7 @@ func main() {
 		port = ":" + os.Args[1]
 	}
 	log.Infoln("initializing...")
-	conf = parser.New(utils.ConfigurationFilePath)
+	conf = parser.New(configurationFilePath)
 	conf.Load().Validate()
 	setDefaultServicesState(conf)
 	intervals := conf.Config.Interval
@@ -95,17 +102,17 @@ func main() {
 	go func() {
 		for {
 			<-reload
-			fmt.Println("reloading...")
+			log.Infoln("reloading...")
 			conf.Refresh()
 			p := time.Now()
 			for _, r := range conf.Config.Routes {
 				hash := URLHash(r)
 				if _, ok := matrix[hash]; !ok {
 					var (
-						pathPing      = fmt.Sprintf("%s/chunk_ping_%s.json", utils.PathPing, hash)
-						pathJitter    = fmt.Sprintf("%s/chunk_jitter_%s.json", utils.PathJitter, hash)
-						pathFloodPing = fmt.Sprintf("%s/chunk_flood_ping_%s.json", utils.PathFloodPing, hash)
-						pathMonitor   = fmt.Sprintf("%s/chunk_monitor_%s.json", utils.PathMonitoring, hash)
+						pathPing      = fmt.Sprintf("%s/chunk_ping_%s.json", pathPing, hash)
+						pathJitter    = fmt.Sprintf("%s/chunk_jitter_%s.json", pathJitter, hash)
+						pathFloodPing = fmt.Sprintf("%s/chunk_flood_ping_%s.json", pathFloodPing, hash)
+						pathMonitor   = fmt.Sprintf("%s/chunk_monitor_%s.json", pathMonitoring, hash)
 					)
 					uHash := utils.GetHash(filters.HTTPPingFilterValue(r.URL))
 					if _, ok := targetMachineCalc[uHash]; !ok {
@@ -140,7 +147,7 @@ func main() {
 	<-done
 	chainSet.Run()
 
-	apiInstance := api.New(&matrix, conf, workers, reload, done)
+	apiInstance := api.New(&matrix, conf, configurationFilePath, workers, reload, done)
 	router := mux.NewRouter()
 	apiInstance.Register(router)
 
@@ -156,7 +163,7 @@ func main() {
 		chain := tsdb.NewChain(systemMetricsPath)
 		p := time.Now()
 		chain.Init()
-		fmt.Println("initialized system-metrics...", time.Since(p))
+		log.Infoln("initialized system-metrics...", time.Since(p))
 		chainSet.Register(chain.Name, chain)
 
 		for {
@@ -199,7 +206,7 @@ func main() {
 			chain := tsdb.NewChain(journalMetricsPath)
 			p := time.Now()
 			chain.Init()
-			fmt.Println("initialized journal-metrics...", time.Since(p))
+			log.Infoln("initialized journal-metrics...", time.Since(p))
 			chainSet.Register(chain.Name, chain)
 
 			for {

@@ -1,11 +1,11 @@
 package jitter
 
 import (
-	"github.com/prometheus/common/log"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/prometheus/common/log"
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"

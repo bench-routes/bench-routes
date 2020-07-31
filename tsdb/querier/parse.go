@@ -3,9 +3,10 @@ package querier
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/prometheus/common/log"
 	"math"
 	"time"
+
+	"github.com/prometheus/common/log"
 )
 
 // QueryResponse is the response sent after processing the query.

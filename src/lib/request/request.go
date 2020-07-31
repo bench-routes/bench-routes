@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/prometheus/common/log"
 	config "github.com/zairza-cetb/bench-routes/src/lib/config"
 )
 
@@ -61,7 +62,7 @@ func (q *QuickInput) Send(method uint, getResponse chan ResponseWrapper) {
 		q.applyHeaders(request)
 		response, err := client.Do(request)
 		if err != nil {
-			fmt.Println(err)
+			log.Errorln(err)
 		}
 		if response == nil {
 			fmt.Printf("nil response: %s\n", q.url)
@@ -82,15 +83,15 @@ func (q *QuickInput) Send(method uint, getResponse chan ResponseWrapper) {
 		q.applyHeaders(request)
 		response, err := client.Do(request)
 		if err != nil {
-			fmt.Println(err)
+			log.Warnln(err)
 		}
 		if response == nil {
-			fmt.Printf("nil response: %s\n", q.url)
+			log.Warnf("nil response: %s\n", q.url)
 			return
 		}
 		done(response.Body, response.StatusCode, getResponse)
 		if err := response.Body.Close(); err != nil {
-			fmt.Printf("error closing response body: %s\n", err.Error())
+			log.Warnf("error closing response body: %s\n", err.Error())
 		}
 	}
 }
@@ -134,7 +135,7 @@ func (q *QuickInput) populateBody(form *url.Values) {
 func done(_body io.ReadCloser, status int, getResponse chan ResponseWrapper) {
 	body, err := ioutil.ReadAll(_body)
 	if err != nil {
-		fmt.Println("err while reading body: ", err.Error())
+		log.Warnln("err while reading body: ", err.Error())
 		body = []byte("")
 	}
 	inStr := string(body)

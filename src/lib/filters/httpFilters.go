@@ -1,8 +1,6 @@
 package filters
 
-import (
-	"strings"
-)
+import "strings"
 
 // HTTPPingFilter filters the illegal characters that may panic the ping
 // sub process running from the terminal

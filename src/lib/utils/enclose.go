@@ -3,10 +3,11 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 	"hash/fnv"
 	"strconv"
 	"strings"
+
+	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // GetHash returns an unique hash code which can be used for storing values in tsdb for long urls

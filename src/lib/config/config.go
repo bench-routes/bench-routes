@@ -1,10 +1,11 @@
 package parser
 
 import (
-	"github.com/prometheus/common/log"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"sync"
+
+	"github.com/prometheus/common/log"
 )
 
 // Config defines the structure type for implementing the interface

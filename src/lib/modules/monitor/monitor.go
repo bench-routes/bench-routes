@@ -1,11 +1,11 @@
 package monitor
 
 import (
-	"github.com/prometheus/common/log"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/prometheus/common/log"
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/request"

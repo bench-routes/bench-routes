@@ -1,8 +1,9 @@
 package parser
 
 import (
-	"github.com/prometheus/common/log"
 	"strconv"
+
+	"github.com/prometheus/common/log"
 )
 
 // ValidateIntervalProp validates the `test_interval` property

@@ -5,7 +5,6 @@ package utils
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	// parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )

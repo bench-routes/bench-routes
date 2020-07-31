@@ -1,8 +1,6 @@
 package utils
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestVerifyConnection(t *testing.T) {
 	runner, code := VerifyConnection()

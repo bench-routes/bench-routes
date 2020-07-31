@@ -1,8 +1,6 @@
 package parser
 
-import (
-	"testing"
-)
+import "testing"
 
 const (
 	path = "../../../tests/configs/config-test.yml"

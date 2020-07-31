@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/prometheus/common/log"
 	"math"
 	"net/http"
 	"net/http/pprof"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/log"
 	config "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/monitor"
@@ -36,6 +36,7 @@ type API struct {
 	ResponseStatus      string
 	Data, Services      interface{}
 	Matrix              *map[string]*utils.BRMatrix
+	configurationPath   string
 	config              *config.Config
 	reloadConfigURLs    chan struct{}
 	receiveFinishSignal chan struct{}
@@ -51,10 +52,18 @@ type inputRequest struct {
 }
 
 // New returns the API type for implementing the API interface.
-func New(matrix *map[string]*utils.BRMatrix, config *config.Config, services interface{}, reload, done chan struct{}) *API {
+func New(
+	matrix *map[string]*utils.BRMatrix,
+	config *config.Config,
+	configPath string,
+	services interface{},
+	reload,
+	done chan struct{},
+) *API {
 	return &API{
 		Matrix:              matrix,
 		Services:            services,
+		configurationPath:   configPath,
 		config:              config,
 		reloadConfigURLs:    reload,
 		receiveFinishSignal: done,
@@ -128,7 +137,7 @@ func (a *API) TestTemplate(w http.ResponseWriter, r *http.Request) {
 // ServiceState handles requests related to the state of the Services in
 // the application.
 func (a *API) ServiceState(w http.ResponseWriter, _ *http.Request) {
-	p := config.New(utils.ConfigurationFilePath)
+	p := config.New(a.configurationPath)
 	p.Refresh()
 
 	a.Data = struct {
@@ -147,7 +156,7 @@ func (a *API) ServiceState(w http.ResponseWriter, _ *http.Request) {
 
 // RoutesSummary handles requests related to summarized-configuration details.
 func (a *API) RoutesSummary(w http.ResponseWriter, _ *http.Request) {
-	p := config.New(utils.ConfigurationFilePath)
+	p := config.New(a.configurationPath)
 	p.Refresh()
 
 	var servicesRoutes, monitoringRoutes []string
@@ -363,7 +372,7 @@ func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Request) {
 	state := r.URL.Query().Get("state")
 	if state != "start" && state != "stop" {
-		fmt.Println("start-monitoring: invalid state received: " + state)
+		log.Warnln("start-monitoring: invalid state received: " + state)
 		a.Data = "INVALID_STATE"
 	} else {
 		a.Data = true

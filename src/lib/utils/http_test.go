@@ -1,8 +1,6 @@
 package utils
 
-import (
-	"testing"
-)
+import "testing"
 
 var (
 	// to verify whether the service is able to respond and request to multiple website urls
