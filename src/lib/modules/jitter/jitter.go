@@ -1,16 +1,15 @@
 package jitter
 
 import (
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
+	"github.com/prometheus/common/log"
 	"strconv"
 	"sync"
 	"time"
 
-	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
-
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
@@ -60,7 +59,7 @@ func (ps *Jitter) Iterate(signal string, isTest bool) bool {
 		ps.localConfig.Config.UtilsConf.ServicesSignal.Jitter = "passive"
 		return true
 	default:
-		logger.Terminal("invalid signal", "f")
+		log.Errorln("invalid signal")
 	}
 	return false
 }
@@ -81,7 +80,7 @@ func (ps *Jitter) perform(pingInterval TestInterval) {
 		case "active":
 			err, _ := utils.VerifyConnection()
 			if !err {
-				logger.Terminal("Not able to connect to external network please check you internet connection", "p")
+				log.Warnln("Not able to connect to external network please check you internet connection")
 			} else {
 				var wg sync.WaitGroup
 				wg.Add(len(*ps.targets))
@@ -92,10 +91,10 @@ func (ps *Jitter) perform(pingInterval TestInterval) {
 			}
 		case "passive":
 			// terminate the goroutine
-			logger.Terminal("terminating jitter goroutine", "p")
+			log.Infoln("terminating jitter goroutine")
 			return
 		default:
-			logger.Terminal("invalid service-state value of jitter", "f")
+			log.Errorln("invalid service-state value of jitter")
 			return
 		}
 
@@ -108,7 +107,7 @@ func (ps *Jitter) perform(pingInterval TestInterval) {
 		case "sec":
 			time.Sleep(intrv * time.Second)
 		default:
-			logger.Terminal("invalid interval-type for jitter", "f")
+			log.Errorln("invalid interval-type for jitter")
 			return
 		}
 	}
@@ -117,8 +116,7 @@ func (ps *Jitter) perform(pingInterval TestInterval) {
 func (ps *Jitter) jitter(urlRaw, machineHash string, packets int, wg *sync.WaitGroup) {
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {
-		msg := "unable to reach " + urlRaw
-		logger.Terminal(msg, "p")
+		log.Warnln("unable to reach " + urlRaw)
 		wg.Done()
 		return
 	}

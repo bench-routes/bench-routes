@@ -4,7 +4,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/decode"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
@@ -83,10 +82,7 @@ func (q *Query) Exec() []byte {
 	chainReadOnly := tsdb.ReadOnly(q.Path).Refresh()
 	bstream := chainReadOnly.BlockStream()
 
-	data, ok := q.exec(*bstream, true).([]byte)
-	if !ok {
-		logger.Terminal("p", "invalid []byte extracting from interface{}")
-	}
+	data, _ := q.exec(*bstream, true).([]byte)
 	return data
 }
 
@@ -95,10 +91,7 @@ func (q *Query) Exec() []byte {
 func (q *Query) ExecWithoutEncode() QueryResponse {
 	chainReadOnly := tsdb.ReadOnly(q.Path).Refresh()
 	bstream := chainReadOnly.BlockStream()
-	data, ok := q.exec(*bstream, false).(QueryResponse)
-	if !ok {
-		logger.Terminal("p", "invalid []byte extracting from interface{}")
-	}
+	data, _ := q.exec(*bstream, false).(QueryResponse)
 	return data
 }
 
@@ -231,10 +224,7 @@ func (q *Query) validate(timeFirstBlock, timeLastBlock int64, l int) []byte {
 // null value.
 func (q *Query) ReturnNILResponse() []byte {
 	q.queryResponse.TimeInvolved = time.Since(q.stamp)
-	data, ok := encode(q.queryResponse, q.encoding).([]byte)
-	if !ok {
-		logger.Terminal("p", "invalid []byte extracting from interface{}")
-	}
+	data, _ := encode(q.queryResponse, q.encoding).([]byte)
 	return data
 }
 
@@ -245,9 +235,6 @@ func (q *Query) ReturnMessageResponse(message string) []byte {
 		TimeInvolved: time.Since(q.stamp),
 		Value:        message,
 	}
-	data, ok := encode(q.queryResponse, q.encoding).([]byte)
-	if !ok {
-		logger.Terminal("p", "invalid []byte extracting from interface{}")
-	}
+	data, _ := encode(q.queryResponse, q.encoding).([]byte)
 	return data
 }

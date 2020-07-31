@@ -1,17 +1,16 @@
 package monitor
 
 import (
-	"github.com/zairza-cetb/bench-routes/src/lib/filters"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
+	"github.com/prometheus/common/log"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
-
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
+	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/request"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
@@ -56,7 +55,7 @@ func (ps *Monitor) Iterate(signal string, isTest bool) bool {
 		ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring = "passive"
 		return true
 	default:
-		logger.Terminal("invalid signal", "f")
+		log.Errorln("invalid signal")
 	}
 	return false
 }
@@ -72,7 +71,7 @@ func (ps *Monitor) perform() {
 		reqResMonitoringServiceState := ps.localConfig.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring
 		monitoringInterval := getInterval(ps.localConfig.Config.Interval, "monitoring")
 		if monitoringInterval == (TestInterval{}) {
-			logger.Terminal("interval not found in configuration file for req-res monitoring", "f")
+			log.Errorln("interval not found in configuration file for req-res monitoring")
 			return
 		}
 		switch reqResMonitoringServiceState {
@@ -84,10 +83,10 @@ func (ps *Monitor) perform() {
 			}
 			wg.Wait()
 		case "passive":
-			logger.Terminal("terminating req-res monitoring goroutine", "p")
+			log.Infoln("terminating req-res monitoring goroutine")
 			return
 		default:
-			logger.Terminal("invalid service-state value of req-res monitoring", "f")
+			log.Infoln("invalid service-state value of req-res monitoring")
 			return
 		}
 
@@ -100,7 +99,7 @@ func (ps *Monitor) perform() {
 		case "sec":
 			time.Sleep(intrv * time.Second)
 		default:
-			logger.Terminal("invalid interval-type for req-res monitoring", "f")
+			log.Infoln("invalid interval-type for req-res monitoring")
 			return
 		}
 	}
@@ -159,7 +158,7 @@ func getInterval(intervals []parser.Interval, testName string) TestInterval {
 	}
 
 	// if the execution reaches this then it is an error as the interval was not found in the configuration file
-	logger.Terminal("interval not found in the configuration file", "pa")
+	log.Infoln("interval not found in the configuration file")
 	return TestInterval{}
 }
 

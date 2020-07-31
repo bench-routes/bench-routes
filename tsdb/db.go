@@ -4,28 +4,26 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/prometheus/common/log"
 	"io/ioutil"
 	"os"
-	"strconv"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
-	"unsafe"
-
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 )
 
 const (
 	// BlockDataSeparator sets a separator for block data value.
 	BlockDataSeparator = "|"
-	// TSDBFileExtension file extension for db files.
-	TSDBFileExtension = ".json"
+	// FileExtension file extension for db files.
+	FileExtension = ".json"
 )
 
 // Block use case block for the TSDB chain
 type Block struct {
 	Datapoint      string `json:"datapoint"`       // complex data would be decoded by using a blockSeparator
-	NormalizedTime int64  `json:"normalized-time"` // based on time.Unixnano()
+	NormalizedTime int64  `json:"normalized-time"` // based on time.UnixNano()
 	Type           string `json:"type"`            // would be used to decide the marshalling struct
 	Timestamp      string `json:"timestamp"`
 }
@@ -42,12 +40,10 @@ func GetNewBlock(blockType, value string) *Block {
 
 // Encode decodes the structure and marshals into a string
 func (b Block) Encode() string {
-	logger.File("decoding block type"+b.Type+" normalized as "+strconv.FormatInt(b.NormalizedTime, 10), "p")
 	bbyte, err := json.Marshal(b)
 	if err != nil {
 		panic(err)
 	}
-
 	return string(bbyte)
 }
 
@@ -85,7 +81,6 @@ type Chain struct {
 	Route              string
 	Chain              []Block
 	LengthElements     int
-	Size               uintptr
 	containsNewBlocks  bool
 	inActiveIterations uint32
 	mux                sync.Mutex
@@ -102,22 +97,18 @@ type ChainReadOnly struct {
 
 // NewChain returns a in-memory chain that implements the TSDB interface.
 func NewChain(path string) *Chain {
-	logger.File(fmt.Sprintf("creating new chain at path %s", path), "p")
 	return &Chain{
 		Name:              filterChainPath(path),
 		Path:              path,
 		Chain:             []Block{},
 		LengthElements:    0,
-		Size:              0,
 		containsNewBlocks: true,
 	}
 }
 
 // ReadOnly returns a in-memory chain that implements the TSDB interface.
 func ReadOnly(path string) *ChainReadOnly {
-	logger.File(fmt.Sprintf("creating new chain at path %s", path), "p")
 	var blockStream []Block
-
 	return &ChainReadOnly{
 		Path:  path,
 		Chain: &blockStream,
@@ -139,38 +130,23 @@ type TSDB interface {
 	// Returns address of the chain in RAM.
 	Init() (*[]Block, Chain)
 
-	// GetPositionalIndexNormalized accepts the normalized time, searches for the block with that time
-	// using jump search, and returns the address of the block having the specified normalized
-	// time.
-	GetPositionalIndexNormalized(n int64) (int, error)
-
-	// PopPreviousNBlocks pops or removes **n** previous blocks from the chain and returns
-	// success status.
-	PopPreviousNBlocks(n uint64) (Chain, error)
-
 	// GetChain returns the positional pointer address of the first element of the chain.
 	GetChain() *[]Block
 }
 
 // Init initialize Chain properties
 func (c *Chain) Init() *Chain {
-	c.mux.Lock()
-	defer c.mux.Unlock()
-
-	res, e := parse(c.Path)
-	if e != nil {
-		logger.Terminal(fmt.Sprintf("creating in-memory chain: %s", c.Name), "p")
+	if _, err := parse(c.Path); err != nil {
+		log.Infof("creating in-memory chain: %s\n", c.Name)
 		c.LengthElements = 0
-		c.Size = unsafe.Sizeof(c)
 		c.Chain = []Block{}
-		c.commit()
+		if err := saveToHDD(c.Path, []byte("[]")); err != nil {
+			panic(err)
+		}
 		return c
 	}
-
-	raw := loadFromStorage(res)
-	c.Chain = *raw
+	c.Chain = []Block{}
 	c.LengthElements = len(c.Chain)
-	c.Size = unsafe.Sizeof(c)
 	return c
 }
 
@@ -180,7 +156,6 @@ func (c *Chain) Append(b Block) *Chain {
 	defer c.mux.Unlock()
 
 	c.Chain = append(c.Chain, b)
-	c.Size = unsafe.Sizeof(c)
 	c.LengthElements = len(c.Chain)
 	c.containsNewBlocks = true
 	if c.inActiveIterations != 0 {
@@ -189,57 +164,24 @@ func (c *Chain) Append(b Block) *Chain {
 	return c
 }
 
-// PopPreviousNBlocks pops last n elements from chain.
-func (c *Chain) PopPreviousNBlocks(n int) (*Chain, error) {
-	c.mux.Lock()
-	defer c.mux.Unlock()
-
-	c.LengthElements = len(c.Chain)
-	l := c.LengthElements
-	c.Chain = c.Chain[:len(c.Chain)-n]
-	c.LengthElements = l - n
-	c.Size = unsafe.Sizeof(c)
-	return c, nil
-}
-
 // Commit saves or commits the existing chain in the secondary memory.
 // Returns the success status
 func (c *Chain) commit() *Chain {
-	logger.File("writing chain of length"+strconv.Itoa(len(c.Chain)), "p")
-	bytes := parseToJSON(c.Chain)
-	e := saveToHDD(c.Path, bytes)
-	if e != nil {
-		panic(e)
-	}
-	c.containsNewBlocks = false
-	return c
-}
-
-// GetPositionalIndexNormalized Returns block by searching the chain for the NormalizedTime
-func (c *Chain) GetPositionalIndexNormalized(n int64) (int, error) {
 	c.mux.Lock()
-	defer c.mux.Unlock()
-
-	c.LengthElements = len(c.Chain)
-	if c.Chain[c.LengthElements-1].NormalizedTime < n || c.Chain[0].NormalizedTime > n {
-		return 0, errors.New("normalized time not in Chain range")
+	pathPointer, err := parse(c.Path)
+	if err != nil {
+		panic(err)
 	}
-	l, r, m := 0, c.LengthElements, 0
-
-	for l <= r {
-		m = l + (r-l)/2
-		if c.Chain[m].NormalizedTime == n {
-			return m, nil
-		}
-
-		if c.Chain[m].NormalizedTime < n {
-			l = m + 1
-		} else {
-			r = m - 1
-		}
+	existingBlocks := loadFromStorage(pathPointer)
+	mergedBlocks := mergeBlocksSlice(existingBlocks, &c.Chain)
+	bytes := parseToJSON(*mergedBlocks)
+	if err := saveToHDD(c.Path, bytes); err != nil {
+		panic(err)
 	}
-
-	return 0, errors.New("normalized time not found in chain")
+	c.Chain = []Block{}
+	c.containsNewBlocks = false
+	c.mux.Unlock()
+	return c
 }
 
 // VerifyChainPathExists verifies the existence of chain in the tsdb directory.
@@ -343,6 +285,7 @@ func (cs *ChainSet) Run() {
 					}
 				}
 				cs.mux.Unlock()
+				runtime.GC()
 				time.Sleep(cs.FlushDuration)
 			}
 		}()
@@ -362,13 +305,18 @@ func (c *ChainReadOnly) BlockStream() *[]Block {
 // Refresh loads/reloads the chain from the secondary storage
 // which contains the latest samples/blocks.
 func (c *ChainReadOnly) Refresh() *ChainReadOnly {
-	response, e := parse(c.Path)
-	if e != nil {
-		logger.Terminal(fmt.Sprintf("error reading the chain: %s", c.Path), "f")
+	response, err := parse(c.Path)
+	if err != nil {
+		log.Errorf("error reading the chain: %s\n", c.Path)
 	}
-
 	c.Chain = loadFromStorage(response)
 	return c
+}
+
+// mergeBlocksSlice merges the slices of two blocks into one.
+func mergeBlocksSlice(oldSlice, newSlice *[]Block) *[]Block {
+	*oldSlice = append(*oldSlice, *newSlice...)
+	return oldSlice
 }
 
 func parse(path string) (*string, error) {
@@ -380,7 +328,7 @@ func parse(path string) (*string, error) {
 	return &str, nil
 }
 
-// parseToJSON converts the chain into Marshallable JSON
+// parseToJSON converts the chain into Marshallable JSON.
 func parseToJSON(a []Block) (j []byte) {
 	j, e := json.Marshal(a)
 	if e != nil {

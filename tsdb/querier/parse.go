@@ -3,7 +3,7 @@ package querier
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
+	"github.com/prometheus/common/log"
 	"math"
 	"time"
 )
@@ -42,7 +42,7 @@ func encode(r QueryResponse, enabled bool) interface{} {
 	if enabled {
 		j, e := json.Marshal(r)
 		if e != nil {
-			logger.Terminal(fmt.Errorf("encoding error: %s", e.Error()).Error(), "p")
+			log.Errorln(fmt.Errorf("encoding error: %s", e.Error()).Error())
 		}
 		return j
 	}

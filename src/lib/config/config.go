@@ -1,11 +1,10 @@
 package parser
 
 import (
+	"github.com/prometheus/common/log"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"sync"
-
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
-	"gopkg.in/yaml.v2"
 )
 
 // Config defines the structure type for implementing the interface
@@ -109,11 +108,11 @@ func (inst *Config) Write() (bool, error) {
 	config := *inst.Config
 	r, e := yaml.Marshal(config)
 	if e != nil {
-		logger.Terminal(e.Error(), "f")
+		log.Errorln(e.Error())
 		return false, e
 	}
 
-	e = ioutil.WriteFile(inst.Address, []byte(r), 0644)
+	e = ioutil.WriteFile(inst.Address, r, 0644)
 	if e != nil {
 		panic(e)
 	}

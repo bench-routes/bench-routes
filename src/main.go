@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,7 +20,6 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/api"
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/monitor"
 	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
@@ -48,7 +48,7 @@ var (
 	reload   = make(chan struct{})
 	done     = make(chan struct{})
 	conf     *parser.Config
-	chainSet = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*10)
+	chainSet = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*300)
 	// targetMachineCalc contains calculations that are machine/vm/load-balancer
 	// specific. These involve use of IP addresses/Domain names respectively.
 	targetMachineCalc    = make(map[string]*utils.MachineType)
@@ -63,7 +63,7 @@ func main() {
 	} else if len(os.Args) > 1 {
 		port = ":" + os.Args[1]
 	}
-	logger.Terminal("initializing...", "p")
+	log.Infoln("initializing...")
 	conf = parser.New(utils.ConfigurationFilePath)
 	conf.Load().Validate()
 	setDefaultServicesState(conf)
@@ -132,8 +132,7 @@ func main() {
 					chainSet.Register(fmt.Sprintf("%s-monitor", uHash), matrix[hash].MonitorChain)
 				}
 			}
-			msg := "initialization time: " + time.Since(p).String()
-			logger.Terminal(msg, "p")
+			log.Infoln("initialization time: " + time.Since(p).String())
 			done <- struct{}{}
 		}
 	}()
@@ -220,9 +219,8 @@ func main() {
 				scrapeDuration = processCollectionScrapeTime // default scrape duration for process metrics.
 				// TODO: accept scrape-duration for process metrics via args.
 
-				wg              sync.WaitGroup
-				buffer          = process.New()
-				collectionCount = 0
+				wg     sync.WaitGroup
+				buffer = process.New()
 			)
 			assignChaintoMap := func(c *map[string]*tsdb.Chain, n, path string) {
 				(*c)[n] = tsdb.NewChain(path)
@@ -231,15 +229,8 @@ func main() {
 			}
 			processChains := make(map[string]*tsdb.Chain)
 			for {
-				collectionCount++
-				if collectionCount%10 != 1 { // in every blocks of 10.
-					logger.File(fmt.Sprintf("collection-count: %d; scrape-duration: %fsecs", collectionCount, scrapeDuration.Seconds()), "p")
-				} else {
-					logger.Terminal(fmt.Sprintf("collection-count: %d; scrape-duration: %fsecs", collectionCount, scrapeDuration.Seconds()), "p")
-				}
-
 				if _, err := buffer.UpdateCurrentProcesses(); err != nil {
-					logger.File(fmt.Sprintf("Fatal: %s", err.Error()), "f")
+					log.Infoln(fmt.Sprintf("Fatal: %s", err.Error()), "f")
 					os.Exit(1)
 				}
 				wg.Add(buffer.TotalRunningProcesses)
@@ -258,18 +249,12 @@ func main() {
 		}()
 	}
 
-	// clean tsdb blocks in regular intervals.
-	go func() {
-		runtime.GC()
-		time.Sleep(time.Minute * 3)
-	}()
-
 	// Reset Services.
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
-		logger.Terminal(fmt.Sprintf("Alive %d goroutines", runtime.NumGoroutine()), "p")
+		log.Infof("Alive %d goroutines", runtime.NumGoroutine())
 		conf.Refresh()
 		values := reflect.ValueOf(conf.Config.UtilsConf.ServicesSignal)
 		typeOfServiceState := values.Type()
@@ -298,13 +283,13 @@ func main() {
 				}
 			}
 		}
-		logger.Terminal(fmt.Sprintf("Alive %d goroutines after cleaning up.", runtime.NumGoroutine()), "p")
+		log.Infof("Alive %d goroutines after cleaning up.\n", runtime.NumGoroutine())
 		os.Exit(0)
 	}()
-	logger.Terminal(http.ListenAndServe(port, cors.Default().Handler(router)).Error(), "f")
+	log.Infoln(http.ListenAndServe(port, cors.Default().Handler(router)).Error())
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
 	// required resources for the application is up and healthy.
-	logger.Terminal("Bench-routes is up and running", "p")
+	log.Infoln("Bench-routes is up and running")
 }
 
 // setDefaultServicesState initializes all state values to passive.

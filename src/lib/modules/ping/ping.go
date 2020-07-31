@@ -1,15 +1,15 @@
 package ping
 
 import (
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/prometheus/common/log"
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
-	"github.com/zairza-cetb/bench-routes/src/lib/logger"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
 	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
@@ -62,7 +62,7 @@ func (ps *Ping) Iterate(signal string, isTest bool) bool {
 		ps.localConfig.Config.UtilsConf.ServicesSignal.Ping = "passive"
 		return true
 	default:
-		logger.Terminal("invalid signal", "f")
+		log.Errorln("invalid signal")
 	}
 	return false
 }
@@ -83,7 +83,7 @@ func (ps *Ping) perform(pingInterval TestInterval) {
 		case "active":
 			err, _ := utils.VerifyConnection()
 			if !err {
-				logger.Terminal("unable to connect external network. please check you internet connection", "p")
+				log.Warnln("unable to connect external network. please check you internet connection", "p")
 			} else {
 				var wg sync.WaitGroup
 				wg.Add(len(*ps.targets))
@@ -94,10 +94,10 @@ func (ps *Ping) perform(pingInterval TestInterval) {
 			}
 		case "passive":
 			// terminate the goroutine
-			logger.Terminal("terminating ping goroutine", "p")
+			log.Infoln("terminating ping goroutine")
 			return
 		default:
-			logger.Terminal("invalid service-state value of ping", "f")
+			log.Warnln("invalid service-state value of ping")
 			return
 		}
 
@@ -110,7 +110,7 @@ func (ps *Ping) perform(pingInterval TestInterval) {
 		case "sec":
 			time.Sleep(intrv * time.Second)
 		default:
-			logger.Terminal("invalid interval-type for ping", "f")
+			log.Infoln("invalid interval-type for ping")
 			return
 		}
 	}
@@ -119,8 +119,7 @@ func (ps *Ping) perform(pingInterval TestInterval) {
 func (ps *Ping) ping(urlRaw, machineHash string, packets int, wg *sync.WaitGroup) {
 	resp, err := utils.CLIPing(urlRaw, packets)
 	if err != nil {
-		msg := "unable to reach " + urlRaw
-		logger.Terminal(msg, "p")
+		log.Warnln("unable to reach " + urlRaw)
 		wg.Done()
 		return
 	}
