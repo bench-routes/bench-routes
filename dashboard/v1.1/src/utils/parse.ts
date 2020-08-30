@@ -1,4 +1,5 @@
-import { rootRouteObject, headersObject, paramsObject, bodyObject, paramsTransformValue } from './types';
+import stc from 'string-to-color';
+import { rootRouteObject, headersObject, paramsObject, bodyObject, paramsTransformValue, LabelType } from './types';
 
 export const getRoutesMap = (data: rootRouteObject[]) => {
   let configRoutes = new Map();
@@ -10,7 +11,8 @@ export const getRoutesMap = (data: rootRouteObject[]) => {
             method: route.Method,
             body: route.Body,
             headers: route.Header,
-            params: route.Params
+            params: route.Params,
+            labels: route.Labels
           }
         ]);
       } else {
@@ -20,7 +22,8 @@ export const getRoutesMap = (data: rootRouteObject[]) => {
             method: route.Method,
             body: route.Body,
             headers: route.Header,
-            params: route.Params
+            params: route.Params,
+            labels: route.Labels
           }
         ]);
       }
@@ -40,4 +43,15 @@ export const populateParams = (params: paramsObject[] | bodyObject[] | headersOb
     });
   }
   return arr;
+}
+
+export const populateLabels = (labels: string[]) => {
+  let labelArr: LabelType[] = [];
+  labels.forEach((label: string) => {
+    labelArr.push({
+      name: label,
+      color: stc(label)
+    });
+  });
+  return labelArr;
 }

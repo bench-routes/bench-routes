@@ -3,6 +3,7 @@ import { tableIcons } from '../../../utils/tableIcons';
 
 import MaterialTable from 'material-table';
 import { Chip } from '@material-ui/core';
+import { truncate } from '../../../utils/stringManipulations';
 
 export interface TableRowData {
   methods: string[];
@@ -13,7 +14,8 @@ export interface TableRowData {
 export const columns = [
   {
     field: 'route',
-    title: 'Route'
+    title: 'Route',
+    render: (rowData: any) => <>{truncate(rowData.route, 40)}</>
   },
   {
     field: 'methods',

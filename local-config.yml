@@ -20,15 +20,6 @@ test_interval:
   duration: 10
 routes:
 - method: GET
-  url: https://www.facebook.com/search
-  headers:
-  - type: Content-Type
-    value: application/json
-  params:
-  - name: q
-    value: bench-routes
-  body: []
-- method: GET
   url: https://in.search.yahoo.com/search
   headers:
   - type: Content-Type
@@ -45,31 +36,44 @@ routes:
   - name: ei
     value: UTF-8
   body: []
+  labels:
+  - yahoo
 - method: GET
   url: https://reqres.in/api/unknown
   headers: []
   params: []
   body: []
+  labels:
+  - random
 - method: GET
   url: http://dummy.restapiexample.com/api/v1/employees
   headers: []
   params: []
   body: []
+  labels:
+  - random
 - method: GET
   url: https://www.bing.com/search?q=bench-routes&qs=n&form=QBRE&sp=-1&pq=bench-rotes&sc=8-11&sk=&cvid=63660D91E0DD40329FC8123C78DBACE2
   headers: []
   params: []
   body: []
+  labels:
+  - random
 - method: GET
   url: https://material-ui.com/components/popover/
   headers: []
   params: []
   body: []
+  labels:
+  - random
+  - material-ui
 - method: GET
   url: https://hangouts.google.com/
   headers: []
   params: []
   body: []
+  labels:
+  - google
 - method: POST
   url: https://reqres.in/api/register
   headers: []
@@ -81,16 +85,22 @@ routes:
     value: eve.holt@reqres.in
   - name: password
     value: pistol
+  labels:
+  - random
 - method: GET
   url: https://google.com
   headers: []
   params: []
   body: []
+  labels:
+  - google
 - method: POST
   url: https://www.google.co.in/search
   headers: []
   params: []
   body: []
+  labels:
+  - google
 - method: GET
   url: https://www.google.co.in/search
   headers:
@@ -100,6 +110,8 @@ routes:
   - name: q
     value: bench-routes
   body: []
+  labels:
+  - google
 - method: GET
   url: https://www.google.co.in/about
   headers:
@@ -109,6 +121,8 @@ routes:
   - name: q
     value: bench-routes
   body: []
+  labels:
+  - google
 - method: GET
   url: https://reqres.in/api/user
   headers: []
@@ -118,38 +132,73 @@ routes:
   - name: undefined
     value: ""
   body: []
+  labels:
+  - random
 - method: GET
   url: https://reqres.in/api/users/3
   headers: []
   params: []
   body: []
+  labels:
+  - random
 - method: GET
   url: https://www.youtube.com/
   headers: []
   params: []
   body: []
+  labels:
+  - youtube
 - method: GET
   url: https://www.youtube.com/watch?v=ga1ccmEJuSM
   headers: []
   params: []
   body: []
+  labels:
+  - youtube
 - method: GET
   url: https://msn.com
   headers: []
   params: []
   body: []
+  labels:
+  - random
 - method: GET
   url: https://postman-echo.com/
   headers: []
   params: []
   body: []
+  labels:
+  - postman
+  - random
 - method: GET
   url: https://reqbin.com/req/nfilsyk5/get-request-example
   headers: []
   params: []
   body: []
+  labels:
+  - random
 - method: GET
   url: https://muskankhedi.github.io/
   headers: []
   params: []
   body: []
+  labels:
+  - my-github-profile
+- method: GET
+  url: https://www.youtube.com/watch?v=KBAknpjj1iI
+  headers: []
+  params: []
+  body: []
+  labels:
+  - paper-kites
+- method: GET
+  url: https://www.facebook.com/search
+  headers:
+  - type: Content-Type
+    value: application/json
+  params:
+  - name: q
+    value: bench-routes
+  body: []
+  labels:
+  - facebook

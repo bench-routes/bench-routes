@@ -44,7 +44,8 @@ export const fetchConfigRoutes = async (setConfigRoutes) => {
           method: route.Method,
           body: route.Body,
           headers: route.Header,
-          params: route.Params
+          params: route.Params,
+          labels: route.Labels
         }]);
     } else {
       configRoutes.set(uri, [
@@ -52,7 +53,8 @@ export const fetchConfigRoutes = async (setConfigRoutes) => {
           method: route.Method,
           body: route.Body,
           headers: route.Header,
-          params: route.Params
+          params: route.Params,
+          labels: route.Labels
         }]);
     }
   });
