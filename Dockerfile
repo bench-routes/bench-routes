@@ -11,5 +11,12 @@ RUN npm install -g react-scripts yarn
 RUN cd dashboard/v1.1/ && yarn install && yarn run build
 RUN rm -R ui-builds/v1.1
 RUN cp -r dashboard/v1.1/build ui-builds/v1.1
+RUN cp ./bench-routes /usr/local/bin/
 EXPOSE 9090
-CMD [ "./bench-routes" ]
+
+# systemd configuration
+COPY src/lib/systemd/bench-routes.service /etc/systemd/
+RUN systemctl enable bench-routes.service
+RUN systemctl start bench-routes.service
+
+# CMD [ "./bench-routes" ]

@@ -1,0 +1,19 @@
+# copy to: /etc/systemd/bench-routes.service
+# and run: systemctl daemon-reload
+# enable: systemctl enable bench-routes
+# start: systemctl start bench-routes
+
+[Unit]
+Description = Bench routes service
+Documentation = https://github.com/zairza-cetb/bench-routes
+After = network-online.target nss-lookup.target httpd-init.service
+
+[Service]
+Type = simple
+ExecStart = cd /usr/local/bin/ && ./bench-routes
+# ExecStop = clean ups
+Restart = always
+Environment = "GOPATH=$GOPATH"
+
+[Install]
+WantedBy = multi-user.target
