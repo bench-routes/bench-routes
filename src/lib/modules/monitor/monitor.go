@@ -1,6 +1,7 @@
 package monitor
 
 import (
+	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 	"strconv"
 	"sync"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/request"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // Monitor is the structure that implements the Monitoring service.
@@ -141,7 +141,7 @@ func (ps *Monitor) responseDelay(wg *sync.WaitGroup, matrixHash string, route pa
 		ResLength:     len(resp.ReponseStringified),
 		ResStatusCode: resp.Status,
 	})
-	block := *tsdb.GetNewBlock("req-res", g)
+	block := *v1.GetNewBlock("req-res", g)
 	(*ps.targets)[matrixHash].MonitorChain = (*ps.targets)[matrixHash].MonitorChain.Append(block)
 	wg.Done()
 }
@@ -164,6 +164,6 @@ func getInterval(intervals []parser.Interval, testName string) TestInterval {
 
 // returns the stringified form of the combined data
 func getNormalizedBlockString(b utils.Response) string {
-	return strconv.Itoa(int(b.Delay)) + tsdb.BlockDataSeparator + strconv.Itoa(b.ResLength) + tsdb.BlockDataSeparator +
+	return strconv.Itoa(int(b.Delay)) + v1.BlockDataSeparator + strconv.Itoa(b.ResLength) + v1.BlockDataSeparator +
 		strconv.Itoa(b.ResStatusCode)
 }

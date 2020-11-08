@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 	"net/http"
 	"os"
 	"os/signal"
@@ -28,7 +29,6 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/metrics/journal"
 	"github.com/zairza-cetb/bench-routes/src/metrics/process"
 	sysMetrics "github.com/zairza-cetb/bench-routes/src/metrics/system"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 var (
@@ -48,7 +48,7 @@ var (
 	reload   = make(chan struct{})
 	done     = make(chan struct{})
 	conf     *parser.Config
-	chainSet = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*300)
+	chainSet = v1.NewChainSet(v1.FlushAsTime, time.Second*300)
 	// targetMachineCalc contains calculations that are machine/vm/load-balancer
 	// specific. These involve use of IP addresses/Domain names respectively.
 	targetMachineCalc     = make(map[string]*utils.MachineType)
@@ -118,9 +118,9 @@ func main() {
 					if _, ok := targetMachineCalc[uHash]; !ok {
 						targetMachineCalc[uHash] = &utils.MachineType{
 							IPDomain: filters.HTTPPingFilterValue(r.URL),
-							Ping:     tsdb.NewChain(pathPing).Init(),
-							Jitter:   tsdb.NewChain(pathJitter).Init(),
-							FPing:    tsdb.NewChain(pathFloodPing).Init(),
+							Ping:     v1.NewChain(pathPing).Init(),
+							Jitter:   v1.NewChain(pathJitter).Init(),
+							FPing:    v1.NewChain(pathFloodPing).Init(),
 							Metrics:  targetMachineMetrics,
 						}
 						chainSet.Register(fmt.Sprintf("%s-ping", uHash), targetMachineCalc[uHash].Ping)
@@ -133,7 +133,7 @@ func main() {
 						PingChain:    targetMachineCalc[uHash].Ping,
 						JitterChain:  targetMachineCalc[uHash].Jitter,
 						FPingChain:   targetMachineCalc[uHash].FPing,
-						MonitorChain: tsdb.NewChain(pathMonitor).Init(),
+						MonitorChain: v1.NewChain(pathMonitor).Init(),
 						Metrics:      endpointMetrics,
 					}
 					chainSet.Register(fmt.Sprintf("%s-monitor", uHash), matrix[hash].MonitorChain)
@@ -160,7 +160,7 @@ func main() {
 			net    *sysMetrics.NetworkStats
 		}
 
-		chain := tsdb.NewChain(systemMetricsPath)
+		chain := v1.NewChain(systemMetricsPath)
 		p := time.Now()
 		chain.Init()
 		log.Infoln("initialized system-metrics...", time.Since(p))
@@ -194,7 +194,7 @@ func main() {
 				metrics.Encode(*data.cpu), metrics.Encode(*data.memory), metrics.Encode(*data.disk), metrics.Encode(*data.net),
 			)
 
-			block := tsdb.GetNewBlock("sys", encoded)
+			block := v1.GetNewBlock("sys", encoded)
 			chain.Append(*block)
 			time.Sleep(defaultScrapeTime)
 		}
@@ -203,7 +203,7 @@ func main() {
 	if !(runtime.GOOS == "windows" || runtime.GOOS == "darwin") {
 		go func() {
 			metrics := journal.New()
-			chain := tsdb.NewChain(journalMetricsPath)
+			chain := v1.NewChain(journalMetricsPath)
 			p := time.Now()
 			chain.Init()
 			log.Infoln("initialized journal-metrics...", time.Since(p))
@@ -212,7 +212,7 @@ func main() {
 			for {
 				data := metrics.Run().Get()
 				datapoint := data.Encode()
-				block := tsdb.GetNewBlock("journal", *datapoint)
+				block := v1.GetNewBlock("journal", *datapoint)
 				chain.Append(*block)
 				time.Sleep(defaultScrapeTime)
 			}
@@ -229,12 +229,12 @@ func main() {
 				wg     sync.WaitGroup
 				buffer = process.New()
 			)
-			assignChaintoMap := func(c *map[string]*tsdb.Chain, n, path string) {
-				(*c)[n] = tsdb.NewChain(path)
+			assignChaintoMap := func(c *map[string]*v1.Chain, n, path string) {
+				(*c)[n] = v1.NewChain(path)
 				(*c)[n].Init()
 				chainSet.Register((*c)[n].Name, (*c)[n])
 			}
-			processChains := make(map[string]*tsdb.Chain)
+			processChains := make(map[string]*v1.Chain)
 			for {
 				if _, err := buffer.UpdateCurrentProcesses(); err != nil {
 					log.Infoln(fmt.Sprintf("Fatal: %s", err.Error()), "f")
@@ -246,7 +246,7 @@ func main() {
 						p := fmt.Sprintf("%s%s.json", path, ps.FilteredCommand)
 						assignChaintoMap(&processChains, ps.FilteredCommand, p)
 					}
-					b := tsdb.GetNewBlock("ps", ps.Encode())
+					b := v1.GetNewBlock("ps", ps.Encode())
 					processChains[ps.FilteredCommand].Append(*b)
 					wg.Done()
 				}

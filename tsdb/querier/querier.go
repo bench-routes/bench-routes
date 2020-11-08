@@ -1,11 +1,11 @@
 package querier
 
 import (
+	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 	"math"
 	"time"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/decode"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 const (
@@ -79,7 +79,7 @@ func (q *Query) SetRange(fromTimestamp, tillTimestamp int64) {
 
 // Exec executes the Query returned from the QueryBuilder.
 func (q *Query) Exec() []byte {
-	chainReadOnly := tsdb.ReadOnly(q.Path).Refresh()
+	chainReadOnly := v1.ReadOnly(q.Path).Refresh()
 	bstream := chainReadOnly.BlockStream()
 
 	data, _ := q.exec(*bstream, true).([]byte)
@@ -89,13 +89,13 @@ func (q *Query) Exec() []byte {
 // ExecWithoutEncode executes the Query without encoding the result to []byte,
 // rather keeps the result as default QueryResponse.
 func (q *Query) ExecWithoutEncode() QueryResponse {
-	chainReadOnly := tsdb.ReadOnly(q.Path).Refresh()
+	chainReadOnly := v1.ReadOnly(q.Path).Refresh()
 	bstream := chainReadOnly.BlockStream()
 	data, _ := q.exec(*bstream, false).(QueryResponse)
 	return data
 }
 
-func (q *Query) exec(blockStream []tsdb.Block, encoding bool) interface{} {
+func (q *Query) exec(blockStream []v1.Block, encoding bool) interface{} {
 	// start represents the starting of the timer that will calculate
 	// the total time involved in performing a particular query.
 	// This can be later benchmarked and compared with other algorithms.
@@ -118,7 +118,7 @@ func (q *Query) exec(blockStream []tsdb.Block, encoding bool) interface{} {
 		timeLastBlock       = blockStream[0].GetNormalizedTime()
 		onEndTimestamp      = false
 		decodedBlockStream  []interface{}
-		resultingBlockSlice []tsdb.Block
+		resultingBlockSlice []v1.Block
 	)
 	issues := q.validate(timeFirstBlock, timeLastBlock, lengthBlockStream)
 	if issues != nil {
@@ -127,9 +127,9 @@ func (q *Query) exec(blockStream []tsdb.Block, encoding bool) interface{} {
 
 	switch q.Type {
 	case TypeFirst:
-		resultingBlockSlice = []tsdb.Block{blockStream[lengthBlockStream-1]}
+		resultingBlockSlice = []v1.Block{blockStream[lengthBlockStream-1]}
 	case TypeLast:
-		resultingBlockSlice = []tsdb.Block{blockStream[0]}
+		resultingBlockSlice = []v1.Block{blockStream[0]}
 	case TypeRange:
 		// A nil range represents to return all time-series value as response.
 		if q.Range == nil {

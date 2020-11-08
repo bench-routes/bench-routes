@@ -1,6 +1,7 @@
 package ping
 
 import (
+	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 	"strconv"
 	"sync"
 	"time"
@@ -10,7 +11,6 @@ import (
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // Ping is the structure that implements the Ping service.
@@ -143,14 +143,14 @@ func (ps *Ping) ping(urlRaw, machineHash string, packets int, wg *sync.WaitGroup
 	(*ps.targets)[machineHash].Metrics.PingCount.With(map[string]string{
 		prom.LabelDomain: urlRaw,
 	}).Inc()
-	newBlock := *tsdb.GetNewBlock("ping", getNormalizedBlockString(*result))
+	newBlock := *v1.GetNewBlock("ping", getNormalizedBlockString(*result))
 	(*ps.targets)[machineHash].Ping = (*ps.targets)[machineHash].Ping.Append(newBlock)
 	wg.Done()
 }
 
 func getNormalizedBlockString(v utils.TypePingScrap) string {
-	return fToS(v.Min) + tsdb.BlockDataSeparator + fToS(v.Avg) +
-		tsdb.BlockDataSeparator + fToS(v.Max) + tsdb.BlockDataSeparator + fToS(v.Mdev)
+	return fToS(v.Min) + v1.BlockDataSeparator + fToS(v.Avg) +
+		v1.BlockDataSeparator + fToS(v.Max) + v1.BlockDataSeparator + fToS(v.Mdev)
 }
 
 func fToS(v float64) string {

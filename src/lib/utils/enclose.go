@@ -3,11 +3,10 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 	"hash/fnv"
 	"strconv"
 	"strings"
-
-	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // GetHash returns an unique hash code which can be used for storing values in tsdb for long urls
@@ -22,10 +21,10 @@ func GetHash(s string) string {
 }
 
 // Decode returns the decoded persistent block after parsing from the stringified form.
-func Decode(b tsdb.Block) interface{} {
+func Decode(b v1.Block) interface{} {
 	switch b.Type {
 	case "ping":
-		arr := strings.Split(b.GetDatapointEnc(), tsdb.BlockDataSeparator)
+		arr := strings.Split(b.GetDatapointEnc(), v1.BlockDataSeparator)
 		return Ping{
 			Min:  sTof(arr[0]),
 			Mean: sTof(arr[1]),
@@ -35,7 +34,7 @@ func Decode(b tsdb.Block) interface{} {
 	case "jitter":
 		return sTof(b.GetDatapointEnc())
 	case "flood-ping":
-		arr := strings.Split(b.GetDatapointEnc(), tsdb.BlockDataSeparator)
+		arr := strings.Split(b.GetDatapointEnc(), v1.BlockDataSeparator)
 		return FloodPing{
 			Min:        sTof(arr[0]),
 			Mean:       sTof(arr[1]),
@@ -44,7 +43,7 @@ func Decode(b tsdb.Block) interface{} {
 			PacketLoss: sTof(arr[4]),
 		}
 	case "req-res":
-		arr := strings.Split(b.GetDatapointEnc(), tsdb.BlockDataSeparator)
+		arr := strings.Split(b.GetDatapointEnc(), v1.BlockDataSeparator)
 		return Response{
 			Delay:         int64(sToI(arr[0])),
 			ResLength:     sToI(arr[1]),

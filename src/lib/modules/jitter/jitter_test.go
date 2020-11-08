@@ -2,6 +2,7 @@ package jitter
 
 import (
 	"fmt"
+	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 	"testing"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 var (
@@ -17,7 +17,7 @@ var (
 	configuration        *parser.Config
 	configurationPath    = "../testfiles/configuration.yaml"
 	targets              = make(map[string]*utils.MachineType)
-	chainSet             = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*1)
+	chainSet             = v1.NewChainSet(v1.FlushAsTime, time.Second*1)
 	targetMachineMetrics = prom.MachineMetrics()
 )
 
@@ -32,7 +32,7 @@ func initVars() {
 			path := fmt.Sprintf("../testfiles/%s_jitter.json", hash)
 			targets[hash] = &utils.MachineType{
 				IPDomain: filters.HTTPPingFilterValue(r.URL),
-				Jitter:   tsdb.NewChain(path).Init(),
+				Jitter:   v1.NewChain(path).Init(),
 				Metrics:  targetMachineMetrics,
 			}
 			chainSet.Register(hash, targets[hash].Jitter)

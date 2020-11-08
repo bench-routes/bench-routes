@@ -1,6 +1,7 @@
 package jitter
 
 import (
+	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 	"strconv"
 	"sync"
 	"time"
@@ -10,7 +11,6 @@ import (
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // Jitter is the structure that implements the Jitter service.
@@ -127,7 +127,7 @@ func (ps *Jitter) jitter(urlRaw, machineHash string, packets int, wg *sync.WaitG
 	(*ps.targets)[machineHash].Metrics.JitterCount.With(map[string]string{
 		prom.LabelDomain: urlRaw,
 	}).Inc()
-	newBlock := *tsdb.GetNewBlock("jitter", fToS(result))
+	newBlock := *v1.GetNewBlock("jitter", fToS(result))
 	(*ps.targets)[machineHash].Jitter = (*ps.targets)[machineHash].Jitter.Append(newBlock)
 	wg.Done()
 }
