@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 	"net/http"
 	"os"
 	"os/signal"
@@ -29,6 +28,8 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/metrics/journal"
 	"github.com/zairza-cetb/bench-routes/src/metrics/process"
 	sysMetrics "github.com/zairza-cetb/bench-routes/src/metrics/system"
+	"github.com/zairza-cetb/bench-routes/tsdb"
+	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 )
 
 var (
@@ -36,19 +37,22 @@ var (
 	enableProcessCollection     = false   // default collection of process metrics in host of bench-routes
 	processCollectionScrapeTime = time.Second * 5
 	defaultScrapeTime           = time.Second * 3
+	storageFile                 = "000000"
 	systemMetricsPath           = "storage/system.json"
 	journalMetricsPath          = "storage/journal.json"
+	filesPath                   = "storage/" + storageFile
 	// matrix is a collection (as map) of instances where each
 	// instance is composed of ping, jitter, flood-ping and monitor
 	// chain paths. matrix is used in the monitoring screen to
 	// reduce the http request by grouping them based on routes.
 	// Without matrix, the http traffic would increase 4 times
 	// the current count.
-	matrix   = make(map[string]*utils.BRMatrix)
-	reload   = make(chan struct{})
-	done     = make(chan struct{})
-	conf     *parser.Config
-	chainSet = v1.NewChainSet(v1.FlushAsTime, time.Second*300)
+	matrix       = make(map[string]*utils.BRMatrix)
+	hashListData = make(map[string]*tsdb.HashList)
+	reload       = make(chan struct{})
+	done         = make(chan struct{})
+	conf         *parser.Config
+	chainSet     = v1.NewChainSet(v1.FlushAsTime, time.Second*300)
 	// targetMachineCalc contains calculations that are machine/vm/load-balancer
 	// specific. These involve use of IP addresses/Domain names respectively.
 	targetMachineCalc     = make(map[string]*utils.MachineType)
@@ -106,7 +110,7 @@ func main() {
 			conf.Refresh()
 			p := time.Now()
 			for _, r := range conf.Config.Routes {
-				hash := URLHash(r)
+				hash := URLHash(r, "") // a hash irrespective of the type needs to be set
 				if _, ok := matrix[hash]; !ok {
 					var (
 						pathPing      = fmt.Sprintf("%s/chunk_ping_%s.json", pathPing, hash)
@@ -115,6 +119,16 @@ func main() {
 						pathMonitor   = fmt.Sprintf("%s/chunk_monitor_%s.json", pathMonitoring, hash)
 					)
 					uHash := utils.GetHash(filters.HTTPPingFilterValue(r.URL))
+					types := [4]string{"ping", "jitter", "flood-ping", "req-res"}
+					for i := 0; i < 4; i++ {
+						fmt.Println(i, types[i])
+						hashvalue := URLHash(r, types[i])
+						hashListData[hashvalue] = &tsdb.HashList{
+							URL:        r.URL,
+							HashNumber: hashvalue,
+							Type:       types[i],
+						}
+					}
 					if _, ok := targetMachineCalc[uHash]; !ok {
 						targetMachineCalc[uHash] = &utils.MachineType{
 							IPDomain: filters.HTTPPingFilterValue(r.URL),
@@ -138,6 +152,9 @@ func main() {
 					}
 					chainSet.Register(fmt.Sprintf("%s-monitor", uHash), matrix[hash].MonitorChain)
 				}
+			}
+			if err := tsdb.SaveHashTableToHDD(filesPath, &hashListData); err != nil {
+				panic(err)
 			}
 			log.Infoln("initialization time: " + time.Since(p).String())
 			done <- struct{}{}
@@ -312,8 +329,7 @@ func setDefaultServicesState(configuration *parser.Config) {
 	}
 }
 
-// URLHash hashes the passed route to a unique value.
-func URLHash(route parser.Route) string {
+func urlHash(route parser.Route, checkType string) string {
 	var (
 		method    = route.Method
 		URL       = route.URL
@@ -334,6 +350,6 @@ func URLHash(route parser.Route) string {
 	if err != nil {
 		panic(err)
 	}
-	hashInput += fmt.Sprintf("%s%s%s", mBody, mHeaders, mParams)
+	hashInput += fmt.Sprintf("%s%s%s%s", mBody, mHeaders, mParams, checkType)
 	return utils.GetHash(hashInput)
 }
