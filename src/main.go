@@ -38,17 +38,19 @@ var (
 	defaultScrapeTime           = time.Second * 3
 	systemMetricsPath           = "storage/system.json"
 	journalMetricsPath          = "storage/journal.json"
+	filesPath                   = "storage/000000"
 	// matrix is a collection (as map) of instances where each
 	// instance is composed of ping, jitter, flood-ping and monitor
 	// chain paths. matrix is used in the monitoring screen to
 	// reduce the http request by grouping them based on routes.
 	// Without matrix, the http traffic would increase 4 times
 	// the current count.
-	matrix   = make(map[string]*utils.BRMatrix)
-	reload   = make(chan struct{})
-	done     = make(chan struct{})
-	conf     *parser.Config
-	chainSet = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*300)
+	matrix       = make(map[string]*utils.BRMatrix)
+	hashListData = make(map[string]*tsdb.HashList)
+	reload       = make(chan struct{})
+	done         = make(chan struct{})
+	conf         *parser.Config
+	chainSet     = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*300)
 	// targetMachineCalc contains calculations that are machine/vm/load-balancer
 	// specific. These involve use of IP addresses/Domain names respectively.
 	targetMachineCalc     = make(map[string]*utils.MachineType)
@@ -106,7 +108,7 @@ func main() {
 			conf.Refresh()
 			p := time.Now()
 			for _, r := range conf.Config.Routes {
-				hash := URLHash(r)
+				hash := URLHash(r, "")
 				if _, ok := matrix[hash]; !ok {
 					var (
 						pathPing      = fmt.Sprintf("%s/chunk_ping_%s.json", pathPing, hash)
@@ -115,6 +117,30 @@ func main() {
 						pathMonitor   = fmt.Sprintf("%s/chunk_monitor_%s.json", pathMonitoring, hash)
 					)
 					uHash := utils.GetHash(filters.HTTPPingFilterValue(r.URL))
+					hashping := URLHash(r, "ping")
+					hashjitter := URLHash(r, "jitter")
+					hashfp := URLHash(r, "flood-ping")
+					hashreqres := URLHash(r, "reqres")
+					hashListData[hashping] = &tsdb.HashList{
+						URL:        r.URL,
+						HashNumber: hashping,
+						Type:       "ping",
+					}
+					hashListData[hashjitter] = &tsdb.HashList{
+						URL:        r.URL,
+						HashNumber: hashjitter,
+						Type:       "jitter",
+					}
+					hashListData[hashfp] = &tsdb.HashList{
+						URL:        r.URL,
+						HashNumber: hashfp,
+						Type:       "flood-ping",
+					}
+					hashListData[hashreqres] = &tsdb.HashList{
+						URL:        r.URL,
+						HashNumber: hashreqres,
+						Type:       "req-res",
+					}
 					if _, ok := targetMachineCalc[uHash]; !ok {
 						targetMachineCalc[uHash] = &utils.MachineType{
 							IPDomain: filters.HTTPPingFilterValue(r.URL),
@@ -138,6 +164,10 @@ func main() {
 					}
 					chainSet.Register(fmt.Sprintf("%s-monitor", uHash), matrix[hash].MonitorChain)
 				}
+			}
+			e := tsdb.SaveHashTableToHDD(filesPath, &hashListData)
+			if e != nil {
+				panic(e)
 			}
 			log.Infoln("initialization time: " + time.Since(p).String())
 			done <- struct{}{}
@@ -313,7 +343,7 @@ func setDefaultServicesState(configuration *parser.Config) {
 }
 
 // URLHash hashes the passed route to a unique value.
-func URLHash(route parser.Route) string {
+func URLHash(route parser.Route, checkType string) string {
 	var (
 		method    = route.Method
 		URL       = route.URL
@@ -334,6 +364,6 @@ func URLHash(route parser.Route) string {
 	if err != nil {
 		panic(err)
 	}
-	hashInput += fmt.Sprintf("%s%s%s", mBody, mHeaders, mParams)
+	hashInput += fmt.Sprintf("%s%s%s%s", mBody, mHeaders, mParams, checkType)
 	return utils.GetHash(hashInput)
 }
