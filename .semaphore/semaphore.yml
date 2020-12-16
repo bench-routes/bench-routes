@@ -1,12 +1,12 @@
 version: v1.0
-name: Go
+name: run all tests
 agent:
   machine:
     os_image: ubuntu1804
     type: e1-standard-2
 blocks:
   - dependencies: []
-    name: go tests
+    name: run the tests
     task:
       jobs:
         - commands:
@@ -19,7 +19,7 @@ blocks:
             - go test -v ./...
           name: go test
   - dependencies: []
-    name: go build all platforms
+    name: build bench routes for all platforms
     task:
       jobs:
         - commands:
