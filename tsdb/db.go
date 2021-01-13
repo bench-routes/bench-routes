@@ -62,7 +62,7 @@ func (b Block) GetDatapointEnc() string {
 
 // GetNormalizedTimeStringified returns the normalized time of the block.
 func (b Block) GetNormalizedTimeStringified() string {
-	return string(b.NormalizedTime)
+	return string(rune(b.NormalizedTime))
 }
 
 // GetNormalizedTime returns the normalized time of the block.
