@@ -1,6 +1,14 @@
 name: continuous-integration/docker
 
-on: [pull_request, push]
+on:
+  # Trigger the workflow on push,
+  # but only for the master branch,
+  # because repository secrets will not
+  # be available to forks.
+  # <https://docs.github.com/en/actions/reference/encrypted-secrets>
+  push:
+    branches:
+      - master
 
 jobs:
   build:
