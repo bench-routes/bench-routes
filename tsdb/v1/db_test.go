@@ -1,6 +1,8 @@
-package tsdb
+package v1
 
-import "testing"
+import (
+	"testing"
+)
 
 var (
 	chain = Chain{

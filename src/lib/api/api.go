@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 	"math"
 	"net/http"
 	"net/http/pprof"
@@ -21,7 +22,6 @@ import (
 	"github.com/zairza-cetb/bench-routes/src/lib/request"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/brt"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 	"github.com/zairza-cetb/bench-routes/tsdb/querier"
 )
 
@@ -211,8 +211,8 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	// %s/system.json -> system metric
 
 	// verify if chain path exists
-	timeSeriesPath = timeSeriesPath + tsdb.FileExtension
-	if ok := tsdb.VerifyChainPathExists(timeSeriesPath); !ok {
+	timeSeriesPath = timeSeriesPath + v1.FileExtension
+	if ok := v1.VerifyChainPathExists(timeSeriesPath); !ok {
 		a.send(w, []byte("INVALID_PATH"))
 		return
 	}

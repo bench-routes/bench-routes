@@ -3,19 +3,19 @@ package monitor
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 	"testing"
 	"time"
 
 	"github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 var (
 	worker            *Monitor
 	configuration     *parser.Config
-	chainSet          = tsdb.NewChainSet(tsdb.FlushAsTime, time.Second*1)
+	chainSet          = v1.NewChainSet(v1.FlushAsTime, time.Second*1)
 	configurationPath = "../testfiles/configuration.yaml"
 	targets           = make(map[string]*utils.BRMatrix)
 	endpointMetrics   = prom.EndpointMetrics()
@@ -32,7 +32,7 @@ func initVars() {
 			path := fmt.Sprintf("../testfiles/%s_monitor.json", hash)
 			targets[hash] = &utils.BRMatrix{FullURL: r.URL,
 				Route:        r,
-				MonitorChain: tsdb.NewChain(path).Init(),
+				MonitorChain: v1.NewChain(path).Init(),
 				Metrics:      endpointMetrics,
 			}
 			chainSet.Register(hash, targets[hash].MonitorChain)

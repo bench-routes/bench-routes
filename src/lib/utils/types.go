@@ -6,7 +6,7 @@ package utils
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
-	"github.com/zairza-cetb/bench-routes/tsdb"
+	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 )
 
 // Ping type for storing Ping values in TSDB
@@ -103,8 +103,8 @@ type MatrixResponse struct {
 type BRMatrix struct {
 	FullURL                  string
 	Route                    parser.Route
-	PingChain, JitterChain   *tsdb.Chain
-	FPingChain, MonitorChain *tsdb.Chain
+	PingChain, JitterChain   *v1.Chain
+	FPingChain, MonitorChain *v1.Chain
 	Metrics                  *EndpointMetrics
 }
 
@@ -112,9 +112,9 @@ type BRMatrix struct {
 // that are accessible through pure IP/domain address.
 type MachineType struct {
 	IPDomain string
-	Ping     *tsdb.Chain
-	Jitter   *tsdb.Chain
-	FPing    *tsdb.Chain
+	Ping     *v1.Chain
+	Jitter   *v1.Chain
+	FPing    *v1.Chain
 	Metrics  *MachineMetrics
 }
 

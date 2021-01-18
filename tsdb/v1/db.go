@@ -1,4 +1,4 @@
-package tsdb
+package v1
 
 import (
 	"encoding/json"

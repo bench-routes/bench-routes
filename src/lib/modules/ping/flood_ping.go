@@ -1,6 +1,7 @@
 package ping
 
 import (
+	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 	"sync"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // FloodPing is the structure that implements the Ping service.
@@ -143,12 +143,12 @@ func (ps *FloodPing) ping(urlRaw, machineHash string, packets int, wg *sync.Wait
 	(*ps.targets)[machineHash].Metrics.FPingCount.With(map[string]string{
 		prom.LabelDomain: urlRaw,
 	}).Inc()
-	newBlock := *tsdb.GetNewBlock("flood-ping", getNormalizedBlockStringFlood(*result))
+	newBlock := *v1.GetNewBlock("flood-ping", getNormalizedBlockStringFlood(*result))
 	(*ps.targets)[machineHash].FPing = (*ps.targets)[machineHash].FPing.Append(newBlock)
 	wg.Done()
 }
 
 func getNormalizedBlockStringFlood(v utils.TypeFloodPingScrap) string {
-	return fToS(v.Min) + tsdb.BlockDataSeparator + fToS(v.Avg) + tsdb.BlockDataSeparator +
-		fToS(v.Max) + tsdb.BlockDataSeparator + fToS(v.Mdev) + tsdb.BlockDataSeparator + fToS(v.PacketLoss)
+	return fToS(v.Min) + v1.BlockDataSeparator + fToS(v.Avg) + v1.BlockDataSeparator +
+		fToS(v.Max) + v1.BlockDataSeparator + fToS(v.Mdev) + v1.BlockDataSeparator + fToS(v.PacketLoss)
 }

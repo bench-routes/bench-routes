@@ -1,6 +1,8 @@
 package decode
 
-import "github.com/zairza-cetb/bench-routes/tsdb"
+import (
+	"github.com/zairza-cetb/bench-routes/tsdb/v1"
+)
 
 // BlockDecodingBR implements the decoding of tsdb blocks into the respective types.
 type BlockDecodingBR struct {
@@ -17,7 +19,7 @@ func NewBlockDecoding(Type string) *BlockDecodingBR {
 // Decode function checks for different kinds of modules and redirects
 // the same to the respective functions to get the decoded value which
 // is to be passed to the front end
-func (bd *BlockDecodingBR) Decode(block tsdb.Block) interface{} {
+func (bd *BlockDecodingBR) Decode(block v1.Block) interface{} {
 	switch bd.Type {
 	case "sys":
 		return systemDecode(block.Datapoint)
