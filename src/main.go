@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/rs/cors"
 	"github.com/zairza-cetb/bench-routes/tsdb/v1"
 	"net/http"
 	"os"
@@ -17,7 +18,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"github.com/rs/cors"
 	"github.com/zairza-cetb/bench-routes/src/lib/api"
 	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
 	"github.com/zairza-cetb/bench-routes/src/lib/filters"
@@ -42,15 +42,17 @@ var (
 	// instance is composed of ping, jitter, flood-ping and monitor
 	// chain paths. matrix is used in the monitoring screen to
 	// reduce the http request by grouping them based on routes.
-	// Without matrix, the http traffic would increase 4 times
-	// the current count.
+	// Filters out identical routes that arrive to be monitored.
 	matrix   = make(map[string]*utils.BRMatrix)
 	reload   = make(chan struct{})
+	start = make(chan struct{})
 	done     = make(chan struct{})
 	conf     *parser.Config
 	chainSet = v1.NewChainSet(v1.FlushAsTime, time.Second*300)
 	// targetMachineCalc contains calculations that are machine/vm/load-balancer
 	// specific. These involve use of IP addresses/Domain names respectively.
+	// We use this to keep track of host names because all the routes that share
+	// the same hostname will have the same ping, jitter and flood-ping.
 	targetMachineCalc     = make(map[string]*utils.MachineType)
 	targetMachineMetrics  = prom.MachineMetrics()
 	endpointMetrics       = prom.EndpointMetrics()
@@ -70,11 +72,12 @@ func main() {
 	} else if len(os.Args) > 1 {
 		port = ":" + os.Args[1]
 	}
-	log.Infoln("initializing...")
+	log.Infoln("initializing bench routes...")
 	conf = parser.New(configurationFilePath)
 	conf.Load().Validate()
 	setDefaultServicesState(conf)
 	intervals := conf.Config.Interval
+	// Loads workers on to the memory
 	workers := &struct {
 		Ping    *ping.Ping
 		Jitter  *jitter.Jitter
@@ -99,51 +102,71 @@ func main() {
 		endpointMetrics.StatusCode,
 		endpointMetrics.MonitorCount,
 	)
+	// go routine that reloads the entire map(cMap).
 	go func() {
-		for {
-			<-reload
-			log.Infoln("reloading...")
-			conf.Refresh()
-			p := time.Now()
-			for _, r := range conf.Config.Routes {
-				hash := URLHash(r)
-				if _, ok := matrix[hash]; !ok {
-					var (
-						pathPing      = fmt.Sprintf("%s/chunk_ping_%s.json", pathPing, hash)
-						pathJitter    = fmt.Sprintf("%s/chunk_jitter_%s.json", pathJitter, hash)
-						pathFloodPing = fmt.Sprintf("%s/chunk_flood_ping_%s.json", pathFloodPing, hash)
-						pathMonitor   = fmt.Sprintf("%s/chunk_monitor_%s.json", pathMonitoring, hash)
-					)
-					uHash := utils.GetHash(filters.HTTPPingFilterValue(r.URL))
-					if _, ok := targetMachineCalc[uHash]; !ok {
-						targetMachineCalc[uHash] = &utils.MachineType{
-							IPDomain: filters.HTTPPingFilterValue(r.URL),
-							Ping:     v1.NewChain(pathPing).Init(),
-							Jitter:   v1.NewChain(pathJitter).Init(),
-							FPing:    v1.NewChain(pathFloodPing).Init(),
-							Metrics:  targetMachineMetrics,
+		fmt.Println("Start goroutine...")
+		select {
+			case route := <- reload:
+				fmt.Println("Reload goroutine...")
+				// add the exact route to
+				// be monitored to the chainSet
+				fmt.Println(route)
+			case <- start:
+				fmt.Println("Start bench routes -> -> ->")
+				conf.Refresh()
+				p := time.Now()
+				// Iterate all the routes present in
+				// the config file.
+				for _, r := range conf.Config.Routes {
+					hash := URLHash(r)
+					// If the urlHash is not present in
+					// matrix, then most likely it has been
+					// added recently, we just create a new record
+					// for it in the matrix.
+					if _, ok := matrix[hash]; !ok {
+						var (
+							pathPing      = fmt.Sprintf("%s/chunk_ping_%s.json", pathPing, hash)
+							pathJitter    = fmt.Sprintf("%s/chunk_jitter_%s.json", pathJitter, hash)
+							pathFloodPing = fmt.Sprintf("%s/chunk_flood_ping_%s.json", pathFloodPing, hash)
+							pathMonitor   = fmt.Sprintf("%s/chunk_monitor_%s.json", pathMonitoring, hash)
+						)
+						uHash := utils.GetHash(filters.HTTPPingFilterValue(r.URL))
+						if _, ok := targetMachineCalc[uHash]; !ok {
+							targetMachineCalc[uHash] = &utils.MachineType{
+								IPDomain: filters.HTTPPingFilterValue(r.URL),
+								Ping:     v1.NewChain(pathPing).Init(),
+								Jitter:   v1.NewChain(pathJitter).Init(),
+								FPing:    v1.NewChain(pathFloodPing).Init(),
+								Metrics:  targetMachineMetrics,
+							}
+							// commits new chain after every interval.
+							chainSet.Register(fmt.Sprintf("%s-ping", uHash), targetMachineCalc[uHash].Ping)
+							chainSet.Register(fmt.Sprintf("%s-jitter", uHash), targetMachineCalc[uHash].Jitter)
+							chainSet.Register(fmt.Sprintf("%s-fping", uHash), targetMachineCalc[uHash].FPing)
 						}
-						chainSet.Register(fmt.Sprintf("%s-ping", uHash), targetMachineCalc[uHash].Ping)
-						chainSet.Register(fmt.Sprintf("%s-jitter", uHash), targetMachineCalc[uHash].Jitter)
-						chainSet.Register(fmt.Sprintf("%s-fping", uHash), targetMachineCalc[uHash].FPing)
+						// finally, adds the route to the matrix
+						matrix[hash] = &utils.BRMatrix{
+							FullURL:      r.URL,
+							Route:        r,
+							PingChain:    targetMachineCalc[uHash].Ping,
+							JitterChain:  targetMachineCalc[uHash].Jitter,
+							FPingChain:   targetMachineCalc[uHash].FPing,
+							MonitorChain: v1.NewChain(pathMonitor).Init(),
+							Metrics:      endpointMetrics,
+						}
+						chainSet.Register(fmt.Sprintf("%s-monitor", uHash), matrix[hash].MonitorChain)
 					}
-					matrix[hash] = &utils.BRMatrix{
-						FullURL:      r.URL,
-						Route:        r,
-						PingChain:    targetMachineCalc[uHash].Ping,
-						JitterChain:  targetMachineCalc[uHash].Jitter,
-						FPingChain:   targetMachineCalc[uHash].FPing,
-						MonitorChain: v1.NewChain(pathMonitor).Init(),
-						Metrics:      endpointMetrics,
-					}
-					chainSet.Register(fmt.Sprintf("%s-monitor", uHash), matrix[hash].MonitorChain)
+					// If the route is already present in the matrix,
+					// the route is already monitored, we just continue
+					// normal execution.
 				}
-			}
-			log.Infoln("initialization time: " + time.Since(p).String())
-			done <- struct{}{}
+				log.Infoln("initialization time: " + time.Since(p).String())
+				done <- struct{}{}
+			default:
+			fmt.Println("Default goroutine...")
 		}
 	}()
-	reload <- struct{}{}
+	start <- struct{}{}
 	<-done
 	chainSet.Run()
 
@@ -293,6 +316,7 @@ func main() {
 		log.Infof("Alive %d goroutines after cleaning up.\n", runtime.NumGoroutine())
 		os.Exit(0)
 	}()
+	log.Infoln("Bench-routes is up and running")
 	log.Infoln(http.ListenAndServe(port, cors.Default().Handler(router)).Error())
 	// keep the below line to the end of file so that we ensure that we give a confirmation message only when all the
 	// required resources for the application is up and healthy.
