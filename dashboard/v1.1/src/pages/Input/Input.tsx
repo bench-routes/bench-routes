@@ -298,7 +298,7 @@ const Input = (props: InputScreenProps) => {
                 setOpenSnackBar({
                   severity: 'error',
                   message:
-                    'error occurred: please contact the dev team or open a issue at https://github.com/zairza-cetb/bench-routes'
+                    'error occurred: please contact the dev team or open a issue at https://github.com/bench-routes/bench-routes'
                 });
                 setShowSnackBar(true);
               }
@@ -310,7 +310,7 @@ const Input = (props: InputScreenProps) => {
           setOpenSnackBar({
             severity: 'error',
             message:
-              'error occurred: please contact the dev team or open a issue at https://github.com/zairza-cetb/bench-routes'
+              'error occurred: please contact the dev team or open a issue at https://github.com/bench-routes/bench-routes'
           });
           setShowSnackBar(true);
         }

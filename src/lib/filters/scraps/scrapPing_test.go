@@ -3,7 +3,7 @@ package scraps
 import (
 	"testing"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
+	"github.com/bench-routes/bench-routes/src/lib/utils"
 )
 
 var input = []string{`

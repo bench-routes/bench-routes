@@ -5,12 +5,12 @@ import (
 	"sync"
 	"time"
 
+	parser "github.com/bench-routes/bench-routes/src/lib/config"
+	scrap "github.com/bench-routes/bench-routes/src/lib/filters/scraps"
+	"github.com/bench-routes/bench-routes/src/lib/utils"
+	"github.com/bench-routes/bench-routes/src/lib/utils/prom"
+	"github.com/bench-routes/bench-routes/tsdb"
 	"github.com/prometheus/common/log"
-	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
-	scrap "github.com/zairza-cetb/bench-routes/src/lib/filters/scraps"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // Ping is the structure that implements the Ping service.

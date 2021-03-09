@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
-	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/src/metrics/journal"
-	"github.com/zairza-cetb/bench-routes/src/metrics/system"
+	"github.com/bench-routes/bench-routes/src/lib/modules/jitter"
+	"github.com/bench-routes/bench-routes/src/lib/modules/ping"
+	"github.com/bench-routes/bench-routes/src/lib/utils"
+	"github.com/bench-routes/bench-routes/src/metrics/journal"
+	"github.com/bench-routes/bench-routes/src/metrics/system"
 )
 
 // systemDecode converts the block into Response type for easy http based JSON response.

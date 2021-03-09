@@ -1,45 +1,26 @@
 # Bench-routes
 
 [![Build Status](https://travis-ci.com/zairza-cetb/bench-routes.svg?branch=master)](https://travis-ci.com/zairza-cetb/bench-routes)
-[![Go Report Card](https://goreportcard.com/badge/github.com/zairza-cetb/bench-routes)](https://goreportcard.com/report/github.com/zairza-cetb/bench-routes)
+[![Go Report Card](https://goreportcard.com/badge/github.com/bench-routes/bench-routes)](https://goreportcard.com/report/github.com/bench-routes/bench-routes)
 [![Gitter](https://img.shields.io/badge/join%20discussions%20on%20gitter-%23benchroutes-green/)](https://gitter.im/bench-routes/community#)
 
-Bench-routes is a highly scalable network benchmarking, routes performance and monitoring tool, that monitors in regular intervals the state
-of the server, running as a daemon process.
+Modern web applications can have routes ranging from a few to millions in numbers. This makes it tough to discover then
+condition and state of the such application at any given point. Bench-routes monitors the routes of a web application
+and helps you know about the current state of each route, along with various related performance metrics.
 
-#### Dataflow
+### Dataflow
 
 ![Screenshot from 2020-03-21 20-09-00](https://user-images.githubusercontent.com/33792202/77228928-b139e900-6bb0-11ea-877b-54afffd2aa53.png)
 
-**For more information, read the [docs](https://docs.google.com/document/d/1jGfc2eXvToRL9anzosTLQ4zJ7fdFxMGfaiDv2BYHEvw/edit?usp=sharing)**
+### Primary goals
+1. Monitoring web applications routes at scale.
+2. Querying the monitored data in an interactive UI that is minimalistic to learn.
+3. Reporting in case of any abnormalities.
 
-### Read the complete idea and approach [here](https://github.com/zairza-cetb/bench-routes/blob/master/approach.md).
-
-Monitoring has been tough and with the increase in the routes used in any sophisticated project, the performance and metrics of an application are seriously affected.
-With an increase in server computational models, the probability of a complete request-response cycle without any throws is nowhere close to 1. 
-
-The primary goals of the project are:
-
-```
-1. Monitor:
-    (a) System level details
-    (b) Kernel and systemd logs
-    (c) Application behaviour
-    (d) Web application and its route-performance/analysis
-    (e) Network
-    (f) Prometheus exporters (TODO)
-2. Benchmark:
-    (a) Web application load
-3. Alert: on
-    (a) Service/route state down
-    (b) Errors/warnings in the kernel level
-    (b) OOR in the instantaneous gauge value in res-delay & length
-
-```
-
-For installation instructions, please head-over to [INSTALL.md](https://github.com/zairza-cetb/bench-routes/blob/master/INSTALL.md).
+For installation instructions, please head-over to [INSTALL.md](https://github.com/bench-routes/bench-routes/blob/master/INSTALL.md).
 
 ## Making Commits in bench-routes
+
 Bench Routes uses DCO(Developer Certificate Origin) to certify that the contributor wrote the particular code or otherwise have the right to submit the code they are contributing to the project.For complete details on DCO  <a href="https://probot.github.io/apps/dco/" target="_blank">Click Here</a>.
 
 Follow the below `commit` syntax to certify the code and pass the DCO test.
@@ -87,17 +68,13 @@ For more information, regarding usage in different languages. Visit [Bench-Route
 1.[Rails Girls Summer of Code ](https://railsgirlssummerofcode.org/)
 2.[GirlScript Summer of Code 2020](https://www.gssoc.tech/)
 
-### 👬  Mentors
+### 👬  Active maintainers
 
-- Harkishen Singh (harkishensingh@hotmail.com)
 - Aquib Baig (aquibbaig97@gmail.com)
-- Ganesh Patro (ganeshpatro321@gmail.com) 
-- Muskan Khedia (muskan.khedia2000@gmail.com) 
-- Ankit Jena (ankitjena13@gmail.com)
+- Muskan Khedia (muskan.khedia2000@gmail.com)
+- Harkishen Singh (harkishensingh909@gmail.com)
 
-### Community Channel
+### Communication
 
-- [bench-routes/community](https://gitter.im/bench-routes/community)
-
-
-
+- Instant messaging: [bench-routes/community](https://gitter.im/bench-routes/community)
+- Discussions (Recent): https://groups.google.com/forum/#!forum/bench-routes-discussion

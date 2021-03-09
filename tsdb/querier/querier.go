@@ -4,8 +4,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/decode"
-	"github.com/zairza-cetb/bench-routes/tsdb"
+	"github.com/bench-routes/bench-routes/src/lib/utils/decode"
+	"github.com/bench-routes/bench-routes/tsdb"
 )
 
 const (

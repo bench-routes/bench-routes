@@ -11,18 +11,18 @@ import (
 	"sync"
 	"time"
 
+	config "github.com/bench-routes/bench-routes/src/lib/config"
+	"github.com/bench-routes/bench-routes/src/lib/modules/jitter"
+	"github.com/bench-routes/bench-routes/src/lib/modules/monitor"
+	"github.com/bench-routes/bench-routes/src/lib/modules/ping"
+	"github.com/bench-routes/bench-routes/src/lib/request"
+	"github.com/bench-routes/bench-routes/src/lib/utils"
+	"github.com/bench-routes/bench-routes/src/lib/utils/brt"
+	"github.com/bench-routes/bench-routes/tsdb"
+	"github.com/bench-routes/bench-routes/tsdb/querier"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
-	config "github.com/zairza-cetb/bench-routes/src/lib/config"
-	"github.com/zairza-cetb/bench-routes/src/lib/modules/jitter"
-	"github.com/zairza-cetb/bench-routes/src/lib/modules/monitor"
-	"github.com/zairza-cetb/bench-routes/src/lib/modules/ping"
-	"github.com/zairza-cetb/bench-routes/src/lib/request"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/brt"
-	"github.com/zairza-cetb/bench-routes/tsdb"
-	"github.com/zairza-cetb/bench-routes/tsdb/querier"
 )
 
 const (

@@ -4,9 +4,9 @@
 package utils
 
 import (
+	parser "github.com/bench-routes/bench-routes/src/lib/config"
+	"github.com/bench-routes/bench-routes/tsdb"
 	"github.com/prometheus/client_golang/prometheus"
-	parser "github.com/zairza-cetb/bench-routes/src/lib/config"
-	"github.com/zairza-cetb/bench-routes/tsdb"
 )
 
 // Ping type for storing Ping values in TSDB

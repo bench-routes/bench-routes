@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/config"
-	"github.com/zairza-cetb/bench-routes/src/lib/filters"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils/prom"
-	"github.com/zairza-cetb/bench-routes/tsdb"
+	"github.com/bench-routes/bench-routes/src/lib/config"
+	"github.com/bench-routes/bench-routes/src/lib/filters"
+	"github.com/bench-routes/bench-routes/src/lib/utils"
+	"github.com/bench-routes/bench-routes/src/lib/utils/prom"
+	"github.com/bench-routes/bench-routes/tsdb"
 )
 
 var (

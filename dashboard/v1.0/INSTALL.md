@@ -6,7 +6,7 @@ development environment.
 1. Install NodeJS and npm.
 2. Clone the repository or its fork via 
    ```
-   git clone https://github.com/zairza-cetb/bench-routes-electron
+   git clone https://github.com/bench-routes/bench-routes-electron
    ```
 3. Navigate into the cloned repo 
    ```
