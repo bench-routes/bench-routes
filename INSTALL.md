@@ -15,7 +15,7 @@ environment.
 2. Make a default repository for cloning the project. This should be strictly inside the `GOPATH`. Paste this instruction in your terminal to get started.
 `mkdir -p $GOPATH/src/github.com/zairza-cetb/`.
 3. Navigate to the directory via `cd $GOPATH/src/github.com/zairza-cetb`.
-4. Clone the repository via `git clone https://github.com/zairza-cetb/bench-routes.git`.
+4. Clone the repository via `git clone https://github.com/bench-routes/bench-routes.git`.
 5. Navigate into the cloned repo `cd bench-routes/`.
 6. Install all dependencies via `go get -v -u ./...`.
 7. To start running, `make run` will start the service. For running independent modules, make the .go files in the modules
@@ -34,4 +34,4 @@ golangci-lint run
 2. Scanning your `.go` files for linting issues using `golangci-lint`
 
 
-Please feel free to open any [new-issue](https://github.com/zairza-cetb/bench-routes/issues/new/choose) in case you encounter with any issues while setting up the development environment.
+Please feel free to open any [new-issue](https://github.com/bench-routes/bench-routes/issues/new/choose) in case you encounter with any issues while setting up the development environment.

@@ -1,4 +1,4 @@
-module github.com/zairza-cetb/bench-routes
+module github.com/bench-routes/bench-routes
 
 go 1.12
 

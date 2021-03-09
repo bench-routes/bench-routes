@@ -2,7 +2,7 @@
 
 [![DeepScan grade](https://deepscan.io/api/teams/5815/projects/7644/branches/80653/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=5815&pid=7644&bid=80653)
 
-Daemon service for [bench-routes](https://github.com/zairza-cetb/bench-routes).
+Daemon service for [bench-routes](https://github.com/bench-routes/bench-routes).
 
 ## Making Commits in bench-routes
 

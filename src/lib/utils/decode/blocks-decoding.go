@@ -1,6 +1,6 @@
 package decode
 
-import "github.com/zairza-cetb/bench-routes/tsdb"
+import "github.com/bench-routes/bench-routes/tsdb"
 
 // BlockDecodingBR implements the decoding of tsdb blocks into the respective types.
 type BlockDecodingBR struct {

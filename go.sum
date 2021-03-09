@@ -299,8 +299,8 @@ github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8/go.mod h1
 github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
-github.com/zairza-cetb/bench-routes v0.0.0-20191021115540-dca812a16f67 h1:nCtiyn9sXbj5/F50WArMaCxTiLPEY8FLgRknVAH6Zdg=
-github.com/zairza-cetb/bench-routes v0.0.0-20191021115540-dca812a16f67/go.mod h1:jAJMDpmawPeB46MOddKoOnxZItLHwemSUdsSdcluhSM=
+github.com/bench-routes/bench-routes v0.0.0-20191021115540-dca812a16f67 h1:nCtiyn9sXbj5/F50WArMaCxTiLPEY8FLgRknVAH6Zdg=
+github.com/bench-routes/bench-routes v0.0.0-20191021115540-dca812a16f67/go.mod h1:jAJMDpmawPeB46MOddKoOnxZItLHwemSUdsSdcluhSM=
 github.com/zcalusic/sysinfo v0.0.0-20200109185024-6491b6eabd49 h1:jXlIPjyvU5f7UMtEMSKWLd/Td2gqNOhukOyxVQ+x7ls=
 github.com/zcalusic/sysinfo v0.0.0-20200109185024-6491b6eabd49/go.mod h1:WGLNaWsjKQ2gXmAHh+MQztgu3FLFAnOFJjFzhpgShCY=
 go.etcd.io/bbolt v1.3.3/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=

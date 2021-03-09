@@ -8,8 +8,8 @@ import (
 	"net/url"
 	"strings"
 
+	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/prometheus/common/log"
-	config "github.com/zairza-cetb/bench-routes/src/lib/config"
 )
 
 // Type-inputs for sending requests.

@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bench-routes/bench-routes/src/lib/utils"
 	"github.com/prometheus/common/log"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 )
 
 func strToFloat64(s string) float64 {

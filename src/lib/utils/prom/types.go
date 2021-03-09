@@ -1,8 +1,8 @@
 package prom
 
 import (
+	"github.com/bench-routes/bench-routes/src/lib/utils"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/zairza-cetb/bench-routes/src/lib/utils"
 )
 
 const (

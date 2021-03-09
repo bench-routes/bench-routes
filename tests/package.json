@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zairza-cetb/bench-routes.git"
+    "url": "git+https://github.com/bench-routes/bench-routes.git"
   },
   "author": "team-zairza",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/zairza-cetb/bench-routes/issues"
+    "url": "https://github.com/bench-routes/bench-routes/issues"
   },
-  "homepage": "https://github.com/zairza-cetb/bench-routes#readme",
+  "homepage": "https://github.com/bench-routes/bench-routes#readme",
   "dependencies": {
     "chromedriver": "^83.0.0",
     "mocha": "^6.2.2",

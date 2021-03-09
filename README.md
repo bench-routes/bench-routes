@@ -1,7 +1,7 @@
 # Bench-routes
 
 [![Build Status](https://travis-ci.com/zairza-cetb/bench-routes.svg?branch=master)](https://travis-ci.com/zairza-cetb/bench-routes)
-[![Go Report Card](https://goreportcard.com/badge/github.com/zairza-cetb/bench-routes)](https://goreportcard.com/report/github.com/zairza-cetb/bench-routes)
+[![Go Report Card](https://goreportcard.com/badge/github.com/bench-routes/bench-routes)](https://goreportcard.com/report/github.com/bench-routes/bench-routes)
 [![Gitter](https://img.shields.io/badge/join%20discussions%20on%20gitter-%23benchroutes-green/)](https://gitter.im/bench-routes/community#)
 
 Bench-routes is a highly scalable network benchmarking, routes performance and monitoring tool, that monitors in regular intervals the state
@@ -13,7 +13,7 @@ of the server, running as a daemon process.
 
 **For more information, read the [docs](https://docs.google.com/document/d/1jGfc2eXvToRL9anzosTLQ4zJ7fdFxMGfaiDv2BYHEvw/edit?usp=sharing)**
 
-### Read the complete idea and approach [here](https://github.com/zairza-cetb/bench-routes/blob/master/approach.md).
+### Read the complete idea and approach [here](https://github.com/bench-routes/bench-routes/blob/master/approach.md).
 
 Monitoring has been tough and with the increase in the routes used in any sophisticated project, the performance and metrics of an application are seriously affected.
 With an increase in server computational models, the probability of a complete request-response cycle without any throws is nowhere close to 1. 
@@ -37,7 +37,7 @@ The primary goals of the project are:
 
 ```
 
-For installation instructions, please head-over to [INSTALL.md](https://github.com/zairza-cetb/bench-routes/blob/master/INSTALL.md).
+For installation instructions, please head-over to [INSTALL.md](https://github.com/bench-routes/bench-routes/blob/master/INSTALL.md).
 
 ## Making Commits in bench-routes
 Bench Routes uses DCO(Developer Certificate Origin) to certify that the contributor wrote the particular code or otherwise have the right to submit the code they are contributing to the project.For complete details on DCO  <a href="https://probot.github.io/apps/dco/" target="_blank">Click Here</a>.

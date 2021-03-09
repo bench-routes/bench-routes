@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"strconv"
 
-	"github.com/zairza-cetb/bench-routes/src/lib/filters"
+	"github.com/bench-routes/bench-routes/src/lib/filters"
 )
 
 // cli command base

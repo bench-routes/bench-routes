@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/zairza-cetb/bench-routes/tsdb"
+	"github.com/bench-routes/bench-routes/tsdb"
 )
 
 // GetHash returns an unique hash code which can be used for storing values in tsdb for long urls

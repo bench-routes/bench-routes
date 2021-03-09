@@ -15,7 +15,7 @@ This project and everyone participating in it is governed by this [Code of Condu
 
 This section guides you through submitting a bug report. Following these guidelines helps maintainers and the community understand your report :pencil:, reproduce the behavior :computer: :computer:, and find related reports :mag_right:.
 
-When you are creating a bug report, please include as many details as possible. Fill out [the required template](https://github.com/zairza-cetb/bench-routes/blob/master/.github/ISSUE_TEMPLATE/bug_report.md), the information it asks for helps us resolve issues faster.
+When you are creating a bug report, please include as many details as possible. Fill out [the required template](https://github.com/bench-routes/bench-routes/blob/master/.github/ISSUE_TEMPLATE/bug_report.md), the information it asks for helps us resolve issues faster.
 
 > **Note:** If you find a **Closed** issue that seems like it is the same thing that you're experiencing, open a new issue and include a link to the original issue in the body of your new one.
 
@@ -23,7 +23,7 @@ When you are creating a bug report, please include as many details as possible. 
 
 This section guides you through submitting an enhancement suggestion, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion :pencil: and find related suggestions :mag_right:.
 
-When you are creating an enhancement suggestion, please include as many details as possible. Fill in [the template](https://github.com/zairza-cetb/bench-routes/blob/master/.github/ISSUE_TEMPLATE/feature_request.md), including the steps that you imagine you would take if the feature you're requesting existed.
+When you are creating an enhancement suggestion, please include as many details as possible. Fill in [the template](https://github.com/bench-routes/bench-routes/blob/master/.github/ISSUE_TEMPLATE/feature_request.md), including the steps that you imagine you would take if the feature you're requesting existed.
 
 ### Your First Code Contribution
 
