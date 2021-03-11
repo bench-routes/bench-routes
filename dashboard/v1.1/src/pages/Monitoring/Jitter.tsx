@@ -42,7 +42,12 @@ const Jitter: FC<JitterProps> = ({ value }) => {
       }
     }
   };
-  return <Chart series={series} options={options} height="300" />;
+  return (
+    <>
+      {!value.length && <h5>No data found for {'<monitoring/jitter>'}</h5>}
+      <Chart series={series} options={options} height="300" />;
+    </>
+  );
 };
 
 export default Jitter;

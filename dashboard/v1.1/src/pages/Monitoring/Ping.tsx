@@ -63,7 +63,12 @@ const Ping: FC<PingProps> = ({ min, mean, max }) => {
       }
     }
   };
-  return <Chart series={series} options={options} height="300" />;
+  return (
+    <>
+      {!min.length && <h5>No data found for {'<monitoring/ping>'}</h5>}
+      <Chart series={series} options={options} height="300" />;
+    </>
+  );
 };
 
 export default Ping;

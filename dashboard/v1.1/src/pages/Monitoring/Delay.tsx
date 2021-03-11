@@ -42,7 +42,14 @@ const Delay: FC<DelayProps> = ({ delay }) => {
       }
     }
   };
-  return <Chart series={series} options={options} height="300" />;
+  return (
+    <>
+      {!delay.length && (
+        <h5>No data found for {`<monitoring/response-delay>`}</h5>
+      )}
+      <Chart series={series} options={options} height="300" />;
+    </>
+  );
 };
 
 export default Delay;

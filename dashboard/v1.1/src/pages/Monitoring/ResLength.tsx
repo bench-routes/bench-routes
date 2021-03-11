@@ -42,7 +42,14 @@ const ResLength: FC<ResLengthProps> = ({ resLength }) => {
       }
     }
   };
-  return <Chart series={series} options={options} height="300" />;
+  return (
+    <>
+      {!resLength.length && (
+        <h5>No data found for {'<monitoring/response-length>'}</h5>
+      )}
+      <Chart series={series} options={options} height="300" />
+    </>
+  );
 };
 
 export default ResLength;
