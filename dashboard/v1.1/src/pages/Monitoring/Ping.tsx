@@ -1,5 +1,7 @@
 import React, { FC } from 'react';
 import Chart from 'react-apexcharts';
+import Alert from '@material-ui/lab/Alert';
+
 import { chartData } from '../../utils/queryTypes';
 
 interface PingProps {
@@ -65,7 +67,9 @@ const Ping: FC<PingProps> = ({ min, mean, max }) => {
   };
   return (
     <>
-      {!min.length && <h5>No data found for {'<monitoring/ping>'}</h5>}
+      {!min.length && (
+        <Alert severity="error">No data found for {'<monitoring/ping>'}</Alert>
+      )}
       <Chart series={series} options={options} height="300" />;
     </>
   );

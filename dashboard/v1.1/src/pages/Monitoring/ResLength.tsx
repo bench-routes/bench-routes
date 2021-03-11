@@ -1,5 +1,7 @@
 import React, { FC } from 'react';
 import Chart from 'react-apexcharts';
+import Alert from '@material-ui/lab/Alert';
+
 import { chartData } from '../../utils/queryTypes';
 
 interface ResLengthProps {
@@ -45,7 +47,9 @@ const ResLength: FC<ResLengthProps> = ({ resLength }) => {
   return (
     <>
       {!resLength.length && (
-        <h5>No data found for {'<monitoring/response-length>'}</h5>
+        <Alert severity="error">
+          No data found for {'<monitoring/response-length>'}
+        </Alert>
       )}
       <Chart series={series} options={options} height="300" />
     </>
