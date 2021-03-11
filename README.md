@@ -50,7 +50,7 @@ Follow the commands to make the development process easier:
 1. Add request
 2. Select method **GET**
 3. Copy and Enter below request url  
-`http://localhost:9090/service-state` 
+`http://localhost:9990/service-state` 
 4. Send the request to url.
 5. This API returns the state of the services (active or passive) in real-time.
 
@@ -58,7 +58,7 @@ Follow the commands to make the development process easier:
 1. Add request
 2. Select method **GET**
 3. Copy and Enter below request url  
-`http://localhost:9090/routes-summary` 
+`http://localhost:9990/routes-summary` 
 4. Send the request to url.
 5. This API returns the list of all URLs/Routes that are being monitored for testing using the application.
 

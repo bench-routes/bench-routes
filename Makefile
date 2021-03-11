@@ -8,10 +8,10 @@ build:
 	mv main bench-routes
 
 view-v1.0:
-	cd dashboard/v1.0/ && sudo npm start
+	cd dashboard/v1.0/ && npm start
 
 view-v1.1:
-	cd dashboard/v1.1/ && sudo yarn start
+	cd dashboard/v1.1/ && yarn start
 
 test-views-v1.0:
 	cd dashboard/v1.0/ && npm install
@@ -65,7 +65,7 @@ test_complete: build
 
 run:
 	echo "compiling go-code and executing bench-routes"
-	echo "using 9090 as default service listener port"
+	echo "using 9990 as default service listener port"
 	go run src/*.go 9990
 
 run-collector:
