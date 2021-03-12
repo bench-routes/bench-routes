@@ -1,13 +1,15 @@
+build/
 tmp_build/
-**/build/
+src/build/
 bench-routes
 glide.lock
-**/node_modules
-collector-store/
-storage/
+tests/node_modules
+dashboard/package-lock.json
+dashboard/node_modules
+collector-store
+storage
 .idea/
 *.lock
-ui-builds/
 
 # testfiles
 src/lib/modules/testfiles/*.json
