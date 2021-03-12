@@ -11,6 +11,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/log"
+
 	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/modules/jitter"
 	"github.com/bench-routes/bench-routes/src/lib/modules/monitor"
@@ -20,9 +24,6 @@ import (
 	"github.com/bench-routes/bench-routes/src/lib/utils/brt"
 	"github.com/bench-routes/bench-routes/tsdb"
 	"github.com/bench-routes/bench-routes/tsdb/querier"
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/log"
 )
 
 const (
@@ -32,14 +33,13 @@ const (
 
 // API type for implementing the API interface.
 type API struct {
-	ResponseStatus      string
-	Data, Services      interface{}
-	Matrix              *map[string]*utils.BRMatrix
-	configurationPath   string
-	config              *config.Config
-	reloadConfigURLs    chan struct{}
-	receiveFinishSignal chan struct{}
-	mux                 sync.RWMutex
+	ResponseStatus    string
+	Data, Services    interface{}
+	Matrix            *map[string]*utils.BRMatrix
+	configurationPath string
+	config            *config.Config
+	reloadConfigURLs  chan struct{}
+	mux               sync.RWMutex
 }
 
 type inputRequest struct {
@@ -57,16 +57,14 @@ func New(
 	config *config.Config,
 	configPath string,
 	services interface{},
-	reload,
-	done chan struct{},
+	reload chan struct{},
 ) *API {
 	return &API{
-		Matrix:              matrix,
-		Services:            services,
-		configurationPath:   configPath,
-		config:              config,
-		reloadConfigURLs:    reload,
-		receiveFinishSignal: done,
+		Matrix:            matrix,
+		Services:          services,
+		configurationPath: configPath,
+		config:            config,
+		reloadConfigURLs:  reload,
 	}
 }
 
@@ -341,7 +339,6 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 	a.reloadConfigURLs <- struct{}{}
 	a.Data = "success"
 	a.send(w, a.marshalled())
-	<-a.receiveFinishSignal
 }
 
 // TSDBPathDetails responds with the path details that will be used for
@@ -512,7 +509,6 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 		a.ResponseStatus = http.StatusText(400)
 	}
 	a.reloadConfigURLs <- struct{}{}
-	<-a.receiveFinishSignal
 	a.ResponseStatus = http.StatusText(200)
 	a.Data = a.config.Config.Routes
 	a.send(w, a.marshalled())
