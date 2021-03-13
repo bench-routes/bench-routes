@@ -15,7 +15,7 @@ export default class BRConnect {
     this.store = {
       routeDetails: {}
     };
-    this.urlSocketConn = 'ws://localhost:9090/websocket';
+    this.urlSocketConn = 'ws://localhost:9990/websocket';
     this.socketConn = new WebSocket(this.urlSocketConn);
     this.socketConn.onopen = () => {
       this.socketConn.send('hi from br-e');
