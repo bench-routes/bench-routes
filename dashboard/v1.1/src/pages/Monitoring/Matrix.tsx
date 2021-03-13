@@ -67,7 +67,7 @@ const Element: FC<ElementProps> = ({
     });
 
     const details = await monitoringDetails;
-    showRouteDetails(true, details);
+    showRouteDetails(true, { ...details, name: instance.name });
   };
 
   useEffect(() => {
