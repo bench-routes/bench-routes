@@ -88,6 +88,10 @@ export default function BaseLayout(props: any): ReactElement {
     toggleDarkMode(!darkMode);
   };
 
+  React.useEffect(() => {
+    console.log(window.location.pathname);
+  }, []);
+
   return (
     <div className={classes.root}>
       <CssBaseline />

@@ -4,9 +4,11 @@ import { HOST_IP } from '../../utils/types';
 import Matrix from './Matrix';
 import { TimeSeriesPath, RouteDetails } from '../../utils/queryTypes';
 import RouteDetailsComponent from './RouteDetails';
-import { Card, CardContent, Tooltip } from '@material-ui/core';
+import { Card, CardContent, Tooltip, Fab, makeStyles } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import Switch from '@material-ui/core/Switch';
+import { PostAdd as PostAddIcon } from '@material-ui/icons';
+import { Link } from 'react-router-dom';
 
 interface MonitoringProps {
   updateLoader(status: boolean): void;
@@ -80,54 +82,89 @@ const Monitoring: FC<MonitoringProps> = ({ updateLoader }) => {
   }, [updateLoader]);
   if (error) {
     return (
-      <Card>
-        <CardContent>
-          <h4>Monitoring</h4>
-          <hr />
-          <Alert severity="error">Unable to reach the service: error</Alert>
-        </CardContent>
-      </Card>
+      <>
+        <Card>
+          <CardContent>
+            <h4>Monitoring</h4>
+            <hr />
+            <Alert severity="error">Unable to reach the service: error</Alert>
+          </CardContent>
+        </Card>
+        <InputFab />
+      </>
     );
   }
   if (!response.data) {
     return (
-      <Card>
-        <CardContent>
-          <h4>Monitoring</h4>
-          <hr />
-          <Alert severity="info">Fetching data from sources</Alert>
-        </CardContent>
-      </Card>
+      <>
+        <Card>
+          <CardContent>
+            <h4>Monitoring</h4>
+            <hr />
+            <Alert severity="info">Fetching data from sources</Alert>
+          </CardContent>
+        </Card>
+        <InputFab />
+      </>
     );
   }
   updateLoader(false);
   return (
-    <Card>
-      <CardContent>
-        {!showRouteDetails || !routeDetailsData ? (
-          <>
-            <h4>
-              Monitoring{' '}
-              <ServicesState
-                active={(status: boolean) => setIsMonitoringActive(status)}
+    <>
+      <Card>
+        <CardContent>
+          {!showRouteDetails || !routeDetailsData ? (
+            <>
+              <h4>
+                Monitoring{' '}
+                <ServicesState
+                  active={(status: boolean) => setIsMonitoringActive(status)}
+                />
+              </h4>
+              <hr />
+              <Matrix
+                timeSeriesPath={response.data}
+                showRouteDetails={showDetails}
+                isMonitoringActive={isMonitoringActive}
               />
-            </h4>
-            <hr />
-            <Matrix
-              timeSeriesPath={response.data}
-              showRouteDetails={showDetails}
-              isMonitoringActive={isMonitoringActive}
+            </>
+          ) : (
+            <RouteDetailsComponent
+              routesChains={routeDetailsData}
+              showDetails={showDetails}
             />
-          </>
-        ) : (
-          <RouteDetailsComponent
-            routesChains={routeDetailsData}
-            showDetails={showDetails}
-          />
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+      <InputFab />
+    </>
   );
 };
 
 export default Monitoring;
+
+const useStyles = makeStyles(theme => ({
+  inputFab: {
+    position: 'fixed',
+    right: '2rem',
+    bottom: '2rem'
+  }
+}));
+
+//Floating Action Button for Quick Input
+const InputFab = () => {
+  const classes = useStyles();
+  return (
+    <Link to="/quick-input">
+      <Tooltip placement="top" title="Quick Input">
+        <Fab
+          className={classes.inputFab}
+          color="primary"
+          aria-label="quick-input"
+        >
+          <PostAddIcon />
+        </Fab>
+      </Tooltip>
+    </Link>
+  );
+};
