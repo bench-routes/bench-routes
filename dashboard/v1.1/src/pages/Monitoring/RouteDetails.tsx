@@ -5,13 +5,13 @@ import ResLength from './ResLength';
 import Delay from './Delay';
 import Ping from './Ping';
 import Jitter from './Jitter';
-
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import PropTypes from 'prop-types';
 import Box from '@material-ui/core/Box';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import { truncate } from '../../utils/stringManipulations';
 
 interface RouteDetailsProps {
   routesChains: RouteDetails;
@@ -54,6 +54,7 @@ const format = (data: RouteDetails) => {
   const pingMean: chartData[] = [];
   const pingMax: chartData[] = [];
   const jitter: chartData[] = [];
+  const name = data.name;
 
   for (const value of data.monitor.values) {
     responseDetailsDelay.push({
@@ -92,7 +93,8 @@ const format = (data: RouteDetails) => {
     pingMin,
     pingMean,
     pingMax,
-    jitter
+    jitter,
+    name
   };
 };
 
@@ -107,8 +109,22 @@ const RouteDetailsComponent: FC<RouteDetailsProps> = ({
   const data = format(routesChains);
   return (
     <>
-      <span onClick={() => showDetails(false, routesChains)}>
+      <span
+        style={{ display: 'flex', alignItems: 'center' }}
+        onClick={() => showDetails(false, routesChains)}
+      >
         <ArrowBackIcon color="primary" fontSize="large" />
+        <span
+          style={{
+            fontSize: '1rem',
+            fontWeight: 'bold',
+            padding: '0 0.4rem',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          {truncate(data.name, 70)}
+        </span>
       </span>
       <hr />
       <AppBar position="static">
