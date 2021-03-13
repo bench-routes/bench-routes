@@ -32,7 +32,7 @@ import (
 )
 
 var (
-	port                        = ":9990" // default listen and serve at 9090
+	port                        = ":9990" // default listen and serve at 9990
 	enableProcessCollection     = false   // default collection of process metrics in host of bench-routes
 	processCollectionScrapeTime = time.Second * 5
 	defaultScrapeTime           = time.Second * 3
