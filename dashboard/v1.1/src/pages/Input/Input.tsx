@@ -56,9 +56,15 @@ const Input = (props: InputScreenProps) => {
     labels,
     updateCurrentModal
   } = props;
-  const [requestType, setRequestType] = useState('');
-  const [hyperTextType, setHyperTextType] = useState('');
-  const [valueURLRoute, setValueURLRoute] = useState('');
+  const [requestType, setRequestType] = useState(
+    defaultRequestMethodsList[0].value
+  );
+  const [hyperTextType, setHyperTextType] = useState(
+    defaultHTTPMethodsList[1].value
+  );
+  const [valueURLRoute, setValueURLRoute] = useState(
+    `${defaultHTTPMethodsList[1].value.toLowerCase()}://`
+  );
 
   const [applyHeader, setApplyHeader] = useState<boolean>(false);
   const [headerValues, setHeaderValues] = useState<pair[]>();
