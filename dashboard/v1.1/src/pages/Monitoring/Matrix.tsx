@@ -18,7 +18,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import WarningOutlinedIcon from '@material-ui/icons/WarningOutlined';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import Tooltip from '@material-ui/core/Tooltip';
-
+import { truncate } from '../../utils/stringManipulations';
 import { Badge } from 'reactstrap';
 
 type APIResponse<MatrixResponse> = { status: string; data: MatrixResponse };
@@ -137,12 +137,16 @@ const Element: FC<ElementProps> = ({
   return (
     <TableRow>
       <TableCell
-        style={{ maxWidth: 240, fontSize: 16, overflowX: 'hidden' }}
+        style={{
+          maxWidth: 240,
+          fontSize: 16,
+          overflowX: 'hidden'
+        }}
         align="left"
       >
         <Badge color="light">
           <Tooltip title={timeSeriesPath.name}>
-            <div>{timeSeriesPath.name}</div>
+            <div>{truncate(timeSeriesPath.name, 40)}</div>
           </Tooltip>
         </Badge>
       </TableCell>
