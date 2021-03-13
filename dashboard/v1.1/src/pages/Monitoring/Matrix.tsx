@@ -242,7 +242,7 @@ const Matrix: FC<MatrixProps> = ({
   isMonitoringActive,
   showRouteDetails
 }) => (
-  <TableContainer style={{ maxHeight: '100vh', overflowY: 'hidden' }}>
+  <TableContainer style={{ maxHeight: '70vh', overflowY: 'scroll' }}>
     <Table stickyHeader>
       <TableHead>
         <TableRow>
