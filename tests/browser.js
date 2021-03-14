@@ -25,7 +25,7 @@ describe('launch Services via virtual browser test', function() {
         });
     });
     it('load test file', (done) => {
-        driver.get('http://localhost:9090/test').then(() => {
+        driver.get('http://localhost:9990/test').then(() => {
             done();
         });
     });
