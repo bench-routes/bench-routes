@@ -1,6 +1,7 @@
 # Bench-routes
 
-[![Build Status](https://travis-ci.com/zairza-cetb/bench-routes.svg?branch=master)](https://travis-ci.com/zairza-cetb/bench-routes)
+![Linux build](https://github.com/bench-routes/bench-routes/actions/workflows/build-linux.yml/badge.svg)
+![Mac build](https://github.com/bench-routes/bench-routes/actions/workflows/build-mac.yml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/bench-routes/bench-routes)](https://goreportcard.com/report/github.com/bench-routes/bench-routes)
 [![Gitter](https://img.shields.io/badge/join%20discussions%20on%20gitter-%23benchroutes-green/)](https://gitter.im/bench-routes/community#)
 
