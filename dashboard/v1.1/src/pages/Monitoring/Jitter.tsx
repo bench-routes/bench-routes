@@ -1,5 +1,7 @@
 import React, { FC } from 'react';
 import Chart from 'react-apexcharts';
+import Alert from '@material-ui/lab/Alert';
+
 import { chartData } from '../../utils/queryTypes';
 
 interface JitterProps {
@@ -42,7 +44,15 @@ const Jitter: FC<JitterProps> = ({ value }) => {
       }
     }
   };
-  return <Chart series={series} options={options} height="300" />;
+  return (
+    <>
+      {!value.length ? (
+        <Alert severity="error">No data found</Alert>
+      ) : (
+        <Chart series={series} options={options} height="300" />
+      )}
+    </>
+  );
 };
 
 export default Jitter;

@@ -56,35 +56,41 @@ const format = (data: RouteDetails) => {
   const jitter: chartData[] = [];
   const name = data.name;
 
-  for (const value of data.monitor.values) {
-    responseDetailsDelay.push({
-      y: value.value.delay,
-      x: formatTime(value.timestamp)
-    });
-    responseDetailsResponse.push({
-      y: value.value.resLength,
-      x: formatTime(value.timestamp)
-    });
+  if (data.monitor.values) {
+    for (const value of data.monitor.values) {
+      responseDetailsDelay.push({
+        y: value.value.delay,
+        x: formatTime(value.timestamp)
+      });
+      responseDetailsResponse.push({
+        y: value.value.resLength,
+        x: formatTime(value.timestamp)
+      });
+    }
   }
-  for (const value of data.ping.values) {
-    pingMin.push({
-      y: value.value.minValue,
-      x: formatTime(value.timestamp)
-    });
-    pingMean.push({
-      y: value.value.avgValue,
-      x: formatTime(value.timestamp)
-    });
-    pingMax.push({
-      y: value.value.maxValue,
-      x: formatTime(value.timestamp)
-    });
+  if (data.ping.values) {
+    for (const value of data.ping.values) {
+      pingMin.push({
+        y: value.value.minValue,
+        x: formatTime(value.timestamp)
+      });
+      pingMean.push({
+        y: value.value.avgValue,
+        x: formatTime(value.timestamp)
+      });
+      pingMax.push({
+        y: value.value.maxValue,
+        x: formatTime(value.timestamp)
+      });
+    }
   }
-  for (const value of data.jitter.values) {
-    jitter.push({
-      y: value.value.value,
-      x: formatTime(value.timestamp)
-    });
+  if (data.jitter.values) {
+    for (const value of data.jitter.values) {
+      jitter.push({
+        y: value.value.value,
+        x: formatTime(value.timestamp)
+      });
+    }
   }
 
   return {
