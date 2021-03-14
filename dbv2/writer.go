@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -33,7 +32,7 @@ type DataTable struct {
 	offset            int16
 	minWriteTimestamp uint64
 	tableBuffer       []*writeData
-	writer            *TableWriter
+	writer            *tableWriter
 }
 
 func CreateDataTable(path string) (*DataTable, error) {
@@ -101,21 +100,30 @@ func NewTableBuffer(dataTable *DataTable, mux *sync.RWMutex, cap uint64, ioBuffe
 	}
 }
 
-func (tbuf *TableBuffer) Write(timestamp, id uint64, valueSet string) {
+func (tbuf *TableBuffer) Write(timestamp, id uint64, valueSet string) error {
 	tbuf.bufferMux.Lock()
+	defer tbuf.bufferMux.Unlock()
 	if tbuf.size > tbuf.cap {
-		//	 flush here
+		if err := tbuf.flushToIOBuffer(false); err != nil {
+			return fmt.Errorf("table-buffer write: %w", err)
+		}
 	}
 	row := writeDataPool.Get().(*writeData)
 	row.timestamp = timestamp
 	row.id = id
 	row.valueSet = valueSet
 	tbuf.data = append(tbuf.data, row)
-	atomic.AddUint64(&tbuf.size, 1)
+	tbuf.size++ // This does not need atomic operation as it is protected by the bufferMux lock by default.
+	return nil
 }
 
 // flushToIOBuffer is not concurrent safe. The caller is expected to use a lock.
-func (tbuf *TableBuffer) flushToIOBuffer() error {
+// TODO: this can be problematic in situations when the API takes more than flushDeadline. This can be resolved by
+// increasing the flushDuration to an hour and maintain the state of table buffer in a file (to prevent loss of data if
+// bench-routes goes down, acting like a copy of table buffer which can be re-read after a crash and restore the earlier
+// state of table buffer) with rows in random order.
+// The rows will be ordered only while flushing to the IO-buffer which is the present method as well.
+func (tbuf *TableBuffer) flushToIOBuffer(flushIOBuffer bool) error {
 	if tbuf.size == 0 {
 		// Return if there are no entries in the buffer.
 		return nil
@@ -135,7 +143,14 @@ func (tbuf *TableBuffer) flushToIOBuffer() error {
 			release(i)
 			return fmt.Errorf("flush to io-buffer: %w", err)
 		}
-		writeDataPool.Put(tbuf.data[i])
+		writeDataPool.Put(r)
+	}
+	tbuf.size = 0
+	tbuf.data = []*writeData{}
+	if flushIOBuffer {
+		if err := tbuf.tableWriter.commit(); err != nil {
+			return fmt.Errorf("flush to io-buffer: flushIOBuffer: %w", err)
+		}
 	}
 	return nil
 }
@@ -156,7 +171,11 @@ func ConvertValueToValueSet(data ...string) string {
 	return s[:len(s)-1] // Ignore the last pipe.
 }
 
+// writeToTable writes to the table. It must get timestamps in increasing order only.
 func (w *tableWriter) writeToTable(timestamp, id uint64, valueSet string) error {
+	if timestamp < w.minAcceptableTs {
+		return fmt.Errorf("timestamp cannot be less than minAcceptableTs: wanted >= %d received %d", w.minAcceptableTs, timestamp)
+	}
 	serialized, err := serializeWrite(timestamp, id, valueSet)
 	if err != nil {
 		return fmt.Errorf("serialize-write: %w", err)
@@ -173,6 +192,9 @@ func (w *tableWriter) writeToTable(timestamp, id uint64, valueSet string) error 
 				return fmt.Errorf("failed retrying write single after flush: %w", err)
 			}
 		}
+	}
+	if timestamp > w.minAcceptableTs {
+		w.minAcceptableTs = timestamp
 	}
 	return nil
 }
