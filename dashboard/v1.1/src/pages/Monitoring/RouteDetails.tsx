@@ -1,10 +1,14 @@
 import React, { FC } from 'react';
 import { chartData, RouteDetails } from '../../utils/queryTypes';
 import { formatTime } from '../../utils/brt';
-import ResLength from './ResLength';
-import Delay from './Delay';
-import Ping from './Ping';
-import Jitter from './Jitter';
+import ChartComponent from './Chart';
+import {
+  JITTER_OPTIONS,
+  PING_OPTIONS,
+  DELAY_OPTIONS,
+  RESPONSE_LENGTH_OPTIONS
+} from '../../utils/constants/chart';
+
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
@@ -113,6 +117,7 @@ const RouteDetailsComponent: FC<RouteDetailsProps> = ({
     setValue(newValue);
   };
   const data = format(routesChains);
+  const ping = [...data.pingMin, ...data.pingMean, ...data.pingMax];
   return (
     <>
       <span
@@ -150,16 +155,28 @@ const RouteDetailsComponent: FC<RouteDetailsProps> = ({
         </Tabs>
       </AppBar>
       <TabPanel value={value} index={0}>
-        <ResLength resLength={data.responseDetailsResponse} />
+        <ChartComponent
+          name="Response Length"
+          values={data.responseDetailsResponse}
+          options={RESPONSE_LENGTH_OPTIONS}
+        />
       </TabPanel>
       <TabPanel value={value} index={1}>
-        <Delay delay={data.responseDetailsDelay} />
+        <ChartComponent
+          name="Response Delay"
+          values={data.responseDetailsDelay}
+          options={DELAY_OPTIONS}
+        />
       </TabPanel>
       <TabPanel value={value} index={2}>
-        <Ping min={data.pingMin} mean={data.pingMean} max={data.pingMax} />
+        <ChartComponent name="Ping" values={ping} options={PING_OPTIONS} />
       </TabPanel>
       <TabPanel value={value} index={3}>
-        <Jitter value={data.jitter} />
+        <ChartComponent
+          name="Jitter"
+          values={data.jitter}
+          options={JITTER_OPTIONS}
+        />
       </TabPanel>
     </>
   );

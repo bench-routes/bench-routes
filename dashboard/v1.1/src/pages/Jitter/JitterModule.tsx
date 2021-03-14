@@ -11,8 +11,9 @@ import {
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Alert from '@material-ui/lab/Alert';
 import { formatTime } from '../../utils/brt';
-import Jitter from '../Monitoring/Jitter';
 import { filterUrl } from '../../utils/filterUrl';
+import ChartComponent from '../Monitoring/Chart';
+import { JITTER_OPTIONS } from '../../utils/constants/chart';
 
 const format = (datas: QueryResponse) => {
   const jitter: chartData[] = [];
@@ -113,7 +114,11 @@ const JitterModule: FC<{}> = () => {
         <hr />
         <div>
           {jitterData !== undefined && showCharts ? (
-            <Jitter value={jitterData.jitter} />
+            <ChartComponent
+              name="Jitter"
+              values={jitterData.jitter}
+              options={JITTER_OPTIONS}
+            />
           ) : null}
         </div>
       </CardContent>
