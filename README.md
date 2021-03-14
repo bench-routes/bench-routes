@@ -68,4 +68,4 @@ For more information, regarding the APIs. Visit [Bench-Routes](https://documente
    
 ### Supported by
 
-![JetBrains](https://user-images.githubusercontent.com/36980003/111029750-5b46fc80-8424-11eb-800f-ad7f64844f0d.png)
+[![JetBrains](https://user-images.githubusercontent.com/36980003/111029750-5b46fc80-8424-11eb-800f-ad7f64844f0d.png)](https://jb.gg/OpenSource)
