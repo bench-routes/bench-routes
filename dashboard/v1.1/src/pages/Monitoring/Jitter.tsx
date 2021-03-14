@@ -46,12 +46,11 @@ const Jitter: FC<JitterProps> = ({ value }) => {
   };
   return (
     <>
-      {!value.length && (
-        <Alert severity="error">
-          No data found for {'<monitoring/jitter>'}
-        </Alert>
+      {!value.length ? (
+        <Alert severity="error">No data found</Alert>
+      ) : (
+        <Chart series={series} options={options} height="300" />
       )}
-      <Chart series={series} options={options} height="300" />;
     </>
   );
 };

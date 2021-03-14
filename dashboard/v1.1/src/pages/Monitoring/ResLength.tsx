@@ -46,12 +46,11 @@ const ResLength: FC<ResLengthProps> = ({ resLength }) => {
   };
   return (
     <>
-      {!resLength.length && (
-        <Alert severity="error">
-          No data found for {'<monitoring/response-length>'}
-        </Alert>
+      {!resLength.length ? (
+        <Alert severity="error">No data found</Alert>
+      ) : (
+        <Chart series={series} options={options} height="300" />
       )}
-      <Chart series={series} options={options} height="300" />
     </>
   );
 };

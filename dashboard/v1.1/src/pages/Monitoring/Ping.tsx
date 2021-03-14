@@ -67,10 +67,11 @@ const Ping: FC<PingProps> = ({ min, mean, max }) => {
   };
   return (
     <>
-      {!min.length && (
-        <Alert severity="error">No data found for {'<monitoring/ping>'}</Alert>
+      {!min.length ? (
+        <Alert severity="error">No data found</Alert>
+      ) : (
+        <Chart series={series} options={options} height="300" />
       )}
-      <Chart series={series} options={options} height="300" />;
     </>
   );
 };

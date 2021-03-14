@@ -46,12 +46,11 @@ const Delay: FC<DelayProps> = ({ delay }) => {
   };
   return (
     <>
-      {!delay.length && (
-        <Alert severity="error">
-          No data found for {`<monitoring/response-delay>`}
-        </Alert>
+      {!delay.length ? (
+        <Alert severity="error">No data found</Alert>
+      ) : (
+        <Chart series={series} options={options} height="300" />
       )}
-      <Chart series={series} options={options} height="300" />;
     </>
   );
 };
