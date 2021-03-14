@@ -4,10 +4,12 @@ import { chartData } from '../../utils/queryTypes';
 
 interface MemoryUsagePercentProps {
   memoryUsagePercentMetrics: chartData[];
+  darkMode(status: boolean): void;
 }
 
 const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
-  memoryUsagePercentMetrics
+  memoryUsagePercentMetrics,
+  darkMode
 }) => {
   const dataFormatted = memoryUsagePercentMetrics;
   const series = [
@@ -45,6 +47,9 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
         opacityFrom: 1,
         opacityTo: 0.2
       }
+    },
+    tooltip: {
+      theme: !darkMode ? 'light' : 'dark'
     }
   };
 

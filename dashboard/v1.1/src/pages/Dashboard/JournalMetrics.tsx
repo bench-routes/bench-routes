@@ -63,7 +63,11 @@ const format = (data: QueryValues[] | any) => {
   };
 };
 
-const JournalMetrics: FC<{}> = () => {
+interface JournalMetricsProps {
+  darkMode(status: boolean): any;
+}
+
+const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
   const classes = useStyles();
   const [response, setResponse] = useState(init());
   const [error, setError] = useState('');
@@ -152,6 +156,9 @@ const JournalMetrics: FC<{}> = () => {
         opacityFrom: 0.8,
         opacityTo: 0.2
       }
+    },
+    tooltip: {
+      theme: !darkMode ? 'light' : 'dark'
     }
   };
   const optionsKernel = {
@@ -183,6 +190,9 @@ const JournalMetrics: FC<{}> = () => {
         opacityFrom: 0.8,
         opacityTo: 0.2
       }
+    },
+    tooltip: {
+      theme: !darkMode ? 'light' : 'dark'
     }
   };
   return (

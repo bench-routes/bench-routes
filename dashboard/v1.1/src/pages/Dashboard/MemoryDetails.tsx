@@ -7,13 +7,15 @@ interface MemoryDetailsProps {
   freeBytes: chartData[];
   totalBytes: chartData[];
   usedBytes: chartData[];
+  darkMode(status: boolean): any;
 }
 
 const MemoryDetails: FC<MemoryDetailsProps> = ({
   availableBytes,
   freeBytes,
   totalBytes,
-  usedBytes
+  usedBytes,
+  darkMode
 }) => {
   const series = [
     {
@@ -62,6 +64,9 @@ const MemoryDetails: FC<MemoryDetailsProps> = ({
         opacityFrom: 0.8,
         opacityTo: 0.2
       }
+    },
+    tooltip: {
+      theme: !darkMode ? 'light' : 'dark'
     }
   };
 
