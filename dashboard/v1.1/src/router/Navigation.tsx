@@ -7,6 +7,7 @@ import Input from '../pages/Input/Input';
 import JitterModule from '../pages/Jitter/JitterModule';
 import Monitoring from '../pages/Monitoring/Monitoring';
 import PingModule from '../pages/Ping/PingModule';
+import QuickInputFab from '../layouts/QuickInputFab';
 
 interface NavigatorProps {
   updateLoader(status: boolean): void;
@@ -15,6 +16,8 @@ interface NavigatorProps {
 const Navigator: FC<NavigatorProps> = ({ updateLoader }) => {
   return (
     <Router>
+      {/* Floating Action Button for Quick Route Input */}
+      <QuickInputFab />
       <Switch>
         <Route
           exact={true}

@@ -27,7 +27,6 @@ import (
 
 const (
 	testFilesDir = "tests/"
-	uiPathV1     = "ui-builds/v1.0/index.html"
 	uiPathV11    = "ui-builds/v1.1/"
 )
 
@@ -123,12 +122,6 @@ func (a *API) Home(w http.ResponseWriter, r *http.Request) {
 	log.Infoln(msg)
 	a.Data = msg
 	a.send(w, a.marshalled())
-}
-
-// UIv1 serves the v1.0 version of user-interface of bench-routes.
-// ui-builds/v1.0 is served through this.
-func (a *API) UIv1(_ http.ResponseWriter, _ *http.Request) {
-	http.FileServer(http.Dir(uiPathV1))
 }
 
 // TestTemplate handles template related request for testing purposes.
