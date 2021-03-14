@@ -48,6 +48,10 @@ const Element: FC<ElementProps> = ({
   const [warning, showWarning] = useState<boolean>(false);
   const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
 
+  const columnStyle = {
+    fontSize: '1.4em'
+  };
+
   const fetchTimeSeriesDetails = async (instance: TimeSeriesPath) => {
     const monitoringDetails = new Promise<RouteDetails>((resolve, reject) => {
       async function fetchDetails() {
@@ -137,11 +141,7 @@ const Element: FC<ElementProps> = ({
   return (
     <TableRow>
       <TableCell
-        style={{
-          maxWidth: 240,
-          fontSize: 16,
-          overflowX: 'hidden'
-        }}
+        style={{ ...columnStyle, maxWidth: 200, overflowX: 'hidden' }}
         align="left"
       >
         <Badge color="light">
@@ -150,7 +150,7 @@ const Element: FC<ElementProps> = ({
           </Tooltip>
         </Badge>
       </TableCell>
-      <TableCell style={{ minWidth: 100, fontSize: 16 }} align="center">
+      <TableCell style={columnStyle} align="center">
         <Badge color="warning">
           {!data.ping ? (
             '-'
@@ -164,7 +164,7 @@ const Element: FC<ElementProps> = ({
           ms
         </Badge>
       </TableCell>
-      <TableCell style={{ minWidth: 120, fontSize: 16 }} align="center">
+      <TableCell style={columnStyle} align="center">
         <Badge color="warning">
           {!data.jitter ? (
             '-'
@@ -178,7 +178,7 @@ const Element: FC<ElementProps> = ({
           ms
         </Badge>
       </TableCell>
-      <TableCell style={{ minWidth: 150, fontSize: 16 }} align="center">
+      <TableCell style={columnStyle} align="center">
         <Badge color="warning">
           {!data.monitor ? (
             '-'
@@ -193,7 +193,7 @@ const Element: FC<ElementProps> = ({
           ms
         </Badge>
       </TableCell>
-      <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
+      <TableCell style={columnStyle} align="center">
         <Badge color="warning">
           {!data.monitor ? (
             '-'
@@ -206,7 +206,7 @@ const Element: FC<ElementProps> = ({
           )}
         </Badge>
       </TableCell>
-      <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
+      <TableCell style={columnStyle} align="center">
         {!data.monitor ? (
           <Badge color="warning"> {'-'} </Badge>
         ) : (
@@ -221,7 +221,7 @@ const Element: FC<ElementProps> = ({
           </>
         )}
       </TableCell>
-      <TableCell style={{ minWidth: 10, fontSize: 16 }} align="center">
+      <TableCell style={columnStyle} align="center">
         {warning ? (
           <WarningOutlinedIcon />
         ) : updating ? (
@@ -242,7 +242,7 @@ const Matrix: FC<MatrixProps> = ({
   isMonitoringActive,
   showRouteDetails
 }) => (
-  <TableContainer style={{ maxHeight: '70vh', overflowY: 'scroll' }}>
+  <TableContainer>
     <Table stickyHeader>
       <TableHead>
         <TableRow>

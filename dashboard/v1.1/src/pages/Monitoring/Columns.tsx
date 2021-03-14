@@ -10,25 +10,25 @@ export const columns: Column[] = [
   { label: 'Ping', minWidth: 100, align: 'center' },
   {
     label: 'Jitter',
-    minWidth: 170,
+    minWidth: 100,
     align: 'center',
     format: (value: number) => value.toLocaleString('en-US')
   },
   {
     label: 'Response time',
-    minWidth: 170,
+    minWidth: 100,
     align: 'center',
     format: (value: number) => value.toLocaleString('en-US')
   },
   {
     label: 'Response length',
-    minWidth: 170,
+    minWidth: 100,
     align: 'center',
     format: (value: number) => value.toFixed(2)
   },
   {
     label: 'Status',
-    minWidth: 170,
+    minWidth: 100,
     align: 'center',
     format: (value: number) => value.toFixed(2)
   },
