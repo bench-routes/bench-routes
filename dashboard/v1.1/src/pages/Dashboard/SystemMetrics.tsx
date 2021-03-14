@@ -171,9 +171,9 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
               onChange={handleChange}
               indicatorColor="secondary"
             >
-              <Tab label="System" {...a11yProps(0)} />
-              <Tab label="Disk" {...a11yProps(1)} />
-              <Tab label="Memory details" {...a11yProps(2)} />
+              <Tab label="System" {...a11yProps(0)} style={{outline:0}}/>
+              <Tab label="Disk" {...a11yProps(1)} style={{outline:0}}/>
+              <Tab label="Memory details" {...a11yProps(2)} style={{outline:0}}/>
             </Tabs>
           </AppBar>
           <TabPanel value={value} index={0}>
