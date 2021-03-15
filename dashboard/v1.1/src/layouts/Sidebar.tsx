@@ -111,9 +111,9 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
           </ListItemIcon>
           <ListItemText primary="Tests" onClick={showTestList} />
           {close ? (
-            <ExpandLessIcon onClick={showTestList} />
-          ) : (
             <ExpandMoreIcon onClick={showTestList} />
+          ) : (
+            <ExpandLessIcon onClick={showTestList} />
           )}
         </ListItem>
       </Tooltip>
