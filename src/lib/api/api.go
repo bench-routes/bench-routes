@@ -35,6 +35,7 @@ const (
 type API struct {
 	ResponseStatus    string
 	Data, Services    interface{}
+	Message           string
 	Matrix            *map[string]*utils.BRMatrix
 	configurationPath string
 	config            *config.Config
@@ -293,6 +294,8 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 // of the react-UI.
 func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
 		panic(err)
 	}
 	var (
@@ -300,6 +303,8 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 		decoder = json.NewDecoder(r.Body)
 	)
 	if err := decoder.Decode(&t); err != nil {
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
 		panic(err)
 	}
 	req := request.New(t.URL, t.Headers, t.Params, t.Body, t.Labels)
@@ -323,6 +328,8 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 		decoder = json.NewDecoder(r.Body)
 	)
 	if err := decoder.Decode(&t); err != nil {
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
 		panic(err)
 	}
 	requestInstance := request.New(t.URL, t.Headers, t.Params, t.Body, t.Labels)
@@ -373,6 +380,8 @@ func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Reque
 	service := reflect.ValueOf(a.Services).Elem()
 	sp, ok := service.FieldByName("Ping").Interface().(*ping.Ping)
 	if !ok {
+		a.Message = "start-monitoring: ping not found"
+		a.send(w, a.marshalled())
 		panic("start-monitoring: ping not found")
 	}
 
@@ -380,12 +389,16 @@ func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Reque
 
 	sj, ok := service.FieldByName("Jitter").Interface().(*jitter.Jitter)
 	if !ok {
+		a.Message = "start-monitoring: jitter not found"
+		a.send(w, a.marshalled())
 		panic("start-monitoring: jitter not found")
 	}
 	sj.Iterate(state, false)
 
 	sm, ok := service.FieldByName("Monitor").Interface().(*monitor.Monitor)
 	if !ok {
+		a.Message = "start-monitoring: monitor not found"
+		a.send(w, a.marshalled())
 		panic("start-monitoring: monitor not found")
 	}
 	sm.Iterate(state, false)
@@ -397,20 +410,28 @@ func (a *API) GetMonitoringState(w http.ResponseWriter, _ *http.Request) {
 	service := reflect.ValueOf(a.Services).Elem()
 	sp, ok := service.FieldByName("Ping").Interface().(*ping.Ping)
 	if !ok {
+		a.Message = "start-monitoring: ping not found"
+		a.send(w, a.marshalled())
 		panic("start-monitoring: ping not found")
 	}
 
 	sj, ok := service.FieldByName("Jitter").Interface().(*jitter.Jitter)
 	if !ok {
+		a.Message = "start-monitoring: jitter not found"
+		a.send(w, a.marshalled())
 		panic("start-monitoring: jitter not found")
 	}
 
 	sm, ok := service.FieldByName("Monitor").Interface().(*monitor.Monitor)
 	if !ok {
+		a.Message = "start-monitoring: monitor not found"
+		a.send(w, a.marshalled())
 		panic("start-monitoring: monitor not found")
 	}
 
 	if sp.IsActive() != sj.IsActive() || sm.IsActive() != sp.IsActive() || sm.IsActive() != sj.IsActive() {
+		a.Message = "states not aligned"
+		a.send(w, a.marshalled())
 		panic("states not aligned")
 	}
 
@@ -437,6 +458,8 @@ func (a *API) GetConfigRoutes(w http.ResponseWriter, _ *http.Request) {
 // ModifyIntervalDuration modifies a specific interval duration in the config file.
 func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
 		panic(err)
 	}
 	var req struct {
@@ -445,6 +468,8 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 	}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&req); err != nil {
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
 		panic(err)
 	}
 	if num, err := strconv.Atoi(req.Value); err == nil {
@@ -473,6 +498,8 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 // UpdateRoute updates a route in the local config.
 func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
 		panic(err)
 	}
 	var (
@@ -488,6 +515,8 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 		decoder = json.NewDecoder(r.Body)
 	)
 	if err := decoder.Decode(&req); err != nil {
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
 		panic(err)
 	}
 	requestInstance := request.New(req.URL, req.Headers, req.Params, req.Body, req.Labels)
@@ -517,6 +546,8 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 // DeleteConfigRoutes removes a route from the config screen.
 func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
 		panic(err)
 	}
 	var req struct {
@@ -524,6 +555,8 @@ func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&req); err != nil {
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
 		panic(err)
 	}
 	for i, route := range a.config.Config.Routes {
@@ -563,11 +596,13 @@ func (a *API) GetLabels(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) marshalled() []byte {
 	response := struct {
-		Status string      `json:"status"`
-		Data   interface{} `json:"data"`
+		Status  string      `json:"status"`
+		Data    interface{} `json:"data"`
+		Message string      `json:"message"`
 	}{
-		Status: a.ResponseStatus,
-		Data:   a.Data,
+		Status:  a.ResponseStatus,
+		Data:    a.Data,
+		Message: a.Message,
 	}
 	js, err := json.Marshal(response)
 	if err != nil {
