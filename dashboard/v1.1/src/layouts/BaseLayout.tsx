@@ -85,6 +85,7 @@ export default function BaseLayout(props: any): ReactElement {
 
   const handleToggleDarkMode = () => {
     const { darkMode, toggleDarkMode } = props;
+    localStorage.setItem('dark-mode', darkMode ? 'false' : 'true');
     toggleDarkMode(!darkMode);
   };
 
