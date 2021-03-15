@@ -296,7 +296,7 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		a.Message = err.Error()
 		a.send(w, a.marshalled())
-		panic(err)
+		return
 	}
 	var (
 		t       inputRequest
@@ -305,7 +305,7 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&t); err != nil {
 		a.Message = err.Error()
 		a.send(w, a.marshalled())
-		panic(err)
+		return
 	}
 	req := request.New(t.URL, t.Headers, t.Params, t.Body, t.Labels)
 	response := make(chan request.ResponseWrapper)
@@ -318,6 +318,7 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("invalid request method: %s\n", t.Method)
 	}
 	a.Data = <-response
+	a.Message = "success"
 	a.send(w, a.marshalled())
 }
 
@@ -330,7 +331,7 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&t); err != nil {
 		a.Message = err.Error()
 		a.send(w, a.marshalled())
-		panic(err)
+		return
 	}
 	requestInstance := request.New(t.URL, t.Headers, t.Params, t.Body, t.Labels)
 	a.config.AddRoute(
@@ -345,6 +346,7 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 	)
 	a.reloadConfigURLs <- struct{}{}
 	a.Data = "success"
+	a.Message = "success"
 	a.send(w, a.marshalled())
 }
 
@@ -382,7 +384,7 @@ func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Reque
 	if !ok {
 		a.Message = "start-monitoring: ping not found"
 		a.send(w, a.marshalled())
-		panic("start-monitoring: ping not found")
+		return
 	}
 
 	sp.Iterate(state, false)
@@ -391,7 +393,7 @@ func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Reque
 	if !ok {
 		a.Message = "start-monitoring: jitter not found"
 		a.send(w, a.marshalled())
-		panic("start-monitoring: jitter not found")
+		return
 	}
 	sj.Iterate(state, false)
 
@@ -399,7 +401,7 @@ func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Reque
 	if !ok {
 		a.Message = "start-monitoring: monitor not found"
 		a.send(w, a.marshalled())
-		panic("start-monitoring: monitor not found")
+		return
 	}
 	sm.Iterate(state, false)
 	a.send(w, a.marshalled())
@@ -412,27 +414,27 @@ func (a *API) GetMonitoringState(w http.ResponseWriter, _ *http.Request) {
 	if !ok {
 		a.Message = "start-monitoring: ping not found"
 		a.send(w, a.marshalled())
-		panic("start-monitoring: ping not found")
+		return
 	}
 
 	sj, ok := service.FieldByName("Jitter").Interface().(*jitter.Jitter)
 	if !ok {
 		a.Message = "start-monitoring: jitter not found"
 		a.send(w, a.marshalled())
-		panic("start-monitoring: jitter not found")
+		return
 	}
 
 	sm, ok := service.FieldByName("Monitor").Interface().(*monitor.Monitor)
 	if !ok {
 		a.Message = "start-monitoring: monitor not found"
 		a.send(w, a.marshalled())
-		panic("start-monitoring: monitor not found")
+		return
 	}
 
 	if sp.IsActive() != sj.IsActive() || sm.IsActive() != sp.IsActive() || sm.IsActive() != sj.IsActive() {
 		a.Message = "states not aligned"
 		a.send(w, a.marshalled())
-		panic("states not aligned")
+		return
 	}
 
 	if sp.IsActive() {
@@ -460,7 +462,7 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		a.Message = err.Error()
 		a.send(w, a.marshalled())
-		panic(err)
+		return
 	}
 	var req struct {
 		IntervalName string `json:"intervalName"`
@@ -470,7 +472,7 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&req); err != nil {
 		a.Message = err.Error()
 		a.send(w, a.marshalled())
-		panic(err)
+		return
 	}
 	if num, err := strconv.Atoi(req.Value); err == nil {
 		n := int64(num)
@@ -500,7 +502,7 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		a.Message = err.Error()
 		a.send(w, a.marshalled())
-		panic(err)
+		return
 	}
 	var (
 		req struct {
@@ -517,7 +519,7 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&req); err != nil {
 		a.Message = err.Error()
 		a.send(w, a.marshalled())
-		panic(err)
+		return
 	}
 	requestInstance := request.New(req.URL, req.Headers, req.Params, req.Body, req.Labels)
 	for i, route := range a.config.Config.Routes {
@@ -548,7 +550,7 @@ func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		a.Message = err.Error()
 		a.send(w, a.marshalled())
-		panic(err)
+		return
 	}
 	var req struct {
 		ActualRoute string `json:"actualRoute"`
@@ -557,7 +559,7 @@ func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&req); err != nil {
 		a.Message = err.Error()
 		a.send(w, a.marshalled())
-		panic(err)
+		return
 	}
 	for i, route := range a.config.Config.Routes {
 		if route.URL == req.ActualRoute {
