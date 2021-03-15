@@ -66,6 +66,23 @@ export interface APIQueryResponse {
   success: string;
 }
 
+export interface PathData {
+  matrixName: string;
+  ping: string;
+  jitter: string;
+  fping: string;
+  monitor: string;
+}
+export interface TimeSeries {
+  name: string;
+  path: PathData;
+}
+
+export interface APITimeSeriesResponse {
+  data: TimeSeries[];
+  success: string;
+}
+
 export interface ping {
   avgValue: string;
   maxValue: string;

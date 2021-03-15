@@ -1,7 +1,7 @@
+import { Fab, makeStyles, Tooltip } from '@material-ui/core';
+import { PostAdd as PostAddIcon } from '@material-ui/icons';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { makeStyles, Tooltip, Fab } from '@material-ui/core';
-import { PostAdd as PostAddIcon } from '@material-ui/icons';
 
 const useStyles = makeStyles(theme => ({
   inputFab: {
@@ -11,7 +11,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-//Floating Action Button for Quick Input
+// Floating Action Button for Quick Input
 const QuickInputFab = () => {
   const classes = useStyles();
   return (

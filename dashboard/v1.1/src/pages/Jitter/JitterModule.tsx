@@ -6,13 +6,15 @@ import {
   RoutesSummary,
   QueryResponse,
   chartData,
-  APIQueryResponse
+  APIQueryResponse,
+  APITimeSeriesResponse,
+  PathData,
+  TimeSeries
 } from '../../utils/queryTypes';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Alert from '@material-ui/lab/Alert';
 import { formatTime } from '../../utils/brt';
 import Jitter from '../Monitoring/Jitter';
-import { filterUrl } from '../../utils/filterUrl';
 
 const format = (datas: QueryResponse) => {
   const jitter: chartData[] = [];
@@ -53,14 +55,17 @@ const JitterModule: FC<{}> = () => {
   }, []);
 
   async function getChartsData(v: string) {
-    let res = filterUrl(v);
-    res = res.substring(0, res.indexOf('/'));
-
     try {
-      const response = await fetch(
-        `${HOST_IP}/query?timeSeriesPath=storage/jitter/chunk_jitter_${res}`
+      const response = await fetch(`${HOST_IP}/get-route-time-series`);
+      const TimeSeriesArray = (await response.json()) as APITimeSeriesResponse;
+      const SpecificRoute = TimeSeriesArray.data.find(
+        (item: { name: string; path: PathData }) => item.name === v
+      ) as TimeSeries;
+
+      const response2 = await fetch(
+        `${HOST_IP}/query?timeSeriesPath=${SpecificRoute.path.jitter}`
       );
-      const matrix = (await response.json()) as APIQueryResponse;
+      const matrix = (await response2.json()) as APIQueryResponse;
       var formatdata = format(matrix.data);
       setJitterData(formatdata);
       setShowCharts(true);
