@@ -6,7 +6,8 @@ import {
   List,
   ListItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  Tooltip
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import {
@@ -80,34 +81,42 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
 
   // Sidebar element
   const [testListOpen, setTestListOpen] = useState(false);
+  const [close, setClose] = useState(true);
   const showTestList = () => {
     setTestListOpen(!testListOpen);
+    setClose(!close);
   };
   const menuItems = (
     <div>
-      <ListItem button={true} component={Link} to="/">
-        <ListItemIcon>
-          <DashboardIcon />
-        </ListItemIcon>
-        <ListItemText primary="Dashboard" />
-      </ListItem>
-      <ListItem button={true} component={Link} to="/monitoring">
-        <ListItemIcon>
-          <AccessAlarmIcon />
-        </ListItemIcon>
-        <ListItemText primary="Monitoring" />
-      </ListItem>
-      <ListItem button={true}>
-        <ListItemIcon>
-          <NetworkCheckIcon />
-        </ListItemIcon>
-        <ListItemText primary="Tests" onClick={showTestList} />
-        {open ? (
-          <ExpandLessIcon onClick={showTestList} />
-        ) : (
-          <ExpandMoreIcon onClick={showTestList} />
-        )}
-      </ListItem>
+      <Tooltip title="Dashboard" placement="right">
+        <ListItem button={true} component={Link} to="/">
+          <ListItemIcon>
+            <DashboardIcon />
+          </ListItemIcon>
+          <ListItemText primary="Dashboard" />
+        </ListItem>
+      </Tooltip>
+      <Tooltip title="Monitoring" placement="right">
+        <ListItem button={true} component={Link} to="/monitoring">
+          <ListItemIcon>
+            <AccessAlarmIcon />
+          </ListItemIcon>
+          <ListItemText primary="Monitoring" />
+        </ListItem>
+      </Tooltip>
+      <Tooltip title="Tests" placement="right">
+        <ListItem button={true}>
+          <ListItemIcon>
+            <NetworkCheckIcon />
+          </ListItemIcon>
+          <ListItemText primary="Tests" onClick={showTestList} />
+          {close ? (
+            <ExpandLessIcon onClick={showTestList} />
+          ) : (
+            <ExpandMoreIcon onClick={showTestList} />
+          )}
+        </ListItem>
+      </Tooltip>
       {/* Nested List */}
       <Collapse in={testListOpen} timeout="auto" unmountOnExit={true}>
         <List component="div" disablePadding={true}>
@@ -146,12 +155,14 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
           </ListItem>
         </List>
       </Collapse>
-      <ListItem button={true} component={Link} to="/configurations">
-        <ListItemIcon>
-          <SettingsIcon />
-        </ListItemIcon>
-        <ListItemText primary="Config" />
-      </ListItem>
+      <Tooltip title="Config" placement="right">
+        <ListItem button={true} component={Link} to="/configurations">
+          <ListItemIcon>
+            <SettingsIcon />
+          </ListItemIcon>
+          <ListItemText primary="Config" />
+        </ListItem>
+      </Tooltip>
     </div>
   );
 
