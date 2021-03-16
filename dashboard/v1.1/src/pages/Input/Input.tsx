@@ -151,35 +151,30 @@ const Input = (props: InputScreenProps) => {
     }
 
     setShowResponseButton(false);
-    if (headerValues !== undefined) {
+    if (headerValues && applyHeader) {
       for (const h of headerValues) {
         if (!(h.key === '' && h.value === '')) {
           headers[h.key] = h.value;
         }
       }
-    } else {
-      setHeaderValues([]);
     }
 
-    if (paramsValues !== undefined) {
+    if (paramsValues && applyParams) {
       for (const p of paramsValues) {
         if (!(p.key === '' && p.value === '')) {
           params[p.key] = p.value;
         }
       }
-    } else {
-      setParamsValues([]);
     }
 
-    if (bodyValues !== undefined) {
+    if (bodyValues && applyBody) {
       for (const b of bodyValues) {
         if (!(b.key === '' && b.value === '')) {
           body[b.key] = b.value;
         }
       }
-    } else {
-      setBodyValues(bodyValues);
     }
+
     fetch(`${HOST_IP}/quick-input`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
@@ -234,28 +229,22 @@ const Input = (props: InputScreenProps) => {
       });
     }
 
-    if (headerValues !== undefined) {
+    if (headerValues && applyHeader) {
       for (const h of headerValues) {
         headers[h.key] = h.value;
       }
-    } else {
-      setHeaderValues([]);
     }
 
-    if (paramsValues !== undefined) {
+    if (paramsValues && applyParams) {
       for (const p of paramsValues) {
         params[p.key] = p.value;
       }
-    } else {
-      setParamsValues([]);
     }
 
-    if (bodyValues !== undefined) {
+    if (bodyValues && applyBody) {
       for (const b of bodyValues) {
         body[b.key] = b.value;
       }
-    } else {
-      setBodyValues(bodyValues);
     }
 
     fetch(`${HOST_IP}/quick-input`, {
@@ -463,7 +452,7 @@ const Input = (props: InputScreenProps) => {
               control={
                 <Checkbox
                   color="primary"
-                  checked={applyHeader || (headerValues || []).length > 0}
+                  checked={applyHeader}
                   onClick={() => setApplyHeader(!applyHeader)}
                 />
               }
@@ -473,7 +462,7 @@ const Input = (props: InputScreenProps) => {
               control={
                 <Checkbox
                   color="primary"
-                  checked={applyParams || (paramsValues || []).length > 0}
+                  checked={applyParams}
                   onClick={() => setApplyParams(!applyParams)}
                 />
               }
@@ -483,34 +472,34 @@ const Input = (props: InputScreenProps) => {
               control={
                 <Checkbox
                   color="primary"
-                  checked={applyBody || (bodyValues || []).length > 0}
+                  checked={applyBody}
                   onClick={() => setApplyBody(!applyBody)}
                 />
               }
               label="Body"
             />
             <div className={classes.params}>
-              {applyHeader || (headerValues || []).length > 0 ? (
+              {applyHeader && (
                 <GridBody
                   name="Header"
                   headers={headerValues}
                   updateParent={setHeaderValues}
                 />
-              ) : null}
-              {applyParams || (paramsValues || []).length > 0 ? (
+              )}
+              {applyParams && (
                 <GridBody
                   name="Params"
                   headers={paramsValues}
                   updateParent={setParamsValues}
                 />
-              ) : null}
-              {applyBody || (bodyValues || []).length > 0 ? (
+              )}
+              {applyBody && (
                 <GridBody
                   name="Body"
                   headers={bodyValues}
                   updateParent={setBodyValues}
                 />
-              ) : null}
+              )}
             </div>
           </Grid>
         </Grid>
