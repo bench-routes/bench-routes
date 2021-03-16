@@ -318,6 +318,7 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("invalid request method: %s\n", t.Method)
 	}
 	a.Data = <-response
+
 	a.send(w, a.marshalled())
 }
 
