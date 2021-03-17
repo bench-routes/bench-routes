@@ -1,4 +1,4 @@
-import { CssBaseline, Tooltip } from '@material-ui/core';
+import { CssBaseline} from '@material-ui/core';
 import { Container } from '@material-ui/core';
 import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
 import LinearProgress from '@material-ui/core/LinearProgress';
@@ -138,23 +138,21 @@ export default function BaseLayout(props: any): ReactElement {
               >
                 Bench Routes
               </Typography>
-              <Tooltip title="Dark Mode">
-                <Switch
-                  checked={props.darkMode}
-                  onChange={handleToggleDarkMode}
-                  offColor="#145D97"
-                  onColor="#303030"
-                  height={18}
-                  handleDiameter={20}
-                  width={36}
-                  uncheckedIcon={
-                    <Brightness7Sharp className={classes.sunIcon} />
-                  }
-                  checkedIcon={
-                    <Brightness2Sharp className={classes.moonIcon} />
-                  }
-                />
-              </Tooltip>
+              <Switch
+                checked={props.darkMode}
+                onChange={handleToggleDarkMode}
+                offColor="#145D97"
+                onColor="#303030"
+                height={18}
+                handleDiameter={20}
+                width={36}
+                uncheckedIcon={
+                  <Brightness7Sharp className={classes.sunIcon} />
+                }
+                checkedIcon={
+                  <Brightness2Sharp className={classes.moonIcon} />
+                }
+              />
             </Toolbar>
             {loader ? <LinearProgress /> : null}
           </AppBar>
