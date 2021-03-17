@@ -3,12 +3,10 @@ import { useFetch } from '../../utils/useFetch';
 import { service_states, HOST_IP } from '../../utils/types';
 import { Card, CardContent, TextField } from '@material-ui/core';
 import {
-  RoutesSummary,
   QueryResponse,
   chartData,
   APIQueryResponse,
   APITimeSeriesResponse,
-  PathData,
   TimeSeries
 } from '../../utils/queryTypes';
 import Autocomplete from '@material-ui/lab/Autocomplete';
@@ -50,8 +48,9 @@ interface showChartsDataParam {
 }
 
 const PingModule: FC<{}> = () => {
-  const [routesDetails, setRoutesDetails] = useState<RoutesSummary>();
-  const [value] = useState(routesDetails?.testServicesRoutes[0]);
+  const [hashRoutMap, SetHashRouteMap] = useState(new Map());
+  const [routesDetails, setRoutesDetails] = useState<string[]>();
+  const [value] = useState(routesDetails !== undefined ? routesDetails : '');
   const [inputValue, setInputValue] = useState('');
   const [showCharts, setShowCharts] = useState(false);
   const [pingData, setPingData] = useState<showChartsDataParam>();
@@ -61,25 +60,30 @@ const PingModule: FC<{}> = () => {
   );
 
   useEffect(() => {
-    fetch(`${HOST_IP}/routes-summary`)
+    fetch(`${HOST_IP}/get-route-time-series`)
       .then(res => res.json())
-      .then((response: { status: string; data: RoutesSummary }) => {
-        setRoutesDetails(response.data);
+      .then((response: APITimeSeriesResponse) => {
+        let tempMap: Map<string, string> = new Map();
+        let tempArr: string[] = [];
+
+        response.data.forEach((item: TimeSeries) => {
+          tempArr.push(item.name);
+          tempMap.set(item.name, item.path.matrixName);
+        });
+
+        SetHashRouteMap(tempMap);
+        setRoutesDetails(tempArr);
       });
   }, []);
 
   async function getChartsData(v: string) {
     try {
-      const response = await fetch(`${HOST_IP}/get-route-time-series`);
-      const TimeSeriesArray = (await response.json()) as APITimeSeriesResponse;
-      const SpecificRoute = TimeSeriesArray.data.find(
-        (item: { name: string; path: PathData }) => item.name === v
-      ) as TimeSeries;
-
-      const response2 = await fetch(
-        `${HOST_IP}/query?timeSeriesPath=${SpecificRoute.path.ping}`
+      const response = await fetch(
+        `${HOST_IP}/query?timeSeriesPath=storage/ping/chunk_ping_${hashRoutMap.get(
+          v
+        )}`
       );
-      const matrix = (await response2.json()) as APIQueryResponse;
+      const matrix = (await response.json()) as APIQueryResponse;
       var formatdata = format(matrix.data);
       setPingData(formatdata);
       setShowCharts(true);
@@ -99,9 +103,7 @@ const PingModule: FC<{}> = () => {
   // const states: service_states = response.data;
 
   const options =
-    routesDetails?.testServicesRoutes !== undefined
-      ? routesDetails.testServicesRoutes
-      : ['Please fill routes'];
+    routesDetails !== undefined ? routesDetails : ['Please fill routes'];
 
   return (
     <Card>
@@ -110,7 +112,7 @@ const PingModule: FC<{}> = () => {
           <h4>Ping</h4>
           <div style={{ float: 'right', marginTop: '-45px' }}>
             <Autocomplete
-              value={value}
+              value={value[0]}
               onChange={(event, newValue) => {}}
               inputValue={inputValue}
               onInputChange={(event, newInputValue) => {
