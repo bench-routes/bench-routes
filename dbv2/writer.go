@@ -20,10 +20,13 @@ const (
 
 var (
 	validLengthString = strings.Repeat(space, 100)
+	validMaxBytes = []byte(validLengthString)
 	// validLength corresponds to the maximum length of a line in a data-table.
 	validLength      = len(validLengthString)
+	numBytesSingleLine = len(validMaxBytes)
 	bufferSize       = 10000
 	writerBufferSize = validLength * bufferSize
+	newLineSymbol = []byte("\n")
 )
 
 type DataTable struct {
@@ -83,20 +86,27 @@ type writeData struct {
 
 var writeDataPool = sync.Pool{New: func() interface{} { return new(writeData) }}
 
+type Table struct {
+	writer *tableWriter
+	// similarly a reader here.
+}
+
 type TableBuffer struct {
 	bufferMux     sync.RWMutex
 	data          []*writeData
 	cap           uint64
 	size          uint64
 	flushDeadline time.Duration
-	tableWriter   *tableWriter
+	Table *Table
 }
 
 func NewTableBuffer(dataTable *DataTable, mux *sync.RWMutex, cap uint64, ioBufferSize int, flushDeadline time.Duration) *TableBuffer {
 	return &TableBuffer{
 		cap:           cap,
 		flushDeadline: flushDeadline,
-		tableWriter:   newTableWriter(dataTable, mux, ioBufferSize),
+		Table:   &Table{
+			writer: newTableWriter(dataTable, mux, ioBufferSize),
+		},
 	}
 }
 
@@ -138,7 +148,7 @@ func (tbuf *TableBuffer) flushToIOBuffer(flushIOBuffer bool) error {
 	})
 	for i := uint64(0); i < tbuf.size; i++ {
 		r := tbuf.data[i]
-		if err := tbuf.tableWriter.writeToTable(r.timestamp, r.id, r.valueSet); err != nil {
+		if err := tbuf.Table.writer.writeToTable(r.timestamp, r.id, r.valueSet); err != nil {
 			fmt.Println("write to table failed. putting rows back into pool")
 			release(i)
 			return fmt.Errorf("flush to io-buffer: %w", err)
@@ -148,7 +158,7 @@ func (tbuf *TableBuffer) flushToIOBuffer(flushIOBuffer bool) error {
 	tbuf.size = 0
 	tbuf.data = []*writeData{}
 	if flushIOBuffer {
-		if err := tbuf.tableWriter.commit(); err != nil {
+		if err := tbuf.Table.writer.commit(); err != nil {
 			return fmt.Errorf("flush to io-buffer: flushIOBuffer: %w", err)
 		}
 	}
@@ -210,9 +220,18 @@ func (w *tableWriter) commit() error {
 
 func serializeWrite(timestamp, seriesID uint64, value string) ([]byte, error) {
 	// todo: needs a test
-	str := fmt.Sprintf("%d%s%d%s%s\n", timestamp, writeSeparator, seriesID, writeSeparator, value)
+	str := fmt.Sprintf("%d%s%d%s%s", timestamp, writeSeparator, seriesID, writeSeparator, value)
 	if l := len(str); l > validLength {
 		return nil, fmt.Errorf("length greater than the valid-length: received %d wanted %d", l, validLength)
 	}
-	return []byte(str), nil
+	inBytes := []byte(str)
+	requiredNumBytesPadding := numBytesSingleLine - len(inBytes) - len(newLineSymbol) // todo: needs a test
+	if requiredNumBytesPadding < 0 {
+		return nil, fmt.Errorf("writing string cannot be greater than the maximum permitted value")
+	}
+	padding := make([]byte, requiredNumBytesPadding)
+	inBytes = append(inBytes, padding...)
+	inBytes = append(inBytes, newLineSymbol...)
+	fmt.Println("net length", len(inBytes))
+	return inBytes, nil
 }
