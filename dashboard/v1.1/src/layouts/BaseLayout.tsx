@@ -4,15 +4,15 @@ import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { makeStyles } from '@material-ui/core/styles';
 import {
-  Menu as MenuIcon,
+  Brightness2Sharp,
   Brightness7Sharp,
-  Brightness2Sharp
+  Menu as MenuIcon
 } from '@material-ui/icons';
 import clsx from 'clsx';
 import React, { ReactElement, useCallback, useState } from 'react';
+import Switch from 'react-switch';
 import Navigator from '../router/Navigation';
 import Sidebar from './Sidebar';
-import Switch from 'react-switch';
 const drawerWidth = 240;
 export const ThemeContext = React.createContext({});
 const _useStyles = makeStyles(theme => ({
