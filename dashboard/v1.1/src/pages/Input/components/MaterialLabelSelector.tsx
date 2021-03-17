@@ -3,7 +3,6 @@ import { useTheme } from '@material-ui/core/styles';
 import {
   HelpOutline as HelpOutlineIcon,
   Close as CloseIcon,
-  Done as DoneIcon
 } from '@material-ui/icons';
 import Autocomplete, {
   AutocompleteCloseReason
@@ -43,6 +42,9 @@ export default function MaterialLabelSelector(props: LabelSelectorType) {
       name: labelValue,
       color: stc(labelValue)
     };
+    setPendingValue([...pendingValue, newLabel]);
+    setValue(pendingValue);
+    updateLabels(pendingValue);
     setLabelList([...labelList, newLabel]);
   };
 
@@ -61,12 +63,13 @@ export default function MaterialLabelSelector(props: LabelSelectorType) {
         return labels;
       })
       .then(labels => {
+        if(labelList.length===0)
         setLabelList(labels);
         setValue(defaultLabels);
         setPendingValue(defaultLabels);
       })
       .then(() => setLoading(false));
-  }, [loading, defaultLabels]);
+  }, [loading, defaultLabels,labelList]);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setPendingValue(value);
@@ -163,10 +166,6 @@ export default function MaterialLabelSelector(props: LabelSelectorType) {
               }
               renderOption={(option, { selected }) => (
                 <React.Fragment>
-                  <DoneIcon
-                    className={classes.iconSelected}
-                    style={{ visibility: selected ? 'visible' : 'hidden' }}
-                  />
                   <span
                     className={classes.color}
                     style={{ backgroundColor: option.color }}
