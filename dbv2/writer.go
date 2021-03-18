@@ -11,22 +11,31 @@ import (
 )
 
 const (
+	valueSeparator = ':'
+	typeSeparator  = '|'
 	space          = " "
-	writeSeparator = "|"
-	colon          = ":"
 )
 
 // TODO (harkishen): replace all fmt.Println()s to logfmt format.
 
 var (
 	validLengthString = strings.Repeat(space, 100)
-	validMaxBytes = []byte(validLengthString)
+	validMaxBytes     = []byte(validLengthString)
 	// validLength corresponds to the maximum length of a line in a data-table.
-	validLength      = len(validLengthString)
+	validLength        = len(validLengthString)
 	numBytesSingleLine = len(validMaxBytes)
-	bufferSize       = 10000
-	writerBufferSize = validLength * bufferSize
-	newLineSymbol = []byte("\n")
+	bufferSize         = 10000
+	writerBufferSize   = validLength * bufferSize
+)
+
+var (
+	newLineSymbol = '\n'
+	rowEndSymbol  = '\ufffe'
+)
+
+var (
+	newLineSymbolByte = byte(newLineSymbol)
+	rowEndSymbolByte  = byte(rowEndSymbol)
 )
 
 type DataTable struct {
@@ -97,14 +106,14 @@ type TableBuffer struct {
 	cap           uint64
 	size          uint64
 	flushDeadline time.Duration
-	Table *Table
+	Table         *Table
 }
 
 func NewTableBuffer(dataTable *DataTable, mux *sync.RWMutex, cap uint64, ioBufferSize int, flushDeadline time.Duration) *TableBuffer {
 	return &TableBuffer{
 		cap:           cap,
 		flushDeadline: flushDeadline,
-		Table:   &Table{
+		Table: &Table{
 			writer: newTableWriter(dataTable, mux, ioBufferSize),
 		},
 	}
@@ -173,10 +182,10 @@ func newTableWriter(dataTable *DataTable, mux *sync.RWMutex, tableIOBufferSize i
 }
 
 func ConvertValueToValueSet(data ...string) string {
-	//todo: needs a test
-	s := ""
+	//todo: needs a test and a probable benchmark in future.
+	var s string
 	for i := range data {
-		s += data[i] + colon
+		s = fmt.Sprintf("%s%s%c", s, data[i], valueSeparator)
 	}
 	return s[:len(s)-1] // Ignore the last pipe.
 }
@@ -220,18 +229,21 @@ func (w *tableWriter) commit() error {
 
 func serializeWrite(timestamp, seriesID uint64, value string) ([]byte, error) {
 	// todo: needs a test
-	str := fmt.Sprintf("%d%s%d%s%s", timestamp, writeSeparator, seriesID, writeSeparator, value)
+	str := fmt.Sprintf("%d%c%d%c%s", timestamp, typeSeparator, seriesID, typeSeparator, value)
 	if l := len(str); l > validLength {
 		return nil, fmt.Errorf("length greater than the valid-length: received %d wanted %d", l, validLength)
 	}
 	inBytes := []byte(str)
-	requiredNumBytesPadding := numBytesSingleLine - len(inBytes) - len(newLineSymbol) // todo: needs a test
+	requiredNumBytesPadding := numBytesSingleLine - len(inBytes) - 2 // todo: needs a test. note: -1 is the symbol size of \n and another -1 is symbol size of endSymbol.
 	if requiredNumBytesPadding < 0 {
 		return nil, fmt.Errorf("writing string cannot be greater than the maximum permitted value")
 	}
 	padding := make([]byte, requiredNumBytesPadding)
+	inBytes = append(inBytes, rowEndSymbolByte)
 	inBytes = append(inBytes, padding...)
-	inBytes = append(inBytes, newLineSymbol...)
-	fmt.Println("net length", len(inBytes))
+	inBytes = append(inBytes, newLineSymbolByte)
+	if len(inBytes) != numBytesSingleLine {
+		return nil, fmt.Errorf("serialize-write: byte array does not respect upper bound of line length")
+	}
 	return inBytes, nil
 }

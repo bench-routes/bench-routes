@@ -66,7 +66,8 @@ func TestCreateFileAndWriteIt(t *testing.T) {
 	require.NoError(t, err)
 	dr, err := NewDataReader(testFile)
 	require.NoError(t, err)
-	dr.Parse()
+	err = dr.Parse()
+	require.NoError(t, err)
 	require.Equal(t, []byte(expected), bSlice, "matching write result")
 	require.NoError(t, os.Remove(testFile))
 }
