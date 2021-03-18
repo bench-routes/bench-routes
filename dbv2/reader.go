@@ -140,13 +140,12 @@ func parseRow(buf []byte) (row, error) {
 // it finds an EOF. This is usually the last row unless there is something fishy going on.
 func (ri *rowsIterator) readNext(returnRow bool) (r row, isLast bool, err error) {
 	// todo: unit test imp.
-	ri.buf = ri.buf[:0]
-	var prevRead []byte
-	_, err = ri.reader.Read(ri.buf)
+	ri.buf = ri.buf[:]
+	n, err := ri.reader.Read(ri.buf)
 	if err != nil {
 		if err == io.EOF {
 			isLast = true
-			row, err := parseRow(prevRead)
+			row, err := parseRow(ri.previousRow)
 			if err != nil {
 				return rowEmpty, false, fmt.Errorf("read-next: %w", err)
 			}
@@ -154,18 +153,20 @@ func (ri *rowsIterator) readNext(returnRow bool) (r row, isLast bool, err error)
 		}
 		return rowEmpty, false, fmt.Errorf("read-next: %w", err)
 	}
-	fmt.Println(string(ri.buf))
-	prevRead = ri.buf
-	//if n != numBytesSingleLine {
-	//	return rowEmpty, false, fmt.Errorf("mismatch read: row can be corrupted: %s", string(ri.buf))
-	//}
+	copy(ri.previousRow, ri.buf)
+	if len(string(ri.buf)) == 0 {
+		return rowEmpty, false, nil
+	}
+	if n != numBytesSingleLine {
+		return rowEmpty, false, fmt.Errorf("mismatch read: row can be corrupted: %s", string(ri.buf))
+	}
 	if !returnRow {
 		// This is helpful if the caller just wants to iterate over the rows and not return any stuff. This can be
 		// done to move down a couple of lines and in such cases, we do not aim to do computation behind parsing
 		// a complete row, which can save a lot of time and resources.
 		return rowEmpty, false, nil
 	}
-	row, err := parseRow(prevRead)
+	row, err := parseRow(ri.buf)
 	if err != nil {
 		return rowEmpty, false, fmt.Errorf("read-next: %w", err)
 	}

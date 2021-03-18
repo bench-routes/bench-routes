@@ -1,6 +1,7 @@
 package dbv2
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -62,8 +63,15 @@ func TestCreateFileAndWriteIt(t *testing.T) {
 		err = tbBuffer.flushToIOBuffer(true)
 		require.NoError(t, err)
 	}
-	bSlice, err := ioutil.ReadFile(testFile)
+	//bSlice, err := ioutil.ReadFile(testFile)
+	//fmt.Println(string(bSlice))
 	require.NoError(t, err)
+	f, err := os.Open(testFile)
+	require.NoError(t, err)
+	bSlice, err := ioutil.ReadAll(f)
+	require.NoError(t, err)
+	fmt.Println("hereere")
+	fmt.Println(string(bSlice))
 	dr, err := NewDataReader(testFile)
 	require.NoError(t, err)
 	err = dr.Parse()
