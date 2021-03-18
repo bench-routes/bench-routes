@@ -1,4 +1,4 @@
-import { CssBaseline} from '@material-ui/core';
+import { CssBaseline } from '@material-ui/core';
 import { Container } from '@material-ui/core';
 import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
 import LinearProgress from '@material-ui/core/LinearProgress';
@@ -81,10 +81,29 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
+const sunIcon = makeStyles(() => ({
+  root: {
+    position: 'absolute',
+    right: 5,
+    top: 3,
+    color: '#f39c12'
+  }
+}));
+const moonIcon = makeStyles(() => ({
+  root: {
+    position: 'absolute',
+    left: 5,
+    top: 3,
+    color: '#f1c40f'
+  }
+}));
+
 export default function BaseLayout(props: any): ReactElement {
   // Access styles
   const classes = useStyles();
   const _classes = _useStyles();
+  const sunIconClasses = sunIcon();
+  const moonIconClasses = moonIcon();
   const [loader, setLoader] = useState<boolean>(false);
 
   const updateLoader = useCallback((status: boolean) => {
@@ -107,6 +126,7 @@ export default function BaseLayout(props: any): ReactElement {
   };
 
   return (
+<<<<<<< HEAD
     <ThemeContext.Provider value={!props.darkMode ? 'light' : 'dark'}>
       <div className={classes.root}>
         <CssBaseline />
@@ -164,6 +184,54 @@ export default function BaseLayout(props: any): ReactElement {
             <Navigator updateLoader={updateLoader} />
           </Container>
         </main>
+=======
+    <div className={classes.root}>
+      <CssBaseline />
+      {/* Navbar */}
+      <div className="_navbar">
+        <AppBar
+          position="absolute"
+          className={clsx(_classes.appBar, open && _classes.appBarShift)}
+        >
+          <Toolbar className={_classes.toolbar}>
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="open drawer"
+              onClick={handleDrawerOpen}
+              className={clsx(
+                _classes.menuButton,
+                open && _classes.menuButtonHidden
+              )}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography
+              component="h1"
+              variant="h6"
+              color="inherit"
+              noWrap={true}
+              className={_classes.title}
+            >
+              Bench Routes
+            </Typography>
+            <Switch
+              checked={props.darkMode}
+              onChange={handleToggleDarkMode}
+              offColor="#145D97"
+              onColor="#303030"
+              name="checkedB"
+              uncheckedIcon={
+                <Brightness7Sharp className={sunIconClasses.root} />
+              }
+              checkedIcon={
+                <Brightness2Sharp className={moonIconClasses.root} />
+              }
+            />
+          </Toolbar>
+          {loader ? <LinearProgress /> : null}
+        </AppBar>
+>>>>>>> css fix
       </div>
     </ThemeContext.Provider>
   );
