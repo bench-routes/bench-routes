@@ -21,6 +21,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import { truncate } from '../../utils/stringManipulations';
 import { Badge } from 'reactstrap';
 import TablePagination from '@material-ui/core/TablePagination';
+import SearchBar from 'material-ui-search-bar';
 
 type APIResponse<MatrixResponse> = { status: string; data: MatrixResponse };
 
@@ -246,6 +247,21 @@ const Matrix: FC<MatrixProps> = ({
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
+  const [rows, setRows] = useState<TimeSeriesPath[]>(timeSeriesPath);
+  const [searched, setSearched] = useState<string>('');
+
+  const requestSearch = (searchedVal: string) => {
+    const filteredRows = timeSeriesPath.filter(row => {
+      return row.name.toLowerCase().includes(searchedVal.toLowerCase());
+    });
+    setRows(filteredRows);
+  };
+
+  const cancelSearch = () => {
+    setSearched('');
+    requestSearch(searched);
+  };
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -256,6 +272,11 @@ const Matrix: FC<MatrixProps> = ({
   };
   return (
     <>
+      <SearchBar
+        value={searched}
+        onChange={searchVal => requestSearch(searchVal)}
+        onCancelSearch={() => cancelSearch()}
+      />
       <TableContainer>
         <Table stickyHeader>
           <TableHead>
@@ -276,7 +297,7 @@ const Matrix: FC<MatrixProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {timeSeriesPath
+            {rows
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((series, i) => (
                 <Element
@@ -292,7 +313,7 @@ const Matrix: FC<MatrixProps> = ({
       <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component="div"
-        count={timeSeriesPath.length}
+        count={rows.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onChangePage={handleChangePage}
