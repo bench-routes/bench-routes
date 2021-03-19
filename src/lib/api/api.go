@@ -318,11 +318,7 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("invalid request method: %s\n", t.Method)
 	}
 	a.Data = <-response
-<<<<<<< HEAD
-	a.Message = "success"
-=======
 
->>>>>>> fdea6935... Fix
 	a.send(w, a.marshalled())
 }
 
@@ -350,7 +346,6 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 	)
 	a.reloadConfigURLs <- struct{}{}
 	a.Data = "success"
-	a.Message = "success"
 	a.send(w, a.marshalled())
 }
 
