@@ -20,7 +20,7 @@ environment.
 2. Run `docker build -t bench-routes .`
 3. Run `docker run -p 9990:9990 -it bench-routes`
 
-## WSL
+## Installation Instructions for Windows system using WSL
 
 1. Install [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) in your windows machine.
 2. Install Golang in your WSL distro.
