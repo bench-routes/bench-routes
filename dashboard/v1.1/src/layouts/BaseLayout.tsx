@@ -87,15 +87,16 @@ const sunIcon = makeStyles(() => ({
 =======
 >>>>>>> changes switch size and color
     position: 'absolute',
-    // right: 0,
-    top: -1,
+    right: -1.5,
+    top: -1.5,
     padding: 4
   },
   moonIcon: {
     position: 'absolute',
-    // left: 1,
+    left: -2,
     top: -1,
-    padding: 4
+    padding: 4,
+    transform: 'rotate(160deg)',
   }
 }));
 
@@ -221,7 +222,7 @@ export default function BaseLayout(props: any): ReactElement {
               onColor="#303030"
               height={18}
               handleDiameter={20}
-              width={40}
+              width={36}
               uncheckedIcon={<Brightness7Sharp className={classes.sunIcon} />}
               checkedIcon={<Brightness2Sharp className={classes.moonIcon} />}
             />
