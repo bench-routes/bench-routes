@@ -35,6 +35,7 @@ const (
 type API struct {
 	ResponseStatus    string
 	Data, Services    interface{}
+	Message           string
 	Matrix            *map[string]*utils.BRMatrix
 	configurationPath string
 	config            *config.Config
@@ -293,14 +294,18 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 // of the react-UI.
 func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		panic(err)
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
+		return
 	}
 	var (
 		t       inputRequest
 		decoder = json.NewDecoder(r.Body)
 	)
 	if err := decoder.Decode(&t); err != nil {
-		panic(err)
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
+		return
 	}
 	req := request.New(t.URL, t.Headers, t.Params, t.Body, t.Labels)
 	response := make(chan request.ResponseWrapper)
@@ -313,6 +318,7 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("invalid request method: %s\n", t.Method)
 	}
 	a.Data = <-response
+
 	a.send(w, a.marshalled())
 }
 
@@ -323,7 +329,9 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 		decoder = json.NewDecoder(r.Body)
 	)
 	if err := decoder.Decode(&t); err != nil {
-		panic(err)
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
+		return
 	}
 	requestInstance := request.New(t.URL, t.Headers, t.Params, t.Body, t.Labels)
 	a.config.AddRoute(
@@ -373,20 +381,26 @@ func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Reque
 	service := reflect.ValueOf(a.Services).Elem()
 	sp, ok := service.FieldByName("Ping").Interface().(*ping.Ping)
 	if !ok {
-		panic("start-monitoring: ping not found")
+		a.Message = "start-monitoring: ping not found"
+		a.send(w, a.marshalled())
+		return
 	}
 
 	sp.Iterate(state, false)
 
 	sj, ok := service.FieldByName("Jitter").Interface().(*jitter.Jitter)
 	if !ok {
-		panic("start-monitoring: jitter not found")
+		a.Message = "start-monitoring: jitter not found"
+		a.send(w, a.marshalled())
+		return
 	}
 	sj.Iterate(state, false)
 
 	sm, ok := service.FieldByName("Monitor").Interface().(*monitor.Monitor)
 	if !ok {
-		panic("start-monitoring: monitor not found")
+		a.Message = "start-monitoring: monitor not found"
+		a.send(w, a.marshalled())
+		return
 	}
 	sm.Iterate(state, false)
 	a.send(w, a.marshalled())
@@ -397,21 +411,29 @@ func (a *API) GetMonitoringState(w http.ResponseWriter, _ *http.Request) {
 	service := reflect.ValueOf(a.Services).Elem()
 	sp, ok := service.FieldByName("Ping").Interface().(*ping.Ping)
 	if !ok {
-		panic("start-monitoring: ping not found")
+		a.Message = "start-monitoring: ping not found"
+		a.send(w, a.marshalled())
+		return
 	}
 
 	sj, ok := service.FieldByName("Jitter").Interface().(*jitter.Jitter)
 	if !ok {
-		panic("start-monitoring: jitter not found")
+		a.Message = "start-monitoring: jitter not found"
+		a.send(w, a.marshalled())
+		return
 	}
 
 	sm, ok := service.FieldByName("Monitor").Interface().(*monitor.Monitor)
 	if !ok {
-		panic("start-monitoring: monitor not found")
+		a.Message = "start-monitoring: monitor not found"
+		a.send(w, a.marshalled())
+		return
 	}
 
 	if sp.IsActive() != sj.IsActive() || sm.IsActive() != sp.IsActive() || sm.IsActive() != sj.IsActive() {
-		panic("states not aligned")
+		a.Message = "states not aligned"
+		a.send(w, a.marshalled())
+		return
 	}
 
 	if sp.IsActive() {
@@ -437,7 +459,9 @@ func (a *API) GetConfigRoutes(w http.ResponseWriter, _ *http.Request) {
 // ModifyIntervalDuration modifies a specific interval duration in the config file.
 func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		panic(err)
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
+		return
 	}
 	var req struct {
 		IntervalName string `json:"intervalName"`
@@ -445,7 +469,9 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 	}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&req); err != nil {
-		panic(err)
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
+		return
 	}
 	if num, err := strconv.Atoi(req.Value); err == nil {
 		n := int64(num)
@@ -473,7 +499,9 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 // UpdateRoute updates a route in the local config.
 func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		panic(err)
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
+		return
 	}
 	var (
 		req struct {
@@ -488,7 +516,9 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 		decoder = json.NewDecoder(r.Body)
 	)
 	if err := decoder.Decode(&req); err != nil {
-		panic(err)
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
+		return
 	}
 	requestInstance := request.New(req.URL, req.Headers, req.Params, req.Body, req.Labels)
 	for i, route := range a.config.Config.Routes {
@@ -517,14 +547,18 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 // DeleteConfigRoutes removes a route from the config screen.
 func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		panic(err)
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
+		return
 	}
 	var req struct {
 		ActualRoute string `json:"actualRoute"`
 	}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&req); err != nil {
-		panic(err)
+		a.Message = err.Error()
+		a.send(w, a.marshalled())
+		return
 	}
 	for i, route := range a.config.Config.Routes {
 		if route.URL == req.ActualRoute {
@@ -563,11 +597,13 @@ func (a *API) GetLabels(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) marshalled() []byte {
 	response := struct {
-		Status string      `json:"status"`
-		Data   interface{} `json:"data"`
+		Status  string      `json:"status"`
+		Data    interface{} `json:"data"`
+		Message string      `json:"message"`
 	}{
-		Status: a.ResponseStatus,
-		Data:   a.Data,
+		Status:  a.ResponseStatus,
+		Data:    a.Data,
+		Message: a.Message,
 	}
 	js, err := json.Marshal(response)
 	if err != nil {
