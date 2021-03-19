@@ -276,6 +276,16 @@ const Matrix: FC<MatrixProps> = ({
         value={searched}
         onChange={searchVal => requestSearch(searchVal)}
         onCancelSearch={() => cancelSearch()}
+        placeholder="Search here"
+        style={{
+          borderRadius: 0,
+          boxShadow: 'none',
+          borderBottom: '1px solid rgba(224, 224, 224, 1)',
+          backgroundColor: '#fafafa',
+          fontWeight: 600,
+          fontSize: 15,
+          color: '#000'
+        }}
       />
       <TableContainer>
         <Table stickyHeader>
