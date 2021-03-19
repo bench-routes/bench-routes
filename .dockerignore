@@ -1,0 +1,16 @@
+build/
+tmp_build/
+src/build/
+bench-routes
+glide.lock
+tests/node_modules
+dashboard/package-lock.json
+dashboard/node_modules
+**/node_modules
+collector-store
+storage
+.idea/
+*.lock
+
+# testfiles
+src/lib/modules/testfiles/*.json
