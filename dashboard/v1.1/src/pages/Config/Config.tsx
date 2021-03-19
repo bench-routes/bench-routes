@@ -132,7 +132,7 @@ const Config = () => {
           <h4>Scrape Intervals</h4>
           <hr />
         </CardContent>
-        <Grid container spacing={1}>
+        <Grid container spacing={1} justify="space-around">
           {configIntervals?.map((interval: IntervalType) => {
             const { test, duration, unit } = interval;
             return (
