@@ -67,6 +67,7 @@ const useStyles = makeStyles(theme => ({
     paddingBottom: theme.spacing(4)
   },
   sunIcon: {
+<<<<<<< HEAD
     position: 'absolute',
     right: -1.5,
     top: -1.5,
@@ -83,18 +84,18 @@ const useStyles = makeStyles(theme => ({
 
 const sunIcon = makeStyles(() => ({
   root: {
+=======
+>>>>>>> changes switch size and color
     position: 'absolute',
-    right: 5,
-    top: 3,
-    color: '#f39c12'
-  }
-}));
-const moonIcon = makeStyles(() => ({
-  root: {
+    // right: 0,
+    top: -1,
+    padding: 4
+  },
+  moonIcon: {
     position: 'absolute',
-    left: 5,
-    top: 3,
-    color: '#f1c40f'
+    // left: 1,
+    top: -1,
+    padding: 4
   }
 }));
 
@@ -102,8 +103,6 @@ export default function BaseLayout(props: any): ReactElement {
   // Access styles
   const classes = useStyles();
   const _classes = _useStyles();
-  const sunIconClasses = sunIcon();
-  const moonIconClasses = moonIcon();
   const [loader, setLoader] = useState<boolean>(false);
 
   const updateLoader = useCallback((status: boolean) => {
@@ -220,13 +219,11 @@ export default function BaseLayout(props: any): ReactElement {
               onChange={handleToggleDarkMode}
               offColor="#145D97"
               onColor="#303030"
-              name="checkedB"
-              uncheckedIcon={
-                <Brightness7Sharp className={sunIconClasses.root} />
-              }
-              checkedIcon={
-                <Brightness2Sharp className={moonIconClasses.root} />
-              }
+              height={18}
+              handleDiameter={20}
+              width={40}
+              uncheckedIcon={<Brightness7Sharp className={classes.sunIcon} />}
+              checkedIcon={<Brightness2Sharp className={classes.moonIcon} />}
             />
           </Toolbar>
           {loader ? <LinearProgress /> : null}
