@@ -31,8 +31,8 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '15px',
     borderRadius: 15,
     marginRight: '0.5rem',
-    minWidth: 'max-content',
-    marginTop: '0.4rem'
+    marginTop: '0.4rem',
+    maxWidth: 'max-content',
   },
   popper: {
     border: '1px solid rgba(27,31,35,.15)',
@@ -103,7 +103,8 @@ const useStyles = makeStyles(theme => ({
     marginTop: 2
   },
   text: {
-    flexGrow: 1
+    flexGrow: 1,
+    color: theme.palette.type==='dark'? '#fff': '#586069',
   },
   close: {
     opacity: 0.6,
