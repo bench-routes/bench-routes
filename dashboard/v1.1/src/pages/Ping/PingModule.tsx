@@ -53,6 +53,7 @@ const PingModule: FC<{}> = () => {
   const [value] = useState(routesDetails !== undefined ? routesDetails : '');
   const [inputValue, setInputValue] = useState('');
   const [showCharts, setShowCharts] = useState(false);
+  const [renderError, setRenderError] = useState(false);
   const [pingData, setPingData] = useState<showChartsDataParam>();
 
   const { response, error } = useFetch<service_states>(
@@ -87,8 +88,10 @@ const PingModule: FC<{}> = () => {
       var formatdata = format(matrix.data);
       setPingData(formatdata);
       setShowCharts(true);
+      setRenderError(false);
     } catch (e) {
       console.error(e);
+      setRenderError(true);
     }
   }
 
@@ -135,13 +138,17 @@ const PingModule: FC<{}> = () => {
         <br />
         <hr />
         <div>
-          {pingData !== undefined && showCharts ? (
-            <Ping
-              min={pingData.pingMin}
-              mean={pingData.pingMean}
-              max={pingData.pingMax}
-            />
-          ) : null}
+          {!renderError ? (
+            pingData !== undefined && showCharts ? (
+              <Ping
+                min={pingData.pingMin}
+                mean={pingData.pingMean}
+                max={pingData.pingMax}
+              />
+            ) : null
+          ) : (
+            <Alert severity="error">No data found</Alert>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -39,6 +39,7 @@ const JitterModule: FC<{}> = () => {
   const [value] = useState(routesDetails !== undefined ? routesDetails : '');
   const [inputValue, setInputValue] = useState('');
   const [showCharts, setShowCharts] = useState(false);
+  const [renderError, setRenderError] = useState(false);
   const [jitterData, setJitterData] = useState<showChartsDataParam>();
 
   const { response, error } = useFetch<service_states>(
@@ -73,8 +74,10 @@ const JitterModule: FC<{}> = () => {
       var formatdata = format(matrix.data);
       setJitterData(formatdata);
       setShowCharts(true);
+      setRenderError(false);
     } catch (e) {
       console.error(e);
+      setRenderError(true);
     }
   }
 
@@ -119,9 +122,13 @@ const JitterModule: FC<{}> = () => {
         <br />
         <hr />
         <div>
-          {jitterData !== undefined && showCharts ? (
-            <Jitter value={jitterData.jitter} />
-          ) : null}
+          {!renderError ? (
+            jitterData !== undefined && showCharts ? (
+              <Jitter value={jitterData.jitter} />
+            ) : null
+          ) : (
+            <Alert severity="error">No data found</Alert>
+          )}
         </div>
       </CardContent>
     </Card>
