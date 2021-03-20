@@ -135,18 +135,10 @@ const RouteDetailsComponent: FC<RouteDetailsProps> = ({
       <hr />
       <AppBar position="static">
         <Tabs value={value} onChange={handleChange} indicatorColor="secondary">
-          <Tab
-            label="Response length"
-            {...a11yProps(0)}
-            style={{ outline: 0 }}
-          />
-          <Tab
-            label="Response delay"
-            {...a11yProps(1)}
-            style={{ outline: 0 }}
-          />
-          <Tab label="Ping" {...a11yProps(2)} style={{ outline: 0 }} />
-          <Tab label="Jitter" {...a11yProps(3)} style={{ outline: 0 }} />
+          <Tab label="Response length" {...a11yProps(0)} />
+          <Tab label="Response delay" {...a11yProps(1)} />
+          <Tab label="Ping" {...a11yProps(2)} />
+          <Tab label="Jitter" {...a11yProps(3)} />
         </Tabs>
       </AppBar>
       <TabPanel value={value} index={0}>
