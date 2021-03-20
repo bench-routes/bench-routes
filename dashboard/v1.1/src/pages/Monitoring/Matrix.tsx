@@ -22,6 +22,7 @@ import { truncate } from '../../utils/stringManipulations';
 import { Badge } from 'reactstrap';
 import TablePagination from '@material-ui/core/TablePagination';
 import SearchBar from 'material-ui-search-bar';
+import { makeStyles } from '@material-ui/core/styles';
 
 type APIResponse<MatrixResponse> = { status: string; data: MatrixResponse };
 
@@ -38,6 +39,22 @@ interface ElementProps {
 }
 
 const Pad: FC<{}> = () => <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>;
+
+const useStyles = makeStyles({
+  searchBar: {
+    borderRadius: 4,
+    boxShadow: 'none',
+    border: '1px solid rgba(0, 0, 0, 0.23)',
+    backgroundColor: '#fff',
+    fontWeight: 600,
+    fontSize: 15,
+    color: '#000',
+    marginBottom: 5,
+    '&:hover': {
+      border: '1px solid rgba(0, 0, 0, 1)'
+    }
+  }
+});
 
 const Element: FC<ElementProps> = ({
   timeSeriesPath,
@@ -244,6 +261,7 @@ const Matrix: FC<MatrixProps> = ({
   isMonitoringActive,
   showRouteDetails
 }) => {
+  const classes = useStyles();
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
@@ -277,15 +295,8 @@ const Matrix: FC<MatrixProps> = ({
         onChange={searchVal => requestSearch(searchVal)}
         onCancelSearch={() => cancelSearch()}
         placeholder="Search here"
-        style={{
-          borderRadius: 0,
-          boxShadow: 'none',
-          borderBottom: '1px solid rgba(224, 224, 224, 1)',
-          backgroundColor: '#fafafa',
-          fontWeight: 600,
-          fontSize: 15,
-          color: '#000'
-        }}
+        className={classes.searchBar}
+        style={{}}
       />
       <TableContainer>
         <Table stickyHeader>
