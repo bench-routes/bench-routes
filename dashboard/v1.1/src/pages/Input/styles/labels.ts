@@ -29,7 +29,7 @@ const useStyles = makeStyles(theme => ({
     fontWeight: 600,
     lineHeight: '15px',
     borderRadius: 2,
-    minWidth: 'max-content',
+    maxWidth: 'max-content',
     marginRight: '0.2rem'
   },
   popper: {
@@ -101,7 +101,8 @@ const useStyles = makeStyles(theme => ({
     marginTop: 2
   },
   text: {
-    flexGrow: 1
+    flexGrow: 1,
+    color: theme.palette.type==='dark'? '#fff': '#586069',
   },
   close: {
     opacity: 0.6,
@@ -118,8 +119,11 @@ const useStyles = makeStyles(theme => ({
     }
   },
   value: {
-    overflowX: 'scroll',
-    display: 'flex'
+    // overflowX: 'scroll',
+    display: 'flex',
+    flexDirection:'row',
+    alignItems: 'flex-start',
+    overflowWrap: 'break-word',
   }
 }));
 
