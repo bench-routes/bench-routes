@@ -11,8 +11,9 @@ import {
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Alert from '@material-ui/lab/Alert';
 import { formatTime } from '../../utils/brt';
-import Ping from '../Monitoring/Ping';
 import { filterUrl } from '../../utils/filterUrl';
+import { PING_OPTIONS } from '../../utils/constants/chart';
+import ChartComponent from '../Monitoring/Chart';
 
 const format = (datas: QueryResponse) => {
   const pingMin: chartData[] = [];
@@ -34,25 +35,16 @@ const format = (datas: QueryResponse) => {
     });
   }
 
-  return {
-    pingMin,
-    pingMean,
-    pingMax
-  };
+  const ping = [...pingMin, ...pingMean, ...pingMax];
+  return ping;
 };
-
-interface showChartsDataParam {
-  pingMin: chartData[];
-  pingMean: chartData[];
-  pingMax: chartData[];
-}
 
 const PingModule: FC<{}> = () => {
   const [routesDetails, setRoutesDetails] = useState<RoutesSummary>();
   const [value] = useState(routesDetails?.testServicesRoutes[0]);
   const [inputValue, setInputValue] = useState('');
   const [showCharts, setShowCharts] = useState(false);
-  const [pingData, setPingData] = useState<showChartsDataParam>();
+  const [pingData, setPingData] = useState<chartData[]>();
 
   const { response, error } = useFetch<service_states>(
     `${HOST_IP}/service-state`
@@ -129,10 +121,10 @@ const PingModule: FC<{}> = () => {
         <hr />
         <div>
           {pingData !== undefined && showCharts ? (
-            <Ping
-              min={pingData.pingMin}
-              mean={pingData.pingMean}
-              max={pingData.pingMax}
+            <ChartComponent
+              name="Ping"
+              values={pingData}
+              options={PING_OPTIONS}
             />
           ) : null}
         </div>
