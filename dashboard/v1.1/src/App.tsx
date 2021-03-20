@@ -10,7 +10,9 @@ import './assets/bootstrap.min.css';
 import BaseLayout from './layouts/BaseLayout';
 
 function App() {
-  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [darkMode, setDarkMode] = useState<boolean>(
+    localStorage.getItem('dark-mode') === 'true' ? true : false
+  );
   let theme = createMuiTheme({
     palette: {
       // Provides you with all

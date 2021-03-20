@@ -1,5 +1,7 @@
 import React, { FC } from 'react';
 import Chart from 'react-apexcharts';
+import Alert from '@material-ui/lab/Alert';
+
 import { chartData } from '../../utils/queryTypes';
 
 interface DelayProps {
@@ -42,7 +44,15 @@ const Delay: FC<DelayProps> = ({ delay }) => {
       }
     }
   };
-  return <Chart series={series} options={options} height="300" />;
+  return (
+    <>
+      {!delay.length ? (
+        <Alert severity="error">No data found</Alert>
+      ) : (
+        <Chart series={series} options={options} height="300" />
+      )}
+    </>
+  );
 };
 
 export default Delay;

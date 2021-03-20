@@ -20,6 +20,7 @@ import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import Tooltip from '@material-ui/core/Tooltip';
 import { truncate } from '../../utils/stringManipulations';
 import { Badge } from 'reactstrap';
+import TablePagination from '@material-ui/core/TablePagination';
 
 type APIResponse<MatrixResponse> = { status: string; data: MatrixResponse };
 
@@ -47,6 +48,10 @@ const Element: FC<ElementProps> = ({
   const [updating, setUpdating] = useState<boolean>(true);
   const [warning, showWarning] = useState<boolean>(false);
   const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
+
+  const columnStyle = {
+    fontSize: '1.4em'
+  };
 
   const fetchTimeSeriesDetails = async (instance: TimeSeriesPath) => {
     const monitoringDetails = new Promise<RouteDetails>((resolve, reject) => {
@@ -137,11 +142,7 @@ const Element: FC<ElementProps> = ({
   return (
     <TableRow>
       <TableCell
-        style={{
-          maxWidth: 240,
-          fontSize: 16,
-          overflowX: 'hidden'
-        }}
+        style={{ ...columnStyle, maxWidth: 200, overflowX: 'hidden' }}
         align="left"
       >
         <Badge color="light">
@@ -150,7 +151,7 @@ const Element: FC<ElementProps> = ({
           </Tooltip>
         </Badge>
       </TableCell>
-      <TableCell style={{ minWidth: 100, fontSize: 16 }} align="center">
+      <TableCell style={columnStyle} align="center">
         <Badge color="warning">
           {!data.ping ? (
             '-'
@@ -164,7 +165,7 @@ const Element: FC<ElementProps> = ({
           ms
         </Badge>
       </TableCell>
-      <TableCell style={{ minWidth: 120, fontSize: 16 }} align="center">
+      <TableCell style={columnStyle} align="center">
         <Badge color="warning">
           {!data.jitter ? (
             '-'
@@ -178,7 +179,7 @@ const Element: FC<ElementProps> = ({
           ms
         </Badge>
       </TableCell>
-      <TableCell style={{ minWidth: 150, fontSize: 16 }} align="center">
+      <TableCell style={columnStyle} align="center">
         <Badge color="warning">
           {!data.monitor ? (
             '-'
@@ -193,7 +194,7 @@ const Element: FC<ElementProps> = ({
           ms
         </Badge>
       </TableCell>
-      <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
+      <TableCell style={columnStyle} align="center">
         <Badge color="warning">
           {!data.monitor ? (
             '-'
@@ -206,7 +207,7 @@ const Element: FC<ElementProps> = ({
           )}
         </Badge>
       </TableCell>
-      <TableCell style={{ minWidth: 170, fontSize: 16 }} align="center">
+      <TableCell style={columnStyle} align="center">
         {!data.monitor ? (
           <Badge color="warning"> {'-'} </Badge>
         ) : (
@@ -221,7 +222,7 @@ const Element: FC<ElementProps> = ({
           </>
         )}
       </TableCell>
-      <TableCell style={{ minWidth: 10, fontSize: 16 }} align="center">
+      <TableCell style={columnStyle} align="center">
         {warning ? (
           <WarningOutlinedIcon />
         ) : updating ? (
@@ -241,38 +242,63 @@ const Matrix: FC<MatrixProps> = ({
   timeSeriesPath,
   isMonitoringActive,
   showRouteDetails
-}) => (
-  <TableContainer style={{ maxHeight: '70vh', overflowY: 'scroll' }}>
-    <Table stickyHeader>
-      <TableHead>
-        <TableRow>
-          {columns.map((column, i) => (
-            <TableCell
-              key={i}
-              align={column.align}
-              style={{
-                minWidth: column.minWidth,
-                fontWeight: 600,
-                fontSize: 15
-              }}
-            >
-              {column.label}
-            </TableCell>
-          ))}
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {timeSeriesPath.map((series, i) => (
-          <Element
-            timeSeriesPath={series}
-            showRouteDetails={showRouteDetails}
-            isMonitoringActive={isMonitoringActive}
-            key={i}
-          />
-        ))}
-      </TableBody>
-    </Table>
-  </TableContainer>
-);
+}) => {
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = event => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
+  };
+  return (
+    <>
+      <TableContainer>
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              {columns.map((column, i) => (
+                <TableCell
+                  key={i}
+                  align={column.align}
+                  style={{
+                    minWidth: column.minWidth,
+                    fontWeight: 600,
+                    fontSize: 15
+                  }}
+                >
+                  {column.label}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {timeSeriesPath
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((series, i) => (
+                <Element
+                  timeSeriesPath={series}
+                  showRouteDetails={showRouteDetails}
+                  isMonitoringActive={isMonitoringActive}
+                  key={i}
+                />
+              ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[10, 25, 100]}
+        component="div"
+        count={timeSeriesPath.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onChangePage={handleChangePage}
+        onChangeRowsPerPage={handleChangeRowsPerPage}
+      />
+    </>
+  );
+};
 export default Matrix;
