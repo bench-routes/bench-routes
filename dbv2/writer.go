@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -43,48 +44,51 @@ type DataTable struct {
 	mux               *sync.RWMutex
 	offset            int16
 	minWriteTimestamp uint64
-	tableBuffer       []*writeData
-	writer            *tableWriter
+	buffer            *TableBuffer
 }
 
-func CreateDataTable(path string) (*DataTable, error) {
+// OpenRWDataTable opens or create a new DataTable that can be either read and written. It creates a new DataTable
+// at the specified path if a table does not exist there and returns true.
+func OpenRWDataTable(path string) (dtbl *DataTable, isCreated bool, err error) {
 	var file *os.File
 	// Verify if file exists.
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		fmt.Println("creating new file")
 		file, err = os.Create(path)
 		if err != nil {
-			return nil, fmt.Errorf("create data-table: creating new data-table file: %w", err)
+			return dtbl, false, fmt.Errorf("create data-table: creating new data-table file: %w", err)
 		}
+		isCreated = true
 		if _, err = file.WriteString(fmt.Sprintf("maxValidLength: %d chars", validLength)); err != nil {
 			os.Remove(file.Name())
-			return nil, fmt.Errorf("create data-table: writing maxValidLength: %w", err)
+			return dtbl, isCreated, fmt.Errorf("create data-table: writing maxValidLength: %w", err)
 		}
 		if _, err = file.Write([]byte("\n\n")); err != nil {
 			os.Remove(file.Name())
-			return nil, fmt.Errorf("writing empty lines: %w", err)
+			return dtbl, isCreated, fmt.Errorf("writing empty lines: %w", err)
 		}
 	} else {
-		fmt.Println("opening new file")
 		file, err = os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0666)
 		if err != nil {
-			return nil, fmt.Errorf("create data-table: open existing data-table file: %w", err)
+			return dtbl, isCreated, fmt.Errorf("create data-table: open existing data-table file: %w", err)
 		}
-		// TODO (harkishen): verify the maxLength by reading from file.
+
 	}
-	dtbl := &DataTable{
+	dtbl = &DataTable{
 		File:              file,
 		mux:               new(sync.RWMutex),
 		offset:            3,
 		minWriteTimestamp: 0,
 	}
-	return dtbl, nil
+	dtbl.buffer = NewTableBuffer(dtbl, dtbl.mux, 2, 100, time.Minute)
+	return
 }
 
 type tableWriter struct {
-	tableWriter     *bufio.Writer
-	mux             *sync.RWMutex
-	minAcceptableTs uint64
+	index               *tableIndex
+	currentBytePosition uint64
+	tableWriter         *bufio.Writer
+	mux                 *sync.RWMutex
+	minAcceptableTs     uint64
 }
 
 type writeData struct {
@@ -95,27 +99,68 @@ type writeData struct {
 
 var writeDataPool = sync.Pool{New: func() interface{} { return new(writeData) }}
 
-type Table struct {
-	writer *tableWriter
-	// similarly a reader here.
+type tableIndex struct {
+	mux   sync.RWMutex
+	index map[uint64][]uint64
 }
 
+func NewTableIndex() *tableIndex {
+	return &tableIndex{
+		index: make(map[uint64][]uint64),
+	}
+}
+
+// Add adds the gap between the byte position of previous value of supplied series_id and the current insertion.
+func (ti *tableIndex) Add(series_id uint64, currentByteVal uint64) error {
+	ti.mux.Lock()
+	defer ti.mux.Unlock()
+	if _, ok := ti.index[series_id]; !ok {
+		ti.index[series_id] = []uint64{currentByteVal}
+		return nil
+	}
+	l := len(ti.index[series_id])
+	if currentByteVal <= ti.index[series_id][l-1] {
+		// Index of ending position of insertion into table is always increasing in order. If this is not found,
+		// we should error the insert as this would be a faulty insert.
+		return fmt.Errorf(
+			"inserting endAtPos should always be greater than the previous endAtPos for that series: expected pos >%d, received pos %d",
+			ti.index[series_id][l-1],
+			currentByteVal,
+		)
+	}
+	ti.index[series_id] = append(ti.index[series_id], currentByteVal)
+	return nil
+}
+
+// Get returns the ending positions of the entries. If not found, it returns an empty array.
+func (ti *tableIndex) Get(series_id uint64) (positionGapIndices []uint64) {
+	ti.mux.RLock()
+	defer ti.mux.RUnlock()
+	if positionGapIndices, ok := ti.index[series_id]; ok {
+		return positionGapIndices
+	}
+	return []uint64{}
+}
+
+// TableBuffer is a in-memory table that is in raw format and is yet to be commited.
 type TableBuffer struct {
 	bufferMux     sync.RWMutex
 	data          []*writeData
 	cap           uint64
 	size          uint64
 	flushDeadline time.Duration
-	Table         *Table
+	tableCopy     *DataTable
+	writer        *tableWriter
 }
 
+// NewTableBuffer returns a new TableBuffer.
 func NewTableBuffer(dataTable *DataTable, mux *sync.RWMutex, cap uint64, ioBufferSize int, flushDeadline time.Duration) *TableBuffer {
+	index := NewTableIndex()
 	return &TableBuffer{
 		cap:           cap,
 		flushDeadline: flushDeadline,
-		Table: &Table{
-			writer: newTableWriter(dataTable, mux, ioBufferSize),
-		},
+		tableCopy:     dataTable,
+		writer:        newTableWriter(dataTable, mux, ioBufferSize, index),
 	}
 }
 
@@ -157,8 +202,7 @@ func (tbuf *TableBuffer) flushToIOBuffer(flushIOBuffer bool) error {
 	})
 	for i := uint64(0); i < tbuf.size; i++ {
 		r := tbuf.data[i]
-		if err := tbuf.Table.writer.writeToTable(r.timestamp, r.id, r.valueSet); err != nil {
-			fmt.Println("write to table failed. putting rows back into pool")
+		if err := tbuf.writer.writeToTable(r.timestamp, r.id, r.valueSet); err != nil {
 			release(i)
 			return fmt.Errorf("flush to io-buffer: %w", err)
 		}
@@ -167,17 +211,20 @@ func (tbuf *TableBuffer) flushToIOBuffer(flushIOBuffer bool) error {
 	tbuf.size = 0
 	tbuf.data = []*writeData{}
 	if flushIOBuffer {
-		if err := tbuf.Table.writer.commit(); err != nil {
+		release(0)
+		if err := tbuf.writer.commit(); err != nil {
 			return fmt.Errorf("flush to io-buffer: flushIOBuffer: %w", err)
 		}
 	}
+	release(0)
 	return nil
 }
 
-func newTableWriter(dataTable *DataTable, mux *sync.RWMutex, tableIOBufferSize int) *tableWriter {
+func newTableWriter(dataTable *DataTable, mux *sync.RWMutex, tableIOBufferSize int, index *tableIndex) *tableWriter {
 	return &tableWriter{
-		tableWriter: bufio.NewWriterSize(dataTable, tableIOBufferSize*validLength), // Buffer size corresponds to total number of rows.
 		mux:         mux,
+		index:       index,
+		tableWriter: bufio.NewWriterSize(dataTable, tableIOBufferSize*validLength), // Buffer size corresponds to total number of rows.
 	}
 }
 
@@ -201,17 +248,24 @@ func (w *tableWriter) writeToTable(timestamp, id uint64, valueSet string) error 
 	}
 	w.mux.Lock()
 	defer w.mux.Unlock()
-	if _, err = w.tableWriter.Write(serialized); err != nil {
+	endAt, err := w.tableWriter.Write(serialized)
+	if err != nil {
 		if err == bufio.ErrBufferFull {
-			fmt.Println("buffer full, flushing to disk and attempting again")
 			if err = w.commit(); err != nil {
 				return fmt.Errorf("commit: %w", err)
 			}
 			if _, err = w.tableWriter.Write(serialized); err != nil {
 				return fmt.Errorf("failed retrying write single after flush: %w", err)
 			}
+		} else {
+			return fmt.Errorf("tableWriter.Write(): %w", err)
 		}
 	}
+	currPos := atomic.LoadUint64(&w.currentBytePosition)
+	if err := w.index.Add(id, currPos); err != nil {
+		fmt.Println("warn: ", "index.Add(): ", err.Error())
+	}
+	atomic.AddUint64(&w.currentBytePosition, uint64(endAt))
 	if timestamp > w.minAcceptableTs {
 		w.minAcceptableTs = timestamp
 	}
@@ -229,21 +283,18 @@ func (w *tableWriter) commit() error {
 
 func serializeWrite(timestamp, seriesID uint64, value string) ([]byte, error) {
 	// todo: needs a test
-	str := fmt.Sprintf("%d%c%d%c%s", timestamp, typeSeparator, seriesID, typeSeparator, value)
+	str := fmt.Sprintf("%d%c%d%c%s\n", timestamp, typeSeparator, seriesID, typeSeparator, value)
 	if l := len(str); l > validLength {
 		return nil, fmt.Errorf("length greater than the valid-length: received %d wanted %d", l, validLength)
 	}
-	inBytes := []byte(str)
-	requiredNumBytesPadding := numBytesSingleLine - len(inBytes) - 2 // todo: needs a test. note: -1 is the symbol size of \n and another -1 is symbol size of endSymbol.
-	if requiredNumBytesPadding < 0 {
-		return nil, fmt.Errorf("writing string cannot be greater than the maximum permitted value")
-	}
-	padding := make([]byte, requiredNumBytesPadding)
-	inBytes = append(inBytes, rowEndSymbolByte)
-	inBytes = append(inBytes, padding...)
-	inBytes = append(inBytes, newLineSymbolByte)
-	if len(inBytes) != numBytesSingleLine {
-		return nil, fmt.Errorf("serialize-write: byte array does not respect upper bound of line length")
-	}
-	return inBytes, nil
+	//inBytes := []byte(str)
+	//requiredNumBytesPadding := numBytesSingleLine - len(inBytes) - 2 // todo: needs a test. note: -1 is the symbol size of \n and another -1 is symbol size of endSymbol.
+	//if requiredNumBytesPadding < 0 {
+	//	return nil, fmt.Errorf("writing string cannot be greater than the maximum permitted value")
+	//}
+	//inBytes = append(inBytes, newLineSymbolByte)
+	//if len(inBytes) != numBytesSingleLine {
+	//	return nil, fmt.Errorf("serialize-write: byte array does not respect upper bound of line length")
+	//}
+	return []byte(str), nil
 }

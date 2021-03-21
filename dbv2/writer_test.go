@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateFileAndWriteIt(t *testing.T) {
+func TestCreateFile_Write_Read(t *testing.T) {
 	contents := []struct {
 		timestamp, seriesID uint64
 		values              []string
@@ -41,43 +41,55 @@ func TestCreateFileAndWriteIt(t *testing.T) {
 			seriesID:  1,
 			values:    []string{"234.5", "11.2", "3"},
 		},
+		{
+			timestamp: 500,
+			seriesID:  1,
+			values:    []string{"234.5", "11.2", "3"},
+		},
+		{
+			timestamp: 800,
+			seriesID:  1,
+			values:    []string{"234.5", "11.2", "3"},
+		},
 	}
 	expected := `maxValidLength: 100 chars
 
-1|1|234.5:11.2:3\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00
-10|1|234.5:11.2:3\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00
-100|1|234.5:11.2:3\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00
-200|1|234.5:11.2:3\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00
-300|1|234.5:11.2:3\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00`
+1|1|234.5:11.2:3
+10|1|234.5:11.2:3
+100|1|234.5:11.2:3
+200|1|234.5:11.2:3
+300|1|234.5:11.2:3
+500|1|234.5:11.2:3
+800|1|234.5:11.2:3
+`
 	testFile := "test_writer_file"
-	dtbl, err := CreateDataTable(testFile)
+	dtbl, created, err := OpenRWDataTable(testFile)
 	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, os.Remove(testFile))
+	}()
+	require.True(t, created, "RWDatatable")
 
-	tbBuffer := NewTableBuffer(dtbl, &sync.RWMutex{}, 2, 1000, time.Minute)
 	for _, c := range contents {
-		err := tbBuffer.Write(c.timestamp, c.seriesID, ConvertValueToValueSet(c.values[0], c.values[1], c.values[2]))
+		err := dtbl.buffer.Write(c.timestamp, c.seriesID, ConvertValueToValueSet(c.values[0], c.values[1], c.values[2]))
 		require.NoError(t, err, "writing contents")
 		// Keeping flushToIOBuffer(true) in for loop, is the actual tough part for the test to pass. Passing here would mean there is no
 		// duplication of data (which is what we want). Ideally, this would be kept after the loop for write is done, but since this is testing,
 		// we want to make sure for edge cases.
-		err = tbBuffer.flushToIOBuffer(true)
+		err = dtbl.buffer.flushToIOBuffer(true)
 		require.NoError(t, err)
 	}
-	//bSlice, err := ioutil.ReadFile(testFile)
-	//fmt.Println(string(bSlice))
-	require.NoError(t, err)
-	f, err := os.Open(testFile)
-	require.NoError(t, err)
-	bSlice, err := ioutil.ReadAll(f)
-	require.NoError(t, err)
-	fmt.Println("hereere")
-	fmt.Println(string(bSlice))
-	dr, err := NewDataReader(testFile)
-	require.NoError(t, err)
-	err = dr.Parse()
+	bSlice, err := ioutil.ReadFile(testFile)
 	require.NoError(t, err)
 	require.Equal(t, []byte(expected), bSlice, "matching write result")
-	require.NoError(t, os.Remove(testFile))
+	fmt.Println(dtbl.buffer.writer.index)
+
+	// reading
+	reader, err := NewTableReader(testFile)
+	require.NoError(t, err)
+	rows, err := reader.read(dtbl.buffer.writer.index.Get(1))
+	require.NoError(t, err)
+	fmt.Println(rows)
 }
 
 func TestUnorderedInserts(t *testing.T) {
@@ -150,7 +162,7 @@ func TestUnorderedInserts(t *testing.T) {
 300000|1|234.5:11.2:3
 `
 	testFile := "test_unordered_inserts_file"
-	dtbl, err := CreateDataTable(testFile)
+	dtbl, _, err := OpenRWDataTable(testFile)
 	require.NoError(t, err)
 	tbBuffer := NewTableBuffer(dtbl, &sync.RWMutex{}, uint64(len(contents)), 1000, time.Minute)
 	for _, c := range contents {
