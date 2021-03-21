@@ -7,6 +7,10 @@
   pointer-events: none;
 }
 
+button:focus {
+  outline: 0px !important;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
@@ -42,5 +46,5 @@
 }
 
 .inner-head {
-  margin: '2% 0% 2% 0%'
+  margin: '2% 0% 2% 0%';
 }

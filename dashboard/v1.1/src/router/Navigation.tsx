@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
 import { HashRouter as Router, Route, Switch } from 'react-router-dom';
+import QuickInputFab from '../layouts/QuickInputFab';
 import Config from '../pages/Config/Config';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import FloodPing from '../pages/FloodPing';
@@ -7,7 +8,6 @@ import Input from '../pages/Input/Input';
 import JitterModule from '../pages/Jitter/JitterModule';
 import Monitoring from '../pages/Monitoring/Monitoring';
 import PingModule from '../pages/Ping/PingModule';
-import QuickInputFab from '../layouts/QuickInputFab';
 
 interface NavigatorProps {
   updateLoader(status: boolean): void;
