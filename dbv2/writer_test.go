@@ -2,13 +2,10 @@ package dbv2
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
-	"sync"
 	"testing"
-	"time"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestCreateFile_Write_Read(t *testing.T) {
@@ -164,15 +161,21 @@ func TestUnorderedInserts(t *testing.T) {
 	testFile := "test_unordered_inserts_file"
 	dtbl, _, err := OpenRWDataTable(testFile)
 	require.NoError(t, err)
-	tbBuffer := NewTableBuffer(dtbl, &sync.RWMutex{}, uint64(len(contents)), 1000, time.Minute)
+	defer func() {
+		require.NoError(t, os.Remove(testFile))
+	}()
 	for _, c := range contents {
-		err := tbBuffer.Write(c.timestamp, c.seriesID, ConvertValueToValueSet(c.values[0], c.values[1], c.values[2]))
+		err := dtbl.buffer.Write(c.timestamp, c.seriesID, ConvertValueToValueSet(c.values[0], c.values[1], c.values[2]))
 		require.NoError(t, err, "writing contents")
 	}
-	err = tbBuffer.flushToIOBuffer(true)
+	err = dtbl.buffer.flushToIOBuffer(true)
 	require.NoError(t, err)
 	bSlice, err := ioutil.ReadFile(testFile)
 	require.NoError(t, err)
 	require.Equal(t, []byte(expected), bSlice, "matching write result")
-	require.NoError(t, os.Remove(testFile))
+	reader, err := NewTableReader(testFile)
+	require.NoError(t, err)
+	rows, err := reader.read(dtbl.buffer.writer.index.Get(1))
+	require.NoError(t, err)
+	fmt.Println(rows)
 }
