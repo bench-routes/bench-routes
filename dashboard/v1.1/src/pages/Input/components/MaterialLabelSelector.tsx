@@ -5,17 +5,13 @@ import {
   Close as CloseIcon,
   Done as DoneIcon
 } from '@material-ui/icons';
+import AddIcon from '@material-ui/icons/Add';
 import Autocomplete, {
   AutocompleteCloseReason
 } from '@material-ui/lab/Autocomplete';
 import ButtonBase from '@material-ui/core/ButtonBase';
 import InputBase from '@material-ui/core/InputBase';
-import {
-  CircularProgress,
-  Popover,
-  Tooltip,
-  Typography
-} from '@material-ui/core';
+import { CircularProgress, Popover, Tooltip, Button } from '@material-ui/core';
 import { truncate } from '../../../utils/stringManipulations';
 import { defaultLabel } from '../../../services/input';
 import { HOST_IP, LabelType } from '../../../utils/types';
@@ -98,7 +94,9 @@ export default function MaterialLabelSelector(props: LabelSelectorType) {
     <React.Fragment>
       <div className={classes.root}>
         <ButtonBase disableRipple aria-describedby={id} onClick={handleClick}>
-          <Typography variant="subtitle1">Add Labels</Typography>
+          <Button startIcon={<AddIcon />} color="primary">
+            Add Labels
+          </Button>
         </ButtonBase>
         <div className={classes.value}>
           {value.length > 0 ? (

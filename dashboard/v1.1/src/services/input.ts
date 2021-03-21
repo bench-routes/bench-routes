@@ -37,6 +37,6 @@ export const defaultRequestMethodsList = [
 ];
 
 export const defaultLabel = {
-  name: 'no label',
+  name: 'No label added ',
   color: '#e5e5e5'
 }

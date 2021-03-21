@@ -1,4 +1,4 @@
-import { fade, makeStyles } from "@material-ui/core";
+import { fade, makeStyles } from '@material-ui/core';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -25,12 +25,14 @@ const useStyles = makeStyles(theme => ({
   },
   tag: {
     height: 20,
-    padding: '.15em 4px',
-    fontWeight: 600,
+    padding: '0.8rem',
+    display: 'flex',
+    alignItems: 'center',
     lineHeight: '15px',
-    borderRadius: 2,
+    borderRadius: 15,
+    marginRight: '0.5rem',
     minWidth: 'max-content',
-    marginRight: '0.2rem'
+    marginTop: '0.4rem'
   },
   popper: {
     border: '1px solid rgba(27,31,35,.15)',
@@ -118,8 +120,8 @@ const useStyles = makeStyles(theme => ({
     }
   },
   value: {
-    overflowX: 'scroll',
-    display: 'flex'
+    display: 'flex',
+    flexWrap: 'wrap'
   }
 }));
 
