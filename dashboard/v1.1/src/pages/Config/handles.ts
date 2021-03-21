@@ -4,6 +4,10 @@ import { getRoutesMap } from '../../utils/parse';
 export interface TableRouteType {
   route: string;
   methods: string[];
+  tableData?: {
+    id: number;
+    editing?: string | undefined;
+  };
 }
 
 export interface IntervalType {
@@ -12,23 +16,34 @@ export interface IntervalType {
   unit: string;
 }
 
-export const onRowDelete = (oldData: TableRouteType, setConfigRoutes) => {
-  fetch(`${HOST_IP}/delete-route`, {
-    method: 'post',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      actualRoute: oldData.route
-    })
-  })
-    .then(resp => resp.json())
-    .then(response => {
-      const { data } = response;
-      let configRoutes: Map<
-        string,
-        routeOptionsInterface[]
-      > = getRoutesMap(data);
-      setConfigRoutes(configRoutes);
-    }, err => {
-      console.error(err);
+export const handleRowDelete = async (
+  oldData: TableRouteType,
+  setConfigRoutes: React.Dispatch<
+    React.SetStateAction<Map<string, routeOptionsInterface[]>>
+  >,
+  tableData: TableRouteType[],
+  setTableData: React.Dispatch<React.SetStateAction<TableRouteType[]>>
+) => {
+  let response;
+
+  try {
+    await fetch(`${HOST_IP}/delete-route`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        actualRoute: oldData.route
+      })
     });
+  } catch (err) {
+    console.log(err);
+  }
+
+  const dataDelete = [...tableData];
+  const index = oldData.tableData?.id;
+  dataDelete.splice(index!, 1);
+  setTableData([...dataDelete]);
+
+  const { data } = await response.json();
+  const configRoutes: Map<string, routeOptionsInterface[]> = getRoutesMap(data);
+  setConfigRoutes(configRoutes);
 };
