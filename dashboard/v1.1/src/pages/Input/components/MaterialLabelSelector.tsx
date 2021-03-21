@@ -155,8 +155,7 @@ export default function MaterialLabelSelector(props: LabelSelectorType) {
               renderTags={() => null}
               noOptionsText={
                 <div className={classes.noOption} onMouseDown={handleAddLabel}>
-                  Add new label
-                  <div className={classes.tag}> {truncate(labelValue, 10)}</div>
+                  Add new label "{truncate(labelValue, 10)}"
                 </div>
               }
               renderOption={(option, { selected }) => (
