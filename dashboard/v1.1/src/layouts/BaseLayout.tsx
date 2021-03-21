@@ -137,7 +137,7 @@ export default function BaseLayout(props: any): ReactElement {
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
-          <Navigator updateLoader={updateLoader} />
+          <Navigator updateLoader={updateLoader} darkMode={props.darkMode} />
         </Container>
       </main>
     </div>

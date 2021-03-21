@@ -11,9 +11,10 @@ import PingModule from '../pages/Ping/PingModule';
 
 interface NavigatorProps {
   updateLoader(status: boolean): void;
+  darkMode(status: boolean): void;
 }
 
-const Navigator: FC<NavigatorProps> = ({ updateLoader }) => {
+const Navigator: FC<NavigatorProps> = ({ updateLoader, darkMode }) => {
   return (
     <Router>
       {/* Floating Action Button for Quick Route Input */}
@@ -22,7 +23,9 @@ const Navigator: FC<NavigatorProps> = ({ updateLoader }) => {
         <Route
           exact={true}
           path="/"
-          render={props => <Dashboard updateLoader={updateLoader} />}
+          render={props => (
+            <Dashboard updateLoader={updateLoader} darkMode={darkMode} />
+          )}
         />
         <Route
           exact={true}

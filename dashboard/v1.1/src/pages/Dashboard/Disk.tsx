@@ -5,9 +5,10 @@ import { chartData } from '../../utils/queryTypes';
 interface DiskUsageProps {
   diskIO: chartData[];
   cache: chartData[];
+  darkMode(status: boolean): any;
 }
 
-const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
+const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache, darkMode }) => {
   const seriesDiskIO = [
     {
       name: 'Disk IO in bytes (+ve means write / -ve means read)',
@@ -38,6 +39,9 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
     subtitle: {
       text: 'Disk IO in bytes (+ve means write / -ve means read)',
       align: 'center'
+    },
+    tooltip: {
+      theme: !darkMode ? 'light' : 'dark'
     }
   };
   const optionsCache = {
@@ -82,6 +86,9 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
         opacityFrom: 1,
         opacityTo: 0.2
       }
+    },
+    tooltip: {
+      theme: !darkMode ? 'light' : 'dark'
     }
   };
 
