@@ -189,8 +189,8 @@ const JournalMetrics: FC<{}> = () => {
     <div className={classes.root}>
       <AppBar position="static">
         <Tabs value={value} onChange={handleChange} indicatorColor="secondary">
-          <Tab label="Kernel" {...a11yProps(0)} style={{ outline: '0px' }} />
-          <Tab label="Systemd" {...a11yProps(1)} style={{ outline: '0px' }} />
+          <Tab label="Kernel" {...a11yProps(0)} />
+          <Tab label="Systemd" {...a11yProps(1)} />
         </Tabs>
       </AppBar>
       <TabPanel value={value} index={0}>
