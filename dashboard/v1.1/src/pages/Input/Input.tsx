@@ -18,6 +18,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContentText from '@material-ui/core/DialogContentText';
 import { Alert } from '@material-ui/lab';
 import Snackbar from '@material-ui/core/Snackbar';
 import PropTypes from 'prop-types';
@@ -43,6 +44,40 @@ interface AlertSnackBar {
   severity: 'success' | 'error' | 'warning' | 'info';
   message: string;
 }
+
+const Popup = ({ showPopup, setShowPopup, handlePopup, valueURLRoute }) => {
+  const classes = useStyles();
+  return (
+    <Dialog open={showPopup} onClose={() => setShowPopup(false)}>
+      <DialogTitle className={classes.popupTitle}>
+        Route <code>{valueURLRoute}</code> already exists.
+      </DialogTitle>
+      <DialogContent className={classes.popupContent}>
+        <DialogContentText>
+          Are you sure you want to add this route?
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions className={classes.popupActions}>
+        <Button
+          className={classes.popupButton}
+          onClick={() => handlePopup(false)}
+          color="primary"
+        >
+          No
+        </Button>
+        <Button
+          className={classes.popupButton}
+          onClick={() => handlePopup(true)}
+          color="primary"
+          variant="contained"
+          autoFocus
+        >
+          Yes
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 const Input = (props: InputScreenProps) => {
   const classes = useStyles();
@@ -88,6 +123,10 @@ const Input = (props: InputScreenProps) => {
   const [open, setOpen] = useState(false);
   const [showResponseButton, setShowResponseButton] = useState<boolean>(false);
 
+  const [existingRoutes, setExistingRoutes] = useState<string[]>([]);
+  const [allowDuplicateRoute, setAllowDuplicateRoute] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+
   useEffect(() => {
     if (screenType === 'config-screen') {
       let paramValues: paramsTransformValue[] = populateParams(params);
@@ -104,6 +143,34 @@ const Input = (props: InputScreenProps) => {
       setValueURLRoute(route);
     }
   }, [body, headers, method, params, route, screenType, labels]);
+
+  useEffect(() => {
+    // Fetch existing routes
+    (async () => {
+      let response;
+
+      try {
+        response = await fetch(`${HOST_IP}/routes-summary`);
+      } catch (err) {
+        console.log(err);
+      }
+
+      const { data } = await response.json();
+      const routes = data.monitoringRoutes;
+      const duplicateRoutes: string[] = [];
+      routes.forEach(route => {
+        let splitURL: string[] = route.split(/(\s+)/);
+        duplicateRoutes.push(splitURL[2]);
+      });
+
+      setExistingRoutes(duplicateRoutes);
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (allowDuplicateRoute) testURL();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allowDuplicateRoute]);
 
   const getRequestType = (type: string) => {
     setRequestType(type);
@@ -151,35 +218,30 @@ const Input = (props: InputScreenProps) => {
     }
 
     setShowResponseButton(false);
-    if (headerValues !== undefined) {
+    if (headerValues && applyHeader) {
       for (const h of headerValues) {
         if (!(h.key === '' && h.value === '')) {
           headers[h.key] = h.value;
         }
       }
-    } else {
-      setHeaderValues([]);
     }
 
-    if (paramsValues !== undefined) {
+    if (paramsValues && applyParams) {
       for (const p of paramsValues) {
         if (!(p.key === '' && p.value === '')) {
           params[p.key] = p.value;
         }
       }
-    } else {
-      setParamsValues([]);
     }
 
-    if (bodyValues !== undefined) {
+    if (bodyValues && applyBody) {
       for (const b of bodyValues) {
         if (!(b.key === '' && b.value === '')) {
           body[b.key] = b.value;
         }
       }
-    } else {
-      setBodyValues(bodyValues);
     }
+
     fetch(`${HOST_IP}/quick-input`, {
       method: 'post',
       headers: { 'Content-Type': 'application/json' },
@@ -221,7 +283,29 @@ const Input = (props: InputScreenProps) => {
           });
       });
   };
+
+  const handlePopup = (allow: boolean) => {
+    if (allow) setAllowDuplicateRoute(true);
+    else setAllowDuplicateRoute(false);
+
+    setShowPopup(false);
+  };
+
+  const checkRouteExists = () => {
+    if (existingRoutes.includes(valueURLRoute)) {
+      return true;
+    }
+    return false;
+  };
+
   const testURL = () => {
+    if (checkRouteExists()) {
+      if (!allowDuplicateRoute) {
+        setShowPopup(true);
+        return;
+      }
+    }
+
     const params = {};
     const headers = {};
     const body = {};
@@ -234,28 +318,22 @@ const Input = (props: InputScreenProps) => {
       });
     }
 
-    if (headerValues !== undefined) {
+    if (headerValues && applyHeader) {
       for (const h of headerValues) {
         headers[h.key] = h.value;
       }
-    } else {
-      setHeaderValues([]);
     }
 
-    if (paramsValues !== undefined) {
+    if (paramsValues && applyParams) {
       for (const p of paramsValues) {
         params[p.key] = p.value;
       }
-    } else {
-      setParamsValues([]);
     }
 
-    if (bodyValues !== undefined) {
+    if (bodyValues && applyBody) {
       for (const b of bodyValues) {
         body[b.key] = b.value;
       }
-    } else {
-      setBodyValues(bodyValues);
     }
 
     fetch(`${HOST_IP}/quick-input`, {
@@ -299,6 +377,8 @@ const Input = (props: InputScreenProps) => {
                   message: 'success'
                 });
                 setShowSnackBar(true);
+                setAllowDuplicateRoute(false);
+                setExistingRoutes([...existingRoutes, valueURLRoute]);
               },
               err => {
                 console.error(err);
@@ -455,6 +535,14 @@ const Input = (props: InputScreenProps) => {
           </Snackbar>
         </Grid>
       </Container>
+      {showPopup && (
+        <Popup
+          valueURLRoute={valueURLRoute}
+          showPopup={showPopup}
+          setShowPopup={setShowPopup}
+          handlePopup={handlePopup}
+        />
+      )}
       {/* Headers, params and others */}
       <Container className={classes.container}>
         <Grid container className={classes.marginTopMd}>
@@ -463,7 +551,7 @@ const Input = (props: InputScreenProps) => {
               control={
                 <Checkbox
                   color="primary"
-                  checked={applyHeader || (headerValues || []).length > 0}
+                  checked={applyHeader}
                   onClick={() => setApplyHeader(!applyHeader)}
                 />
               }
@@ -473,7 +561,7 @@ const Input = (props: InputScreenProps) => {
               control={
                 <Checkbox
                   color="primary"
-                  checked={applyParams || (paramsValues || []).length > 0}
+                  checked={applyParams}
                   onClick={() => setApplyParams(!applyParams)}
                 />
               }
@@ -483,34 +571,34 @@ const Input = (props: InputScreenProps) => {
               control={
                 <Checkbox
                   color="primary"
-                  checked={applyBody || (bodyValues || []).length > 0}
+                  checked={applyBody}
                   onClick={() => setApplyBody(!applyBody)}
                 />
               }
               label="Body"
             />
             <div className={classes.params}>
-              {applyHeader || (headerValues || []).length > 0 ? (
+              {applyHeader && (
                 <GridBody
                   name="Header"
                   headers={headerValues}
                   updateParent={setHeaderValues}
                 />
-              ) : null}
-              {applyParams || (paramsValues || []).length > 0 ? (
+              )}
+              {applyParams && (
                 <GridBody
                   name="Params"
                   headers={paramsValues}
                   updateParent={setParamsValues}
                 />
-              ) : null}
-              {applyBody || (bodyValues || []).length > 0 ? (
+              )}
+              {applyBody && (
                 <GridBody
                   name="Body"
                   headers={bodyValues}
                   updateParent={setBodyValues}
                 />
-              ) : null}
+              )}
             </div>
           </Grid>
         </Grid>
