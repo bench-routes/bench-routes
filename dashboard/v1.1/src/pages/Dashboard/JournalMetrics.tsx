@@ -63,7 +63,11 @@ const format = (data: QueryValues[] | any) => {
   };
 };
 
-const JournalMetrics: FC<{}> = () => {
+interface JournalMetricsProps {
+  darkMode(status: boolean): any;
+}
+
+const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
   const classes = useStyles();
   const [response, setResponse] = useState(init());
   const [error, setError] = useState('');
@@ -152,6 +156,9 @@ const JournalMetrics: FC<{}> = () => {
         opacityFrom: 0.8,
         opacityTo: 0.2
       }
+    },
+    tooltip: {
+      theme: !darkMode ? 'light' : 'dark'
     }
   };
   const optionsKernel = {
@@ -183,14 +190,17 @@ const JournalMetrics: FC<{}> = () => {
         opacityFrom: 0.8,
         opacityTo: 0.2
       }
+    },
+    tooltip: {
+      theme: !darkMode ? 'light' : 'dark'
     }
   };
   return (
     <div className={classes.root}>
       <AppBar position="static">
         <Tabs value={value} onChange={handleChange} indicatorColor="secondary">
-          <Tab label="Kernel" {...a11yProps(0)} style={{ outline: '0px' }} />
-          <Tab label="Systemd" {...a11yProps(1)} style={{ outline: '0px' }} />
+          <Tab label="Kernel" {...a11yProps(0)} />
+          <Tab label="Systemd" {...a11yProps(1)} />
         </Tabs>
       </AppBar>
       <TabPanel value={value} index={0}>
