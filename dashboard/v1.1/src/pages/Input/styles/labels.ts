@@ -56,7 +56,6 @@ const useStyles = makeStyles(theme => ({
     borderBottom: '1px solid #dfe2e5',
     '& input': {
       borderRadius: 4,
-      backgroundColor: theme.palette.common.white,
       padding: 8,
       transition: theme.transitions.create(['border-color', 'box-shadow']),
       border: '1px solid #ced4da',
