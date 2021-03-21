@@ -124,7 +124,7 @@ func (a *API) Home(w http.ResponseWriter, r *http.Request) {
 	msg := "ping from " + r.RemoteAddr + ", sent pong in monitor"
 	log.Infoln(msg)
 	a.Data = msg
-	a.send(w, a.Data, "Home")
+	a.send(w, a.Data, "nil")
 }
 
 // TestTemplate handles template related request for testing purposes.
@@ -149,7 +149,7 @@ func (a *API) ServiceState(w http.ResponseWriter, _ *http.Request) {
 		Jitter:     p.Config.UtilsConf.ServicesSignal.Jitter,
 		Monitoring: p.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring,
 	}
-	a.send(w, a.Data, "ServiceState")
+	a.send(w, a.Data, "nil")
 }
 
 // RoutesSummary handles requests related to summarized-configuration details.
@@ -170,7 +170,7 @@ func (a *API) RoutesSummary(w http.ResponseWriter, _ *http.Request) {
 		TestServicesRoutes: servicesRoutes,
 		MonitoringRoutes:   monitoringRoutes,
 	}
-	a.send(w, a.Data, "RoutesSummary")
+	a.send(w, a.Data, "nil")
 }
 
 // Query forms the query handler for querying over the time-series data.
@@ -209,7 +209,7 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	// verify if chain path exists
 	timeSeriesPath = timeSeriesPath + tsdb.FileExtension
 	if ok := tsdb.VerifyChainPathExists(timeSeriesPath); !ok {
-		a.send(w, []interface{}{"INVALID_PATH"}, "Query")
+		a.send(w, []interface{}{"INVALID_PATH"}, "nil")
 		return
 	}
 
@@ -220,7 +220,7 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	query := qry.QueryBuilder()
 	query.SetRange(startTimestamp, endTimestamp)
 	a.Data = query.ExecWithoutEncode()
-	a.send(w, a.Data, "Query")
+	a.send(w, a.Data, "nil")
 }
 
 // SendMatrix responds by sending the multi-dimensional data (called matrix)
@@ -229,7 +229,7 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 	routeHashMatrix := r.URL.Query().Get("routeNameMatrix")
 	if _, ok := (*a.Matrix)[routeHashMatrix]; !ok {
 		a.Data = "ROUTE_NAME_AKA_INSTANCE_KEY_NOT_IN_MATRIX"
-		a.send(w, a.Data, "SendMatrix")
+		a.send(w, a.Data, "nil")
 		return
 	}
 	var matrixResponse map[string]querier.QueryResponse
@@ -291,7 +291,7 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	a.Data = matrixResponse
-	a.send(w, a.Data, "SendMatrix")
+	a.send(w, a.Data, "nil")
 }
 
 // QuickTestInput tests the API input from the /quick-input route page
@@ -321,7 +321,7 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 	}
 	a.Data = <-response
 
-	a.send(w, a.Data, "QuickTestInput")
+	a.send(w, a.Data, "nil")
 }
 
 // AddRouteToMonitoring adds a new route to the config.
@@ -347,7 +347,7 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 	)
 	a.reloadConfigURLs <- struct{}{}
 	a.Data = "success"
-	a.send(w, a.Data, "AddRouteToMonitoring")
+	a.send(w, a.Data, "nil")
 }
 
 // TSDBPathDetails responds with the path details that will be used for
@@ -367,7 +367,7 @@ func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 		})
 	}
 	a.Data = chainDetails
-	a.send(w, a.Data, "TSDBPathDetails")
+	a.send(w, a.Data, "nil")
 }
 
 // UpdateMonitoringServicesState starts the monitoring services on request from the API.
@@ -401,7 +401,7 @@ func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	sm.Iterate(state, false)
-	a.send(w, a.Data, "UpdateMonitoringServicesState")
+	a.send(w, a.Data, "nil")
 }
 
 // GetMonitoringState returns the monitoring state.
@@ -435,19 +435,19 @@ func (a *API) GetMonitoringState(w http.ResponseWriter, _ *http.Request) {
 	} else {
 		a.Data = "passive"
 	}
-	a.send(w, a.Data, "GetMonitoringState")
+	a.send(w, a.Data, "nil")
 }
 
 // GetConfigIntervals gets the config file data for the config screen.
 func (a *API) GetConfigIntervals(w http.ResponseWriter, _ *http.Request) {
 	a.Data = a.config.Config.Interval
-	a.send(w, a.Data, "GetConfigIntervals")
+	a.send(w, a.Data, "nil")
 }
 
 // GetConfigRoutes gets the config file data for the config screen.
 func (a *API) GetConfigRoutes(w http.ResponseWriter, _ *http.Request) {
 	a.Data = a.config.Config.Routes
-	a.send(w, a.Data, "GetConfigRoutes")
+	a.send(w, a.Data, "nil")
 }
 
 // ModifyIntervalDuration modifies a specific interval duration in the config file.
@@ -485,7 +485,7 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 		a.ResponseStatus = "400"
 		a.Data = "The string passed is not an integer"
 	}
-	a.send(w, a.Data, "ModifyIntervalDuration")
+	a.send(w, a.Data, "nil")
 }
 
 // UpdateRoute updates a route in the local config.
@@ -531,7 +531,7 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	a.reloadConfigURLs <- struct{}{}
 	a.ResponseStatus = http.StatusText(200)
 	a.Data = a.config.Config.Routes
-	a.send(w, a.Data, "UpdateRoute")
+	a.send(w, a.Data, "nil")
 }
 
 // DeleteConfigRoutes removes a route from the config screen.
@@ -561,7 +561,7 @@ func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	}
 	a.ResponseStatus = http.StatusText(200)
 	a.Data = a.config.Config.Routes
-	a.send(w, a.Data, "DeleteConfigRoutes")
+	a.send(w, a.Data, "nil")
 }
 
 // GetLabels gets route labels from the config file
@@ -580,7 +580,7 @@ func (a *API) GetLabels(w http.ResponseWriter, r *http.Request) {
 	}
 	a.ResponseStatus = http.StatusText(200)
 	a.Data = uniqueLabels
-	a.send(w, a.Data, "GetLabels")
+	a.send(w, a.Data, "nil")
 }
 
 func marshalled(status string, data interface{}, message string) []byte {
