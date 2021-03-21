@@ -4,9 +4,10 @@ import { chartData } from '../../utils/queryTypes';
 
 interface CPUUsageProps {
   cpuMetrics: chartData[];
+  darkMode(status: boolean): void;
 }
 
-const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
+const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics, darkMode }) => {
   const dataFormatted = cpuMetrics;
   const series = [
     {
@@ -54,6 +55,9 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
         opacityFrom: 1,
         opacityTo: 0.2
       }
+    },
+    tooltip: {
+      theme: !darkMode ? 'light' : 'dark'
     }
   };
 
