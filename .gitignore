@@ -4,8 +4,8 @@ src/build/
 bench-routes
 glide.lock
 tests/node_modules
-dashboard/package-lock.json
-dashboard/node_modules
+dashboard/v1.1/package-lock.json
+dashboard/v1.1/node_modules
 collector-store
 storage
 .idea/
