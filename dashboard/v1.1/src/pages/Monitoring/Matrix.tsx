@@ -42,16 +42,19 @@ const Pad: FC<{}> = () => <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>;
 
 const useStyles = makeStyles({
   searchBar: {
-    borderRadius: 4,
+    borderRadius: 0,
     boxShadow: 'none',
-    border: '1px solid rgba(0, 0, 0, 0.23)',
+    borderBottom: '1px solid rgba(0, 0, 0, 0.23)',
     backgroundColor: '#fff',
     fontWeight: 600,
     fontSize: 15,
     color: '#000',
-    marginBottom: 5,
+    marginTop: '-47px',
+    maxWidth: 300,
+    float: 'right',
+    height: '30px',
     '&:hover': {
-      border: '1px solid rgba(0, 0, 0, 1)'
+      borderBottom: '1px solid rgba(0, 0, 0, 1)'
     }
   }
 });
