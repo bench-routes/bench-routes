@@ -24,7 +24,7 @@ import EditModal from './components/EditModal';
 import { getRoutesMap } from '../../utils/parse';
 import { fetchConfigIntervals, fetchConfigRoutes } from '../../services/config';
 import { columns, TableRowData } from './components/MaterialTable';
-import { onRowDelete, TableRouteType, IntervalType } from './handles';
+import { handleRowDelete, TableRouteType, IntervalType } from './handles';
 
 const SearchTable = lazy(() => import('./components/MaterialTable'));
 
@@ -67,10 +67,17 @@ const Config = () => {
     `${HOST_IP}/service-state`
   );
 
+  const [tableData, setTableData] = useState<TableRouteType[]>([]);
+
   useEffect(() => {
-    fetchConfigIntervals(setConfigIntervals).then(() =>
-      fetchConfigRoutes(setConfigRoutes)
-    );
+    fetchConfigIntervals(setConfigIntervals)
+      .then(async () => {
+        const routes = await fetchConfigRoutes(setConfigRoutes);
+        return routes;
+      })
+      .then(routes => {
+        getTableData(Array.from(routes));
+      });
   }, []);
 
   const getTableData = (routes: [string, routeOptionsInterface[]][]) => {
@@ -89,7 +96,7 @@ const Config = () => {
         methods
       });
     });
-    return tableData;
+    setTableData(tableData);
   };
 
   const updateConfigRoutes = routes => {
@@ -196,7 +203,7 @@ const Config = () => {
           <SearchTable
             title="URL endpoints"
             columns={columns}
-            data={getTableData(Array.from(configRoutes))}
+            data={tableData}
             actions={[
               {
                 icon: tableIcons.Edit,
@@ -210,7 +217,15 @@ const Config = () => {
                 }
               }
             ]}
-            editable={{ onRowDelete }}
+            editable={{
+              onRowDelete: oldData =>
+                handleRowDelete(
+                  oldData,
+                  setConfigRoutes,
+                  tableData,
+                  setTableData
+                )
+            }}
           />
         </Paper>
       </Suspense>

@@ -59,4 +59,5 @@ export const fetchConfigRoutes = async (setConfigRoutes) => {
     }
   });
   setConfigRoutes(configRoutes);
+  return configRoutes;
 };
