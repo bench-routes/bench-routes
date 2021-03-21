@@ -33,11 +33,6 @@ const useStyles = makeStyles(theme => ({
     marginRight: '0.5rem',
     marginTop: '0.4rem',
     maxWidth: 'max-content',
-<<<<<<< HEAD
-=======
-    marginRight: '0.2rem',
-    marginTop: '0.2rem'
->>>>>>> removed scroll bar
   },
   popper: {
     border: '1px solid rgba(27,31,35,.15)',
@@ -128,11 +123,7 @@ const useStyles = makeStyles(theme => ({
   },
   value: {
     display: 'flex',
-<<<<<<< HEAD
     flexWrap: 'wrap'
-=======
-    flexWrap:'wrap',
->>>>>>> removed scroll bar
   }
 }));
 
