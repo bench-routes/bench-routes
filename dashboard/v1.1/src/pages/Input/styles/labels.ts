@@ -30,7 +30,8 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '15px',
     borderRadius: 2,
     maxWidth: 'max-content',
-    marginRight: '0.2rem'
+    marginRight: '0.2rem',
+    marginTop: '0.2rem'
   },
   popper: {
     border: '1px solid rgba(27,31,35,.15)',
@@ -90,7 +91,8 @@ const useStyles = makeStyles(theme => ({
     width: 17,
     height: 17,
     marginRight: 5,
-    marginLeft: -2
+    marginLeft: -2,
+    color: theme.palette.type==='dark'? '#fff': '#586069',
   },
   color: {
     width: 14,
@@ -107,7 +109,8 @@ const useStyles = makeStyles(theme => ({
   close: {
     opacity: 0.6,
     width: 18,
-    height: 18
+    height: 18,
+    color: theme.palette.type==='dark'? '#fff': '#586069',
   },
   noOption: {
     padding: '0.2rem',
@@ -119,11 +122,8 @@ const useStyles = makeStyles(theme => ({
     }
   },
   value: {
-    // overflowX: 'scroll',
     display: 'flex',
-    flexDirection:'row',
-    alignItems: 'flex-start',
-    overflowWrap: 'break-word',
+    flexWrap:'wrap',
   }
 }));
 
