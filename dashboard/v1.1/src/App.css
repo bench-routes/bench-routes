@@ -48,3 +48,12 @@ button:focus {
 .inner-head {
   margin: '2% 0% 2% 0%';
 }
+
+a.MuiButtonBase-root.MuiListItem-root {
+  transition: 0.3s background-color;
+}
+
+a.MuiButtonBase-root.MuiListItem-root:hover {
+  color: inherit;
+  background-color: rgba(172, 172, 172, 0.685);
+}
