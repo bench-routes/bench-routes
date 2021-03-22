@@ -83,6 +83,39 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
   const showTestList = () => {
     setTestListOpen(!testListOpen);
   };
+  let colorTheme;
+  let darkMode;
+
+  React.useEffect(()=>{
+  darkMode = localStorage.getItem('dark-mode');
+  if(darkMode==='false') {
+    colorTheme="white"
+  }
+  if(darkMode==='true') {
+    colorTheme="black";
+  }
+  setCheckTestList(colorTheme);
+  setCheckTestList1(colorTheme)
+  setCheckTestList2(colorTheme)
+  }, [darkMode]);
+  const [checkTestList, setCheckTestList] = useState(colorTheme);
+  const [checkTestList1, setCheckTestList1] = useState(colorTheme);
+  const [checkTestList2, setCheckTestList2] = useState(colorTheme);
+  const handleClick =  () => {
+    setCheckTestList1(colorTheme)
+    setCheckTestList2(colorTheme)
+    setCheckTestList("#DCDCDC");
+  }
+  const handleClick1 =  () => {
+    setCheckTestList(colorTheme);
+    setCheckTestList2(colorTheme);
+    setCheckTestList1("#DCDCDC");
+  }
+  const handleClick2 =  () => {
+    setCheckTestList1(colorTheme);
+    setCheckTestList(colorTheme);
+    setCheckTestList2("#DCDCDC");
+  }
   const menuItems = (
     <div>
       <ListItem button={true} component={Link} to="/">
@@ -116,6 +149,8 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
             component={Link}
             to="/ping"
             className={classes.nested}
+            style={{backgroundColor: checkTestList}}
+            onClick={handleClick}
           >
             <ListItemIcon>
               <DashboardIcon />
@@ -127,6 +162,8 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
             component={Link}
             to="/floodping"
             className={classes.nested}
+            style={{backgroundColor: checkTestList}}
+            onClick={handleClick1}
           >
             <ListItemIcon>
               <DashboardIcon />
@@ -138,6 +175,8 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
             component={Link}
             to="/jitter"
             className={classes.nested}
+            style={{backgroundColor: checkTestList}}
+            onClick={handleClick2}
           >
             <ListItemIcon>
               <DashboardIcon />
