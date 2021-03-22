@@ -52,50 +52,60 @@ const Element: FC<ElementProps> = ({
   const columnStyle = {
     fontSize: '1.4em'
   };
-
-  const fetchTimeSeriesDetails = async (instance: TimeSeriesPath) => {
-    const monitoringDetails = new Promise<RouteDetails>((resolve, reject) => {
-      async function fetchDetails() {
-        try {
-          const response = await fetch(
-            `${HOST_IP}/query-matrix?routeNameMatrix=${instance.path.matrixName}&endTimestamp=${endTimestamp}`
-          );
-          const matrix = (await response.json()) as APIResponse<RouteDetails>;
-          resolve(matrix.data);
-        } catch (e) {
-          console.error(e);
-          showWarning(true);
-          reject(e);
-        }
-      }
-      fetchDetails();
-    });
-
-    const details = await monitoringDetails;
-    showRouteDetails(true, { ...details, name: instance.name });
-  };
-
-  useEffect(() => {
-    async function fetchMatrix(name: string) {
+  const fetchDetails = async (
+    instance: TimeSeriesPath
+  ): Promise<RouteDetails> => {
+    return new Promise<RouteDetails>(async (resolve, reject) => {
       try {
-        setUpdating(true);
         const response = await fetch(
-          `${HOST_IP}/query-matrix?routeNameMatrix=${name}`
+          `${HOST_IP}/query-matrix?routeNameMatrix=${instance.path.matrixName}&endTimestamp=${endTimestamp}`
         );
-        const inMatrixResponse = (await response.json()) as APIResponse<
-          MatrixResponse
-        >;
-        setData(inMatrixResponse.data);
-        setTimeout(() => {
-          setUpdating(false);
-          showWarning(false);
-        }, 1000);
+        const matrix = (await response.json()) as APIResponse<RouteDetails>;
+        resolve(matrix.data);
       } catch (e) {
         console.error(e);
         showWarning(true);
-        return null;
+        reject(e);
       }
+    });
+  };
+  const fetchTimeSeriesDetails = async (instance: TimeSeriesPath) => {
+    try {
+      const start = performance.now();
+      const details = await fetchDetails(instance);
+      const end = performance.now();
+      showRouteDetails(true, {
+        ...details,
+        name: instance.name,
+        fetchTime: end - start
+      });
+    } catch (error) {
+      console.log(error);
     }
+  };
+
+  const fetchMatrix = async (name: string) => {
+    try {
+      setUpdating(true);
+      const response = await fetch(
+        `${HOST_IP}/query-matrix?routeNameMatrix=${name}`
+      );
+      const inMatrixResponse = (await response.json()) as APIResponse<
+        MatrixResponse
+      >;
+      setData(inMatrixResponse.data);
+      setTimeout(() => {
+        setUpdating(false);
+        showWarning(false);
+      }, 1000);
+    } catch (e) {
+      console.error(e);
+      showWarning(true);
+      return null;
+    }
+  };
+
+  useEffect(() => {
     fetchMatrix(timeSeriesPath.path.matrixName);
   }, [trigger, timeSeriesPath.path.matrixName]);
 

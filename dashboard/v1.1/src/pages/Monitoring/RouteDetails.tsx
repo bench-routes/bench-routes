@@ -1,5 +1,9 @@
 import React, { FC } from 'react';
-import { chartData, RouteDetails } from '../../utils/queryTypes';
+import {
+  chartData,
+  EvaluationTime,
+  RouteDetails
+} from '../../utils/queryTypes';
 import { formatTime } from '../../utils/brt';
 import ResLength from './ResLength';
 import Delay from './Delay';
@@ -11,7 +15,7 @@ import Tab from '@material-ui/core/Tab';
 import PropTypes from 'prop-types';
 import Box from '@material-ui/core/Box';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
-import { truncate } from '../../utils/stringManipulations';
+import { Badge } from 'reactstrap';
 
 interface RouteDetailsProps {
   routesChains: RouteDetails;
@@ -25,7 +29,7 @@ function a11yProps(index) {
   };
 }
 
-function TabPanel(props) {
+const TabPanel = props => {
   const { children, value, index, ...other } = props;
 
   return (
@@ -39,12 +43,63 @@ function TabPanel(props) {
       {value === index && <Box p={3}>{children}</Box>}
     </div>
   );
-}
+};
 
 TabPanel.propTypes = {
   children: PropTypes.node,
   index: PropTypes.any.isRequired,
   value: PropTypes.any.isRequired
+};
+
+const TimePanel = ({ data, value }) => {
+  return (
+    <div style={{ borderLeft: '3px solid #2196f3' }}>
+      <h6
+        style={{
+          margin: 0,
+          padding: 10,
+          display: 'flex',
+          alignItems: 'center'
+        }}
+      >
+        Query fetched in
+        <Badge color="success" style={{ fontSize: '0.97rem', marginLeft: 10 }}>
+          {data.fetchTime.toFixed(3)}ms
+        </Badge>
+      </h6>
+      {value && data.evaluationTime[Type(value)] !== '' ? (
+        <h6
+          style={{
+            margin: 0,
+            padding: 10,
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          Query Time :
+          <Badge
+            color="success"
+            style={{ fontSize: '0.97rem', marginLeft: 10 }}
+          >
+            {data.evaluationTime[Type(value)]}
+          </Badge>
+        </h6>
+      ) : null}
+    </div>
+  );
+};
+
+const Type = (val: number) => {
+  switch (val) {
+    case 1:
+      return 'monitor';
+    case 2:
+      return 'ping';
+    case 3:
+      return 'jitter';
+    default:
+      return '';
+  }
 };
 
 const format = (data: RouteDetails) => {
@@ -55,7 +110,8 @@ const format = (data: RouteDetails) => {
   const pingMax: chartData[] = [];
   const jitter: chartData[] = [];
   const name = data.name;
-
+  const fetchTime = data.fetchTime;
+  const evaluationTime: EvaluationTime = { ping: '', jitter: '', monitor: '' };
   if (data.monitor.values) {
     for (const value of data.monitor.values) {
       responseDetailsDelay.push({
@@ -67,6 +123,7 @@ const format = (data: RouteDetails) => {
         x: formatTime(value.timestamp)
       });
     }
+    evaluationTime.monitor = data.monitor.evaluationTime;
   }
   if (data.ping.values) {
     for (const value of data.ping.values) {
@@ -83,6 +140,7 @@ const format = (data: RouteDetails) => {
         x: formatTime(value.timestamp)
       });
     }
+    evaluationTime.ping = data.ping.evaluationTime;
   }
   if (data.jitter.values) {
     for (const value of data.jitter.values) {
@@ -91,6 +149,7 @@ const format = (data: RouteDetails) => {
         x: formatTime(value.timestamp)
       });
     }
+    evaluationTime.jitter = data.jitter.evaluationTime;
   }
 
   return {
@@ -100,7 +159,9 @@ const format = (data: RouteDetails) => {
     pingMean,
     pingMax,
     jitter,
-    name
+    name,
+    fetchTime,
+    evaluationTime
   };
 };
 
@@ -115,23 +176,38 @@ const RouteDetailsComponent: FC<RouteDetailsProps> = ({
   const data = format(routesChains);
   return (
     <>
-      <span
-        style={{ display: 'flex', alignItems: 'center' }}
-        onClick={() => showDetails(false, routesChains)}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          position: 'relative'
+        }}
       >
-        <ArrowBackIcon color="primary" fontSize="large" />
-        <span
-          style={{
-            fontSize: '1rem',
-            fontWeight: 'bold',
-            padding: '0 0.4rem',
-            display: 'flex',
-            alignItems: 'center'
-          }}
-        >
-          {truncate(data.name, 70)}
+        <span style={{ display: 'flex', position: 'relative', width: '70%' }}>
+          <ArrowBackIcon
+            color="primary"
+            fontSize="large"
+            style={{ cursor: 'pointer ' }}
+            onClick={() => showDetails(false, routesChains)}
+          />
+          <h3
+            style={{
+              fontSize: '1rem',
+              fontWeight: 'bold',
+              padding: '0.4rem 0.4rem 0 0.4rem',
+              margin: 0,
+              maxWidth: '90%',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {data.name}
+          </h3>
         </span>
-      </span>
+        <TimePanel data={data} value={value} />
+      </div>
       <hr />
       <AppBar position="static">
         <Tabs value={value} onChange={handleChange} indicatorColor="secondary">

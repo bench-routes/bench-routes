@@ -46,7 +46,7 @@ export interface QueryValues {
 }
 
 export interface QueryResponse {
-  queryTime: number;
+  evaluationTime: string;
   range: QueryRange;
   timeSeriesPath: string;
   values: QueryValues[];
@@ -133,4 +133,11 @@ export interface RouteDetails {
   jitter: QueryResponse;
   monitor: QueryResponse;
   name: string;
+  fetchTime: number;
+}
+
+export interface EvaluationTime {
+  ping: string;
+  jitter: string;
+  monitor: string;
 }
