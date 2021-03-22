@@ -2,11 +2,24 @@ package parser
 
 import (
 	"io/ioutil"
+	"os"
 	"sync"
 
-	"gopkg.in/yaml.v2"
-
+	"github.com/joho/godotenv"
 	"github.com/prometheus/common/log"
+	"gopkg.in/yaml.v2"
+)
+
+var (
+	PORT                    string
+	SYSTEM_METRICS_PATH     string
+	JOURNAL_METRICS_PATH    string
+	CONFIGURATION_FILE_PATH string
+	STORAGE_DIR             string
+	PATH_PING               string
+	PATH_JITTER             string
+	PATH_FLOOD_PING         string
+	PATH_MONITORING         string
 )
 
 // Config defines the structure type for implementing the interface
@@ -149,4 +162,23 @@ func GetNewRouteType(method, url string, headers []Headers, params []Params, bod
 		Body:   body,
 		Labels: labels,
 	}
+}
+
+func LoadENV() {
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+	PORT = os.Getenv("PORT")
+	if PORT == "" {
+		PORT = "9990"
+	}
+	SYSTEM_METRICS_PATH = os.Getenv("SYSTEM_METRICS_PATH")
+	JOURNAL_METRICS_PATH = os.Getenv("JOURNAL_METRICS_PATH")
+	CONFIGURATION_FILE_PATH = os.Getenv("CONFIGURATION_FILE_PATH")
+	STORAGE_DIR = os.Getenv("STORAGE_DIR")
+	PATH_PING = os.Getenv("PATH_PING")
+	PATH_JITTER = os.Getenv("PATH_JITTER")
+	PATH_FLOOD_PING = os.Getenv("PATH_FLOOD_PING")
+	PATH_MONITORING = os.Getenv("PATH_MONITORING")
 }

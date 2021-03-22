@@ -33,12 +33,10 @@ import (
 )
 
 var (
-	port                        = ":9990" // default listen and serve at 9990
-	enableProcessCollection     = false   // default collection of process metrics in host of bench-routes
+	port                        string  // listen and serve at port from env
+	enableProcessCollection     = false // default collection of process metrics in host of bench-routes
 	processCollectionScrapeTime = time.Second * 5
 	defaultScrapeTime           = time.Second * 3
-	systemMetricsPath           = "storage/system.json"
-	journalMetricsPath          = "storage/journal.json"
 	// matrix is a collection (as map) of instances where each
 	// instance is composed of ping, jitter, flood-ping and monitor
 	// chain paths. matrix is used in the monitoring screen to
@@ -52,27 +50,24 @@ var (
 	// the same hostname will have the same ping, jitter and flood-ping,
 	// which reduces the http request by grouping them based on routes,
 	// filtering out identical routes that arrive to be monitored.
-	targetMachineCalc     = make(map[string]*utils.MachineType)
-	targetMachineMetrics  = prom.MachineMetrics()
-	endpointMetrics       = prom.EndpointMetrics()
-	configurationFilePath = "local-config.yml"
-	// Storage paths.
-	storageDir     = "storage"
-	pathPing       = fmt.Sprintf("%s/ping", storageDir)
-	pathJitter     = fmt.Sprintf("%s/jitter", storageDir)
-	pathFloodPing  = fmt.Sprintf("%s/flood-ping", storageDir)
-	pathMonitoring = fmt.Sprintf("%s/monitoring", storageDir)
+	targetMachineCalc    = make(map[string]*utils.MachineType)
+	targetMachineMetrics = prom.MachineMetrics()
+	endpointMetrics      = prom.EndpointMetrics()
 )
 
 func main() {
 	if len(os.Args) > 2 && os.Args[2] != "" {
 		enableProcessCollection, _ = strconv.ParseBool(os.Args[2])
-		port = ":" + os.Args[1]
+		port = os.Args[1]
 	} else if len(os.Args) > 1 {
-		port = ":" + os.Args[1]
+		port = os.Args[1]
 	}
-	log.Infoln("initializing bench-routes...")
-	conf = parser.New(configurationFilePath)
+	parser.LoadENV()
+	if port == "" {
+		port = parser.PORT
+	}
+	log.Infoln("initializing bench-routes... on port ", port)
+	conf = parser.New(parser.CONFIGURATION_FILE_PATH)
 	conf.Load().Validate()
 	setDefaultServicesState(conf)
 	intervals := conf.Config.Interval
@@ -117,10 +112,10 @@ func main() {
 				// for it in the matrix.
 				if _, ok := matrix[hash]; !ok {
 					var (
-						pathPing      = fmt.Sprintf("%s/chunk_ping_%s.json", pathPing, hash)
-						pathJitter    = fmt.Sprintf("%s/chunk_jitter_%s.json", pathJitter, hash)
-						pathFloodPing = fmt.Sprintf("%s/chunk_flood_ping_%s.json", pathFloodPing, hash)
-						pathMonitor   = fmt.Sprintf("%s/chunk_monitor_%s.json", pathMonitoring, hash)
+						pathPing      = fmt.Sprintf("%s/chunk_ping_%s.json", parser.PATH_PING, hash)
+						pathJitter    = fmt.Sprintf("%s/chunk_jitter_%s.json", parser.PATH_JITTER, hash)
+						pathFloodPing = fmt.Sprintf("%s/chunk_flood_ping_%s.json", parser.PATH_FLOOD_PING, hash)
+						pathMonitor   = fmt.Sprintf("%s/chunk_monitor_%s.json", parser.PATH_MONITORING, hash)
 					)
 					uHash := utils.GetHash(filters.HTTPPingFilterValue(r.URL))
 					if _, ok := targetMachineCalc[uHash]; !ok {
@@ -159,7 +154,7 @@ func main() {
 	reload <- struct{}{}
 	chainSet.Run()
 
-	apiInstance := api.New(&matrix, conf, configurationFilePath, workers, reload)
+	apiInstance := api.New(&matrix, conf, parser.CONFIGURATION_FILE_PATH, workers, reload)
 	router := mux.NewRouter()
 	apiInstance.Register(router)
 
@@ -172,7 +167,7 @@ func main() {
 			net    *sysMetrics.NetworkStats
 		}
 
-		chain := tsdb.NewChain(systemMetricsPath)
+		chain := tsdb.NewChain(parser.SYSTEM_METRICS_PATH)
 		p := time.Now()
 		chain.Init()
 		log.Infoln("initialized system-metrics...", time.Since(p))
@@ -215,7 +210,7 @@ func main() {
 	if !(runtime.GOOS == "windows" || runtime.GOOS == "darwin") {
 		go func() {
 			metrics := journal.New()
-			chain := tsdb.NewChain(journalMetricsPath)
+			chain := tsdb.NewChain(parser.JOURNAL_METRICS_PATH)
 			p := time.Now()
 			chain.Init()
 			log.Infoln("initialized journal-metrics...", time.Since(p))
@@ -306,7 +301,7 @@ func main() {
 		os.Exit(0)
 	}()
 	log.Infoln("Bench-routes is up and running")
-	log.Errorln(http.ListenAndServe(port, cors.Default().Handler(router)).Error())
+	log.Errorln(http.ListenAndServe(fmt.Sprintf(":%s", port), cors.Default().Handler(router)).Error())
 }
 
 // setDefaultServicesState initializes all state values to passive.
