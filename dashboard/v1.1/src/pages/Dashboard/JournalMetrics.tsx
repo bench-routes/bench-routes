@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
 import AppBar from '@material-ui/core/AppBar';
@@ -9,6 +9,7 @@ import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 import { HOST_IP } from '../../utils/types';
 import TimeInstance, { formatTime } from '../../utils/brt';
 import { useStyles, TabPanel, a11yProps } from './SystemMetrics';
+import { ThemeContext } from '../../layouts/BaseLayout';
 
 const format = (data: QueryValues[] | any) => {
   const cerr: chartData[] = [];
@@ -72,6 +73,7 @@ const JournalMetrics: FC<{}> = () => {
   const handleChange = (_event, newValue) => {
     setValue(newValue);
   };
+  const themeMode = useContext(ThemeContext);
   useEffect(() => {
     fetch(
       `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${endTimestamp}`
@@ -125,8 +127,7 @@ const JournalMetrics: FC<{}> = () => {
   ];
   const optionsSystemd = {
     chart: {
-      type: 'area',
-      background: '#fff'
+      type: 'area'
     },
     dataLabels: {
       enabled: false
@@ -152,12 +153,14 @@ const JournalMetrics: FC<{}> = () => {
         opacityFrom: 0.8,
         opacityTo: 0.2
       }
+    },
+    theme: {
+      mode: themeMode
     }
   };
   const optionsKernel = {
     chart: {
-      type: 'area',
-      background: '#fff'
+      type: 'area'
     },
     dataLabels: {
       enabled: false
@@ -183,14 +186,17 @@ const JournalMetrics: FC<{}> = () => {
         opacityFrom: 0.8,
         opacityTo: 0.2
       }
+    },
+    theme: {
+      mode: themeMode
     }
   };
   return (
     <div className={classes.root}>
       <AppBar position="static">
         <Tabs value={value} onChange={handleChange} indicatorColor="secondary">
-          <Tab label="Kernel" {...a11yProps(0)} style={{ outline: '0px' }} />
-          <Tab label="Systemd" {...a11yProps(1)} style={{ outline: '0px' }} />
+          <Tab label="Kernel" {...a11yProps(0)} />
+          <Tab label="Systemd" {...a11yProps(1)} />
         </Tabs>
       </AppBar>
       <TabPanel value={value} index={0}>
