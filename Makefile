@@ -4,8 +4,7 @@ update:
 
 build:
 	echo "building bench-routes ..."
-	go build src/main.go
-	mv main bench-routes
+	go build -o bench-routes src/main.go
 
 view-v1.1:
 	cd dashboard/v1.1/ && yarn start
