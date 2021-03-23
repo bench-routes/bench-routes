@@ -1,4 +1,4 @@
-import { makeStyles } from "@material-ui/core";
+import { makeStyles } from '@material-ui/core';
 
 const useStyles = makeStyles(theme => ({
   pageheader: {
@@ -28,6 +28,24 @@ const useStyles = makeStyles(theme => ({
   },
   params: {
     margin: '2%'
+  },
+  popupTitle: {
+    padding: '2rem 2rem 0 2rem',
+    borderTop: '0.3rem solid #2195f1'
+  },
+  popupContent: {
+    padding: '1rem 2rem 2rem 2rem'
+  },
+  popupButton: {
+    '&:focus': {
+      outline: 'none'
+    },
+    fontWeight: 800,
+    fontSize: '0.8rem'
+  },
+  popupActions: {
+    backgroundColor: '#f2f2f5',
+    padding: '1rem 2rem'
   }
 }));
 
