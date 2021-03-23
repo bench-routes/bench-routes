@@ -85,6 +85,7 @@ export default function BaseLayout(props: any): ReactElement {
 
   const handleToggleDarkMode = () => {
     const { darkMode, toggleDarkMode } = props;
+    localStorage.setItem('dark-mode', darkMode ? 'false' : 'true');
     toggleDarkMode(!darkMode);
   };
 
@@ -136,7 +137,7 @@ export default function BaseLayout(props: any): ReactElement {
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
-          <Navigator updateLoader={updateLoader} />
+          <Navigator updateLoader={updateLoader} darkMode={props.darkMode} />
         </Container>
       </main>
     </div>

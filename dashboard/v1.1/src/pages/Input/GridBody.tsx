@@ -102,8 +102,7 @@ const GridBody: FC<GridBodyProps> = ({ name, headers, updateParent }) => {
             onChange={e => updateBody(e.target.value)}
             style={{
               minHeight: '100%',
-              width: '100%',
-              backgroundColor: '#f9f9f9'
+              width: '100%'
             }}
           />
         </div>

@@ -20,6 +20,7 @@ import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import Tooltip from '@material-ui/core/Tooltip';
 import { truncate } from '../../utils/stringManipulations';
 import { Badge } from 'reactstrap';
+import TablePagination from '@material-ui/core/TablePagination';
 
 type APIResponse<MatrixResponse> = { status: string; data: MatrixResponse };
 
@@ -241,38 +242,63 @@ const Matrix: FC<MatrixProps> = ({
   timeSeriesPath,
   isMonitoringActive,
   showRouteDetails
-}) => (
-  <TableContainer>
-    <Table stickyHeader>
-      <TableHead>
-        <TableRow>
-          {columns.map((column, i) => (
-            <TableCell
-              key={i}
-              align={column.align}
-              style={{
-                minWidth: column.minWidth,
-                fontWeight: 600,
-                fontSize: 15
-              }}
-            >
-              {column.label}
-            </TableCell>
-          ))}
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {timeSeriesPath.map((series, i) => (
-          <Element
-            timeSeriesPath={series}
-            showRouteDetails={showRouteDetails}
-            isMonitoringActive={isMonitoringActive}
-            key={i}
-          />
-        ))}
-      </TableBody>
-    </Table>
-  </TableContainer>
-);
+}) => {
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = event => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
+  };
+  return (
+    <>
+      <TableContainer>
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              {columns.map((column, i) => (
+                <TableCell
+                  key={i}
+                  align={column.align}
+                  style={{
+                    minWidth: column.minWidth,
+                    fontWeight: 600,
+                    fontSize: 15
+                  }}
+                >
+                  {column.label}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {timeSeriesPath
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((series, i) => (
+                <Element
+                  timeSeriesPath={series}
+                  showRouteDetails={showRouteDetails}
+                  isMonitoringActive={isMonitoringActive}
+                  key={i}
+                />
+              ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[10, 25, 100]}
+        component="div"
+        count={timeSeriesPath.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onChangePage={handleChangePage}
+        onChangeRowsPerPage={handleChangeRowsPerPage}
+      />
+    </>
+  );
+};
 export default Matrix;
