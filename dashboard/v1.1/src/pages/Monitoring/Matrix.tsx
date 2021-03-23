@@ -45,7 +45,7 @@ const useStyles = makeStyles({
     borderRadius: 0,
     boxShadow: 'none',
     borderBottom: '1px solid rgba(0, 0, 0, 0.23)',
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(0,0,0,0)',
     fontWeight: 600,
     fontSize: 15,
     color: '#000',
