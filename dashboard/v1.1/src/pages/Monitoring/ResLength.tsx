@@ -1,7 +1,7 @@
-import React, { FC } from 'react';
+import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
-
+import { ThemeContext } from '../../layouts/BaseLayout';
 import { chartData } from '../../utils/queryTypes';
 
 interface ResLengthProps {
@@ -9,6 +9,7 @@ interface ResLengthProps {
 }
 
 const ResLength: FC<ResLengthProps> = ({ resLength }) => {
+  const themeMode = useContext(ThemeContext);
   const series = [
     {
       name: 'Response length',
@@ -30,8 +31,7 @@ const ResLength: FC<ResLengthProps> = ({ resLength }) => {
           enabled: true,
           speed: 350
         }
-      },
-      background: '#fff'
+      }
     },
     yaxis: {
       title: {
@@ -42,6 +42,9 @@ const ResLength: FC<ResLengthProps> = ({ resLength }) => {
       title: {
         text: 'Time'
       }
+    },
+    theme: {
+      mode: themeMode
     }
   };
   return (

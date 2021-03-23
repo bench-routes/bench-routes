@@ -1,7 +1,7 @@
-import React, { FC } from 'react';
+import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
-
+import { ThemeContext } from '../../layouts/BaseLayout';
 import { chartData } from '../../utils/queryTypes';
 
 interface PingProps {
@@ -11,6 +11,7 @@ interface PingProps {
 }
 
 const Ping: FC<PingProps> = ({ min, mean, max }) => {
+  const themeMode = useContext(ThemeContext);
   const series = [
     {
       name: 'min',
@@ -51,8 +52,7 @@ const Ping: FC<PingProps> = ({ min, mean, max }) => {
           enabled: true,
           speed: 350
         }
-      },
-      background: '#fff'
+      }
     },
     yaxis: {
       title: {
@@ -63,6 +63,9 @@ const Ping: FC<PingProps> = ({ min, mean, max }) => {
       title: {
         text: 'Time'
       }
+    },
+    theme: {
+      mode: themeMode
     }
   };
   return (
