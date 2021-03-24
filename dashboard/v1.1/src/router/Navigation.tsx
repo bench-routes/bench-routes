@@ -15,6 +15,7 @@ interface NavigatorProps {
 }
 
 const Navigator: FC<NavigatorProps> = ({ updateLoader, darkMode }) => {
+  cosnt [quickInput, setquickInput] = useState(false);
   useEffect(() => {
     if (window.location.href.indexOf('quick-input') > -1) {
       setquickInput(false);
