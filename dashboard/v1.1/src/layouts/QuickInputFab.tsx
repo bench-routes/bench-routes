@@ -12,7 +12,10 @@ const useStyles = makeStyles(theme => ({
 }));
 
 // Floating Action Button for Quick Input
-const QuickInputFab = () => {
+const QuickInputFab = ({ setquickInput }) => {
+  const handleClick = () => {
+    setquickInput(false);
+  };
   const classes = useStyles();
   return (
     <Link to="/quick-input">
@@ -21,6 +24,7 @@ const QuickInputFab = () => {
           className={classes.inputFab}
           color="primary"
           aria-label="quick-input"
+          onClick={handleClick}
         >
           <PostAddIcon />
         </Fab>
