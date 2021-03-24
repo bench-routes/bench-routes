@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bench-routes/bench-routes/src/lib/config"
+	parser "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/utils"
 	"github.com/bench-routes/bench-routes/src/lib/utils/prom"
 	"github.com/bench-routes/bench-routes/tsdb"
