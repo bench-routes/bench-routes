@@ -20,6 +20,7 @@ const (
 type CPU interface {
 	GetTotalCPUUsage() string
 	GetTotalCPUStats() gostats.TimesStat
+	GetPerCoreUsage() string
 }
 
 // Memory interface for Memory related details.
@@ -63,6 +64,19 @@ func (s *SystemMetrics) GetTotalCPUStats() gostats.TimesStat {
 	}
 
 	return stats[0]
+}
+
+func (s *SystemMetrics) GetPerCoreUsage(c chan *string) {
+	perCore, err := gostats.Percent(time.Duration(time.Second), true)
+	if err != nil {
+		panic(err)
+	}
+	str := ""
+	for i := 0; i < len(perCore); i++ {
+		currentCpu := fmt.Sprintf("%.2f", perCore[i])
+		str += currentCpu + " "
+	}
+	c <- &str
 }
 
 // MemoryStats for memory based statistics.
