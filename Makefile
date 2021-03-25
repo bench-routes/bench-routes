@@ -31,7 +31,7 @@ test: build
 	go clean -testcache
 	go test -v ./...
 
-## Runs Golang unit tests
+## Installs UI dependencies and builds the frontend.
 build-frontend:
 	cd dashboard/v1.1/ && yarn install && yarn build
 
