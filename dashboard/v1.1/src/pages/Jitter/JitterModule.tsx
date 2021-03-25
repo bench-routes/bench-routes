@@ -66,9 +66,7 @@ const JitterModule: FC<{}> = () => {
   async function getChartsData(v: string) {
     try {
       const response = await fetch(
-        `${HOST_IP}/query?timeSeriesPath=storage/jitter/chunk_jitter_${hashRoutMap.get(
-          v
-        )}`
+        `${HOST_IP}/query?hashKey=${hashRoutMap.get(v)}&type=jitter`
       );
       const matrix = (await response.json()) as APIQueryResponse;
       var formatdata = format(matrix.data);

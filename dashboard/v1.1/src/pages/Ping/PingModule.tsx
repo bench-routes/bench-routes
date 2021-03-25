@@ -80,9 +80,7 @@ const PingModule: FC<{}> = () => {
   async function getChartsData(v: string) {
     try {
       const response = await fetch(
-        `${HOST_IP}/query?timeSeriesPath=storage/ping/chunk_ping_${hashRoutMap.get(
-          v
-        )}`
+        `${HOST_IP}/query?hashKey=${hashRoutMap.get(v)}&type=ping`
       );
       const matrix = (await response.json()) as APIQueryResponse;
       var formatdata = format(matrix.data);

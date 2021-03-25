@@ -88,9 +88,10 @@ func (q *Query) Exec() []byte {
 
 // ExecWithoutEncode executes the Query without encoding the result to []byte,
 // rather keeps the result as default QueryResponse.
-func (q *Query) ExecWithoutEncode() QueryResponse {
+func (q *Query) ExecWithoutEncode(newBlocks []tsdb.Block) QueryResponse {
 	chainReadOnly := tsdb.ReadOnly(q.Path).Refresh()
 	bstream := chainReadOnly.BlockStream()
+	*bstream = append(*bstream, newBlocks...)
 	data, _ := q.exec(*bstream, false).(QueryResponse)
 	return data
 }

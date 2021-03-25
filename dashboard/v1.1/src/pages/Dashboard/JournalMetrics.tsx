@@ -75,9 +75,7 @@ const JournalMetrics: FC<{}> = () => {
     setValue(newValue);
   };
   useEffect(() => {
-    fetch(
-      `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${endTimestamp}`
-    )
+    fetch(`${HOST_IP}/query?type=journal&endTimestamp=${endTimestamp}`)
       .then(res => res.json())
       .then(
         (response: APIResponse<QueryResponse>) => {

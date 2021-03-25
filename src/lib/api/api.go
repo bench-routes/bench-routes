@@ -174,8 +174,10 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 		startTimestamp, endTimestamp int64
 		err                          error
 	)
-	timeSeriesPath := r.URL.Query().Get("timeSeriesPath")
-
+	hash := r.URL.Query().Get("hashKey")
+	Type := r.URL.Query().Get("type")
+	var timeSeriesPath string
+	var newBlocks []tsdb.Block
 	startTimestampStr := r.URL.Query().Get("startTimestamp")
 	if startTimestampStr == "" {
 		startTimestamp = int64(math.MaxInt64)
@@ -196,17 +198,46 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if hash == "" {
+		switch Type {
+		case "system":
+			timeSeriesPath = "storage/system" + tsdb.FileExtension
+		case "journal":
+			timeSeriesPath = "storage/journal" + tsdb.FileExtension
+		default:
+			a.send(w, []byte("INVALID_TYPE"))
+			return
+		}
+		if ok := tsdb.VerifyChainPathExists(timeSeriesPath); !ok {
+			a.send(w, []byte("INVALID_PATH"))
+			return
+		}
+		newBlocks = []tsdb.Block{}
+	} else {
+		if _, ok := (*a.Matrix)[hash]; !ok {
+			a.send(w, []byte("INVALID_PATH"))
+			return
+		}
+		matrix := (*a.Matrix)[hash]
+
+		switch Type {
+		case "ping":
+			newBlocks = matrix.PingChain.Chain
+		case "jitter":
+			newBlocks = matrix.JitterChain.Chain
+		default:
+			a.send(w, []byte("INVALID_TYPE"))
+			return
+		}
+
+		timeSeriesPath = "storage/" + Type + "/chunk_" + Type + "_" + hash + tsdb.FileExtension
+	}
 	// condition: only for bench-routes as per the design
 	//
 	// path should be in syntax: <DBPath>/<ofType>/chunk_<middle>_<url>.json -> non-system metric
 	// %s/system.json -> system metric
 
 	// verify if chain path exists
-	timeSeriesPath = timeSeriesPath + tsdb.FileExtension
-	if ok := tsdb.VerifyChainPathExists(timeSeriesPath); !ok {
-		a.send(w, []byte("INVALID_PATH"))
-		return
-	}
 
 	// TODO: we do not capture the block streams in memory while querying yet. They are captured only when flushed.
 	// TODO: consider cmap while querying for fetching latest blocks after shifting tsdb to binary.
@@ -214,7 +245,7 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	qry := querier.New(timeSeriesPath, "", querier.TypeRange)
 	query := qry.QueryBuilder()
 	query.SetRange(startTimestamp, endTimestamp)
-	a.Data = query.ExecWithoutEncode()
+	a.Data = query.ExecWithoutEncode(newBlocks)
 	a.send(w, a.marshalled())
 }
 
@@ -235,20 +266,21 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 	}
 	startTimestampStr := r.URL.Query().Get("startTimestamp")
 	endTimestampStr := r.URL.Query().Get("endTimestamp")
-	parallelQueryExec := func(path string, Type uint8, curr, from int64, c chan querier.QueryResponse) {
-		qry := querier.New(path, "", Type)
+	parallelQueryExec := func(chain *tsdb.Chain, Type uint8, curr, from int64, c chan querier.QueryResponse) {
+		qry := querier.New(chain.Path, "", Type)
+		blockStream := chain.Chain
 		query := qry.QueryBuilder()
 		query.SetRange(curr, from)
-		c <- query.ExecWithoutEncode()
+		c <- query.ExecWithoutEncode(blockStream)
 	}
 	matrix := (*a.Matrix)[routeHashMatrix]
 	if startTimestampStr == "" && endTimestampStr == "" {
 		curr := time.Now().UnixNano()
 		from := curr - (brt.Minute * 20)
 
-		go parallelQueryExec(matrix.PingChain.Path, querier.TypeFirst, curr, from, chans[0])
-		go parallelQueryExec(matrix.JitterChain.Path, querier.TypeFirst, curr, from, chans[1])
-		go parallelQueryExec(matrix.MonitorChain.Path, querier.TypeFirst, curr, from, chans[2])
+		go parallelQueryExec(matrix.PingChain, querier.TypeFirst, curr, from, chans[0])
+		go parallelQueryExec(matrix.JitterChain, querier.TypeFirst, curr, from, chans[1])
+		go parallelQueryExec(matrix.MonitorChain, querier.TypeFirst, curr, from, chans[2])
 		matrixResponse = map[string]querier.QueryResponse{
 			"ping":    <-chans[0],
 			"jitter":  <-chans[1],
@@ -276,9 +308,9 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		go parallelQueryExec(matrix.PingChain.Path, querier.TypeRange, startTimestamp, endTimestamp, chans[0])
-		go parallelQueryExec(matrix.JitterChain.Path, querier.TypeRange, startTimestamp, endTimestamp, chans[1])
-		go parallelQueryExec(matrix.MonitorChain.Path, querier.TypeRange, startTimestamp, endTimestamp, chans[2])
+		go parallelQueryExec(matrix.PingChain, querier.TypeRange, startTimestamp, endTimestamp, chans[0])
+		go parallelQueryExec(matrix.JitterChain, querier.TypeRange, startTimestamp, endTimestamp, chans[1])
+		go parallelQueryExec(matrix.MonitorChain, querier.TypeRange, startTimestamp, endTimestamp, chans[2])
 		matrixResponse = map[string]querier.QueryResponse{
 			"ping":    <-chans[0],
 			"jitter":  <-chans[1],

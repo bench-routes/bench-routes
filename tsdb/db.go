@@ -309,8 +309,11 @@ func (c *ChainReadOnly) Refresh() *ChainReadOnly {
 	response, err := parse(c.Path)
 	if err != nil {
 		log.Errorf("error reading the chain: %s\n", c.Path)
+		empty := ""
+		c.Chain = loadFromStorage(&empty)
+	} else {
+		c.Chain = loadFromStorage(response)
 	}
-	c.Chain = loadFromStorage(response)
 	return c
 }
 

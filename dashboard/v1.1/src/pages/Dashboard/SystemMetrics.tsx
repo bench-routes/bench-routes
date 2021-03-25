@@ -128,9 +128,7 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
     showLoader(true);
   }, [showLoader]);
   useEffect(() => {
-    fetch(
-      `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${endTimestamp}`
-    )
+    fetch(`${HOST_IP}/query?type=system&endTimestamp=${endTimestamp}`)
       .then(res => res.json())
       .then(
         (response: APIResponse<QueryResponse>) => {
