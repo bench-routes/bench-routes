@@ -7,7 +7,7 @@ const useStyles = makeStyles(theme => ({
   inputFab: {
     position: 'fixed',
     right: 0,
-    bottom: '4.5rem',
+    bottom: '10rem',
     borderRadius: '10px 0 0 10px',
     width: '10rem',
     height: '3rem',
