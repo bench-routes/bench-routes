@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
 import AppBar from '@material-ui/core/AppBar';
@@ -9,6 +9,7 @@ import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 import { HOST_IP } from '../../utils/types';
 import TimeInstance, { formatTime } from '../../utils/brt';
 import { useStyles, TabPanel, a11yProps } from './SystemMetrics';
+import { ThemeContext } from '../../layouts/BaseLayout';
 
 const format = (data: QueryValues[] | any) => {
   const cerr: chartData[] = [];
@@ -63,12 +64,9 @@ const format = (data: QueryValues[] | any) => {
   };
 };
 
-interface JournalMetricsProps {
-  darkMode(status: boolean): any;
-}
-
-const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
+const JournalMetrics: FC<{}> = () => {
   const classes = useStyles();
+  const themeMode = useContext(ThemeContext);
   const [response, setResponse] = useState(init());
   const [error, setError] = useState('');
   const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
@@ -129,8 +127,7 @@ const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
   ];
   const optionsSystemd = {
     chart: {
-      type: 'area',
-      background: '#fff'
+      type: 'area'
     },
     dataLabels: {
       enabled: false
@@ -157,14 +154,13 @@ const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
         opacityTo: 0.2
       }
     },
-    tooltip: {
-      theme: !darkMode ? 'light' : 'dark'
+    theme: {
+      mode: themeMode
     }
   };
   const optionsKernel = {
     chart: {
-      type: 'area',
-      background: '#fff'
+      type: 'area'
     },
     dataLabels: {
       enabled: false
@@ -191,8 +187,8 @@ const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
         opacityTo: 0.2
       }
     },
-    tooltip: {
-      theme: !darkMode ? 'light' : 'dark'
+    theme: {
+      mode: themeMode
     }
   };
   return (

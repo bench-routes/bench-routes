@@ -1,13 +1,14 @@
-import React, { FC } from 'react';
+import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import { chartData } from '../../utils/queryTypes';
+import { ThemeContext } from '../../layouts/BaseLayout';
 
 interface CPUUsageProps {
   cpuMetrics: chartData[];
-  darkMode(status: boolean): void;
 }
 
-const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics, darkMode }) => {
+const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
+  const themeMode = useContext(ThemeContext);
   const dataFormatted = cpuMetrics;
   const series = [
     {
@@ -28,8 +29,7 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics, darkMode }) => {
           hideOverlappingLabels: true,
           trim: true
         }
-      },
-      background: '#fff'
+      }
     },
     dataLabels: {
       enabled: false
@@ -56,8 +56,8 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics, darkMode }) => {
         opacityTo: 0.2
       }
     },
-    tooltip: {
-      theme: !darkMode ? 'light' : 'dark'
+    theme: {
+      mode: themeMode
     }
   };
 
