@@ -21,6 +21,8 @@ import Tooltip from '@material-ui/core/Tooltip';
 import { truncate } from '../../utils/stringManipulations';
 import { Badge } from 'reactstrap';
 import TablePagination from '@material-ui/core/TablePagination';
+import SearchBar from 'material-ui-search-bar';
+import { makeStyles } from '@material-ui/core/styles';
 
 type APIResponse<MatrixResponse> = { status: string; data: MatrixResponse };
 
@@ -37,6 +39,25 @@ interface ElementProps {
 }
 
 const Pad: FC<{}> = () => <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>;
+
+const useStyles = makeStyles({
+  searchBar: {
+    borderRadius: 0,
+    boxShadow: 'none',
+    borderBottom: '1px solid rgba(0, 0, 0, 0.23)',
+    backgroundColor: 'rgba(0,0,0,0)',
+    fontWeight: 600,
+    fontSize: 15,
+    color: '#000',
+    marginTop: '-47px',
+    maxWidth: 300,
+    float: 'right',
+    height: '30px',
+    '&:hover': {
+      borderBottom: '1px solid rgba(0, 0, 0, 1)'
+    }
+  }
+});
 
 const Element: FC<ElementProps> = ({
   timeSeriesPath,
@@ -243,8 +264,24 @@ const Matrix: FC<MatrixProps> = ({
   isMonitoringActive,
   showRouteDetails
 }) => {
+  const classes = useStyles();
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
+  const [rows, setRows] = useState<TimeSeriesPath[]>(timeSeriesPath);
+  const [searched, setSearched] = useState<string>('');
+
+  const requestSearch = (searchedVal: string) => {
+    const filteredRows = timeSeriesPath.filter(row => {
+      return row.name.toLowerCase().includes(searchedVal.toLowerCase());
+    });
+    setRows(filteredRows);
+  };
+
+  const cancelSearch = () => {
+    setSearched('');
+    requestSearch(searched);
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -256,6 +293,14 @@ const Matrix: FC<MatrixProps> = ({
   };
   return (
     <>
+      <SearchBar
+        value={searched}
+        onChange={searchVal => requestSearch(searchVal)}
+        onCancelSearch={() => cancelSearch()}
+        placeholder="Search here"
+        className={classes.searchBar}
+        style={{}}
+      />
       <TableContainer>
         <Table stickyHeader>
           <TableHead>
@@ -276,7 +321,7 @@ const Matrix: FC<MatrixProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {timeSeriesPath
+            {rows
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((series, i) => (
                 <Element
@@ -292,7 +337,7 @@ const Matrix: FC<MatrixProps> = ({
       <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component="div"
-        count={timeSeriesPath.length}
+        count={rows.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onChangePage={handleChangePage}

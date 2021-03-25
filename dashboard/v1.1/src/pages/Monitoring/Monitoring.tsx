@@ -112,7 +112,6 @@ const Monitoring: FC<MonitoringProps> = ({ updateLoader }) => {
                 active={(status: boolean) => setIsMonitoringActive(status)}
               />
             </h4>
-            <hr />
             <Matrix
               timeSeriesPath={response.data}
               showRouteDetails={showDetails}
