@@ -200,6 +200,7 @@ const Input = (props: InputScreenProps) => {
     setApplyHeader(false);
     setApplyParams(false);
     setApplyBody(false);
+    setSelectedLabels([]);
   };
   const testAndEdit = () => {
     const params = {};
