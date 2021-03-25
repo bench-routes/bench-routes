@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { HashRouter as Router, Route, Switch } from 'react-router-dom';
 import QuickInputFab from '../layouts/QuickInputFab';
 import Config from '../pages/Config/Config';
@@ -15,10 +15,17 @@ interface NavigatorProps {
 }
 
 const Navigator: FC<NavigatorProps> = ({ updateLoader, darkMode }) => {
+  const [quickInput, setquickInput] = useState(false);
+  useEffect(() => {
+    if (window.location.href.indexOf('quick-input') > -1) {
+      setquickInput(false);
+    } else {
+      setquickInput(true);
+    }
+  });
   return (
     <Router>
       {/* Floating Action Button for Quick Route Input */}
-      <QuickInputFab />
       <Switch>
         <Route
           exact={true}
@@ -38,6 +45,7 @@ const Navigator: FC<NavigatorProps> = ({ updateLoader, darkMode }) => {
         <Route path="/quick-input" component={Input} />
         <Route path="/configurations" component={Config} />
       </Switch>
+      {quickInput ? <QuickInputFab setquickInput={setquickInput} /> : ''}
     </Router>
   );
 };
