@@ -1,22 +1,22 @@
-import React, { FC } from 'react';
+import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import { chartData } from '../../utils/queryTypes';
+import { ThemeContext } from '../../layouts/BaseLayout';
 
 interface MemoryDetailsProps {
   availableBytes: chartData[];
   freeBytes: chartData[];
   totalBytes: chartData[];
   usedBytes: chartData[];
-  darkMode(status: boolean): any;
 }
 
 const MemoryDetails: FC<MemoryDetailsProps> = ({
   availableBytes,
   freeBytes,
   totalBytes,
-  usedBytes,
-  darkMode
+  usedBytes
 }) => {
+  const themeMode = useContext(ThemeContext);
   const series = [
     {
       name: 'Available',
@@ -37,8 +37,7 @@ const MemoryDetails: FC<MemoryDetailsProps> = ({
   ];
   const options = {
     chart: {
-      type: 'area',
-      background: '#fff'
+      type: 'area'
     },
     dataLabels: {
       enabled: false
@@ -65,8 +64,8 @@ const MemoryDetails: FC<MemoryDetailsProps> = ({
         opacityTo: 0.2
       }
     },
-    tooltip: {
-      theme: !darkMode ? 'light' : 'dark'
+    theme: {
+      mode: themeMode
     }
   };
 
