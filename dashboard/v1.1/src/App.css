@@ -57,3 +57,7 @@ a.MuiButtonBase-root.MuiListItem-root:hover {
   color: inherit;
   background-color: rgba(172, 172, 172, 0.685);
 }
+
+.makeStyles-inputFab-22:hover {
+  transform: translateX(0);
+}

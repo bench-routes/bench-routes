@@ -6,8 +6,18 @@ import { Link } from 'react-router-dom';
 const useStyles = makeStyles(theme => ({
   inputFab: {
     position: 'fixed',
-    right: '2rem',
-    bottom: '2rem'
+    right: 0,
+    bottom: '10rem',
+    borderRadius: '10px 0 0 10px',
+    width: '10rem',
+    height: '3rem',
+    zIndex: 12,
+    transform: 'translateX(70%)',
+    transition: '0.3s all ease-in'
+  },
+  tag: {
+    fontWeight: 600,
+    padding: 15
   }
 }));
 
@@ -23,6 +33,7 @@ const QuickInputFab = () => {
           aria-label="quick-input"
         >
           <PostAddIcon />
+          <span className={classes.tag}>Quick Input</span>
         </Fab>
       </Tooltip>
     </Link>
