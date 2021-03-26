@@ -1,14 +1,18 @@
-import { CssBaseline, Switch, Tooltip } from '@material-ui/core';
+import { CssBaseline, Tooltip } from '@material-ui/core';
 import { Container } from '@material-ui/core';
 import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { makeStyles } from '@material-ui/core/styles';
-import { Menu as MenuIcon } from '@material-ui/icons';
+import {
+  Menu as MenuIcon,
+  Brightness7Sharp,
+  Brightness2Sharp
+} from '@material-ui/icons';
 import clsx from 'clsx';
 import React, { ReactElement, useCallback, useState } from 'react';
 import Navigator from '../router/Navigation';
 import Sidebar from './Sidebar';
-
+import Switch from 'react-switch';
 const drawerWidth = 240;
 export const ThemeContext = React.createContext({});
 const _useStyles = makeStyles(theme => ({
@@ -61,6 +65,19 @@ const useStyles = makeStyles(theme => ({
   container: {
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4)
+  },
+  sunIcon: {
+    position: 'absolute',
+    right: -1.5,
+    top: -1.5,
+    padding: 4
+  },
+  moonIcon: {
+    position: 'absolute',
+    left: -2,
+    top: -1,
+    padding: 4,
+    transform: 'rotate(160deg)'
   }
 }));
 
@@ -125,9 +142,17 @@ export default function BaseLayout(props: any): ReactElement {
                 <Switch
                   checked={props.darkMode}
                   onChange={handleToggleDarkMode}
-                  color="default"
-                  name="checkedB"
-                  inputProps={{ 'aria-label': 'primary checkbox' }}
+                  offColor="#145D97"
+                  onColor="#303030"
+                  height={18}
+                  handleDiameter={20}
+                  width={36}
+                  uncheckedIcon={
+                    <Brightness7Sharp className={classes.sunIcon} />
+                  }
+                  checkedIcon={
+                    <Brightness2Sharp className={classes.moonIcon} />
+                  }
                 />
               </Tooltip>
             </Toolbar>
