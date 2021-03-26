@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"reflect"
 	"runtime"
@@ -62,6 +63,7 @@ var (
 	pathJitter     = fmt.Sprintf("%s/jitter", storageDir)
 	pathFloodPing  = fmt.Sprintf("%s/flood-ping", storageDir)
 	pathMonitoring = fmt.Sprintf("%s/monitoring", storageDir)
+	browserName    = "firefox"
 )
 
 func main() {
@@ -306,6 +308,29 @@ func main() {
 		os.Exit(0)
 	}()
 	log.Infoln("Bench-routes is up and running")
+	url := fmt.Sprintf("http://localhost%s", port)
+	go func(url string) {
+		var err error
+		log_message := fmt.Sprintf("%s is running bench-routes at %s", browserName, url)
+
+		switch runtime.GOOS {
+		case "linux":
+			err = exec.Command(browserName, url).Start()
+			log.Infoln(log_message)
+		case "windows":
+			err = exec.Command("start", browserName, url).Start()
+			log.Infoln(log_message)
+		case "darwin":
+			err = exec.Command("open", "-a", browserName, url).Start()
+			log.Infoln(log_message)
+		default:
+			err = fmt.Errorf("unsupported platform")
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	}(url)
 	log.Errorln(http.ListenAndServe(port, cors.Default().Handler(router)).Error())
 }
 
