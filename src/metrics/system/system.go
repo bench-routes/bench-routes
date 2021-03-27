@@ -72,7 +72,7 @@ func (s *SystemMetrics) GetPerCoreUsage(c chan *string) {
 	if err != nil {
 		errors.Unwrap(err)
 	}
-	str := ""
+	var s string
 	for i := 0; i < len(perCore); i++ {
 		currentCpu := fmt.Sprintf("%.2f", perCore[i])
 		str += currentCpu + " "
