@@ -132,5 +132,4 @@ export interface RouteDetails {
   ping: QueryResponse;
   jitter: QueryResponse;
   monitor: QueryResponse;
-  name: string;
 }
