@@ -37,10 +37,12 @@ func Decode(b tsdb.Block) interface{} {
 	case "flood-ping":
 		arr := strings.Split(b.GetDatapointEnc(), tsdb.BlockDataSeparator)
 		return FloodPing{
-			Min:        sTof(arr[0]),
-			Mean:       sTof(arr[1]),
-			Max:        sTof(arr[2]),
-			MDev:       sTof(arr[3]),
+			Ping: Ping{
+				Min:  sTof(arr[0]),
+				Mean: sTof(arr[1]),
+				Max:  sTof(arr[2]),
+				MDev: sTof(arr[3]),
+			},
 			PacketLoss: sTof(arr[4]),
 		}
 	case "req-res":

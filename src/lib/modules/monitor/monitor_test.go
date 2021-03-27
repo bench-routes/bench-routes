@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bench-routes/bench-routes/src/lib/config"
+	parser "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/utils"
 	"github.com/bench-routes/bench-routes/src/lib/utils/prom"
 	"github.com/bench-routes/bench-routes/tsdb"
@@ -30,7 +30,7 @@ func initVars() {
 		hash := URLHash(r)
 		if _, ok := targets[hash]; !ok {
 			path := fmt.Sprintf("../testfiles/%s_monitor.json", hash)
-			targets[hash] = &utils.BRMatrix{FullURL: r.URL,
+			targets[hash] = &utils.BRMatrix{
 				Route:        r,
 				MonitorChain: tsdb.NewChain(path).Init(),
 				Metrics:      endpointMetrics,

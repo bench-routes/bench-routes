@@ -347,7 +347,7 @@ func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 	var chainDetails []utils.ResponseTSDBChains
 	for hash, v := range *a.Matrix {
 		chainDetails = append(chainDetails, utils.ResponseTSDBChains{
-			Name: v.FullURL,
+			Name: v.Route.URL,
 			Path: utils.ChainPath{
 				InstanceKey: hash,
 				Ping:        trim(v.PingChain.Path),
