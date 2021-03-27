@@ -1,7 +1,5 @@
 package utils
 
-const ()
-
 // TypePingScrap as datatype for ping outputs
 type TypePingScrap struct {
 	Min, Avg, Max, Mdev float64
