@@ -105,18 +105,25 @@ func (q *Query) exec(blockStream []tsdb.Block, encoding bool) (i interface{}) {
 	base, stamp := getBaseResponse(q.Range)
 	defer func() {
 		var res QueryResponse
-		if q.encoding {
-			err := json.Unmarshal(i.([]byte), &res)
-			if err != nil {
-				log.Errorln(fmt.Errorf("Decoding error: %s", err.Error()).Error())
+		if !q.encoding {
+			res, ok := i.(QueryResponse)
+			if !ok {
+				log.Error("type 'QueryResponse' not received")
 			}
 			res.EvaluationTime = time.Since(stamp).String()
-			i, _ = json.Marshal(res)
-		} else {
-			res, _ = i.(QueryResponse)
-			res.EvaluationTime = time.Since(stamp).String()
 			i = res
+			return
 		}
+		err := json.Unmarshal(i.([]byte), &res)
+		if err != nil {
+			log.Errorln(fmt.Errorf("Decoding error: %s", err.Error()).Error())
+		}
+		res.EvaluationTime = time.Since(stamp).String()
+		data, ok := json.Marshal(res)
+		if ok != nil {
+			log.Error("invalid marshalling: ", err.Error())
+		}
+		i = data
 	}()
 	q.encoding = encoding
 	q.stamp = stamp
