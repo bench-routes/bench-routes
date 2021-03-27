@@ -31,8 +31,8 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '15px',
     borderRadius: 15,
     marginRight: '0.5rem',
-    minWidth: 'max-content',
-    marginTop: '0.4rem'
+    marginTop: '0.4rem',
+    maxWidth: 'max-content',
   },
   popper: {
     border: '1px solid rgba(27,31,35,.15)',
@@ -57,7 +57,6 @@ const useStyles = makeStyles(theme => ({
     borderBottom: '1px solid #dfe2e5',
     '& input': {
       borderRadius: 4,
-      backgroundColor: theme.palette.common.white,
       padding: 8,
       transition: theme.transitions.create(['border-color', 'box-shadow']),
       border: '1px solid #ced4da',
@@ -92,7 +91,8 @@ const useStyles = makeStyles(theme => ({
     width: 17,
     height: 17,
     marginRight: 5,
-    marginLeft: -2
+    marginLeft: -2,
+    color: theme.palette.type==='dark'? '#fff': '#586069',
   },
   color: {
     width: 14,
@@ -103,12 +103,14 @@ const useStyles = makeStyles(theme => ({
     marginTop: 2
   },
   text: {
-    flexGrow: 1
+    flexGrow: 1,
+    color: theme.palette.type==='dark'? '#fff': '#586069',
   },
   close: {
     opacity: 0.6,
     width: 18,
-    height: 18
+    height: 18,
+    color: theme.palette.type==='dark'? '#fff': '#586069',
   },
   noOption: {
     padding: '0.2rem',

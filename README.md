@@ -66,6 +66,10 @@ For more information, regarding the APIs. Visit [Bench-Routes](https://documente
 
 - Instant messaging: [bench-routes/community](https://gitter.im/bench-routes/community)
 - Discussions (Recent): https://groups.google.com/forum/#!forum/bench-routes-discussion
+
+## Want to contribute? [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/bench-routes/bench-routes/issues)
+
+Want to file a bug, request a feature, contribute some code, or improve documentation? Excellent! Read up on our guidelines for [contributing](CONTRIBUTING.md) and then check out one of our [issues](https://github.com/bench-routes/bench-routes/issues). Make sure you follow the guidelines before sending a contribution!
    
 ### Supported by
 

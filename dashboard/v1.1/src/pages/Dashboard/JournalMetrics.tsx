@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
 import { Tabs, Tab, AppBar } from '@material-ui/core';
@@ -8,6 +8,7 @@ import { HOST_IP } from '../../utils/types';
 import TimeInstance, { formatTime } from '../../utils/brt';
 import { useStyles, TabPanel, a11yProps } from './SystemMetrics';
 import TimePanel from './TimePanel';
+import { ThemeContext } from '../../layouts/BaseLayout';
 
 const format = (data: QueryValues[] | any) => {
   const cerr: chartData[] = [];
@@ -62,12 +63,9 @@ const format = (data: QueryValues[] | any) => {
   };
 };
 
-interface JournalMetricsProps {
-  darkMode(status: boolean): any;
-}
-
-const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
+const JournalMetrics: FC<{}> = () => {
   const classes = useStyles();
+  const themeMode = useContext(ThemeContext);
   const [response, setResponse] = useState(init());
   const [fetchTime, setfetchTime] = useState(0);
   const [error, setError] = useState('');
@@ -145,8 +143,7 @@ const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
   ];
   const optionsSystemd = {
     chart: {
-      type: 'area',
-      background: '#fff'
+      type: 'area'
     },
     dataLabels: {
       enabled: false
@@ -173,14 +170,13 @@ const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
         opacityTo: 0.2
       }
     },
-    tooltip: {
-      theme: !darkMode ? 'light' : 'dark'
+    theme: {
+      mode: themeMode
     }
   };
   const optionsKernel = {
     chart: {
-      type: 'area',
-      background: '#fff'
+      type: 'area'
     },
     dataLabels: {
       enabled: false
@@ -207,8 +203,8 @@ const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
         opacityTo: 0.2
       }
     },
-    tooltip: {
-      theme: !darkMode ? 'light' : 'dark'
+    theme: {
+      mode: themeMode
     }
   };
 

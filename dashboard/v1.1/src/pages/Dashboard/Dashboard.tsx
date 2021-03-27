@@ -5,19 +5,18 @@ import { Card, CardContent } from '@material-ui/core';
 
 interface DashboardProps {
   updateLoader(status: boolean): void;
-  darkMode(status: boolean): void;
 }
 
-const Dashboard: FC<DashboardProps> = ({ updateLoader, darkMode }) => {
+const Dashboard: FC<DashboardProps> = ({ updateLoader }) => {
   updateLoader(true);
   return (
     <Card>
       <CardContent>
         <h4>Dashboard</h4>
         <hr />
-        <SystemMetrics showLoader={updateLoader} darkMode={darkMode} />
+        <SystemMetrics showLoader={updateLoader} />
         <hr />
-        <JournalMetrics darkMode={darkMode} />
+        <JournalMetrics />
       </CardContent>
     </Card>
   );

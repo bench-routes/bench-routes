@@ -116,10 +116,9 @@ const segregateMetrics = (metricValues: QueryValues[]) => {
 
 interface SystemMetricsProps {
   showLoader(status: boolean): any;
-  darkMode(status: boolean): any;
 }
 
-const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader, darkMode }) => {
+const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
   const classes = useStyles();
   const [response, setResponse] = useState(init());
   const [fetchTime, setfetchTime] = useState(0);
@@ -210,14 +209,10 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader, darkMode }) => {
           <TabPanel value={value} index={0}>
             <div className="row">
               <div className="col-md-6">
-                <CPUUsage
-                  darkMode={darkMode}
-                  cpuMetrics={responseInFormat.cpuUsageSlice}
-                />
+                <CPUUsage cpuMetrics={responseInFormat.cpuUsageSlice} />
               </div>
               <div className="col-md-6">
                 <MemoryUsagePercent
-                  darkMode={darkMode}
                   memoryUsagePercentMetrics={
                     responseInFormat.memoryUsedPercentSlice
                   }
@@ -228,7 +223,6 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader, darkMode }) => {
           <TabPanel value={value} index={1}>
             <div className="col-md-12">
               <DiskUsage
-                darkMode={darkMode}
                 diskIO={responseInFormat.diskSliceDiskIO}
                 cache={responseInFormat.diskSliceCache}
               />
@@ -237,7 +231,6 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader, darkMode }) => {
           <TabPanel value={value} index={2}>
             <div className="col-md-12">
               <MemoryDetails
-                darkMode={darkMode}
                 availableBytes={responseInFormat.memorySliceAvailableBytes}
                 freeBytes={responseInFormat.memorySliceFreeBytes}
                 totalBytes={responseInFormat.memorySliceTotalBytes}
