@@ -75,9 +75,9 @@ func (s *SystemMetrics) GetPerCoreUsage(c chan *string) {
 	var s string
 	for i := 0; i < len(perCore); i++ {
 		currentCpu := fmt.Sprintf("%.2f", perCore[i])
-		str += currentCpu + " "
+		s += currentCpu + " "
 	}
-	c <- &str
+	c <- &s
 }
 
 // MemoryStats for memory based statistics.
