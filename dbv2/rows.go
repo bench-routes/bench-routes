@@ -48,7 +48,7 @@ func newRowsIterator(reader *bufio.Reader, rowLength int) *rowsIterator {
 }
 
 func parseRow(buf []byte) (row, error) {
-	rowEndingPosition := bytes.Index(buf, []byte{rowEndSymbolByte})
+	rowEndingPosition := bytes.Index(buf, []byte{newLineSymbol})
 	row := buf[:rowEndingPosition]
 
 	timestampEndIndex := bytes.Index(row, []byte{typeSeparator})

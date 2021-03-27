@@ -90,12 +90,12 @@ func (dr *TableReader) skipBytes(numBytes int) error {
 
 // row returns the row after parsing the byte slice from current reader position.
 func (dr *TableReader) row() (row, int, error) {
-	line, err := dr.reader.ReadBytes(newLineSymbolByte)
+	line, err := dr.reader.ReadBytes(newLineSymbol)
 	if err != nil {
 		return rowEmpty, 0, fmt.Errorf("tableReader.row: %w", err)
 	}
 	bytesRead := len(line)
-	row, err := parse(line[:len(line)-1]) // 1 corresponds to newLineSymbolByte. Ignore newLine symbol, otherwise the value field will contain a new line.
+	row, err := parseBytesToRow(line[:len(line)-1]) // 1 corresponds to newLineSymbolByte. Ignore newLine symbol, otherwise the value field will contain a new line.
 	if err != nil {
 		return rowEmpty, bytesRead, fmt.Errorf("tableReader.row: %w", err)
 	}
@@ -133,7 +133,7 @@ func (dr *TableReader) read(seriesIdIndex []uint64) (*[]row, error) {
 	return &result, nil
 }
 
-func parse(buf []byte) (row, error) {
+func parseBytesToRow(buf []byte) (row, error) {
 	row := buf
 
 	timestampEndIndex := bytes.Index(row, []byte{typeSeparator})

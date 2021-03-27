@@ -14,6 +14,21 @@ func TestCreateFile_Write_Read(t *testing.T) {
 		values              []string
 	}{
 		{
+			timestamp: 100,
+			seriesID:  2,
+			values:    []string{"234.5", "11.2", "3"},
+		},
+		{
+			timestamp: 200,
+			seriesID:  2,
+			values:    []string{"234.5", "11.2", "3"},
+		},
+		{
+			timestamp: 300,
+			seriesID:  2,
+			values:    []string{"234.5", "11.2", "3"},
+		},
+		{
 			timestamp: 1,
 			seriesID:  1,
 			values:    []string{"234.5", "11.2", "3"},
@@ -53,8 +68,11 @@ func TestCreateFile_Write_Read(t *testing.T) {
 
 1|1|234.5:11.2:3
 10|1|234.5:11.2:3
+100|2|234.5:11.2:3
 100|1|234.5:11.2:3
+200|2|234.5:11.2:3
 200|1|234.5:11.2:3
+300|2|234.5:11.2:3
 300|1|234.5:11.2:3
 500|1|234.5:11.2:3
 800|1|234.5:11.2:3
@@ -64,6 +82,7 @@ func TestCreateFile_Write_Read(t *testing.T) {
 	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, os.Remove(testFile))
+		require.NoError(t, os.Remove(testFile+".index"))
 	}()
 	require.True(t, created, "RWDatatable")
 
@@ -73,15 +92,15 @@ func TestCreateFile_Write_Read(t *testing.T) {
 		// Keeping flushToIOBuffer(true) in for loop, is the actual tough part for the test to pass. Passing here would mean there is no
 		// duplication of data (which is what we want). Ideally, this would be kept after the loop for write is done, but since this is testing,
 		// we want to make sure for edge cases.
-		err = dtbl.buffer.flushToIOBuffer(true)
-		require.NoError(t, err)
 	}
+	err = dtbl.buffer.flushToIOBuffer(true)
+	require.NoError(t, err)
 	bSlice, err := ioutil.ReadFile(testFile)
 	require.NoError(t, err)
 	require.Equal(t, []byte(expected), bSlice, "matching write result")
 	fmt.Println(dtbl.buffer.writer.index)
 
-	// reading
+	// Reading.
 	reader, err := NewTableReader(testFile)
 	require.NoError(t, err)
 	rows, err := reader.read(dtbl.buffer.writer.index.Get(1))

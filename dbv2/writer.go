@@ -15,6 +15,8 @@ const (
 	valueSeparator = ':'
 	typeSeparator  = '|'
 	space          = " "
+	newLineSymbol  = '\n'
+	rowEndSymbol   = '\ufffe'
 )
 
 // TODO (harkishen): replace all fmt.Println()s to logfmt format.
@@ -30,17 +32,13 @@ var (
 )
 
 var (
-	newLineSymbol = '\n'
-	rowEndSymbol  = '\ufffe'
-)
-
-var (
-	newLineSymbolByte = byte(newLineSymbol)
-	rowEndSymbolByte  = byte(rowEndSymbol)
+	newLineSymbolByte = newLineSymbol
+	rowEndSymbolByte  = rowEndSymbol
 )
 
 type DataTable struct {
 	*os.File
+	path              string
 	mux               *sync.RWMutex
 	offset            int16
 	minWriteTimestamp uint64
@@ -74,6 +72,7 @@ func OpenRWDataTable(path string) (dtbl *DataTable, isCreated bool, err error) {
 
 	}
 	dtbl = &DataTable{
+		path:              path,
 		File:              file,
 		mux:               new(sync.RWMutex),
 		offset:            3,
@@ -112,7 +111,7 @@ type TableBuffer struct {
 
 // NewTableBuffer returns a new TableBuffer.
 func NewTableBuffer(dataTable *DataTable, mux *sync.RWMutex, cap uint64, ioBufferSize int, flushDeadline time.Duration) *TableBuffer {
-	index := NewTableIndex()
+	index := NewTableIndex(dataTable.path)
 	return &TableBuffer{
 		cap:           cap,
 		flushDeadline: flushDeadline,
@@ -232,6 +231,9 @@ func (w *tableWriter) writeToTable(timestamp, id uint64, valueSet string) error 
 func (w *tableWriter) commit() error {
 	w.mux.Lock()
 	defer w.mux.Unlock()
+	if err := w.index.Flush(); err != nil {
+		return fmt.Errorf("commit: flushing index: %w", err)
+	}
 	if err := w.tableWriter.Flush(); err != nil {
 		return fmt.Errorf("error occurred while flushing: %w", err)
 	}
@@ -240,18 +242,10 @@ func (w *tableWriter) commit() error {
 
 func serializeWrite(timestamp, seriesID uint64, value string) ([]byte, error) {
 	// todo: needs a test
+	// todo: remove type info as we now have start indices. This needs to be updated everywhere
 	str := fmt.Sprintf("%d%c%d%c%s\n", timestamp, typeSeparator, seriesID, typeSeparator, value)
 	if l := len(str); l > validLength {
 		return nil, fmt.Errorf("length greater than the valid-length: received %d wanted %d", l, validLength)
 	}
-	//inBytes := []byte(str)
-	//requiredNumBytesPadding := numBytesSingleLine - len(inBytes) - 2 // todo: needs a test. note: -1 is the symbol size of \n and another -1 is symbol size of endSymbol.
-	//if requiredNumBytesPadding < 0 {
-	//	return nil, fmt.Errorf("writing string cannot be greater than the maximum permitted value")
-	//}
-	//inBytes = append(inBytes, newLineSymbolByte)
-	//if len(inBytes) != numBytesSingleLine {
-	//	return nil, fmt.Errorf("serialize-write: byte array does not respect upper bound of line length")
-	//}
 	return []byte(str), nil
 }
