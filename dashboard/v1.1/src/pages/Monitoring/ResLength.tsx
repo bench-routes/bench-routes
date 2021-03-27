@@ -41,7 +41,8 @@ const ResLength: FC<ResLengthProps> = ({ resLength }) => {
     xaxis: {
       title: {
         text: 'Time'
-      }
+      },
+      tickAmount: 24
     },
     theme: {
       mode: themeMode

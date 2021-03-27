@@ -42,6 +42,9 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
     },
     theme: {
       mode: themeMode
+    },
+    xaxis: {
+      tickAmount: 12
     }
   };
   const optionsCache = {
@@ -88,6 +91,9 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
     },
     theme: {
       mode: themeMode
+    },
+    xaxis: {
+      tickAmount: 12
     }
   };
 

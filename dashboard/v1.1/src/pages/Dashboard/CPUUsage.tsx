@@ -58,6 +58,9 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
     },
     theme: {
       mode: themeMode
+    },
+    xaxis: {
+      tickAmount: 12
     }
   };
 

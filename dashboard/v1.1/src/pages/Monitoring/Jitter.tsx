@@ -41,7 +41,8 @@ const Jitter: FC<JitterProps> = ({ value }) => {
     xaxis: {
       title: {
         text: 'Time'
-      }
+      },
+      tickAmount: 24
     },
     theme: {
       mode: themeMode

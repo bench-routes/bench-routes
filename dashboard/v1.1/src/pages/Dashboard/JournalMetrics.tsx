@@ -156,6 +156,9 @@ const JournalMetrics: FC<{}> = () => {
     },
     theme: {
       mode: themeMode
+    },
+    xaxis: {
+      tickAmount: 24
     }
   };
   const optionsKernel = {
@@ -189,6 +192,9 @@ const JournalMetrics: FC<{}> = () => {
     },
     theme: {
       mode: themeMode
+    },
+    xaxis: {
+      tickAmount: 24
     }
   };
   return (

@@ -49,6 +49,9 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
     },
     theme: {
       mode: themeMode
+    },
+    xaxis: {
+      tickAmount: 12
     }
   };
 

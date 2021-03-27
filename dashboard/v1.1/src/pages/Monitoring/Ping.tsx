@@ -62,7 +62,8 @@ const Ping: FC<PingProps> = ({ min, mean, max }) => {
     xaxis: {
       title: {
         text: 'Time'
-      }
+      },
+      tickAmount: 24
     },
     theme: {
       mode: themeMode

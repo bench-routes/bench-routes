@@ -66,6 +66,9 @@ const MemoryDetails: FC<MemoryDetailsProps> = ({
     },
     theme: {
       mode: themeMode
+    },
+    xaxis: {
+      tickAmount: 24
     }
   };
 
