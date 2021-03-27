@@ -3,7 +3,7 @@ package filters
 import (
 	"encoding/json"
 
-	"github.com/bench-routes/bench-routes/src/lib/config"
+	parser "github.com/bench-routes/bench-routes/src/lib/config"
 )
 
 // Params JSON implementation of config-parser.go
