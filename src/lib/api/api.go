@@ -6,7 +6,6 @@ import (
 	"math"
 	"net/http"
 	"net/http/pprof"
-	"os"
 	"reflect"
 	"strconv"
 	"sync"
@@ -119,8 +118,7 @@ func (a *API) Register(router *mux.Router) {
 func (a *API) Home(w http.ResponseWriter, r *http.Request) {
 	msg := "ping from " + r.RemoteAddr + ", sent pong in monitor"
 	log.Infoln(msg)
-	a.Data = msg
-	a.send(w, a.Data, nil)
+	a.send(w, msg, nil)
 }
 
 // TestTemplate handles template related request for testing purposes.
@@ -591,7 +589,7 @@ func marshalled(status string, data interface{}, message interface{}) []byte {
 	}
 	js, err := json.Marshal(response)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "json-marshal error: ", err)
+		log.Error("json-marshal error: ", err.Error())
 	}
 
 	return js
