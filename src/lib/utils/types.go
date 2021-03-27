@@ -11,21 +11,18 @@ import (
 
 // Ping type for storing Ping values in TSDB
 type Ping struct {
-	Min  float64
-	Mean float64
-	Max  float64
-	MDev float64
+	Min  float64 `json:"Min"`
+	Mean float64 `json:"Mean"`
+	Max  float64 `json:"Max"`
+	MDev float64 `json:"MDev"`
 }
 
 // PingResp type for storing Ping values in TSDB
 type PingResp struct {
-	Min            float64 `json:"Min"`
-	Mean           float64 `json:"Mean"`
-	Max            float64 `json:"Max"`
-	MDev           float64 `json:"MDev"`
-	NormalizedTime int64   `json:"NormalizedTime"`
-	Timestamp      string  `json:"Timestamp"`
-	Relative       int     `json:"relative"`
+	Ping
+	NormalizedTime int64  `json:"NormalizedTime"`
+	Timestamp      string `json:"Timestamp"`
+	Relative       int    `json:"relative"`
 }
 
 // JitterResp type for storing Ping values in TSDB
@@ -38,23 +35,16 @@ type JitterResp struct {
 
 // FloodPing type for storing Ping values in TSDB
 type FloodPing struct {
-	Min        float64
-	Mean       float64
-	Max        float64
-	MDev       float64
-	PacketLoss float64
+	Ping
+	PacketLoss float64 `json:"PacketLoss"`
 }
 
 // FloodPingResp type for storing Ping values in TSDB
 type FloodPingResp struct {
-	Min            float64 `json:"Min"`
-	Mean           float64 `json:"Mean"`
-	Max            float64 `json:"Max"`
-	MDev           float64 `json:"MDev"`
-	PacketLoss     float64 `json:"PacketLoss"`
-	NormalizedTime int64   `json:"NormalizedTime"`
-	Timestamp      string  `json:"Timestamp"`
-	Relative       int     `json:"relative"`
+	FloodPing
+	NormalizedTime int64  `json:"NormalizedTime"`
+	Timestamp      string `json:"Timestamp"`
+	Relative       int    `json:"relative"`
 }
 
 // Response struct
@@ -68,9 +58,7 @@ type Response struct {
 
 // ResponseResp for responding the querier.
 type ResponseResp struct {
-	Delay          int    `json:"delay"`
-	ResLength      int    `json:"resLength"`
-	ResStatusCode  int    `json:"resStatusCode"`
+	Response
 	NormalizedTime int64  `json:"NormalizedTime"`
 	Timestamp      string `json:"Timestamp"`
 	Relative       int    `json:"relative"`
@@ -101,7 +89,6 @@ type MatrixResponse struct {
 
 // BRMatrix type for storing multi-dimensional information related to a route.
 type BRMatrix struct {
-	FullURL                  string
 	Route                    parser.Route
 	PingChain, JitterChain   *tsdb.Chain
 	FPingChain, MonitorChain *tsdb.Chain

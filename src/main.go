@@ -139,7 +139,6 @@ func main() {
 					}
 					// Finally, add the route to the matrix (in-memory representation of targets).
 					matrix[hash] = &utils.BRMatrix{
-						FullURL:      r.URL,
 						Route:        r,
 						PingChain:    targetMachineCalc[uHash].Ping,
 						JitterChain:  targetMachineCalc[uHash].Jitter,
