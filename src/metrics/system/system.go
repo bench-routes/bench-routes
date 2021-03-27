@@ -1,6 +1,7 @@
 package system
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -69,7 +70,7 @@ func (s *SystemMetrics) GetTotalCPUStats() gostats.TimesStat {
 func (s *SystemMetrics) GetPerCoreUsage(c chan *string) {
 	perCore, err := gostats.Percent(time.Duration(time.Second), true)
 	if err != nil {
-		panic(err)
+		errors.Unwrap(err)
 	}
 	str := ""
 	for i := 0; i < len(perCore); i++ {
