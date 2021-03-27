@@ -172,45 +172,41 @@ func (a *API) RoutesSummary(w http.ResponseWriter, _ *http.Request) {
 func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	var (
 		startTimestamp, endTimestamp int64
-		err                          error
 	)
 	timeSeriesPath := r.URL.Query().Get("timeSeriesPath")
-
 	startTimestampStr := r.URL.Query().Get("startTimestamp")
 	if startTimestampStr == "" {
 		startTimestamp = int64(math.MaxInt64)
 	} else {
-		startTimestamp, err = strconv.ParseInt(startTimestampStr, 10, 64)
+		t, err := time.Parse(time.RFC3339, startTimestampStr)
 		if err != nil {
 			log.Warnln(fmt.Errorf("error in startTimestamp: %s", err.Error()).Error())
 		}
-	}
+		startTimestamp = t.UnixNano()
 
+	}
 	endTimestampStr := r.URL.Query().Get("endTimestamp")
 	if endTimestampStr == "" {
 		endTimestamp = int64(math.MinInt64)
 	} else {
-		endTimestamp, err = strconv.ParseInt(endTimestampStr, 10, 64)
+		t, err := time.Parse(time.RFC3339, endTimestampStr)
 		if err != nil {
 			log.Warnln(fmt.Errorf("error in endTimestamp: %s", err.Error()).Error())
 		}
+		endTimestamp = t.UnixNano()
 	}
-
 	// condition: only for bench-routes as per the design
 	//
 	// path should be in syntax: <DBPath>/<ofType>/chunk_<middle>_<url>.json -> non-system metric
 	// %s/system.json -> system metric
-
 	// verify if chain path exists
 	timeSeriesPath = timeSeriesPath + tsdb.FileExtension
 	if ok := tsdb.VerifyChainPathExists(timeSeriesPath); !ok {
 		a.send(w, []byte("INVALID_PATH"))
 		return
 	}
-
 	// TODO: we do not capture the block streams in memory while querying yet. They are captured only when flushed.
 	// TODO: consider cmap while querying for fetching latest blocks after shifting tsdb to binary.
-
 	qry := querier.New(timeSeriesPath, "", querier.TypeRange)
 	query := qry.QueryBuilder()
 	query.SetRange(startTimestamp, endTimestamp)
@@ -257,23 +253,24 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 	} else {
 		var (
 			startTimestamp, endTimestamp int64
-			err                          error
 		)
 		if startTimestampStr == "" {
 			startTimestamp = int64(math.MaxInt64)
 		} else {
-			startTimestamp, err = strconv.ParseInt(startTimestampStr, 10, 64)
+			t, err := time.Parse(time.RFC3339, startTimestampStr)
 			if err != nil {
 				log.Warnln(fmt.Errorf("error in startTimestamp: %s", err.Error()).Error())
 			}
+			startTimestamp = t.UnixNano()
 		}
 		if endTimestampStr == "" {
 			endTimestamp = int64(math.MinInt64)
 		} else {
-			endTimestamp, err = strconv.ParseInt(endTimestampStr, 10, 64)
+			t, err := time.Parse(time.RFC3339, endTimestampStr)
 			if err != nil {
 				log.Warnln(fmt.Errorf("error in endTimestamp: %s", err.Error()).Error())
 			}
+			endTimestamp = t.UnixNano()
 		}
 
 		go parallelQueryExec(matrix.PingChain.Path, querier.TypeRange, startTimestamp, endTimestamp, chans[0])
