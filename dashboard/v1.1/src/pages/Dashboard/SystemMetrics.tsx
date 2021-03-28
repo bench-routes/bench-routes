@@ -10,7 +10,7 @@ import Alert from '@material-ui/lab/Alert';
 import MemoryUsagePercent from './MemoryUsage';
 import DiskUsage from './Disk';
 import MemoryDetails from './MemoryDetails';
-import TimeInstance, { formatTime } from '../../utils/brt';
+import { formatTime } from '../../utils/brt';
 import { HOST_IP } from '../../utils/types';
 import { APIResponse, init } from '../../utils/service';
 import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
@@ -116,16 +116,20 @@ const segregateMetrics = (metricValues: QueryValues[]) => {
 
 interface SystemMetricsProps {
   showLoader(status: boolean): any;
+  startTimestamp?: number;
+  endTimestamp?: number;
 }
 
-const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
+const SystemMetrics: FC<SystemMetricsProps> = ({
+  showLoader,
+  endTimestamp,
+  startTimestamp
+}) => {
   const classes = useStyles();
   const [response, setResponse] = useState(init());
   const [fetchTime, setfetchTime] = useState(0);
   const [error, setError] = useState('');
   const [value, setValue] = React.useState(0);
-  const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
-
   useEffect(() => {
     showLoader(true);
   }, [showLoader]);
@@ -134,7 +138,9 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
     return new Promise<QueryResponse>(async (resolve, reject) => {
       try {
         const response = await fetch(
-          `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${endTimestamp}`
+          endTimestamp
+            ? `${HOST_IP}/query?timeSeriesPath=storage/system&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
+            : `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${startTimestamp}`
         );
         const data = (await response.json()) as APIResponse<QueryResponse>;
         resolve(data.data);
@@ -159,7 +165,7 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
   useEffect(() => {
     fetchSystemData();
     // eslint-disable-next-line
-  }, []);
+  }, [endTimestamp, startTimestamp]);
   const handleChange = (_event, newValue) => {
     setValue(newValue);
   };

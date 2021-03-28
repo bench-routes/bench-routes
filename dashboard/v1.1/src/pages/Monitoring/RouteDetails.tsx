@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect } from 'react';
 import {
   chartData,
   EvaluationTime,
@@ -14,12 +14,15 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import PropTypes from 'prop-types';
 import Box from '@material-ui/core/Box';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import { Badge } from 'reactstrap';
+import Alert from '@material-ui/lab/Alert';
+import { HOST_IP } from '../../utils/types';
+import { APIResponse } from '../../utils/service';
 
 interface RouteDetailsProps {
-  routesChains: RouteDetails;
-  showDetails(status: boolean, details: RouteDetails): void;
+  routesChains: { name: string; route: string };
+  startTimestamp?: number;
+  endTimestamp?: number;
 }
 
 function a11yProps(index) {
@@ -51,7 +54,7 @@ TabPanel.propTypes = {
   value: PropTypes.any.isRequired
 };
 
-const TimePanel = ({ data, value }) => {
+const TimePanel = ({ fetchTime, evaluationTime, value }) => {
   return (
     <div style={{ borderLeft: '3px solid #2196f3' }}>
       <h6
@@ -64,10 +67,10 @@ const TimePanel = ({ data, value }) => {
       >
         Query fetched in
         <Badge color="success" style={{ fontSize: '0.97rem', marginLeft: 10 }}>
-          {data.fetchTime.toFixed(3)}ms
+          {fetchTime.toFixed(3)}ms
         </Badge>
       </h6>
-      {value && data.evaluationTime[Type(value)] !== '' ? (
+      {value && evaluationTime[Type(value)] !== '' ? (
         <h6
           style={{
             margin: 0,
@@ -81,7 +84,7 @@ const TimePanel = ({ data, value }) => {
             color="success"
             style={{ fontSize: '0.97rem', marginLeft: 10 }}
           >
-            {data.evaluationTime[Type(value)]}
+            {evaluationTime[Type(value)]}
           </Badge>
         </h6>
       ) : null}
@@ -167,70 +170,104 @@ const format = (data: RouteDetails) => {
 
 const RouteDetailsComponent: FC<RouteDetailsProps> = ({
   routesChains,
-  showDetails
+  endTimestamp,
+  startTimestamp
 }) => {
   const [value, setValue] = React.useState(0);
+  const [routeData, setRouteData] = React.useState<RouteDetails>();
+  const [error, setError] = React.useState('');
+  const [showLoader, setShowLoader] = React.useState(true);
   const handleChange = (_event, newValue) => {
     setValue(newValue);
   };
-  const data = format(routesChains);
-  return (
-    <>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          position: 'relative'
-        }}
-      >
-        <span style={{ display: 'flex', position: 'relative', width: '70%' }}>
-          <ArrowBackIcon
-            color="primary"
-            fontSize="large"
-            style={{ cursor: 'pointer ' }}
-            onClick={() => showDetails(false, routesChains)}
+
+  const fetchRouteDetail = async () => {
+    try {
+      const start = performance.now();
+      setRouteData(undefined);
+      const response = await fetch(
+        endTimestamp
+          ? `${HOST_IP}/query-matrix?routeNameMatrix=${routesChains.route}&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
+          : `${HOST_IP}/query-matrix?routeNameMatrix=${routesChains.route}&endTimestamp=${startTimestamp}`
+      );
+      const end = performance.now();
+      const data = (await response.json()) as APIResponse<RouteDetails>;
+      setRouteData({ ...data.data, fetchTime: end - start });
+      setShowLoader(false);
+    } catch (error) {
+      setError(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRouteDetail();
+    // eslint-disable-next-line
+  }, [endTimestamp, startTimestamp]);
+  if (error) {
+    setShowLoader(false);
+    return <Alert severity="error">Unable to reach the service: error</Alert>;
+  }
+  const data = routeData ? format(routeData) : null;
+  if (showLoader || !data) {
+    return (
+      <>
+        <Alert severity="info">Fetching data from sources</Alert>
+      </>
+    );
+  } else {
+    return (
+      <>
+        <hr />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            position: 'relative'
+          }}
+        >
+          <TimePanel
+            fetchTime={data.fetchTime}
+            evaluationTime={data.evaluationTime}
+            value={value}
           />
-          <h3
-            style={{
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              padding: '0.4rem 0.4rem 0 0.4rem',
-              margin: 0,
-              maxWidth: '90%',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
+        </div>
+        <hr />
+        <AppBar position="static">
+          <Tabs
+            value={value}
+            onChange={handleChange}
+            indicatorColor="secondary"
           >
-            {data.name}
-          </h3>
-        </span>
-        <TimePanel data={data} value={value} />
-      </div>
-      <hr />
-      <AppBar position="static">
-        <Tabs value={value} onChange={handleChange} indicatorColor="secondary">
-          <Tab label="Response length" {...a11yProps(0)} />
-          <Tab label="Response delay" {...a11yProps(1)} />
-          <Tab label="Ping" {...a11yProps(2)} />
-          <Tab label="Jitter" {...a11yProps(3)} />
-        </Tabs>
-      </AppBar>
-      <TabPanel value={value} index={0}>
-        <ResLength resLength={data.responseDetailsResponse} />
-      </TabPanel>
-      <TabPanel value={value} index={1}>
-        <Delay delay={data.responseDetailsDelay} />
-      </TabPanel>
-      <TabPanel value={value} index={2}>
-        <Ping min={data.pingMin} mean={data.pingMean} max={data.pingMax} />
-      </TabPanel>
-      <TabPanel value={value} index={3}>
-        <Jitter value={data.jitter} />
-      </TabPanel>
-    </>
-  );
+            <Tab
+              label="Response length"
+              {...a11yProps(0)}
+              style={{ outline: 0 }}
+            />
+            <Tab
+              label="Response delay"
+              {...a11yProps(1)}
+              style={{ outline: 0 }}
+            />
+            <Tab label="Ping" {...a11yProps(2)} style={{ outline: 0 }} />
+            <Tab label="Jitter" {...a11yProps(3)} style={{ outline: 0 }} />
+          </Tabs>
+        </AppBar>
+        <TabPanel value={value} index={0}>
+          <ResLength resLength={data.responseDetailsResponse} />
+        </TabPanel>
+        <TabPanel value={value} index={1}>
+          <Delay delay={data.responseDetailsDelay} />
+        </TabPanel>
+        <TabPanel value={value} index={2}>
+          <Ping min={data.pingMin} mean={data.pingMean} max={data.pingMax} />
+        </TabPanel>
+        <TabPanel value={value} index={3}>
+          <Jitter value={data.jitter} />
+        </TabPanel>
+      </>
+    );
+  }
 };
 
 export default RouteDetailsComponent;

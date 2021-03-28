@@ -5,7 +5,7 @@ import { Tabs, Tab, AppBar } from '@material-ui/core';
 import { APIResponse, init } from '../../utils/service';
 import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 import { HOST_IP } from '../../utils/types';
-import TimeInstance, { formatTime } from '../../utils/brt';
+import { formatTime } from '../../utils/brt';
 import { useStyles, TabPanel, a11yProps } from './SystemMetrics';
 import TimePanel from './TimePanel';
 import { ThemeContext } from '../../layouts/BaseLayout';
@@ -63,13 +63,20 @@ const format = (data: QueryValues[] | any) => {
   };
 };
 
-const JournalMetrics: FC<{}> = () => {
+interface JournalMetricsProps {
+  startTimestamp?: number;
+  endTimestamp?: number;
+}
+
+const JournalMetrics: FC<JournalMetricsProps> = ({
+  startTimestamp,
+  endTimestamp
+}) => {
   const classes = useStyles();
   const themeMode = useContext(ThemeContext);
   const [response, setResponse] = useState(init());
   const [fetchTime, setfetchTime] = useState(0);
   const [error, setError] = useState('');
-  const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
   const [value, setValue] = React.useState(0);
   const handleChange = (_event, newValue) => {
     setValue(newValue);
@@ -79,7 +86,9 @@ const JournalMetrics: FC<{}> = () => {
     return new Promise<QueryResponse>(async (resolve, reject) => {
       try {
         const response = await fetch(
-          `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${endTimestamp}`
+          endTimestamp
+            ? `${HOST_IP}/query?timeSeriesPath=storage/journal&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
+            : `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${startTimestamp}`
         );
         const data = (await response.json()) as APIResponse<QueryResponse>;
         resolve(data.data);
@@ -102,9 +111,10 @@ const JournalMetrics: FC<{}> = () => {
   };
 
   useEffect(() => {
+    setResponse(init());
     fetchSystemData();
     // eslint-disable-next-line
-  }, []);
+  }, [endTimestamp, startTimestamp]);
   if (error) {
     return <Alert severity="error">Unable to reach the service: error</Alert>;
   }
@@ -112,7 +122,6 @@ const JournalMetrics: FC<{}> = () => {
     return <Alert severity="info">Fetching data from sources</Alert>;
   }
   const data = format(response.values);
-
   const seriesSystemd = [
     {
       name: 'Errors',

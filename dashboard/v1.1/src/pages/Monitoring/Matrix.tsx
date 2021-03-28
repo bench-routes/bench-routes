@@ -1,13 +1,8 @@
 import React, { FC, useState, useEffect } from 'react';
 import { HOST_IP } from '../../utils/types';
-import {
-  TimeSeriesPath,
-  MatrixResponse,
-  RouteDetails
-} from '../../utils/queryTypes';
+import { TimeSeriesPath, MatrixResponse } from '../../utils/queryTypes';
 import { columns } from './Columns';
-import TimeInstance, { formatResLength, round } from '../../utils/brt';
-
+import { formatResLength, round } from '../../utils/brt';
 import TableContainer from '@material-ui/core/TableContainer';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -29,13 +24,19 @@ type APIResponse<MatrixResponse> = { status: string; data: MatrixResponse };
 interface MatrixProps {
   timeSeriesPath: TimeSeriesPath[];
   isMonitoringActive: boolean;
-  showRouteDetails(status: boolean, details: RouteDetails): void;
+  showRouteDetails(
+    status: boolean,
+    details: { name: string; route: string }
+  ): void;
 }
 
 interface ElementProps {
   timeSeriesPath: TimeSeriesPath;
   isMonitoringActive: boolean;
-  showRouteDetails(status: boolean, details: RouteDetails): void;
+  showRouteDetails(
+    status: boolean,
+    details: { name: string; route: string }
+  ): void;
 }
 
 const Pad: FC<{}> = () => <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>;
@@ -68,41 +69,16 @@ const Element: FC<ElementProps> = ({
   const [trigger, setTrigger] = useState<number>(0);
   const [updating, setUpdating] = useState<boolean>(true);
   const [warning, showWarning] = useState<boolean>(false);
-  const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
 
   const columnStyle = {
     fontSize: '1.4em'
   };
-  const fetchDetails = async (
-    instance: TimeSeriesPath
-  ): Promise<RouteDetails> => {
-    return new Promise<RouteDetails>(async (resolve, reject) => {
-      try {
-        const response = await fetch(
-          `${HOST_IP}/query-matrix?routeNameMatrix=${instance.path.matrixName}&endTimestamp=${endTimestamp}`
-        );
-        const matrix = (await response.json()) as APIResponse<RouteDetails>;
-        resolve(matrix.data);
-      } catch (e) {
-        console.error(e);
-        showWarning(true);
-        reject(e);
-      }
-    });
-  };
+
   const fetchTimeSeriesDetails = async (instance: TimeSeriesPath) => {
-    try {
-      const start = performance.now();
-      const details = await fetchDetails(instance);
-      const end = performance.now();
-      showRouteDetails(true, {
-        ...details,
-        name: instance.name,
-        fetchTime: end - start
-      });
-    } catch (error) {
-      console.log(error);
-    }
+    showRouteDetails(true, {
+      route: instance.path.matrixName,
+      name: instance.name
+    });
   };
 
   const fetchMatrix = async (name: string) => {
