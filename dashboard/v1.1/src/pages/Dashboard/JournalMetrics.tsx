@@ -9,7 +9,7 @@ import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 import { HOST_IP } from '../../utils/types';
 import TimeInstance, { formatTime } from '../../utils/brt';
 import { useStyles, TabPanel, a11yProps } from './SystemMetrics';
-import { ThemeContext } from '../../layouts/BaseLayout';
+import { ThemeContext, XticksContext } from '../../layouts/BaseLayout';
 
 const format = (data: QueryValues[] | any) => {
   const cerr: chartData[] = [];
@@ -67,6 +67,7 @@ const format = (data: QueryValues[] | any) => {
 const JournalMetrics: FC<{}> = () => {
   const classes = useStyles();
   const themeMode = useContext(ThemeContext);
+  const xticks = useContext(XticksContext);
   const [response, setResponse] = useState(init());
   const [error, setError] = useState('');
   const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
@@ -158,7 +159,7 @@ const JournalMetrics: FC<{}> = () => {
       mode: themeMode
     },
     xaxis: {
-      tickAmount: 24
+      tickAmount: Number(xticks)
     }
   };
   const optionsKernel = {
@@ -194,7 +195,7 @@ const JournalMetrics: FC<{}> = () => {
       mode: themeMode
     },
     xaxis: {
-      tickAmount: 24
+      tickAmount: Number(xticks)
     }
   };
   return (

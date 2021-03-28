@@ -1,7 +1,7 @@
 import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import { chartData } from '../../utils/queryTypes';
-import { ThemeContext } from '../../layouts/BaseLayout';
+import { ThemeContext, XticksContext } from '../../layouts/BaseLayout';
 
 interface DiskUsageProps {
   diskIO: chartData[];
@@ -10,6 +10,7 @@ interface DiskUsageProps {
 
 const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
   const themeMode = useContext(ThemeContext);
+  const xticks = useContext(XticksContext);
   const seriesDiskIO = [
     {
       name: 'Disk IO in bytes (+ve means write / -ve means read)',
@@ -44,7 +45,7 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
       mode: themeMode
     },
     xaxis: {
-      tickAmount: 12
+      tickAmount: Number(xticks)
     }
   };
   const optionsCache = {
@@ -93,7 +94,7 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
       mode: themeMode
     },
     xaxis: {
-      tickAmount: 12
+      tickAmount: Number(xticks)
     }
   };
 

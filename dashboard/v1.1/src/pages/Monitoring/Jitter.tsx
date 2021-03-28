@@ -1,7 +1,7 @@
 import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
-import { ThemeContext } from '../../layouts/BaseLayout';
+import { ThemeContext, XticksContext } from '../../layouts/BaseLayout';
 import { chartData } from '../../utils/queryTypes';
 
 interface JitterProps {
@@ -10,6 +10,7 @@ interface JitterProps {
 
 const Jitter: FC<JitterProps> = ({ value }) => {
   const themeMode = useContext(ThemeContext);
+  const xticks = useContext(XticksContext);
   const series = [
     {
       name: 'min',
@@ -42,7 +43,7 @@ const Jitter: FC<JitterProps> = ({ value }) => {
       title: {
         text: 'Time'
       },
-      tickAmount: 24
+      tickAmount: Number(xticks)
     },
     theme: {
       mode: themeMode

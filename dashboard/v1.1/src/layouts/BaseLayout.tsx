@@ -5,12 +5,13 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import { makeStyles } from '@material-ui/core/styles';
 import { Menu as MenuIcon } from '@material-ui/icons';
 import clsx from 'clsx';
-import React, { ReactElement, useCallback, useState } from 'react';
+import React, { ReactElement, useCallback, useState, useEffect } from 'react';
 import Navigator from '../router/Navigation';
 import Sidebar from './Sidebar';
 
 const drawerWidth = 240;
 export const ThemeContext = React.createContext({});
+export const XticksContext = React.createContext({});
 const _useStyles = makeStyles(theme => ({
   // AppBar styles
   appBar: {
@@ -82,6 +83,14 @@ export default function BaseLayout(props: any): ReactElement {
   const handleDrawerClose = () => {
     setOpen(false);
   };
+  const [xticks, setXticks] = useState('10');
+  const readXticks: any = localStorage.getItem('xticks');
+
+  useEffect(() => {
+    if (readXticks !== null) {
+      setXticks(readXticks);
+    }
+  }, [readXticks]);
 
   const handleToggleDarkMode = () => {
     const { darkMode, toggleDarkMode } = props;
@@ -91,57 +100,59 @@ export default function BaseLayout(props: any): ReactElement {
 
   return (
     <ThemeContext.Provider value={!props.darkMode ? 'light' : 'dark'}>
-      <div className={classes.root}>
-        <CssBaseline />
-        {/* Navbar */}
-        <div className="_navbar">
-          <AppBar
-            position="absolute"
-            className={clsx(_classes.appBar, open && _classes.appBarShift)}
-          >
-            <Toolbar className={_classes.toolbar}>
-              <IconButton
-                edge="start"
-                color="inherit"
-                aria-label="open drawer"
-                onClick={handleDrawerOpen}
-                className={clsx(
-                  _classes.menuButton,
-                  open && _classes.menuButtonHidden
-                )}
-              >
-                <MenuIcon />
-              </IconButton>
-              <Typography
-                component="h1"
-                variant="h6"
-                color="inherit"
-                noWrap={true}
-                className={_classes.title}
-              >
-                Bench Routes
-              </Typography>
-              <Tooltip title="Dark Mode">
-                <Switch
-                  checked={props.darkMode}
-                  onChange={handleToggleDarkMode}
-                  color="default"
-                  name="checkedB"
-                  inputProps={{ 'aria-label': 'primary checkbox' }}
-                />
-              </Tooltip>
-            </Toolbar>
-            {loader ? <LinearProgress /> : null}
-          </AppBar>
+      <XticksContext.Provider value={xticks}>
+        <div className={classes.root}>
+          <CssBaseline />
+          {/* Navbar */}
+          <div className="_navbar">
+            <AppBar
+              position="absolute"
+              className={clsx(_classes.appBar, open && _classes.appBarShift)}
+            >
+              <Toolbar className={_classes.toolbar}>
+                <IconButton
+                  edge="start"
+                  color="inherit"
+                  aria-label="open drawer"
+                  onClick={handleDrawerOpen}
+                  className={clsx(
+                    _classes.menuButton,
+                    open && _classes.menuButtonHidden
+                  )}
+                >
+                  <MenuIcon />
+                </IconButton>
+                <Typography
+                  component="h1"
+                  variant="h6"
+                  color="inherit"
+                  noWrap={true}
+                  className={_classes.title}
+                >
+                  Bench Routes
+                </Typography>
+                <Tooltip title="Dark Mode">
+                  <Switch
+                    checked={props.darkMode}
+                    onChange={handleToggleDarkMode}
+                    color="default"
+                    name="checkedB"
+                    inputProps={{ 'aria-label': 'primary checkbox' }}
+                  />
+                </Tooltip>
+              </Toolbar>
+              {loader ? <LinearProgress /> : null}
+            </AppBar>
+          </div>
+          <Sidebar handleDrawerClose={handleDrawerClose} open={open} />
+          <main className={classes.content}>
+            <div className={classes.appBarSpacer} />
+            <Container maxWidth="lg" className={classes.container}>
+              <Navigator updateLoader={updateLoader} />
+            </Container>
+          </main>
         </div>
-        <Sidebar handleDrawerClose={handleDrawerClose} open={open} />
-        <main className={classes.content}>
-          <div className={classes.appBarSpacer} />
-          <Container maxWidth="lg" className={classes.container}>
-            <Navigator updateLoader={updateLoader} />
-          </Container>
-        </main>
-      </div>
+      </XticksContext.Provider>
     </ThemeContext.Provider>
   );
 }

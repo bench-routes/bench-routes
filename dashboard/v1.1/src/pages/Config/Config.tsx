@@ -25,6 +25,10 @@ import { getRoutesMap } from '../../utils/parse';
 import { fetchConfigIntervals, fetchConfigRoutes } from '../../services/config';
 import { columns, TableRowData } from './components/MaterialTable';
 import { handleRowDelete, TableRouteType, IntervalType } from './handles';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
 
 const SearchTable = lazy(() => import('./components/MaterialTable'));
 
@@ -37,11 +41,16 @@ const useStyles = makeStyles(_theme => ({
   },
   h6: {
     fontWeight: 'normal'
+  },
+  formControl: {
+    margin: '0px',
+    minWidth: 150
   }
 }));
 
 const Config = () => {
   const classes = useStyles();
+
   const [configIntervals, setConfigIntervals] = useState<IntervalType[] | null>(
     null
   );
@@ -69,6 +78,8 @@ const Config = () => {
 
   const [tableData, setTableData] = useState<TableRouteType[]>([]);
 
+  const [xticks, setXticks] = React.useState('10');
+  const readxticks = localStorage.getItem('xticks');
   useEffect(() => {
     fetchConfigIntervals(setConfigIntervals)
       .then(async () => {
@@ -79,6 +90,36 @@ const Config = () => {
         getTableData(Array.from(routes));
       });
   }, []);
+
+  useEffect(() => {
+    if (readxticks !== null) {
+      setXticks(readxticks);
+    } else {
+      localStorage.setItem('xticks', xticks);
+    }
+  }, [readxticks, xticks]);
+
+  const handleChange = (event: React.ChangeEvent<{ value: any }>) => {
+    setXticks(event.target.value as string);
+    localStorage.setItem('xticks', event.target.value as string);
+  };
+
+  const xtickVal: any = [
+    '5',
+    '10',
+    '15',
+    '20',
+    '25',
+    '30',
+    '35',
+    '40',
+    '45',
+    '50',
+    '55',
+    '60',
+    '65',
+    '70'
+  ];
 
   const getTableData = (routes: [string, routeOptionsInterface[]][]) => {
     let tableData: TableRouteType[] = [];
@@ -191,6 +232,32 @@ const Config = () => {
             );
           })}
         </Grid>
+      </Paper>
+      <Paper elevation={0} style={{ marginBottom: '1%', padding: '1%' }}>
+        <CardContent>
+          <h4>Chart Options</h4>
+          <hr />
+        </CardContent>
+        <CardContent>
+          <FormControl variant="outlined" className={classes.formControl}>
+            <InputLabel id="demo-simple-select-outlined-label">
+              x-tick amount
+            </InputLabel>
+            <Select
+              labelId="demo-simple-select-outlined-label"
+              id="demo-simple-select-outlined"
+              value={xticks}
+              onChange={handleChange}
+              label="x-tick amount"
+            >
+              {xtickVal.map(val => (
+                <MenuItem key={val} value={val}>
+                  {val}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </CardContent>
       </Paper>
       <EditModal
         isOpen={editModalOpen}

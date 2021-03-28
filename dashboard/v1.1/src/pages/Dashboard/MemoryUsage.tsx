@@ -1,7 +1,7 @@
 import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import { chartData } from '../../utils/queryTypes';
-import { ThemeContext } from '../../layouts/BaseLayout';
+import { ThemeContext, XticksContext } from '../../layouts/BaseLayout';
 
 interface MemoryUsagePercentProps {
   memoryUsagePercentMetrics: chartData[];
@@ -11,6 +11,7 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
   memoryUsagePercentMetrics
 }) => {
   const themeMode = useContext(ThemeContext);
+  const xticks = useContext(XticksContext);
   const dataFormatted = memoryUsagePercentMetrics;
   const series = [
     {
@@ -51,7 +52,7 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
       mode: themeMode
     },
     xaxis: {
-      tickAmount: 12
+      tickAmount: Number(xticks)
     }
   };
 

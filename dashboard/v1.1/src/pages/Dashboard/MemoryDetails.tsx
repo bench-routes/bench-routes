@@ -1,7 +1,7 @@
 import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import { chartData } from '../../utils/queryTypes';
-import { ThemeContext } from '../../layouts/BaseLayout';
+import { ThemeContext, XticksContext } from '../../layouts/BaseLayout';
 
 interface MemoryDetailsProps {
   availableBytes: chartData[];
@@ -17,6 +17,7 @@ const MemoryDetails: FC<MemoryDetailsProps> = ({
   usedBytes
 }) => {
   const themeMode = useContext(ThemeContext);
+  const xticks = useContext(XticksContext);
   const series = [
     {
       name: 'Available',
@@ -68,7 +69,7 @@ const MemoryDetails: FC<MemoryDetailsProps> = ({
       mode: themeMode
     },
     xaxis: {
-      tickAmount: 24
+      tickAmount: Number(xticks)
     }
   };
 
