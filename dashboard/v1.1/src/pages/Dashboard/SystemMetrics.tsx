@@ -10,7 +10,7 @@ import Alert from '@material-ui/lab/Alert';
 import MemoryUsagePercent from './MemoryUsage';
 import DiskUsage from './Disk';
 import MemoryDetails from './MemoryDetails';
-import { formatTime } from '../../utils/brt';
+import TimeInstance, { formatTime } from '../../utils/brt';
 import { HOST_IP } from '../../utils/types';
 import { APIResponse, init } from '../../utils/service';
 import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
@@ -115,28 +115,21 @@ const segregateMetrics = (metricValues: QueryValues[]) => {
 
 interface SystemMetricsProps {
   showLoader(status: boolean): any;
-  startTimestamp?: number;
-  endTimestamp?: number;
 }
 
-const SystemMetrics: FC<SystemMetricsProps> = ({
-  showLoader,
-  endTimestamp,
-  startTimestamp
-}) => {
+const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader }) => {
   const classes = useStyles();
   const [response, setResponse] = useState(init());
   const [error, setError] = useState('');
   const [value, setValue] = React.useState(0);
+  const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
+
   useEffect(() => {
     showLoader(true);
   }, [showLoader]);
   useEffect(() => {
-    setResponse(init());
     fetch(
-      endTimestamp
-        ? `${HOST_IP}/query?timeSeriesPath=storage/system&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
-        : `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${startTimestamp}`
+      `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${endTimestamp}`
     )
       .then(res => res.json())
       .then(
@@ -148,7 +141,7 @@ const SystemMetrics: FC<SystemMetricsProps> = ({
         }
       );
     // eslint-disable-next-line
-  }, [endTimestamp, startTimestamp]);
+  }, []);
   const handleChange = (_event, newValue) => {
     setValue(newValue);
   };

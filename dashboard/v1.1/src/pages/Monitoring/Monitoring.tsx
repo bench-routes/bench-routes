@@ -2,12 +2,11 @@ import React, { FC, useEffect, useState, useCallback } from 'react';
 import { useFetch } from '../../utils/useFetch';
 import { HOST_IP } from '../../utils/types';
 import Matrix from './Matrix';
-import { TimeSeriesPath } from '../../utils/queryTypes';
+import { TimeSeriesPath, RouteDetails } from '../../utils/queryTypes';
 import RouteDetailsComponent from './RouteDetails';
 import { Card, CardContent, Tooltip } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import Switch from '@material-ui/core/Switch';
-import GraphWrapper from '../../layouts/GraphWrapper';
 
 interface MonitoringProps {
   updateLoader(status: boolean): void;
@@ -70,15 +69,9 @@ const Monitoring: FC<MonitoringProps> = ({ updateLoader }) => {
     `${HOST_IP}/get-route-time-series`
   );
   const [showRouteDetails, setShowRouteDetails] = useState<boolean>(false);
-  const [routeDetailsData, setRouteDetailsData] = useState<{
-    name: string;
-    route: string;
-  }>();
+  const [routeDetailsData, setRouteDetailsData] = useState<RouteDetails>();
   const [isMonitoringActive, setIsMonitoringActive] = useState<boolean>(false);
-  const showDetails = (
-    status: boolean,
-    details: { name: string; route: string }
-  ): void => {
+  const showDetails = (status: boolean, details: RouteDetails): void => {
     setShowRouteDetails(status);
     setRouteDetailsData(details);
   };
@@ -126,11 +119,9 @@ const Monitoring: FC<MonitoringProps> = ({ updateLoader }) => {
             />
           </>
         ) : (
-          <GraphWrapper
-            child={<RouteDetailsComponent routesChains={routeDetailsData} />}
-            isMonitoring={true}
-            showDetails={showDetails}
+          <RouteDetailsComponent
             routesChains={routeDetailsData}
+            showDetails={showDetails}
           />
         )}
       </CardContent>

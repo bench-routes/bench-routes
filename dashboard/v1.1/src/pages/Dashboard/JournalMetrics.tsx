@@ -7,7 +7,7 @@ import Tab from '@material-ui/core/Tab';
 import { APIResponse, init } from '../../utils/service';
 import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 import { HOST_IP } from '../../utils/types';
-import { formatTime } from '../../utils/brt';
+import TimeInstance, { formatTime } from '../../utils/brt';
 import { useStyles, TabPanel, a11yProps } from './SystemMetrics';
 import { ThemeContext } from '../../layouts/BaseLayout';
 
@@ -64,29 +64,19 @@ const format = (data: QueryValues[] | any) => {
   };
 };
 
-interface JournalMetricsProps {
-  startTimestamp?: number;
-  endTimestamp?: number;
-}
-
-const JournalMetrics: FC<JournalMetricsProps> = ({
-  startTimestamp,
-  endTimestamp
-}) => {
+const JournalMetrics: FC<{}> = () => {
   const classes = useStyles();
   const themeMode = useContext(ThemeContext);
   const [response, setResponse] = useState(init());
   const [error, setError] = useState('');
+  const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
   const [value, setValue] = React.useState(0);
   const handleChange = (_event, newValue) => {
     setValue(newValue);
   };
   useEffect(() => {
-    setResponse(init());
     fetch(
-      endTimestamp
-        ? `${HOST_IP}/query?timeSeriesPath=storage/journal&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
-        : `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${startTimestamp}`
+      `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${endTimestamp}`
     )
       .then(res => res.json())
       .then(
@@ -98,11 +88,11 @@ const JournalMetrics: FC<JournalMetricsProps> = ({
         }
       );
     // eslint-disable-next-line
-  }, [endTimestamp, startTimestamp]);
+  }, []);
   if (error) {
     return <Alert severity="error">Unable to reach the service: error</Alert>;
   }
-  if (!response.data.values) {
+  if (!response.data) {
     return <Alert severity="info">Fetching data from sources</Alert>;
   }
   const data = format(response.data.values);
