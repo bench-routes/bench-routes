@@ -18,9 +18,10 @@ const indexFileExtension = "index"
 // 2: [3, 8, 15, 23, 37, 40]
 // this goes on till the number of time-series in the system for that index.
 type tableIndex struct {
-	mux   sync.RWMutex
-	path  string
-	index map[uint64][]uint64
+	mux        sync.RWMutex
+	path       string
+	newIndices bool
+	index      map[uint64][]uint64
 }
 
 func NewTableIndex(path string) *tableIndex {
@@ -34,6 +35,9 @@ func NewTableIndex(path string) *tableIndex {
 func (ti *tableIndex) Add(series_id uint64, currentByteVal uint64) error {
 	ti.mux.Lock()
 	defer ti.mux.Unlock()
+	if !ti.newIndices {
+		ti.newIndices = true
+	}
 	if _, ok := ti.index[series_id]; !ok {
 		ti.index[series_id] = []uint64{currentByteVal}
 		return nil
@@ -64,6 +68,12 @@ func (ti *tableIndex) Get(series_id uint64) (positionGapIndices []uint64) {
 
 // Flush flushes the in-memory index to disk.
 func (ti *tableIndex) Flush() error {
+	ti.mux.Lock()
+	defer ti.mux.Unlock()
+	if !ti.newIndices {
+		// Do not flush if no new indices.
+		return nil
+	}
 	f, err := os.Create(ti.path)
 	if err != nil {
 		return fmt.Errorf("creating index-file: %w", err)

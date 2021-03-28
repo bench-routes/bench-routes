@@ -82,26 +82,16 @@ func OpenRWDataTable(path string) (dtbl *DataTable, isCreated bool, err error) {
 	return
 }
 
-type tableWriter struct {
-	index               *tableIndex
-	currentBytePosition uint64
-	tableWriter         *bufio.Writer
-	mux                 *sync.RWMutex
-	minAcceptableTs     uint64
-}
-
 type writeData struct {
 	timestamp uint64
 	id        uint64
 	valueSet  string
 }
 
-var writeDataPool = sync.Pool{New: func() interface{} { return new(writeData) }}
-
-// TableBuffer is a in-memory table that is in raw format and is yet to be commited.
+// TableBuffer is a in-memory table that is in raw format and is yet to be committed.
 type TableBuffer struct {
 	bufferMux     sync.RWMutex
-	data          []*writeData
+	data          []writeData
 	cap           uint64
 	size          uint64
 	flushDeadline time.Duration
@@ -112,11 +102,13 @@ type TableBuffer struct {
 // NewTableBuffer returns a new TableBuffer.
 func NewTableBuffer(dataTable *DataTable, mux *sync.RWMutex, cap uint64, ioBufferSize int, flushDeadline time.Duration) *TableBuffer {
 	index := NewTableIndex(dataTable.path)
+	seriesRelationIndex := NewSeriesRelation(dataTable.path)
 	return &TableBuffer{
 		cap:           cap,
 		flushDeadline: flushDeadline,
 		tableCopy:     dataTable,
-		writer:        newTableWriter(dataTable, mux, ioBufferSize, index),
+		data:          make([]writeData, 0),
+		writer:        newTableWriter(dataTable, mux, ioBufferSize, index, seriesRelationIndex),
 	}
 }
 
@@ -128,11 +120,7 @@ func (tbuf *TableBuffer) Write(timestamp, id uint64, valueSet string) error {
 			return fmt.Errorf("table-buffer write: %w", err)
 		}
 	}
-	row := writeDataPool.Get().(*writeData)
-	row.timestamp = timestamp
-	row.id = id
-	row.valueSet = valueSet
-	tbuf.data = append(tbuf.data, row)
+	tbuf.data = append(tbuf.data, writeData{timestamp: timestamp, id: id, valueSet: valueSet})
 	tbuf.size++ // This does not need atomic operation as it is protected by the bufferMux lock by default.
 	return nil
 }
@@ -148,39 +136,40 @@ func (tbuf *TableBuffer) flushToIOBuffer(flushIOBuffer bool) error {
 		// Return if there are no entries in the buffer.
 		return nil
 	}
-	release := func(start uint64) {
-		for i := start; i < tbuf.size; i++ {
-			writeDataPool.Put(tbuf.data[i])
-		}
-	}
 	sort.SliceStable(tbuf.data, func(i, j int) bool {
 		return tbuf.data[i].timestamp < tbuf.data[j].timestamp
 	})
 	for i := uint64(0); i < tbuf.size; i++ {
 		r := tbuf.data[i]
 		if err := tbuf.writer.writeToTable(r.timestamp, r.id, r.valueSet); err != nil {
-			release(i)
 			return fmt.Errorf("flush to io-buffer: %w", err)
 		}
-		writeDataPool.Put(r)
 	}
 	tbuf.size = 0
-	tbuf.data = []*writeData{}
+	tbuf.data = tbuf.data[:]
 	if flushIOBuffer {
-		release(0)
 		if err := tbuf.writer.commit(); err != nil {
 			return fmt.Errorf("flush to io-buffer: flushIOBuffer: %w", err)
 		}
 	}
-	release(0)
 	return nil
 }
 
-func newTableWriter(dataTable *DataTable, mux *sync.RWMutex, tableIOBufferSize int, index *tableIndex) *tableWriter {
+type tableWriter struct {
+	index               *tableIndex
+	seriesRelIndex      *seriesRelation
+	currentBytePosition uint64
+	tableWriter         *bufio.Writer
+	mux                 *sync.RWMutex
+	minAcceptableTs     uint64
+}
+
+func newTableWriter(dataTable *DataTable, mux *sync.RWMutex, tableIOBufferSize int, index *tableIndex, seriesRelationIndex *seriesRelation) *tableWriter {
 	return &tableWriter{
-		mux:         mux,
-		index:       index,
-		tableWriter: bufio.NewWriterSize(dataTable, tableIOBufferSize*validLength), // Buffer size corresponds to total number of rows.
+		mux:            mux,
+		index:          index,
+		seriesRelIndex: seriesRelationIndex,
+		tableWriter:    bufio.NewWriterSize(dataTable, tableIOBufferSize*validLength), // Buffer size corresponds to total number of rows.
 	}
 }
 

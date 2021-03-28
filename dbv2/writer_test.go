@@ -89,9 +89,6 @@ func TestCreateFile_Write_Read(t *testing.T) {
 	for _, c := range contents {
 		err := dtbl.buffer.Write(c.timestamp, c.seriesID, ConvertValueToValueSet(c.values[0], c.values[1], c.values[2]))
 		require.NoError(t, err, "writing contents")
-		// Keeping flushToIOBuffer(true) in for loop, is the actual tough part for the test to pass. Passing here would mean there is no
-		// duplication of data (which is what we want). Ideally, this would be kept after the loop for write is done, but since this is testing,
-		// we want to make sure for edge cases.
 	}
 	err = dtbl.buffer.flushToIOBuffer(true)
 	require.NoError(t, err)
