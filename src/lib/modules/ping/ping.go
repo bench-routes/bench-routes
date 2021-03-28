@@ -78,6 +78,16 @@ func (ps *Ping) setConfigurations() {
 }
 
 func (ps *Ping) perform(pingInterval TestInterval) {
+	defer log.Infoln("terminating ping goroutine")
+	var wg sync.WaitGroup
+	wg.Add(len(*ps.targets))
+	for machineHash, machineIP := range *ps.targets {
+		go ps.pingExec(machineIP.IPDomain, machineHash, 3, &wg, pingInterval)
+	}
+	wg.Wait()
+}
+
+func (ps *Ping) pingExec(urlRaw, machineHash string, packets int, wg *sync.WaitGroup, pingInterval TestInterval) {
 	for {
 		switch ps.localConfig.Config.UtilsConf.ServicesSignal.Ping {
 		case "active":
@@ -85,19 +95,18 @@ func (ps *Ping) perform(pingInterval TestInterval) {
 			if !err {
 				log.Warnln("unable to connect external network. please check you internet connection", "p")
 			} else {
-				var wg sync.WaitGroup
-				wg.Add(len(*ps.targets))
-				for machineHash, machineIP := range *ps.targets {
-					go ps.ping(machineIP.IPDomain, machineHash, 3, &wg)
-				}
-				wg.Wait()
+				var waitgroup sync.WaitGroup
+				waitgroup.Add(1)
+				go ps.ping(urlRaw, machineHash, packets, &waitgroup)
+				waitgroup.Wait()
 			}
 		case "passive":
 			// terminate the goroutine
-			log.Infoln("terminating ping goroutine")
+			wg.Done()
 			return
 		default:
 			log.Warnln("invalid service-state value of ping")
+			wg.Done()
 			return
 		}
 
