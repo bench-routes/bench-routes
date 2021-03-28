@@ -77,7 +77,30 @@ func (ps *Ping) setConfigurations() {
 	ps.perform(pingInterval)
 }
 
+// pingerMap holds the closing channel for current set of pingable machines workers
+type pingerMap map[string]chan struct{}
+
+// pinger is the worker, which pings an endpoint on regular intervals until the channels in closed
+func (ps *Ping) pinger(urlRaw, machineHash string, packets int, intrv time.Duration, closeCh <-chan struct{}) {
+	var wg sync.WaitGroup
+	for { // This will infinitely run the ping as long as the channeled is not closed
+		select {
+		case <-closeCh: // Close channel
+			return
+		default:
+			wg.Add(1)
+			ps.ping(urlRaw, machineHash, 3, &wg)
+
+		}
+
+		time.Sleep(intrv) // Taking a nap
+	}
+
+}
+
 func (ps *Ping) perform(pingInterval TestInterval) {
+
+	var pmap = make(pingerMap)
 	for {
 		switch ps.localConfig.Config.UtilsConf.ServicesSignal.Ping {
 		case "active":
@@ -85,12 +108,31 @@ func (ps *Ping) perform(pingInterval TestInterval) {
 			if !err {
 				log.Warnln("unable to connect external network. please check you internet connection", "p")
 			} else {
-				var wg sync.WaitGroup
-				wg.Add(len(*ps.targets))
-				for machineHash, machineIP := range *ps.targets {
-					go ps.ping(machineIP.IPDomain, machineHash, 3, &wg)
+				interval := getPingInterval(time.Duration(*ps.localConfig.Config.Interval[0].Duration),
+					pingInterval.OfType)
+				if interval == 0 {
+					return // Invalid interval unit
 				}
-				wg.Wait()
+				for machineHash, machineIP := range *ps.targets {
+					_, ok := pmap[machineHash]
+					if !ok { // We will spin a new worker, not found one
+						ch := make(chan struct{})
+						pmap[machineHash] = ch
+						go ps.pinger(machineIP.IPDomain, // Registering a new go-routine
+							machineHash, 3,
+							interval, ch)
+
+					}
+				}
+				// Closing unecessary go-routines
+				for k, v := range pmap {
+					_, ok := (*ps.targets)[k]
+					if !ok {
+						close(v)
+						delete(pmap, k)
+					}
+				}
+
 			}
 		case "passive":
 			// terminate the goroutine
@@ -101,19 +143,22 @@ func (ps *Ping) perform(pingInterval TestInterval) {
 			return
 		}
 
-		intrv := time.Duration(*ps.localConfig.Config.Interval[0].Duration)
-		switch pingInterval.OfType {
-		case "hr":
-			time.Sleep(intrv * time.Hour)
-		case "min":
-			time.Sleep(intrv * time.Minute)
-		case "sec":
-			time.Sleep(intrv * time.Second)
-		default:
-			log.Infoln("invalid interval-type for ping")
-			return
-		}
 	}
+}
+
+func getPingInterval(intrv time.Duration, ofType string) time.Duration {
+	switch ofType {
+	case "hr":
+		return intrv * time.Hour
+	case "min":
+		return intrv * time.Minute
+	case "sec":
+		return intrv * time.Second
+	default:
+		log.Infoln("invalid interval-type for ping")
+		return 0
+	}
+
 }
 
 func (ps *Ping) ping(urlRaw, machineHash string, packets int, wg *sync.WaitGroup) {
