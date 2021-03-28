@@ -67,16 +67,18 @@ const useStyles = makeStyles(theme => ({
     paddingBottom: theme.spacing(4)
   },
   sunIcon: {
+    height: '100%',
+    width: '100%',
     position: 'absolute',
-    right: -1.5,
-    top: -1.5,
-    padding: 4
+    top: 0,
+    padding: 2
   },
   moonIcon: {
+    height: '100%',
+    width: '100%',
     position: 'absolute',
-    left: -2,
-    top: -1,
-    padding: 4,
+    top: 0,
+    padding: 2,
     transform: 'rotate(160deg)'
   }
 }));
