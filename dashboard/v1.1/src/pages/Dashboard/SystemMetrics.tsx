@@ -10,7 +10,7 @@ import Alert from '@material-ui/lab/Alert';
 import MemoryUsagePercent from './MemoryUsage';
 import DiskUsage from './Disk';
 import MemoryDetails from './MemoryDetails';
-import TimeInstance, { formatTime } from '../../utils/brt';
+import { formatTime } from '../../utils/brt';
 import { HOST_IP } from '../../utils/types';
 import { APIResponse, init } from '../../utils/service';
 import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
@@ -115,22 +115,28 @@ const segregateMetrics = (metricValues: QueryValues[]) => {
 
 interface SystemMetricsProps {
   showLoader(status: boolean): any;
-  darkMode(status: boolean): any;
+  startTimestamp?: number;
+  endTimestamp?: number;
 }
 
-const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader, darkMode }) => {
+const SystemMetrics: FC<SystemMetricsProps> = ({
+  showLoader,
+  endTimestamp,
+  startTimestamp
+}) => {
   const classes = useStyles();
   const [response, setResponse] = useState(init());
   const [error, setError] = useState('');
   const [value, setValue] = React.useState(0);
-  const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
-
   useEffect(() => {
     showLoader(true);
   }, [showLoader]);
   useEffect(() => {
+    setResponse(init());
     fetch(
-      `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${endTimestamp}`
+      endTimestamp
+        ? `${HOST_IP}/query?timeSeriesPath=storage/system&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
+        : `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${startTimestamp}`
     )
       .then(res => res.json())
       .then(
@@ -142,7 +148,7 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader, darkMode }) => {
         }
       );
     // eslint-disable-next-line
-  }, []);
+  }, [endTimestamp, startTimestamp]);
   const handleChange = (_event, newValue) => {
     setValue(newValue);
   };
@@ -180,14 +186,10 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader, darkMode }) => {
           <TabPanel value={value} index={0}>
             <div className="row">
               <div className="col-md-6">
-                <CPUUsage
-                  darkMode={darkMode}
-                  cpuMetrics={responseInFormat.cpuUsageSlice}
-                />
+                <CPUUsage cpuMetrics={responseInFormat.cpuUsageSlice} />
               </div>
               <div className="col-md-6">
                 <MemoryUsagePercent
-                  darkMode={darkMode}
                   memoryUsagePercentMetrics={
                     responseInFormat.memoryUsedPercentSlice
                   }
@@ -198,7 +200,6 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader, darkMode }) => {
           <TabPanel value={value} index={1}>
             <div className="col-md-12">
               <DiskUsage
-                darkMode={darkMode}
                 diskIO={responseInFormat.diskSliceDiskIO}
                 cache={responseInFormat.diskSliceCache}
               />
@@ -207,7 +208,6 @@ const SystemMetrics: FC<SystemMetricsProps> = ({ showLoader, darkMode }) => {
           <TabPanel value={value} index={2}>
             <div className="col-md-12">
               <MemoryDetails
-                darkMode={darkMode}
                 availableBytes={responseInFormat.memorySliceAvailableBytes}
                 freeBytes={responseInFormat.memorySliceFreeBytes}
                 totalBytes={responseInFormat.memorySliceTotalBytes}

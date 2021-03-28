@@ -1,7 +1,7 @@
-import React, { FC } from 'react';
+import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
-
+import { ThemeContext } from '../../layouts/BaseLayout';
 import { chartData } from '../../utils/queryTypes';
 
 interface DelayProps {
@@ -9,6 +9,7 @@ interface DelayProps {
 }
 
 const Delay: FC<DelayProps> = ({ delay }) => {
+  const themeMode = useContext(ThemeContext);
   const series = [
     {
       name: 'Delay',
@@ -30,8 +31,7 @@ const Delay: FC<DelayProps> = ({ delay }) => {
           enabled: true,
           speed: 350
         }
-      },
-      background: '#fff'
+      }
     },
     yaxis: {
       title: {
@@ -42,6 +42,9 @@ const Delay: FC<DelayProps> = ({ delay }) => {
       title: {
         text: 'Time'
       }
+    },
+    theme: {
+      mode: themeMode
     }
   };
   return (

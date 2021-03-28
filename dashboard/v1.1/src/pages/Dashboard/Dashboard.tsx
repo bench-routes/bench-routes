@@ -2,22 +2,25 @@ import React, { FC } from 'react';
 import SystemMetrics from './SystemMetrics';
 import JournalMetrics from './JournalMetrics';
 import { Card, CardContent } from '@material-ui/core';
+import GraphWrapper from '../../layouts/GraphWrapper';
 
 interface DashboardProps {
   updateLoader(status: boolean): void;
-  darkMode(status: boolean): void;
 }
 
-const Dashboard: FC<DashboardProps> = ({ updateLoader, darkMode }) => {
+const Dashboard: FC<DashboardProps> = ({ updateLoader }) => {
   updateLoader(true);
   return (
     <Card>
       <CardContent>
         <h4>Dashboard</h4>
         <hr />
-        <SystemMetrics showLoader={updateLoader} darkMode={darkMode} />
+        <GraphWrapper
+          child={<SystemMetrics showLoader={updateLoader} />}
+          isMonitoring={false}
+        />
         <hr />
-        <JournalMetrics darkMode={darkMode} />
+        <GraphWrapper child={<JournalMetrics />} isMonitoring={false} />
       </CardContent>
     </Card>
   );

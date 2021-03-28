@@ -32,7 +32,7 @@ const useStyles = makeStyles(theme => ({
   // Nested lists
   nested: {
     paddingLeft: theme.spacing(4),
-    backgroundColor: '#DCDCDC'
+    margin: '10px 0'
   },
   // Drawer styles
   drawerPaper: {
@@ -80,24 +80,42 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
 
   // Sidebar element
   const [testListOpen, setTestListOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
   const showTestList = () => {
     setTestListOpen(!testListOpen);
   };
+
+  const handleListItemClick = (event, index) => {
+    setSelectedIndex(index);
+  };
+
   const menuItems = (
     <div>
-      <ListItem button={true} component={Link} to="/">
+      <ListItem
+        button={true}
+        selected={selectedIndex === 0}
+        onClick={(event: any) => handleListItemClick(event, 0)}
+        component={Link}
+        to="/"
+      >
         <ListItemIcon>
           <DashboardIcon />
         </ListItemIcon>
         <ListItemText primary="Dashboard" />
       </ListItem>
-      <ListItem button={true} component={Link} to="/monitoring">
+      <ListItem
+        button={true}
+        selected={selectedIndex === 1}
+        onClick={(event: any) => handleListItemClick(event, 1)}
+        component={Link}
+        to="/monitoring"
+      >
         <ListItemIcon>
           <AccessAlarmIcon />
         </ListItemIcon>
         <ListItemText primary="Monitoring" />
       </ListItem>
-      <ListItem button={true}>
+      <ListItem button={true} selected={selectedIndex >= 3}>
         <ListItemIcon>
           <NetworkCheckIcon />
         </ListItemIcon>
@@ -113,6 +131,8 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
         <List component="div" disablePadding={true}>
           <ListItem
             button={true}
+            selected={selectedIndex === 3}
+            onClick={(event: any) => handleListItemClick(event, 3)}
             component={Link}
             to="/ping"
             className={classes.nested}
@@ -124,6 +144,8 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
           </ListItem>
           <ListItem
             button={true}
+            selected={selectedIndex === 4}
+            onClick={(event: any) => handleListItemClick(event, 4)}
             component={Link}
             to="/floodping"
             className={classes.nested}
@@ -135,6 +157,8 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
           </ListItem>
           <ListItem
             button={true}
+            selected={selectedIndex === 5}
+            onClick={(event: any) => handleListItemClick(event, 5)}
             component={Link}
             to="/jitter"
             className={classes.nested}
@@ -146,7 +170,13 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
           </ListItem>
         </List>
       </Collapse>
-      <ListItem button={true} component={Link} to="/configurations">
+      <ListItem
+        button={true}
+        selected={selectedIndex === 2}
+        onClick={(event: any) => handleListItemClick(event, 2)}
+        component={Link}
+        to="/configurations"
+      >
         <ListItemIcon>
           <SettingsIcon />
         </ListItemIcon>

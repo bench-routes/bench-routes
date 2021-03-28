@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
 import AppBar from '@material-ui/core/AppBar';
@@ -7,8 +7,9 @@ import Tab from '@material-ui/core/Tab';
 import { APIResponse, init } from '../../utils/service';
 import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 import { HOST_IP } from '../../utils/types';
-import TimeInstance, { formatTime } from '../../utils/brt';
+import { formatTime } from '../../utils/brt';
 import { useStyles, TabPanel, a11yProps } from './SystemMetrics';
+import { ThemeContext } from '../../layouts/BaseLayout';
 
 const format = (data: QueryValues[] | any) => {
   const cerr: chartData[] = [];
@@ -64,21 +65,28 @@ const format = (data: QueryValues[] | any) => {
 };
 
 interface JournalMetricsProps {
-  darkMode(status: boolean): any;
+  startTimestamp?: number;
+  endTimestamp?: number;
 }
 
-const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
+const JournalMetrics: FC<JournalMetricsProps> = ({
+  startTimestamp,
+  endTimestamp
+}) => {
   const classes = useStyles();
+  const themeMode = useContext(ThemeContext);
   const [response, setResponse] = useState(init());
   const [error, setError] = useState('');
-  const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
   const [value, setValue] = React.useState(0);
   const handleChange = (_event, newValue) => {
     setValue(newValue);
   };
   useEffect(() => {
+    setResponse(init());
     fetch(
-      `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${endTimestamp}`
+      endTimestamp
+        ? `${HOST_IP}/query?timeSeriesPath=storage/journal&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
+        : `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${startTimestamp}`
     )
       .then(res => res.json())
       .then(
@@ -90,11 +98,11 @@ const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
         }
       );
     // eslint-disable-next-line
-  }, []);
+  }, [endTimestamp, startTimestamp]);
   if (error) {
     return <Alert severity="error">Unable to reach the service: error</Alert>;
   }
-  if (!response.data) {
+  if (!response.data.values) {
     return <Alert severity="info">Fetching data from sources</Alert>;
   }
   const data = format(response.data.values);
@@ -129,8 +137,7 @@ const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
   ];
   const optionsSystemd = {
     chart: {
-      type: 'area',
-      background: '#fff'
+      type: 'area'
     },
     dataLabels: {
       enabled: false
@@ -157,14 +164,13 @@ const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
         opacityTo: 0.2
       }
     },
-    tooltip: {
-      theme: !darkMode ? 'light' : 'dark'
+    theme: {
+      mode: themeMode
     }
   };
   const optionsKernel = {
     chart: {
-      type: 'area',
-      background: '#fff'
+      type: 'area'
     },
     dataLabels: {
       enabled: false
@@ -191,8 +197,8 @@ const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
         opacityTo: 0.2
       }
     },
-    tooltip: {
-      theme: !darkMode ? 'light' : 'dark'
+    theme: {
+      mode: themeMode
     }
   };
   return (

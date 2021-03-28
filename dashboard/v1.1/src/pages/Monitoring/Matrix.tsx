@@ -1,13 +1,8 @@
 import React, { FC, useState, useEffect } from 'react';
 import { HOST_IP } from '../../utils/types';
-import {
-  TimeSeriesPath,
-  MatrixResponse,
-  RouteDetails
-} from '../../utils/queryTypes';
+import { TimeSeriesPath, MatrixResponse } from '../../utils/queryTypes';
 import { columns } from './Columns';
-import TimeInstance, { formatResLength, round } from '../../utils/brt';
-
+import { formatResLength, round } from '../../utils/brt';
 import TableContainer from '@material-ui/core/TableContainer';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -21,22 +16,49 @@ import Tooltip from '@material-ui/core/Tooltip';
 import { truncate } from '../../utils/stringManipulations';
 import { Badge } from 'reactstrap';
 import TablePagination from '@material-ui/core/TablePagination';
+import SearchBar from 'material-ui-search-bar';
+import { makeStyles } from '@material-ui/core/styles';
 
 type APIResponse<MatrixResponse> = { status: string; data: MatrixResponse };
 
 interface MatrixProps {
   timeSeriesPath: TimeSeriesPath[];
   isMonitoringActive: boolean;
-  showRouteDetails(status: boolean, details: RouteDetails): void;
+  showRouteDetails(
+    status: boolean,
+    details: { name: string; route: string }
+  ): void;
 }
 
 interface ElementProps {
   timeSeriesPath: TimeSeriesPath;
   isMonitoringActive: boolean;
-  showRouteDetails(status: boolean, details: RouteDetails): void;
+  showRouteDetails(
+    status: boolean,
+    details: { name: string; route: string }
+  ): void;
 }
 
 const Pad: FC<{}> = () => <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>;
+
+const useStyles = makeStyles({
+  searchBar: {
+    borderRadius: 0,
+    boxShadow: 'none',
+    borderBottom: '1px solid rgba(0, 0, 0, 0.23)',
+    backgroundColor: 'rgba(0,0,0,0)',
+    fontWeight: 600,
+    fontSize: 15,
+    color: '#000',
+    marginTop: '-47px',
+    maxWidth: 300,
+    float: 'right',
+    height: '30px',
+    '&:hover': {
+      borderBottom: '1px solid rgba(0, 0, 0, 1)'
+    }
+  }
+});
 
 const Element: FC<ElementProps> = ({
   timeSeriesPath,
@@ -47,32 +69,16 @@ const Element: FC<ElementProps> = ({
   const [trigger, setTrigger] = useState<number>(0);
   const [updating, setUpdating] = useState<boolean>(true);
   const [warning, showWarning] = useState<boolean>(false);
-  const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
 
   const columnStyle = {
     fontSize: '1.4em'
   };
 
   const fetchTimeSeriesDetails = async (instance: TimeSeriesPath) => {
-    const monitoringDetails = new Promise<RouteDetails>((resolve, reject) => {
-      async function fetchDetails() {
-        try {
-          const response = await fetch(
-            `${HOST_IP}/query-matrix?routeNameMatrix=${instance.path.matrixName}&endTimestamp=${endTimestamp}`
-          );
-          const matrix = (await response.json()) as APIResponse<RouteDetails>;
-          resolve(matrix.data);
-        } catch (e) {
-          console.error(e);
-          showWarning(true);
-          reject(e);
-        }
-      }
-      fetchDetails();
+    showRouteDetails(true, {
+      route: instance.path.matrixName,
+      name: instance.name
     });
-
-    const details = await monitoringDetails;
-    showRouteDetails(true, { ...details, name: instance.name });
   };
 
   useEffect(() => {
@@ -243,8 +249,24 @@ const Matrix: FC<MatrixProps> = ({
   isMonitoringActive,
   showRouteDetails
 }) => {
+  const classes = useStyles();
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
+  const [rows, setRows] = useState<TimeSeriesPath[]>(timeSeriesPath);
+  const [searched, setSearched] = useState<string>('');
+
+  const requestSearch = (searchedVal: string) => {
+    const filteredRows = timeSeriesPath.filter(row => {
+      return row.name.toLowerCase().includes(searchedVal.toLowerCase());
+    });
+    setRows(filteredRows);
+  };
+
+  const cancelSearch = () => {
+    setSearched('');
+    requestSearch(searched);
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -256,6 +278,14 @@ const Matrix: FC<MatrixProps> = ({
   };
   return (
     <>
+      <SearchBar
+        value={searched}
+        onChange={searchVal => requestSearch(searchVal)}
+        onCancelSearch={() => cancelSearch()}
+        placeholder="Search here"
+        className={classes.searchBar}
+        style={{}}
+      />
       <TableContainer>
         <Table stickyHeader>
           <TableHead>
@@ -276,7 +306,7 @@ const Matrix: FC<MatrixProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {timeSeriesPath
+            {rows
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((series, i) => (
                 <Element
@@ -292,7 +322,7 @@ const Matrix: FC<MatrixProps> = ({
       <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component="div"
-        count={timeSeriesPath.length}
+        count={rows.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onChangePage={handleChangePage}

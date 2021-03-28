@@ -32,6 +32,6 @@ jobs:
           context: .
           file: ./Dockerfile
           platforms: |
-            linux/amd64, linux/386
+            linux/amd64
           push: true
           tags: benchroutes/benchroutes:latest
