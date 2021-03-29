@@ -148,6 +148,7 @@ func (c *Chain) Init() *Chain {
 	}
 	c.Chain = []Block{}
 	c.LengthElements = len(c.Chain)
+	c.addNullBlock()
 	return c
 }
 
@@ -192,6 +193,55 @@ func VerifyChainPathExists(chainPath string) bool {
 		return true
 	}
 	return os.IsExist(err)
+}
+
+// EXPERIMENTAL (ref: https://github.com/bench-routes/bench-routes/issues/242)
+func (c *Chain) addNullBlock() {
+	chainReadOnly := ReadOnly(c.Path).Refresh()
+	bstream := chainReadOnly.BlockStream()
+
+	blockStream := *bstream
+
+	lengthBlockStream := len(blockStream)
+
+	if lengthBlockStream == 0 {
+		return
+	}
+
+	block := blockStream[lengthBlockStream-1] // getting the most recent block added to the disk
+
+	blockNormTime := block.GetNormalizedTime()
+	curNormTime := GetNormalizedTimeCalc()
+	blockType := block.Type
+
+	if blockType != "sys" && blockType != "journal" {
+		return
+	}
+
+	var blockChain []Block // Null blocks to be added
+	sub := 0
+	time := int64(time.Second * 5) // time is in nano seconds
+
+	/*
+		Starting from the current normalized time, we go back
+		and add null blocks until we get past the block
+		normalized time which is the most recent block added
+		at the time when bench-routes was stopped
+	*/
+	for curNormTime > blockNormTime {
+		b := GetNewBlock(blockType, "null")
+		b.Timestamp = CalcTimeStamp(sub)
+		b.NormalizedTime = curNormTime
+		blockChain = append(blockChain, *b)
+		sub = sub + int(time/1000000000)
+		curNormTime -= time
+	}
+
+	blockChainLength := len(blockChain)
+	// append blocks to the chain in reverse order
+	for a := blockChainLength - 1; a >= 0; a-- {
+		c.Append(blockChain[a])
+	}
 }
 
 const (
@@ -373,6 +423,14 @@ func saveToHDD(path string, data []byte) error {
 // GetTimeStampCalc returns the timestamp
 func GetTimeStampCalc() string {
 	t := time.Now()
+
+	return s(t.Year()) + "|" + s(t.Month()) + "|" + s(t.Day()) + "|" + s(t.Hour()) + "|" +
+		s(t.Minute()) + "|" + s(t.Second())
+}
+
+// ClacTimeStamp returs the timestamp `sub` seconds previous
+func CalcTimeStamp(sub int) string {
+	t := time.Now().Add(time.Second * time.Duration(-sub))
 
 	return s(t.Year()) + "|" + s(t.Month()) + "|" + s(t.Day()) + "|" + s(t.Hour()) + "|" +
 		s(t.Minute()) + "|" + s(t.Second())

@@ -64,63 +64,6 @@ var (
 	pathMonitoring = fmt.Sprintf("%s/monitoring", storageDir)
 )
 
-// EXPERIMENTAL (ref: https://github.com/bench-routes/bench-routes/issues/242)
-
-func GetTimeStampCalc(sub int) string {
-	t := time.Now().Add(time.Second * time.Duration(-sub)) // getting the timestamp `sub` seconds previous
-
-	return s(t.Year()) + "|" + s(t.Month()) + "|" + s(t.Day()) + "|" + s(t.Hour()) + "|" +
-		s(t.Minute()) + "|" + s(t.Second())
-}
-
-func s(st interface{}) string {
-	return fmt.Sprintf("%v", st)
-}
-
-func addNullBlock(chain *tsdb.Chain, path, nullEncodedData, metricType string) {
-	chainReadOnly := tsdb.ReadOnly(path).Refresh() // getting the chain from the disk
-	bstream := chainReadOnly.BlockStream()
-
-	blockStream := *bstream
-
-	lengthBlockStream := len(blockStream)
-
-	if lengthBlockStream == 0 {
-		return
-	}
-
-	block := blockStream[lengthBlockStream-1] // getting the most recent block added to the disk
-
-	blockNormTime := block.GetNormalizedTime()
-	curNormTime := tsdb.GetNormalizedTimeCalc()
-
-	var blockChain []tsdb.Block // for null blocks
-	sub := 0
-	time := int64(processCollectionScrapeTime) // time is in nano seconds
-
-	/*
-		Starting from the current normalized time, we go back
-		and add null blocks until we get past the block
-		normalized time which is the most recent block added
-		at the time when bench-routes was stopped
-	*/
-	for curNormTime > blockNormTime {
-		b := tsdb.GetNewBlock(metricType, nullEncodedData)
-		b.NormalizedTime = curNormTime
-		b.Timestamp = GetTimeStampCalc(sub)
-		blockChain = append(blockChain, *b)
-		sub = sub + int(time/1000000000)
-		curNormTime -= time
-	}
-
-	// append blocks to the chain in reverse order
-	blockChainLength := len(blockChain)
-
-	for a := blockChainLength - 1; a >= 0; a-- {
-		chain.Append(blockChain[a])
-	}
-}
-
 func main() {
 	if len(os.Args) > 2 && os.Args[2] != "" {
 		enableProcessCollection, _ = strconv.ParseBool(os.Args[2])
@@ -235,9 +178,6 @@ func main() {
 		log.Infoln("initialized system-metrics...", time.Since(p))
 		chainSet.Register(chain.Name, chain)
 
-		nullEncodedData := "0|0|0|0|0|0|0|0|0|0|0|0|0|0"
-		addNullBlock(chain, systemMetricsPath, nullEncodedData, "sys")
-
 		for {
 			// collections for cpu, memory and disk run independently and are
 			// time dependent. Hence, running these serially will take more
@@ -280,9 +220,6 @@ func main() {
 			chain.Init()
 			log.Infoln("initialized journal-metrics...", time.Since(p))
 			chainSet.Register(chain.Name, chain)
-
-			nullEncodedData := "0|0|0|0|0|0"
-			addNullBlock(chain, journalMetricsPath, nullEncodedData, "journal")
 
 			for {
 				data := metrics.Run().Get()
