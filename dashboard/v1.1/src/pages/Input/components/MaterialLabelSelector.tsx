@@ -2,7 +2,7 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { useTheme } from '@material-ui/core/styles';
 import {
   HelpOutline as HelpOutlineIcon,
-  Close as CloseIcon,
+  Done as DoneIcon,
 } from '@material-ui/icons';
 import Autocomplete, {
   AutocompleteCloseReason
@@ -63,7 +63,7 @@ export default function MaterialLabelSelector(props: LabelSelectorType) {
         return labels;
       })
       .then(labels => {
-        if(labelList.length===0)
+        if(labelList.length===0) // This ensures that labelist from backend is only updated once at first rendering of the page.
         setLabelList(labels);
         setValue(defaultLabels);
         setPendingValue(defaultLabels);
@@ -173,8 +173,8 @@ export default function MaterialLabelSelector(props: LabelSelectorType) {
                   <div className={classes.text}>
                     {truncate(option.name, 20)}
                   </div>
-                  <CloseIcon
-                    className={classes.close}
+                  <DoneIcon
+                    className={classes.iconSelected}
                     style={{ visibility: selected ? 'visible' : 'hidden' }}
                   />
                 </React.Fragment>
