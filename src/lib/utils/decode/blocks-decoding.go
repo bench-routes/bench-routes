@@ -18,6 +18,9 @@ func NewBlockDecoding(Type string) *BlockDecodingBR {
 // the same to the respective functions to get the decoded value which
 // is to be passed to the front end
 func (bd *BlockDecodingBR) Decode(block tsdb.Block) interface{} {
+	if block.Datapoint == "null" {
+		return nil
+	}
 	switch bd.Type {
 	case "sys":
 		return systemDecode(block.Datapoint)
