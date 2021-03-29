@@ -88,35 +88,53 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
   };
   const menuItems = (
     <div>
-      <Tooltip title="Dashboard" placement="right">
-        <ListItem button={true} component={Link} to="/">
+      <ListItem button={true} component={Link} to="/">
+        {!open ? (
+          <Tooltip title="Dashboard" placement="right">
+            <ListItemIcon>
+              <DashboardIcon />
+            </ListItemIcon>
+          </Tooltip>
+        ) : (
           <ListItemIcon>
             <DashboardIcon />
           </ListItemIcon>
-          <ListItemText primary="Dashboard" />
-        </ListItem>
-      </Tooltip>
-      <Tooltip title="Monitoring" placement="right">
-        <ListItem button={true} component={Link} to="/monitoring">
+        )}
+        <ListItemText primary="Dashboard" />
+      </ListItem>
+      <ListItem button={true} component={Link} to="/monitoring">
+        {!open ? (
+          <Tooltip title="Monitoring" placement="right">
+            <ListItemIcon>
+              <AccessAlarmIcon />
+            </ListItemIcon>
+          </Tooltip>
+        ) : (
           <ListItemIcon>
             <AccessAlarmIcon />
           </ListItemIcon>
-          <ListItemText primary="Monitoring" />
-        </ListItem>
-      </Tooltip>
-      <Tooltip title="Tests" placement="right">
-        <ListItem button={true}>
+        )}
+        <ListItemText primary="Monitoring" />
+      </ListItem>
+      <ListItem button={true}>
+        {!open ? (
+          <Tooltip title="Tests" placement="right">
+            <ListItemIcon>
+              <NetworkCheckIcon />
+            </ListItemIcon>
+          </Tooltip>
+        ) : (
           <ListItemIcon>
             <NetworkCheckIcon />
           </ListItemIcon>
-          <ListItemText primary="Tests" onClick={showTestList} />
-          {close ? (
-            <ExpandMoreIcon onClick={showTestList} />
-          ) : (
-            <ExpandLessIcon onClick={showTestList} />
-          )}
-        </ListItem>
-      </Tooltip>
+        )}
+        <ListItemText primary="Tests" onClick={showTestList} />
+        {close ? (
+          <ExpandMoreIcon onClick={showTestList} />
+        ) : (
+          <ExpandLessIcon onClick={showTestList} />
+        )}
+      </ListItem>
       {/* Nested List */}
       <Collapse in={testListOpen} timeout="auto" unmountOnExit={true}>
         <List component="div" disablePadding={true}>
@@ -155,14 +173,20 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
           </ListItem>
         </List>
       </Collapse>
-      <Tooltip title="Config" placement="right">
-        <ListItem button={true} component={Link} to="/configurations">
+      <ListItem button={true} component={Link} to="/configurations">
+        {!open ? (
+          <Tooltip title="Config" placement="right">
+            <ListItemIcon>
+              <SettingsIcon />
+            </ListItemIcon>
+          </Tooltip>
+        ) : (
           <ListItemIcon>
             <SettingsIcon />
           </ListItemIcon>
-          <ListItemText primary="Config" />
-        </ListItem>
-      </Tooltip>
+        )}
+        <ListItemText primary="Config" />
+      </ListItem>
     </div>
   );
 
