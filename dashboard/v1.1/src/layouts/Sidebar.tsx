@@ -85,7 +85,7 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
 
   const showTestList = () => {
     setTestListOpen(!testListOpen);
-    setExpand(false);
+    setExpand(!expand);
   };
 
   const handleListItemClick = (event, index) => {
