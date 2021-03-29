@@ -116,7 +116,7 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
         <ListItemText primary="Monitoring" />
       </ListItem>
       <ListItem button={true} selected={selectedIndex >= 3}>
-        <ListItemIcon>
+        <ListItemIcon onClick={showTestList}>
           <NetworkCheckIcon />
         </ListItemIcon>
         <ListItemText primary="Tests" onClick={showTestList} />
