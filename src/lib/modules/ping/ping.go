@@ -88,6 +88,7 @@ func (ps *Ping) perform(pingInterval TestInterval) {
 }
 
 func (ps *Ping) pingExec(urlRaw, machineHash string, packets int, wg *sync.WaitGroup, pingInterval TestInterval) {
+	defer wg.Done()
 	for {
 		switch ps.localConfig.Config.UtilsConf.ServicesSignal.Ping {
 		case "active":
@@ -102,11 +103,9 @@ func (ps *Ping) pingExec(urlRaw, machineHash string, packets int, wg *sync.WaitG
 			}
 		case "passive":
 			// terminate the goroutine
-			wg.Done()
 			return
 		default:
 			log.Warnln("invalid service-state value of ping")
-			wg.Done()
 			return
 		}
 
