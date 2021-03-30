@@ -29,6 +29,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
+import { useXticks } from '../../utils/useXticks';
 
 const SearchTable = lazy(() => import('./components/MaterialTable'));
 
@@ -43,7 +44,7 @@ const useStyles = makeStyles(_theme => ({
     fontWeight: 'normal'
   },
   formControl: {
-    margin: '0px',
+    margin: 0,
     minWidth: 150
   }
 }));
@@ -78,8 +79,8 @@ const Config = () => {
 
   const [tableData, setTableData] = useState<TableRouteType[]>([]);
 
-  const [xticks, setXticks] = React.useState('10');
-  const readxticks = localStorage.getItem('xticks');
+  const xticks = useXticks();
+
   useEffect(() => {
     fetchConfigIntervals(setConfigIntervals)
       .then(async () => {
@@ -91,17 +92,9 @@ const Config = () => {
       });
   }, []);
 
-  useEffect(() => {
-    if (readxticks !== null) {
-      setXticks(readxticks);
-    } else {
-      localStorage.setItem('xticks', xticks);
-    }
-  }, [readxticks, xticks]);
-
-  const handleChange = (event: React.ChangeEvent<{ value: any }>) => {
-    setXticks(event.target.value as string);
-    localStorage.setItem('xticks', event.target.value as string);
+  const handleXticksChange = (event: React.ChangeEvent<{ value: any }>) => {
+    const changeXticks = xticks['updateXticks'];
+    changeXticks(event.target.value as string);
   };
 
   const xtickVal: any = [
@@ -246,8 +239,8 @@ const Config = () => {
             <Select
               labelId="demo-simple-select-outlined-label"
               id="demo-simple-select-outlined"
-              value={xticks}
-              onChange={handleChange}
+              value={xticks['xticks']}
+              onChange={handleXticksChange}
               label="x-tick amount"
             >
               {xtickVal.map(val => (

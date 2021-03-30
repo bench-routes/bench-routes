@@ -5,9 +5,10 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import { makeStyles } from '@material-ui/core/styles';
 import { Menu as MenuIcon } from '@material-ui/icons';
 import clsx from 'clsx';
-import React, { ReactElement, useCallback, useState, useEffect } from 'react';
+import React, { ReactElement, useCallback, useState } from 'react';
 import Navigator from '../router/Navigation';
 import Sidebar from './Sidebar';
+import { ProvideXticks } from '../utils/useXticks';
 
 const drawerWidth = 240;
 export const ThemeContext = React.createContext({});
@@ -83,14 +84,6 @@ export default function BaseLayout(props: any): ReactElement {
   const handleDrawerClose = () => {
     setOpen(false);
   };
-  const [xticks, setXticks] = useState('10');
-  const readXticks: any = localStorage.getItem('xticks');
-
-  useEffect(() => {
-    if (readXticks !== null) {
-      setXticks(readXticks);
-    }
-  }, [readXticks]);
 
   const handleToggleDarkMode = () => {
     const { darkMode, toggleDarkMode } = props;
@@ -100,7 +93,7 @@ export default function BaseLayout(props: any): ReactElement {
 
   return (
     <ThemeContext.Provider value={!props.darkMode ? 'light' : 'dark'}>
-      <XticksContext.Provider value={xticks}>
+      <ProvideXticks>
         <div className={classes.root}>
           <CssBaseline />
           {/* Navbar */}
@@ -152,7 +145,7 @@ export default function BaseLayout(props: any): ReactElement {
             </Container>
           </main>
         </div>
-      </XticksContext.Provider>
+      </ProvideXticks>
     </ThemeContext.Provider>
   );
 }

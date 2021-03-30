@@ -1,7 +1,8 @@
 import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import { chartData } from '../../utils/queryTypes';
-import { ThemeContext, XticksContext } from '../../layouts/BaseLayout';
+import { ThemeContext } from '../../layouts/BaseLayout';
+import { useXticks } from '../../utils/useXticks';
 
 interface CPUUsageProps {
   cpuMetrics: chartData[];
@@ -9,7 +10,7 @@ interface CPUUsageProps {
 
 const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
   const themeMode = useContext(ThemeContext);
-  const xticks = useContext(XticksContext);
+  const xticks = useXticks();
   const dataFormatted = cpuMetrics;
   const series = [
     {
@@ -61,7 +62,7 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
       mode: themeMode
     },
     xaxis: {
-      tickAmount: Number(xticks)
+      tickAmount: Number(xticks['xticks'])
     }
   };
 

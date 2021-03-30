@@ -1,8 +1,9 @@
 import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
-import { ThemeContext, XticksContext } from '../../layouts/BaseLayout';
+import { ThemeContext } from '../../layouts/BaseLayout';
 import { chartData } from '../../utils/queryTypes';
+import { useXticks } from '../../utils/useXticks';
 
 interface ResLengthProps {
   resLength: chartData[];
@@ -10,7 +11,7 @@ interface ResLengthProps {
 
 const ResLength: FC<ResLengthProps> = ({ resLength }) => {
   const themeMode = useContext(ThemeContext);
-  const xticks = useContext(XticksContext);
+  const xticks = useXticks();
   const series = [
     {
       name: 'Response length',
@@ -43,7 +44,7 @@ const ResLength: FC<ResLengthProps> = ({ resLength }) => {
       title: {
         text: 'Time'
       },
-      tickAmount: Number(xticks)
+      tickAmount: Number(xticks['xticks'])
     },
     theme: {
       mode: themeMode
