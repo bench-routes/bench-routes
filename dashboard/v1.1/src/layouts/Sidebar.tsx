@@ -84,8 +84,8 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
   const [expand, setExpand] = useState(true);
 
   const showTestList = () => {
-    setTestListOpen(!testListOpen);
-    setExpand(!expand);
+    setTestListOpen(isOpen => !isOpen);
+    setExpand(prevExpand => !prevExpand);
   };
 
   const handleListItemClick = (event, index) => {
@@ -124,9 +124,9 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
         </ListItemIcon>
         <ListItemText primary="Tests" onClick={showTestList} />
         {expand ? (
-          <ExpandLessIcon onClick={showTestList} />
-        ) : (
           <ExpandMoreIcon onClick={showTestList} />
+        ) : (
+          <ExpandLessIcon onClick={showTestList} />
         )}
       </ListItem>
       {/* Nested List */}
