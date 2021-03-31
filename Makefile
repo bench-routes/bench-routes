@@ -32,7 +32,7 @@ test: build
 
 ## Installs UI dependencies and builds the frontend.
 build-frontend:
-	cd dashboard/v1.1/ && yarn install && yarn build
+	cd dashboard/v1.1/ && yarn install --network-timeout 1000000 && yarn build
 
 ## Runs Golang unit tests without mentioning the skipped tests.
 test-non-verbose: build
