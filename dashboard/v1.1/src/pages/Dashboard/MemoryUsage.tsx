@@ -20,7 +20,8 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
   ];
   const options = {
     chart: {
-      type: 'area'
+      type: 'area',
+      background: themeMode === 'light' ? '#fff' : '#424242',
     },
     dataLabels: {
       enabled: false

@@ -37,7 +37,8 @@ const MemoryDetails: FC<MemoryDetailsProps> = ({
   ];
   const options = {
     chart: {
-      type: 'area'
+      type: 'area',
+      background: themeMode === 'light' ? '#fff' : '#424242',
     },
     dataLabels: {
       enabled: false
