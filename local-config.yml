@@ -11,7 +11,7 @@ utils:
 test_interval:
 - test: ping
   type: sec
-  duration: 20
+  duration: 14
 - test: jitter
   type: sec
   duration: 15

@@ -3,12 +3,16 @@ import { TextField, Button, Typography } from '@material-ui/core';
 import { HOST_IP } from '../../../utils/types';
 
 const IntervalDetails = (props: any) => {
-  const [inputValue, setInputValue] = useState<string>(
+  const [inputValue, setInputValue] = useState<Number>(
     props.durationValue || ''
   );
 
   const handleIntervalOnChange = e => {
-    setInputValue(e.target.value);
+    if (e.target.value >= 0) {
+      setInputValue(e.target.value);
+    } else {
+      alert('Please try a positive int value');
+    }
   };
 
   const handleSubmit = async (e, intervalName: string) => {
