@@ -475,7 +475,6 @@ func (a *API) GetConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	return
 }
 
 // ModifyIntervalDuration modifies a specific interval duration in the config file.
