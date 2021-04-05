@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TextField, Button, Typography } from '@material-ui/core';
+import Alert from '@material-ui/lab/Alert';
 import { HOST_IP } from '../../../utils/types';
 
 const IntervalDetails = (props: any) => {
@@ -7,11 +8,14 @@ const IntervalDetails = (props: any) => {
     props.durationValue || ''
   );
 
+  const [alert, setAlert] = useState<boolean>(false);
+
   const handleIntervalOnChange = e => {
     if (e.target.value >= 0) {
       setInputValue(e.target.value);
+      setAlert(false);
     } else {
-      alert('Please try a positive int value');
+      setAlert(true);
     }
   };
 
@@ -57,6 +61,11 @@ const IntervalDetails = (props: any) => {
               Go
             </Button>
           </form>
+          <div>
+            {alert && (
+              <Alert severity="error">Please try a positive int Value</Alert>
+            )}
+          </div>
         </div>
       ) : (
         <div style={{ textAlign: 'center' }}>
