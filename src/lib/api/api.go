@@ -42,6 +42,11 @@ type API struct {
 	mux               sync.RWMutex
 }
 
+type RouteResponse struct {
+	RouteCount  int64          `json:"route_count"`
+	TotalRoutes int64          `json:"total_routes"`
+	Routes      []config.Route `json:"routes"`
+}
 type inputRequest struct {
 	Method  string            `json:"method"`
 	URL     string            `json:"url"`
@@ -426,9 +431,50 @@ func (a *API) GetConfigIntervals(w http.ResponseWriter, _ *http.Request) {
 }
 
 // GetConfigRoutes gets the config file data for the config screen.
-func (a *API) GetConfigRoutes(w http.ResponseWriter, _ *http.Request) {
-	a.Data = a.config.Config.Routes
-	a.send(w, a.marshalled())
+func (a *API) GetConfigRoutes(w http.ResponseWriter, r *http.Request) {
+	startIndex := r.URL.Query().Get("start") // startIndex is the RouteID from where we need Routes
+	next := r.URL.Query().Get("count")              //next is how many more Routes needed from startIndex
+	// Total no of Routes passed into Response payload will be (next) starting from startIndex
+	// eg: startIndex = 5 and next = 25 then Routes passed will be from route5 to route30
+	start, err := strconv.Atoi(startIndex)
+	if err != nil {
+		a.Data = "start parameter is not an INTEGER"
+		w.WriteHeader(http.StatusBadRequest)
+		a.send(w, a.marshalled())
+	}
+	count, err := strconv.Atoi(next)
+	if err != nil {
+		a.Data = "count parameter is not an INTEGER"
+		w.WriteHeader(http.StatusBadRequest)
+		a.send(w, a.marshalled())
+	}
+	if int64(start) > a.config.Config.RouteCount {
+		a.Data = "Start exceeds total no of routes"
+		w.WriteHeader(http.StatusBadRequest)
+		a.send(w, a.marshalled())
+	}
+	response := RouteResponse{}
+	response.RouteCount = a.config.Config.RouteCount
+	response.TotalRoutes = a.config.Config.TotalRoute
+	var till int
+	// if start + count exceeds total no of routes then pass all the routes starting from start.
+	if start+count > int(response.TotalRoutes) {
+		till = int(response.TotalRoutes)
+	} else {
+		till = start + count
+	}
+	response.Routes = a.config.Config.Routes[start:till]
+	marshalledResponse, err := json.Marshal(response)
+	if err != nil {
+		a.Data = err
+		a.send(w, a.marshalled())
+	}
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(marshalledResponse)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // ModifyIntervalDuration modifies a specific interval duration in the config file.
@@ -527,6 +573,10 @@ func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 		if route.URL == req.ActualRoute {
 			a.mux.Lock()
 			a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
+			a.config.Config.TotalRoute = a.config.Config.TotalRoute - 1
+			if i+1 == int(a.config.Config.RouteCount) {
+				a.config.Config.RouteCount = a.config.Config.Routes[len(a.config.Config.Routes)-1].RouteID
+			}
 			a.mux.Unlock()
 			break
 		}
