@@ -2,6 +2,7 @@ package parser
 
 import (
 	"io/ioutil"
+	"os"
 	"sync"
 
 	"gopkg.in/yaml.v2"
@@ -122,6 +123,26 @@ func (inst *Config) Write() (bool, error) {
 
 	return true, nil
 }
+func (inst *Config) AppendWrite(route []Route) (bool, error) {
+	r, e := yaml.Marshal(route)
+	if e != nil {
+		log.Errorln(e.Error())
+		return false, e
+	}
+
+	f, err := os.OpenFile(inst.Address, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return false, err
+	}
+	if _, err := f.Write(r); err != nil {
+		return false, err
+	}
+	if err := f.Close(); err != nil {
+		return false, err
+	}
+	return true, nil
+
+}
 
 // Refresh refreshes the Configuration settings.
 func (inst *Config) Refresh() {
@@ -132,8 +153,9 @@ func (inst *Config) Refresh() {
 func (inst *Config) AddRoute(route Route) {
 	inst.mutex.Lock()
 	defer inst.mutex.Unlock()
-	inst.Config.Routes = append(inst.Config.Routes, route)
-	if _, err := inst.Write(); err != nil {
+	r := []Route{}
+	r = append(r, route)
+	if _, err := inst.AppendWrite(r); err != nil {
 		panic(err)
 	}
 }
