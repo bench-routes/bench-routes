@@ -523,19 +523,34 @@ func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&req); err != nil {
 		panic(err)
 	}
+	var updated bool
+	updated = false
 	for i, route := range a.config.Config.Routes {
 		if route.URL == req.ActualRoute {
 			a.mux.Lock()
 			a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
+			updated = true
 			a.mux.Unlock()
 			break
 		}
 	}
+	if !updated {
+		a.ResponseStatus = http.StatusText(400)
+		a.Data = "Route not present "
+		w.WriteHeader(http.StatusBadRequest)
+		a.send(w, a.marshalled())
+		return
+	}
 	if _, err := a.config.Write(); err != nil {
 		a.ResponseStatus = http.StatusText(400)
+		a.Data = "Error occured while deleting the Route. err = " + fmt.Sprint(err)
+		w.WriteHeader(http.StatusBadRequest)
+		a.send(w, a.marshalled())
+		return
 	}
 	a.ResponseStatus = http.StatusText(200)
-	a.Data = a.config.Config.Routes
+	a.Data = "Deleted Successfully"
+	w.WriteHeader(http.StatusOK)
 	a.send(w, a.marshalled())
 }
 
