@@ -123,24 +123,24 @@ func (inst *Config) Write() (bool, error) {
 
 	return true, nil
 }
-func (inst *Config) AppendWrite(route []Route) (bool, error) {
+func (inst *Config) AppendWrite(route []Route) error {
 	r, e := yaml.Marshal(route)
 	if e != nil {
 		log.Errorln(e.Error())
-		return false, e
+		return e
 	}
 
 	f, err := os.OpenFile(inst.Address, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return false, err
+		return err
 	}
 	if _, err := f.Write(r); err != nil {
-		return false, err
+		return err
 	}
 	if err := f.Close(); err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 
 }
 
@@ -155,7 +155,7 @@ func (inst *Config) AddRoute(route Route) {
 	defer inst.mutex.Unlock()
 	r := []Route{}
 	r = append(r, route)
-	if _, err := inst.AppendWrite(r); err != nil {
+	if err := inst.AppendWrite(r); err != nil {
 		panic(err)
 	}
 }
