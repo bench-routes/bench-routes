@@ -105,8 +105,7 @@ func ValidateRoutes(routes *[]Route) []error {
 func (inst *Config) Validate() bool {
 	er := []error{}
 	config := *inst.Config
-	err := ValidatePasswordProp(config.Password)
-	if err != nil {
+	if err := ValidatePasswordProp(config.Password); err != nil {
 		er = append(er, err)
 	}
 	intervalErr := ValidateIntervalProp(config.Interval)
