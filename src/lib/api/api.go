@@ -524,9 +524,6 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	if _, err := a.config.Write(); err != nil {
-		ResponseStatus = http.StatusText(400)
-	}
 	a.reloadConfigURLs <- struct{}{}
 	ResponseStatus = http.StatusText(200)
 	Data = a.config.Config.Routes
@@ -556,9 +553,6 @@ func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 			a.mux.Unlock()
 			break
 		}
-	}
-	if _, err := a.config.Write(); err != nil {
-		ResponseStatus = http.StatusText(400)
 	}
 	ResponseStatus = http.StatusText(200)
 	Data = a.config.Config.Routes
