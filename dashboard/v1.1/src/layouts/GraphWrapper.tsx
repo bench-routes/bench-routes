@@ -32,6 +32,10 @@ const useStyles = makeStyles(theme => ({
   },
   monitorWrapper: {
     justifyContent: 'space-between'
+  },
+  datetime:{
+    position:"absolute",
+    zIndex:3,
   }
 }));
 
@@ -135,12 +139,14 @@ const GraphWrapper: FC<WrapperProps> = ({
           </div>
           <div className={classes.endInput}>
             <div className={classes.inputText}>End Time</div>
-            <Datetime
+           <div className={classes.datetime}>
+           <Datetime
               value={endValue}
               onClose={handleEndDateClose}
               isValidDate={valid}
               onChange={handleEndChange}
             />
+           </div>
           </div>
         </div>
       </div>
