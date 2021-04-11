@@ -3,12 +3,12 @@ import { TextField, Button, Typography } from '@material-ui/core';
 import { HOST_IP } from '../../../utils/types';
 
 const IntervalDetails = (props: any) => {
-  const [inputValue, setInputValue] = useState<string>(
-    props.durationValue || ''
+  const [inputValue, setInputValue] = useState<number>(
+    props.durationValue ?? 0
   );
 
   const handleIntervalOnChange = e => {
-    setInputValue(e.target.value);
+    setInputValue(parseInt(e.target.value));
   };
 
   const handleSubmit = async (e, intervalName: string) => {
@@ -42,6 +42,8 @@ const IntervalDetails = (props: any) => {
               id="outlined-basic"
               label={props.durationValue}
               variant="outlined"
+              type="number"
+              inputProps={{ min: 0 }}
               onChange={e => handleIntervalOnChange(e)}
             />
             <Button
