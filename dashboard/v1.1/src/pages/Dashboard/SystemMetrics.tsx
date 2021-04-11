@@ -66,38 +66,38 @@ const segregateMetrics = (metricValues: QueryValues[]) => {
 
   for (const metric of metricValues) {
     cpuUsageSlice.push({
-      y: metric.value.cpuTotalUsage,
+      y: metric.value ? metric.value.cpuTotalUsage : null,
       x: formatTime(metric.timestamp)
     });
 
     diskSliceCache.push({
-      y: metric.value.disk.cached,
+      y: metric.value ? metric.value.disk.cached : null,
       x: formatTime(metric.timestamp)
     });
     diskSliceDiskIO.push({
-      y: metric.value.disk.diskIO,
+      y: metric.value ? metric.value.disk.diskIO : null,
       x: formatTime(metric.timestamp)
     });
 
     memorySliceAvailableBytes.push({
-      y: metric.value.memory.availableBytes,
+      y: metric.value ? metric.value.memory.availableBytes : null,
       x: formatTime(metric.timestamp)
     });
     memorySliceFreeBytes.push({
-      y: metric.value.memory.freeBytes,
+      y: metric.value ? metric.value.memory.freeBytes : null,
       x: formatTime(metric.timestamp)
     });
     memorySliceTotalBytes.push({
-      y: metric.value.memory.totalBytes,
+      y: metric.value ? metric.value.memory.totalBytes : null,
       x: formatTime(metric.timestamp)
     });
     memorySliceUsedBytes.push({
-      y: metric.value.memory.usedBytes,
+      y: metric.value ? metric.value.memory.usedBytes : null,
       x: formatTime(metric.timestamp)
     });
 
     memoryUsedPercentSlice.push({
-      y: metric.value.memory.usedPercent,
+      y: metric.value ? metric.value.memory.usedPercent : null,
       x: formatTime(metric.timestamp)
     });
   }

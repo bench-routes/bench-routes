@@ -30,27 +30,27 @@ const format = (data: QueryValues[] | any) => {
   }
   for (const value of data) {
     cerr.push({
-      y: value.value.cerr,
+      y: value.value ? value.value.cerr : null,
       x: formatTime(value.timestamp)
     });
     cwarn.push({
-      y: value.value.cwarn,
+      y: value.value ? value.value.cwarn : null,
       x: formatTime(value.timestamp)
     });
     cevents.push({
-      y: value.value.cevents,
+      y: value.value ? value.value.cevents : null,
       x: formatTime(value.timestamp)
     });
     ckerr.push({
-      y: value.value.ckerr,
+      y: value.value ? value.value.ckerr : null,
       x: formatTime(value.timestamp)
     });
     ckwarn.push({
-      y: value.value.ckwarn,
+      y: value.value ? value.value.ckwarn : null,
       x: formatTime(value.timestamp)
     });
     ckevents.push({
-      y: value.value.ckevents,
+      y: value.value ? value.value.ckevents : null,
       x: formatTime(value.timestamp)
     });
   }

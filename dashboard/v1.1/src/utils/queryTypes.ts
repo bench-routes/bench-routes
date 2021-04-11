@@ -10,7 +10,7 @@ export interface queryValueMemoryUsedPercent {
 
 export interface chartData {
   x: string | number;
-  y: string | number;
+  y: string | number | null;
 }
 
 export interface QueryRange {
