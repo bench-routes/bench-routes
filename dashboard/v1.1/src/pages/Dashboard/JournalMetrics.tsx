@@ -1,14 +1,13 @@
 import React, { FC, useEffect, useState, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
-import AppBar from '@material-ui/core/AppBar';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
+import { Tabs, Tab, AppBar } from '@material-ui/core';
 import { APIResponse, init } from '../../utils/service';
 import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 import { HOST_IP } from '../../utils/types';
 import { formatTime } from '../../utils/brt';
 import { useStyles, TabPanel, a11yProps } from './SystemMetrics';
+import TimePanel from './TimePanel';
 import { ThemeContext } from '../../layouts/BaseLayout';
 
 const format = (data: QueryValues[] | any) => {
@@ -76,37 +75,53 @@ const JournalMetrics: FC<JournalMetricsProps> = ({
   const classes = useStyles();
   const themeMode = useContext(ThemeContext);
   const [response, setResponse] = useState(init());
+  const [fetchTime, setfetchTime] = useState(0);
   const [error, setError] = useState('');
   const [value, setValue] = React.useState(0);
   const handleChange = (_event, newValue) => {
     setValue(newValue);
   };
+
+  const fetchDetails = async (): Promise<QueryResponse> => {
+    return new Promise<QueryResponse>(async (resolve, reject) => {
+      try {
+        const response = await fetch(
+          endTimestamp
+            ? `${HOST_IP}/query?timeSeriesPath=storage/journal&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
+            : `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${startTimestamp}`
+        );
+        const data = (await response.json()) as APIResponse<QueryResponse>;
+        resolve(data.data);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  const fetchSystemData = async () => {
+    try {
+      const start = performance.now();
+      const details = await fetchDetails();
+      const end = performance.now();
+      setResponse(details);
+      setfetchTime(end - start);
+    } catch (error) {
+      setError(error);
+    }
+  };
+
   useEffect(() => {
     setResponse(init());
-    fetch(
-      endTimestamp
-        ? `${HOST_IP}/query?timeSeriesPath=storage/journal&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
-        : `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${startTimestamp}`
-    )
-      .then(res => res.json())
-      .then(
-        (response: APIResponse<QueryResponse>) => {
-          setResponse(response);
-        },
-        (err: string) => {
-          setError(err);
-        }
-      );
+    fetchSystemData();
     // eslint-disable-next-line
   }, [endTimestamp, startTimestamp]);
   if (error) {
     return <Alert severity="error">Unable to reach the service: error</Alert>;
   }
-  if (!response.data.values) {
+  if (!response.values.length) {
     return <Alert severity="info">Fetching data from sources</Alert>;
   }
-  const data = format(response.data.values);
-
+  const data = format(response.values);
   const seriesSystemd = [
     {
       name: 'Errors',
@@ -201,8 +216,20 @@ const JournalMetrics: FC<JournalMetricsProps> = ({
       mode: themeMode
     }
   };
+
   return (
     <div className={classes.root}>
+      <div
+        style={{
+          display: 'flex',
+          padding: '0 0 16px 0'
+        }}
+      >
+        <TimePanel
+          fetchTime={fetchTime}
+          evaluationTime={response.evaluationTime}
+        />
+      </div>
       <AppBar position="static">
         <Tabs value={value} onChange={handleChange} indicatorColor="secondary">
           <Tab label="Kernel" {...a11yProps(0)} />

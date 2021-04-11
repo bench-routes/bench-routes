@@ -11,10 +11,10 @@ import (
 
 // QueryResponse is the response sent after processing the query.
 type QueryResponse struct {
-	TimeSeriesPath string        `json:"timeSeriesPath"`
-	Range          queryRange    `json:"range"`
-	TimeInvolved   time.Duration `json:"queryTime"`
-	Value          interface{}   `json:"values"`
+	TimeSeriesPath string      `json:"timeSeriesPath"`
+	Range          queryRange  `json:"range"`
+	EvaluationTime string      `json:"evaluationTime"`
+	Value          interface{} `json:"values"`
 }
 
 type queryValue struct {

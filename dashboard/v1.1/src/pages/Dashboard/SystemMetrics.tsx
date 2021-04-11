@@ -14,6 +14,7 @@ import { formatTime } from '../../utils/brt';
 import { HOST_IP } from '../../utils/types';
 import { APIResponse, init } from '../../utils/service';
 import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
+import TimePanel from './TimePanel';
 
 export function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -126,27 +127,43 @@ const SystemMetrics: FC<SystemMetricsProps> = ({
 }) => {
   const classes = useStyles();
   const [response, setResponse] = useState(init());
+  const [fetchTime, setfetchTime] = useState(0);
   const [error, setError] = useState('');
   const [value, setValue] = React.useState(0);
   useEffect(() => {
     showLoader(true);
   }, [showLoader]);
+
+  const fetchDetails = async (): Promise<QueryResponse> => {
+    return new Promise<QueryResponse>(async (resolve, reject) => {
+      try {
+        const response = await fetch(
+          endTimestamp
+            ? `${HOST_IP}/query?timeSeriesPath=storage/system&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
+            : `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${startTimestamp}`
+        );
+        const data = (await response.json()) as APIResponse<QueryResponse>;
+        resolve(data.data);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  const fetchSystemData = async () => {
+    try {
+      const start = performance.now();
+      const details = await fetchDetails();
+      const end = performance.now();
+      setResponse(details);
+      setfetchTime(end - start);
+    } catch (error) {
+      setError(error);
+    }
+  };
+
   useEffect(() => {
-    setResponse(init());
-    fetch(
-      endTimestamp
-        ? `${HOST_IP}/query?timeSeriesPath=storage/system&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
-        : `${HOST_IP}/query?timeSeriesPath=storage/system&endTimestamp=${startTimestamp}`
-    )
-      .then(res => res.json())
-      .then(
-        (response: APIResponse<QueryResponse>) => {
-          setResponse(response);
-        },
-        (err: string) => {
-          setError(err);
-        }
-      );
+    fetchSystemData();
     // eslint-disable-next-line
   }, [endTimestamp, startTimestamp]);
   const handleChange = (_event, newValue) => {
@@ -157,7 +174,8 @@ const SystemMetrics: FC<SystemMetricsProps> = ({
     showLoader(false);
     return <Alert severity="error">Unable to reach the service: error</Alert>;
   }
-  if (!response.data.values) {
+
+  if (!response.values.length) {
     return (
       <>
         <Alert severity="info">Fetching data from sources</Alert>
@@ -165,11 +183,22 @@ const SystemMetrics: FC<SystemMetricsProps> = ({
     );
   }
 
-  const responseInFormat = segregateMetrics(response.data.values);
+  const responseInFormat = segregateMetrics(response.values);
   showLoader(false);
 
   return (
     <div className="row">
+      <div
+        style={{
+          display: 'flex',
+          padding: '0 0 16px 16px'
+        }}
+      >
+        <TimePanel
+          fetchTime={fetchTime}
+          evaluationTime={response.evaluationTime}
+        />
+      </div>
       <div className="col-md-12" style={{ marginBottom: '1%' }}>
         <div className={classes.root}>
           <AppBar position="static">

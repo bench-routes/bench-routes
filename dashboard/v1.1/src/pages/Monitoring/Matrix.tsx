@@ -81,27 +81,28 @@ const Element: FC<ElementProps> = ({
     });
   };
 
-  useEffect(() => {
-    async function fetchMatrix(name: string) {
-      try {
-        setUpdating(true);
-        const response = await fetch(
-          `${HOST_IP}/query-matrix?routeNameMatrix=${name}`
-        );
-        const inMatrixResponse = (await response.json()) as APIResponse<
-          MatrixResponse
-        >;
-        setData(inMatrixResponse.data);
-        setTimeout(() => {
-          setUpdating(false);
-          showWarning(false);
-        }, 1000);
-      } catch (e) {
-        console.error(e);
-        showWarning(true);
-        return null;
-      }
+  const fetchMatrix = async (name: string) => {
+    try {
+      setUpdating(true);
+      const response = await fetch(
+        `${HOST_IP}/query-matrix?routeNameMatrix=${name}`
+      );
+      const inMatrixResponse = (await response.json()) as APIResponse<
+        MatrixResponse
+      >;
+      setData(inMatrixResponse.data);
+      setTimeout(() => {
+        setUpdating(false);
+        showWarning(false);
+      }, 1000);
+    } catch (e) {
+      console.error(e);
+      showWarning(true);
+      return null;
     }
+  };
+
+  useEffect(() => {
     fetchMatrix(timeSeriesPath.path.matrixName);
   }, [trigger, timeSeriesPath.path.matrixName]);
 
