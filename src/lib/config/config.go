@@ -76,6 +76,7 @@ type UConfig struct {
 type ConfigurationBR struct {
 	Password  string     `yaml:"password"`
 	UtilsConf UConfig    `yaml:"utils"`
+	Labels    []string   `yaml:"labels"`
 	Interval  []Interval `yaml:"test_interval"`
 	Routes    []Route    `yaml:"routes"`
 }
@@ -86,6 +87,9 @@ func New(path string) *Config {
 		Address: path,
 	}
 }
+
+// MLabels is map to store and check the presence of any label.
+var MLabels = make(map[string]bool)
 
 // Load loads the configuration file on startup.
 func (inst *Config) Load() *Config {
@@ -101,6 +105,20 @@ func (inst *Config) Load() *Config {
 	e = yaml.Unmarshal(file, &yInstance)
 	if e != nil {
 		panic(e)
+	}
+
+	for _, label := range yInstance.Labels {
+		if !MLabels[label] {
+			MLabels[label] = true
+		}
+	}
+	for _, route := range yInstance.Routes {
+		for _, label := range route.Labels {
+			if !MLabels[label] {
+				MLabels[label] = true
+				yInstance.Labels = append(yInstance.Labels, label)
+			}
+		}
 	}
 	inst.Config = &yInstance
 	return inst

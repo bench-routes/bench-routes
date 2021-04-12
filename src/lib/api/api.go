@@ -322,6 +322,12 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&t); err != nil {
 		panic(err)
 	}
+	for _, label := range t.Labels {
+		if !config.MLabels[label] {
+			config.MLabels[label] = true
+			a.config.Config.Labels = append(a.config.Config.Labels, label)
+		}
+	}
 	requestInstance := request.New(t.URL, t.Headers, t.Params, t.Body, t.Labels)
 	a.config.AddRoute(
 		config.GetNewRouteType(
@@ -487,6 +493,12 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&req); err != nil {
 		panic(err)
 	}
+	for _, label := range req.Labels {
+		if !config.MLabels[label] {
+			config.MLabels[label] = true
+			a.config.Config.Labels = append(a.config.Config.Labels, label)
+		}
+	}
 	requestInstance := request.New(req.URL, req.Headers, req.Params, req.Body, req.Labels)
 	for i, route := range a.config.Config.Routes {
 		if route.URL == req.OriginalRoute && route.Method == req.Method {
@@ -541,20 +553,8 @@ func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 
 // GetLabels gets route labels from the config file
 func (a *API) GetLabels(w http.ResponseWriter, r *http.Request) {
-	var (
-		uniqueLabels []string
-		m            = make(map[string]bool)
-	)
-	for _, route := range a.config.Config.Routes {
-		for _, label := range route.Labels {
-			if _, value := m[label]; !value {
-				m[label] = true
-				uniqueLabels = append(uniqueLabels, label)
-			}
-		}
-	}
 	a.ResponseStatus = http.StatusText(200)
-	a.Data = uniqueLabels
+	a.Data = a.config.Config.Labels
 	a.send(w, a.marshalled())
 }
 

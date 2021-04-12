@@ -8,6 +8,16 @@ utils:
     flood-ping: passive
     jitter: passive
     req-res-delay-or-monitoring: passive
+labels:
+- yahoo
+- random
+- material-ui
+- google
+- youtube
+- postman
+- my-github-profile
+- paper-kites
+- facebook
 test_interval:
 - test: ping
   type: sec
