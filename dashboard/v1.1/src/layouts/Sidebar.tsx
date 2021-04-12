@@ -81,8 +81,10 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
   // Sidebar element
   const [testListOpen, setTestListOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [show, setShow] = useState(true);
   const showTestList = () => {
     setTestListOpen(!testListOpen);
+    setShow(!show);
   };
 
   const handleListItemClick = (event, index) => {
@@ -120,10 +122,10 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
           <NetworkCheckIcon />
         </ListItemIcon>
         <ListItemText primary="Tests" onClick={showTestList} />
-        {open ? (
-          <ExpandLessIcon onClick={showTestList} />
-        ) : (
+        {show ? (
           <ExpandMoreIcon onClick={showTestList} />
+        ) : (
+          <ExpandLessIcon onClick={showTestList} />
         )}
       </ListItem>
       {/* Nested List */}
