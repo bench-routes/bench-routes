@@ -83,7 +83,7 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [show, setShow] = useState(true);
   const showTestList = () => {
-    setTestListOpen(!testListOpen);
+    setTestListOpen(isOpen => !isOpen);
     setShow(!show);
   };
 
