@@ -54,9 +54,7 @@ func (q *QuickInput) Send(method uint, getResponse chan ResponseWrapper) {
 	var client http.Client
 	switch method {
 	case GET:
-		if len(q.params) != 0 {
-			q.url += "?" + q.formatParams()
-		}
+		q.formatParams()
 		request, err := http.NewRequest("GET", q.url, nil)
 		if err != nil {
 			panic(err)
@@ -95,13 +93,76 @@ func (q *QuickInput) Send(method uint, getResponse chan ResponseWrapper) {
 		if err := response.Body.Close(); err != nil {
 			log.Warnf("error closing response body: %s\n", err.Error())
 		}
+	case PUT:
+		q.formatParams()
+		form := make(url.Values)
+		q.populateBody(&form)
+		request, err := http.NewRequest("PUT", q.url, strings.NewReader(form.Encode()))
+		if err != nil {
+			log.Warnln("err while creating PUT request: ", err.Error())
+		}
+		request.PostForm = form
+		q.applyHeaders(request)
+		response, err := client.Do(request)
+		if err != nil {
+			log.Warnln(err)
+		}
+		if response == nil {
+			log.Warnf("nil response: %s\n", q.url)
+			return
+		}
+		done(response.Body, response.StatusCode, getResponse)
+		if err := response.Body.Close(); err != nil {
+			log.Warnf("error closing response body: %s\n", err.Error())
+		}
+	case DELETE:
+		q.formatParams()
+		request, err := http.NewRequest("DELETE", q.url, nil)
+		if err != nil {
+			log.Warnln("err while creating DELETE request: ", err.Error())
+		}
+		q.applyHeaders(request)
+		response, err := client.Do(request)
+		if err != nil {
+			log.Warnln(err)
+		}
+		if response == nil {
+			log.Warnf("nil response: %s\n", q.url)
+			return
+		}
+		done(response.Body, response.StatusCode, getResponse)
+		if err := response.Body.Close(); err != nil {
+			log.Warnf("error closing response body: %s\n", err.Error())
+		}
+	case PATCH:
+		q.formatParams()
+		form := make(url.Values)
+		q.populateBody(&form)
+		request, err := http.NewRequest("PATCH", q.url, strings.NewReader(form.Encode()))
+		if err != nil {
+			log.Warnln("err while creating PATCH request: ", err.Error())
+		}
+		request.PostForm = form
+		q.applyHeaders(request)
+		response, err := client.Do(request)
+		if err != nil {
+			log.Warnln(err)
+		}
+		if response == nil {
+			log.Warnf("nil response: %s\n", q.url)
+			return
+		}
+		done(response.Body, response.StatusCode, getResponse)
+		if err := response.Body.Close(); err != nil {
+			log.Warnf("error closing response body: %s\n", err.Error())
+		}
 	}
 }
 
-// formatParams returns the params in the required format.
-func (q *QuickInput) formatParams() string {
+// formatParams add the params in the base url.
+func (q *QuickInput) formatParams() {
 	if len(q.params) == 0 {
-		return ""
+		return
 	}
 	var p string
 	for k, v := range q.params {
@@ -111,9 +172,9 @@ func (q *QuickInput) formatParams() string {
 		p += fmt.Sprintf("%s=%s&", k, v)
 	}
 	if len(p) == 0 {
-		return p
+		return
 	}
-	return p[0 : len(p)-1]
+	q.url += "?" + p[0:len(p)-1]
 }
 
 func (q *QuickInput) applyHeaders(request *http.Request) {

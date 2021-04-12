@@ -306,8 +306,14 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 		go req.Send(request.GET, response)
 	case "POST":
 		go req.Send(request.POST, response)
+	case "PUT":
+		go req.Send(request.PUT, response)
+	case "DELETE":
+		go req.Send(request.DELETE, response)
+	case "PATCH":
+		go req.Send(request.PATCH, response)
 	default:
-		fmt.Printf("invalid request method: %s\n", t.Method)
+		log.Warnf("invalid request method: %s\n", t.Method)
 	}
 	a.Data = <-response
 	a.send(w, a.marshalled())

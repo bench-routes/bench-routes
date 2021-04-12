@@ -202,3 +202,33 @@ routes:
   body: []
   labels:
   - facebook
+- method: POST
+  url: https://reqres.in/api/users
+  headers: []
+  params: []
+  body:
+  - name: job
+    value: Software Engineer
+  - name: ""
+    value: ""
+  - name: name
+    value: Tushar
+  labels: []
+- method: PUT
+  url: https://reqres.in/api/users/2
+  headers: []
+  params: []
+  body:
+  - name: ""
+    value: ""
+  - name: name
+    value: Tushar
+  - name: job
+    value: Software Engineer
+  labels: []
+- method: DELETE
+  url: https://reqres.in/api/users/2
+  headers: []
+  params: []
+  body: []
+  labels: []
