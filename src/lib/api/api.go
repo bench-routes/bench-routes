@@ -119,7 +119,7 @@ func (a *API) Home(w http.ResponseWriter, r *http.Request) {
 	msg := "ping from " + r.RemoteAddr + ", sent pong in monitor"
 	log.Infoln(msg)
 	a.Data = msg
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 // TestTemplate handles template related request for testing purposes.
@@ -144,7 +144,7 @@ func (a *API) ServiceState(w http.ResponseWriter, _ *http.Request) {
 		Jitter:     p.Config.UtilsConf.ServicesSignal.Jitter,
 		Monitoring: p.Config.UtilsConf.ServicesSignal.ReqResDelayMonitoring,
 	}
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 // RoutesSummary handles requests related to summarized-configuration details.
@@ -165,7 +165,7 @@ func (a *API) RoutesSummary(w http.ResponseWriter, _ *http.Request) {
 		TestServicesRoutes: servicesRoutes,
 		MonitoringRoutes:   monitoringRoutes,
 	}
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 // Query forms the query handler for querying over the time-series data.
@@ -202,7 +202,7 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	// verify if chain path exists
 	timeSeriesPath = timeSeriesPath + tsdb.FileExtension
 	if ok := tsdb.VerifyChainPathExists(timeSeriesPath); !ok {
-		a.send(w, []byte("INVALID_PATH"))
+		a.send(w, []byte("INVALID_PATH"), http.StatusNotAcceptable)
 		return
 	}
 	// TODO: we do not capture the block streams in memory while querying yet. They are captured only when flushed.
@@ -211,7 +211,7 @@ func (a *API) Query(w http.ResponseWriter, r *http.Request) {
 	query := qry.QueryBuilder()
 	query.SetRange(startTimestamp, endTimestamp)
 	a.Data = query.ExecWithoutEncode()
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 // SendMatrix responds by sending the multi-dimensional data (called matrix)
@@ -220,7 +220,7 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 	routeHashMatrix := r.URL.Query().Get("routeNameMatrix")
 	if _, ok := (*a.Matrix)[routeHashMatrix]; !ok {
 		a.Data = "ROUTE_NAME_AKA_INSTANCE_KEY_NOT_IN_MATRIX"
-		a.send(w, a.marshalled())
+		a.send(w, a.marshalled(), http.StatusNotAcceptable)
 		return
 	}
 	var matrixResponse map[string]querier.QueryResponse
@@ -283,7 +283,7 @@ func (a *API) SendMatrix(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	a.Data = matrixResponse
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 // QuickTestInput tests the API input from the /quick-input route page
@@ -310,7 +310,7 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("invalid request method: %s\n", t.Method)
 	}
 	a.Data = <-response
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 // AddRouteToMonitoring adds a new route to the config.
@@ -335,7 +335,7 @@ func (a *API) AddRouteToMonitoring(w http.ResponseWriter, r *http.Request) {
 	)
 	a.reloadConfigURLs <- struct{}{}
 	a.Data = "success"
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusCreated)
 }
 
 // TSDBPathDetails responds with the path details that will be used for
@@ -355,7 +355,7 @@ func (a *API) TSDBPathDetails(w http.ResponseWriter, _ *http.Request) {
 		})
 	}
 	a.Data = chainDetails
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 // UpdateMonitoringServicesState starts the monitoring services on request from the API.
@@ -386,7 +386,7 @@ func (a *API) UpdateMonitoringServicesState(w http.ResponseWriter, r *http.Reque
 		panic("start-monitoring: monitor not found")
 	}
 	sm.Iterate(state, false)
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 // GetMonitoringState returns the monitoring state.
@@ -416,19 +416,19 @@ func (a *API) GetMonitoringState(w http.ResponseWriter, _ *http.Request) {
 	} else {
 		a.Data = "passive"
 	}
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 // GetConfigIntervals gets the config file data for the config screen.
 func (a *API) GetConfigIntervals(w http.ResponseWriter, _ *http.Request) {
 	a.Data = a.config.Config.Interval
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 // GetConfigRoutes gets the config file data for the config screen.
 func (a *API) GetConfigRoutes(w http.ResponseWriter, _ *http.Request) {
 	a.Data = a.config.Config.Routes
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 // ModifyIntervalDuration modifies a specific interval duration in the config file.
@@ -444,6 +444,7 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&req); err != nil {
 		panic(err)
 	}
+	var statusCode int
 	if num, err := strconv.Atoi(req.Value); err == nil {
 		n := int64(num)
 		for i, interval := range a.config.Config.Interval {
@@ -454,17 +455,20 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 		_, err := a.config.Write()
 		if err == nil {
 			a.ResponseStatus = "200"
+			statusCode = http.StatusOK
 			a.Data = a.config
 		} else {
 			a.ResponseStatus = "400"
+			statusCode = http.StatusBadRequest
 			a.Data = "Could not modify the config file"
 		}
 	} else {
 		// The string is not an integer.
 		a.ResponseStatus = "400"
+		statusCode = http.StatusBadRequest
 		a.Data = "The string passed is not an integer"
 	}
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), statusCode)
 }
 
 // UpdateRoute updates a route in the local config.
@@ -508,7 +512,7 @@ func (a *API) UpdateRoute(w http.ResponseWriter, r *http.Request) {
 	a.reloadConfigURLs <- struct{}{}
 	a.ResponseStatus = http.StatusText(200)
 	a.Data = a.config.Config.Routes
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 // DeleteConfigRoutes removes a route from the config screen.
@@ -536,7 +540,7 @@ func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	}
 	a.ResponseStatus = http.StatusText(200)
 	a.Data = a.config.Config.Routes
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 // GetLabels gets route labels from the config file
@@ -555,7 +559,7 @@ func (a *API) GetLabels(w http.ResponseWriter, r *http.Request) {
 	}
 	a.ResponseStatus = http.StatusText(200)
 	a.Data = uniqueLabels
-	a.send(w, a.marshalled())
+	a.send(w, a.marshalled(), http.StatusOK)
 }
 
 func (a *API) marshalled() []byte {
@@ -574,7 +578,9 @@ func (a *API) marshalled() []byte {
 	return js
 }
 
-func (a *API) send(w http.ResponseWriter, data []byte) {
+func (a *API) send(w http.ResponseWriter, data []byte, method int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(method)
 	if _, err := w.Write(data); err != nil {
 		panic(err)
 	}
