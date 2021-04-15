@@ -516,15 +516,10 @@ func (a *API) DeleteConfigRoutes(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		panic(err)
 	}
-	var req struct {
-		ActualRoute string `json:"actualRoute"`
-	}
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&req); err != nil {
-		panic(err)
-	}
+	actualRoute := r.URL.Query().Get("actualRoute") // actualRoute parameter from the request.
+
 	for i, route := range a.config.Config.Routes {
-		if route.URL == req.ActualRoute {
+		if route.URL == actualRoute {
 			a.mux.Lock()
 			a.config.Config.Routes = append(a.config.Config.Routes[:i], a.config.Config.Routes[i+1:]...)
 			a.mux.Unlock()
