@@ -18,18 +18,7 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
   ];
   const options = {
     chart: {
-      type: 'area',
-      xaxis: {
-        type: 'category',
-        categories: [],
-        labels: {
-          show: true,
-          rotate: 45,
-          rotateAlways: true,
-          hideOverlappingLabels: true,
-          trim: true
-        }
-      }
+      type: 'area'
     },
     dataLabels: {
       enabled: false
