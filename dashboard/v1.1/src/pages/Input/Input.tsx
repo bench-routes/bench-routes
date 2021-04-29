@@ -158,8 +158,13 @@ const Input = (props: InputScreenProps) => {
           let splitURL: string[] = route.split(/(\s+)/);
           duplicateRoutes.push(splitURL[2]);
         });
+<<<<<<< HEAD
       setExistingRoutes(duplicateRoutes);
-      }catch (err) {
+      } catch (err) {
+=======
+        setExistingRoutes(duplicateRoutes);
+      } catch (err) {
+>>>>>>> upstream/master
         console.log(err);
       }
     })();
