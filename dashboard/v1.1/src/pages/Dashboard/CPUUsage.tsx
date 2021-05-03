@@ -19,7 +19,7 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
   const options = {
     chart: {
       type: 'area',
-      background: themeMode === 'light' ? '#fff' : '#424242',
+      // background: themeMode === 'light' ? '#fff' : '#424242',
       xaxis: {
         type: 'category',
         categories: [],
