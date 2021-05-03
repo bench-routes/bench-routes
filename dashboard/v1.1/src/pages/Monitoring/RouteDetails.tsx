@@ -1,5 +1,9 @@
 import React, { FC, useEffect } from 'react';
-import { chartData, RouteDetails } from '../../utils/queryTypes';
+import {
+  chartData,
+  EvaluationTime,
+  RouteDetails
+} from '../../utils/queryTypes';
 import { formatTime } from '../../utils/brt';
 import ResLength from './ResLength';
 import Delay from './Delay';
@@ -10,6 +14,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import PropTypes from 'prop-types';
 import Box from '@material-ui/core/Box';
+import { Badge } from 'reactstrap';
 import Alert from '@material-ui/lab/Alert';
 import { HOST_IP } from '../../utils/types';
 import { APIResponse } from '../../utils/service';
@@ -27,7 +32,7 @@ function a11yProps(index) {
   };
 }
 
-function TabPanel(props) {
+const TabPanel = props => {
   const { children, value, index, ...other } = props;
 
   return (
@@ -41,12 +46,63 @@ function TabPanel(props) {
       {value === index && <Box p={3}>{children}</Box>}
     </div>
   );
-}
+};
 
 TabPanel.propTypes = {
   children: PropTypes.node,
   index: PropTypes.any.isRequired,
   value: PropTypes.any.isRequired
+};
+
+const TimePanel = ({ fetchTime, evaluationTime, value }) => {
+  return (
+    <div style={{ borderLeft: '3px solid #2196f3' }}>
+      <h6
+        style={{
+          margin: 0,
+          padding: 10,
+          display: 'flex',
+          alignItems: 'center'
+        }}
+      >
+        Query fetched in
+        <Badge color="success" style={{ fontSize: '0.97rem', marginLeft: 10 }}>
+          {fetchTime.toFixed(3)}ms
+        </Badge>
+      </h6>
+      {value && evaluationTime[Type(value)] !== '' ? (
+        <h6
+          style={{
+            margin: 0,
+            padding: 10,
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          Query Time :
+          <Badge
+            color="success"
+            style={{ fontSize: '0.97rem', marginLeft: 10 }}
+          >
+            {evaluationTime[Type(value)]}
+          </Badge>
+        </h6>
+      ) : null}
+    </div>
+  );
+};
+
+const Type = (val: number) => {
+  switch (val) {
+    case 1:
+      return 'monitor';
+    case 2:
+      return 'ping';
+    case 3:
+      return 'jitter';
+    default:
+      return '';
+  }
 };
 
 const format = (data: RouteDetails) => {
@@ -56,7 +112,9 @@ const format = (data: RouteDetails) => {
   const pingMean: chartData[] = [];
   const pingMax: chartData[] = [];
   const jitter: chartData[] = [];
-
+  const name = data.name;
+  const fetchTime = data.fetchTime;
+  const evaluationTime: EvaluationTime = { ping: '', jitter: '', monitor: '' };
   if (data.monitor.values) {
     for (const value of data.monitor.values) {
       responseDetailsDelay.push({
@@ -68,6 +126,7 @@ const format = (data: RouteDetails) => {
         x: formatTime(value.timestamp)
       });
     }
+    evaluationTime.monitor = data.monitor.evaluationTime;
   }
   if (data.ping.values) {
     for (const value of data.ping.values) {
@@ -84,6 +143,7 @@ const format = (data: RouteDetails) => {
         x: formatTime(value.timestamp)
       });
     }
+    evaluationTime.ping = data.ping.evaluationTime;
   }
   if (data.jitter.values) {
     for (const value of data.jitter.values) {
@@ -92,6 +152,7 @@ const format = (data: RouteDetails) => {
         x: formatTime(value.timestamp)
       });
     }
+    evaluationTime.jitter = data.jitter.evaluationTime;
   }
 
   return {
@@ -100,7 +161,10 @@ const format = (data: RouteDetails) => {
     pingMin,
     pingMean,
     pingMax,
-    jitter
+    jitter,
+    name,
+    fetchTime,
+    evaluationTime
   };
 };
 
@@ -116,23 +180,27 @@ const RouteDetailsComponent: FC<RouteDetailsProps> = ({
   const handleChange = (_event, newValue) => {
     setValue(newValue);
   };
-  useEffect(() => {
-    setRouteData(undefined);
-    fetch(
-      endTimestamp
-        ? `${HOST_IP}/query-matrix?routeNameMatrix=${routesChains.route}&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
-        : `${HOST_IP}/query-matrix?routeNameMatrix=${routesChains.route}&endTimestamp=${startTimestamp}`
-    )
-      .then(res => res.json())
-      .then(
-        (response: APIResponse<RouteDetails>) => {
-          setRouteData(response.data);
-          setShowLoader(false);
-        },
-        (err: string) => {
-          setError(err);
-        }
+
+  const fetchRouteDetail = async () => {
+    try {
+      const start = performance.now();
+      setRouteData(undefined);
+      const response = await fetch(
+        endTimestamp
+          ? `${HOST_IP}/query-matrix?routeNameMatrix=${routesChains.route}&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
+          : `${HOST_IP}/query-matrix?routeNameMatrix=${routesChains.route}&endTimestamp=${startTimestamp}`
       );
+      const end = performance.now();
+      const data = (await response.json()) as APIResponse<RouteDetails>;
+      setRouteData({ ...data.data, fetchTime: end - start });
+      setShowLoader(false);
+    } catch (error) {
+      setError(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRouteDetail();
     // eslint-disable-next-line
   }, [endTimestamp, startTimestamp]);
   if (error) {
@@ -149,6 +217,21 @@ const RouteDetailsComponent: FC<RouteDetailsProps> = ({
   } else {
     return (
       <>
+        <hr />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            position: 'relative'
+          }}
+        >
+          <TimePanel
+            fetchTime={data.fetchTime}
+            evaluationTime={data.evaluationTime}
+            value={value}
+          />
+        </div>
         <hr />
         <AppBar position="static">
           <Tabs
