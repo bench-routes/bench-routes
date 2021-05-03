@@ -18,7 +18,7 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
   ];
   const options = {
     chart: {
-      background: themeMode === 'light' ? '#fff' : '#424242',
+      type: 'area',
       xaxis: {
         type: 'category',
         categories: [],
@@ -63,7 +63,7 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
 
   return (
     <>
-      {/* <Chart series={series} options={options} height="300" type="area" /> */}
+      <Chart series={series} options={options} height="300" type="area" />
     </>
   );
 };
