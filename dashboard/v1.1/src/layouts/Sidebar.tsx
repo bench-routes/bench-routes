@@ -32,7 +32,8 @@ const useStyles = makeStyles(theme => ({
   // Nested lists
   nested: {
     paddingLeft: theme.spacing(4),
-    margin: '10px 0'
+    margin: '10px 0',
+    backgroundColor: '#DCDCDC'
   },
   // Drawer styles
   drawerPaper: {
