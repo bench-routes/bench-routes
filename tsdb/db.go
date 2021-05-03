@@ -148,6 +148,7 @@ func (c *Chain) Init() *Chain {
 	}
 	c.Chain = []Block{}
 	c.LengthElements = len(c.Chain)
+	c.addNullBlock()
 	return c
 }
 
@@ -192,6 +193,26 @@ func VerifyChainPathExists(chainPath string) bool {
 		return true
 	}
 	return os.IsExist(err)
+}
+
+// EXPERIMENTAL (ref: https://github.com/bench-routes/bench-routes/issues/242)
+func (c *Chain) addNullBlock() {
+	chainReadOnly := ReadOnly(c.Path).Refresh()
+	bstream := chainReadOnly.BlockStream()
+	blockStream := *bstream
+	lengthBlockStream := len(blockStream)
+	if lengthBlockStream == 0 {
+		return
+	}
+	block := blockStream[lengthBlockStream-1] // getting the most recent block added to the disk
+	blockType := block.Type
+	if blockType != "sys" && blockType != "journal" {
+		return
+	}
+	scrapeTime := 5
+	b := GetNewBlock(blockType, "null")
+	b.Timestamp = CalcTimeStamp(scrapeTime)
+	c.Append(*b)
 }
 
 const (
@@ -373,6 +394,14 @@ func saveToHDD(path string, data []byte) error {
 // GetTimeStampCalc returns the timestamp
 func GetTimeStampCalc() string {
 	t := time.Now()
+
+	return s(t.Year()) + "|" + s(t.Month()) + "|" + s(t.Day()) + "|" + s(t.Hour()) + "|" +
+		s(t.Minute()) + "|" + s(t.Second())
+}
+
+// CalcTimeStamp returns the timestamp `sub` seconds previous
+func CalcTimeStamp(sub int) string {
+	t := time.Now().Add(time.Second * time.Duration(-sub))
 
 	return s(t.Year()) + "|" + s(t.Month()) + "|" + s(t.Day()) + "|" + s(t.Hour()) + "|" +
 		s(t.Minute()) + "|" + s(t.Second())

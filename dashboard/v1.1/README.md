@@ -8,7 +8,7 @@ Daemon service for [bench-routes](https://github.com/bench-routes/bench-routes).
 
 Bench Routes uses DCO(Developer Certificate Origin) to certify that the contributor wrote the particular code or otherwise have the right to submit the code they are contributing to the project. For complete details on DCO <a href="https://probot.github.io/apps/dco/" target="_blank">Click Here</a>.
 
-Follow the below `commit` syntax to cerify the code and pass the DCO test.
+Follow the below `commit` syntax to certify the code and pass the DCO test.
 
 ```
 git commit -s -m <commit-message>

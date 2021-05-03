@@ -1,11 +1,14 @@
 package querier
 
 import (
+	"encoding/json"
+	"fmt"
 	"math"
 	"time"
 
 	"github.com/bench-routes/bench-routes/src/lib/utils/decode"
 	"github.com/bench-routes/bench-routes/tsdb"
+	"github.com/prometheus/common/log"
 )
 
 const (
@@ -95,11 +98,33 @@ func (q *Query) ExecWithoutEncode() QueryResponse {
 	return data
 }
 
-func (q *Query) exec(blockStream []tsdb.Block, encoding bool) interface{} {
+func (q *Query) exec(blockStream []tsdb.Block, encoding bool) (i interface{}) {
 	// start represents the starting of the timer that will calculate
 	// the total time involved in performing a particular query.
 	// This can be later benchmarked and compared with other algorithms.
 	base, stamp := getBaseResponse(q.Range)
+	defer func() {
+		var res QueryResponse
+		if !q.encoding {
+			res, ok := i.(QueryResponse)
+			if !ok {
+				log.Error("type 'QueryResponse' not received")
+			}
+			res.EvaluationTime = time.Since(stamp).String()
+			i = res
+			return
+		}
+		err := json.Unmarshal(i.([]byte), &res)
+		if err != nil {
+			log.Errorln(fmt.Errorf("Decoding error: %s", err.Error()).Error())
+		}
+		res.EvaluationTime = time.Since(stamp).String()
+		data, ok := json.Marshal(res)
+		if ok != nil {
+			log.Error("invalid marshalling: ", err.Error())
+		}
+		i = data
+	}()
 	q.encoding = encoding
 	q.stamp = stamp
 	q.queryResponse = base
@@ -134,7 +159,6 @@ func (q *Query) exec(blockStream []tsdb.Block, encoding bool) interface{} {
 		// A nil range represents to return all time-series value as response.
 		if q.Range == nil {
 			base = QueryResponse{
-				TimeInvolved: time.Since(stamp),
 				Range: queryRange{
 					Start: int64(math.MaxInt64),
 					End:   int64(math.MinInt64),
@@ -194,7 +218,6 @@ func (q *Query) exec(blockStream []tsdb.Block, encoding bool) interface{} {
 	}
 	base = QueryResponse{
 		TimeSeriesPath: q.Path,
-		TimeInvolved:   time.Since(stamp),
 		Range:          *q.Range,
 		Value:          decodedBlockStream,
 	}
@@ -223,7 +246,6 @@ func (q *Query) validate(timeFirstBlock, timeLastBlock int64, l int) []byte {
 // ReturnNILResponse is used only in cases when the response is known to be
 // null value.
 func (q *Query) ReturnNILResponse() []byte {
-	q.queryResponse.TimeInvolved = time.Since(q.stamp)
 	data, _ := encode(q.queryResponse, q.encoding).([]byte)
 	return data
 }
@@ -232,8 +254,7 @@ func (q *Query) ReturnNILResponse() []byte {
 // not be used to send JSON based results.
 func (q *Query) ReturnMessageResponse(message string) []byte {
 	q.queryResponse = QueryResponse{
-		TimeInvolved: time.Since(q.stamp),
-		Value:        message,
+		Value: message,
 	}
 	data, _ := encode(q.queryResponse, q.encoding).([]byte)
 	return data

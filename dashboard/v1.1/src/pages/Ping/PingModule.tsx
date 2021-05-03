@@ -13,6 +13,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import Alert from '@material-ui/lab/Alert';
 import { formatTime } from '../../utils/brt';
 import Ping from '../Monitoring/Ping';
+import TimePanel from '../Dashboard/TimePanel';
 
 const format = (datas: QueryResponse) => {
   const pingMin: chartData[] = [];
@@ -54,6 +55,8 @@ const PingModule: FC<{}> = () => {
   const [inputValue, setInputValue] = useState('');
   const [showCharts, setShowCharts] = useState(false);
   const [renderError, setRenderError] = useState(false);
+  const [fetchTime, setFetchTime] = useState(0);
+  const [evaluationTime, setEvaluationTime] = useState('');
   const [pingData, setPingData] = useState<showChartsDataParam>();
 
   const { response, error } = useFetch<service_states>(
@@ -79,12 +82,16 @@ const PingModule: FC<{}> = () => {
 
   async function getChartsData(v: string) {
     try {
+      const start = performance.now();
       const response = await fetch(
         `${HOST_IP}/query?timeSeriesPath=storage/ping/chunk_ping_${hashRoutMap.get(
           v
         )}`
       );
+      const end = performance.now();
+      setFetchTime(end - start);
       const matrix = (await response.json()) as APIQueryResponse;
+      setEvaluationTime(matrix.data.evaluationTime);
       var formatdata = format(matrix.data);
       setPingData(formatdata);
       setShowCharts(true);
@@ -92,6 +99,8 @@ const PingModule: FC<{}> = () => {
     } catch (e) {
       console.error(e);
       setRenderError(true);
+      setFetchTime(0);
+      setEvaluationTime('');
     }
   }
 
@@ -111,9 +120,18 @@ const PingModule: FC<{}> = () => {
   return (
     <Card>
       <CardContent>
-        <div>
-          <h4>Ping</h4>
-          <div style={{ float: 'right', marginTop: '-45px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <h4 style={{ margin: '0 20px 0 0' }}>Ping</h4>
+            <TimePanel fetchTime={fetchTime} evaluationTime={evaluationTime} />
+          </div>
+          <div>
             <Autocomplete
               value={value[0]}
               onChange={(event, newValue) => {}}
