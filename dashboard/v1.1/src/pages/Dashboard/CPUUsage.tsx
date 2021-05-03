@@ -63,7 +63,7 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
 
   return (
     <>
-      <Chart series={series} options={options} height="300" type="area" />
+      {/* <Chart series={series} options={options} height="300" type="area" /> */}
     </>
   );
 };
