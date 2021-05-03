@@ -19,6 +19,7 @@ const ResLength: FC<ResLengthProps> = ({ resLength }) => {
   const options = {
     chart: {
       type: 'area',
+      background: themeMode === 'light' ? '#fff' : '#424242',
       animations: {
         enabled: true,
         easing: 'easeinout',
