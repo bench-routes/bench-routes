@@ -16,6 +16,7 @@
     "react-dom": "^16.13.1",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.2.0",
+    "react-switch": "^6.0.0",
     "reactstrap": "^8.4.1",
     "string-to-color": "^2.2.1"
   },

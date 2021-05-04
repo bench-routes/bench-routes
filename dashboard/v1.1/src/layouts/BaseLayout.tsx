@@ -1,14 +1,18 @@
-import { CssBaseline, Switch, Tooltip } from '@material-ui/core';
+import { CssBaseline } from '@material-ui/core';
 import { Container } from '@material-ui/core';
 import { AppBar, IconButton, Toolbar, Typography } from '@material-ui/core';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { makeStyles } from '@material-ui/core/styles';
-import { Menu as MenuIcon } from '@material-ui/icons';
+import {
+  Brightness2Sharp,
+  Brightness7Sharp,
+  Menu as MenuIcon
+} from '@material-ui/icons';
 import clsx from 'clsx';
 import React, { ReactElement, useCallback, useState } from 'react';
+import Switch from 'react-switch';
 import Navigator from '../router/Navigation';
 import Sidebar from './Sidebar';
-
 const drawerWidth = 240;
 export const ThemeContext = React.createContext({});
 const _useStyles = makeStyles(theme => ({
@@ -61,6 +65,21 @@ const useStyles = makeStyles(theme => ({
   container: {
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4)
+  },
+  sunIcon: {
+    height: '100%',
+    width: '100%',
+    position: 'absolute',
+    top: 0,
+    padding: 2
+  },
+  moonIcon: {
+    height: '100%',
+    width: '100%',
+    position: 'absolute',
+    top: 0,
+    padding: 2,
+    transform: 'rotate(160deg)'
   }
 }));
 
@@ -121,15 +140,17 @@ export default function BaseLayout(props: any): ReactElement {
               >
                 Bench Routes
               </Typography>
-              <Tooltip title="Dark Mode">
-                <Switch
-                  checked={props.darkMode}
-                  onChange={handleToggleDarkMode}
-                  color="default"
-                  name="checkedB"
-                  inputProps={{ 'aria-label': 'primary checkbox' }}
-                />
-              </Tooltip>
+              <Switch
+                checked={props.darkMode}
+                onChange={handleToggleDarkMode}
+                offColor="#145D97"
+                onColor="#303030"
+                height={18}
+                handleDiameter={20}
+                width={36}
+                uncheckedIcon={<Brightness7Sharp className={classes.sunIcon} />}
+                checkedIcon={<Brightness2Sharp className={classes.moonIcon} />}
+              />
             </Toolbar>
             {loader ? <LinearProgress /> : null}
           </AppBar>
