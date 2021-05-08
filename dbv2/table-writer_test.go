@@ -64,9 +64,7 @@ func TestCreateFile_Write_Read(t *testing.T) {
 			values:    []string{"234.5", "11.2", "3"},
 		},
 	}
-	expected := `maxValidLength: 100 chars
-
-1|1|234.5:11.2:3
+	expected := `1|1|234.5:11.2:3
 10|1|234.5:11.2:3
 100|2|234.5:11.2:3
 100|1|234.5:11.2:3
@@ -97,7 +95,7 @@ func TestCreateFile_Write_Read(t *testing.T) {
 	require.NoError(t, err)
 	bSlice, err := ioutil.ReadFile(testFile)
 	require.NoError(t, err)
-	require.Equal(t, []byte(expected), bSlice, "matching write result")
+	require.Equal(t, expected, string(bSlice), "matching write result")
 	fmt.Println(dtbl.buffer.writer.index)
 
 	// Reading.
@@ -164,9 +162,7 @@ func TestUnorderedInserts(t *testing.T) {
 			values:    []string{"234.5", "11.2", "3"},
 		},
 	}
-	expected := `maxValidLength: 100 chars
-
-10|1|234.5:11.2:3
+	expected := `10|1|234.5:11.2:3
 20|1|234.5:11.2:3
 200|1|234.5:11.2:3
 500|1|234.5:11.2:3

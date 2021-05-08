@@ -9,12 +9,7 @@ import (
 )
 
 var (
-	readerBufferSize = validLength * (bufferSize / 10)
-	// readerOffsetBytes represents the number of bytes that occupy the meta-data section of the table. This can be discarded
-	// during parse operation as this is only to know the type of the table.
-	readerOffsetBytes = len([]byte(`maxValidLength: 100 chars
-
-`))
+	readerBufferSize = defaultBufferSize
 )
 
 type Reader interface {
@@ -40,27 +35,12 @@ func NewTableReader(path string) (*TableReader, error) {
 		},
 		reader: bufio.NewReaderSize(f, readerBufferSize),
 	}
-	tr.rowsItr = newRowsIterator(tr.reader, numBytesSingleLine)
+	tr.rowsItr = newRowsIterator(tr.reader, 0)
 	return tr, nil
-}
-
-// discardInitialOffset discards the initial meta-data of the table file.
-func (dr *TableReader) discardInitialOffset() error {
-	discarded, err := dr.reader.Discard(readerOffsetBytes)
-	if err != nil {
-		return fmt.Errorf("discard initial offset: %w", err)
-	}
-	if discarded != readerOffsetBytes {
-		return fmt.Errorf("file does not have sufficient bytes written. Corrupted format")
-	}
-	return nil
 }
 
 // Parse traverses the rows of the table.
 func (dr *TableReader) Parse() error {
-	if err := dr.discardInitialOffset(); err != nil {
-		return fmt.Errorf("parse: %w", err)
-	}
 	var (
 		r      row
 		err    error
@@ -111,9 +91,9 @@ func (dr *TableReader) read(seriesIdIndex []uint64) (*[]row, error) {
 		err                error
 		result             []row
 	)
-	if err = dr.discardInitialOffset(); err != nil {
-		return nil, fmt.Errorf("tableReader.read: %w", err)
-	}
+	//if err = dr.discardInitialOffset(); err != nil {
+	//	return nil, fmt.Errorf("tableReader.read: %w", err)
+	//}
 	for i := range seriesIdIndex {
 		skip = seriesIdIndex[i]
 		if i > 0 {
@@ -151,21 +131,21 @@ func parseBytesToRow(buf []byte) (row, error) {
 }
 
 // JumpNLines jumps n lines from the starting of the file, after the meta-data.
-func (dr *TableReader) JumpNLines(n uint64) error {
-	dr.reader.Reset(dr.dataTable)
-	if err := dr.discardInitialOffset(); err != nil {
-		return fmt.Errorf("tableRader.JumpNLines: %w", err)
-	}
-	if err := dr.rowsItr.jumpNLines(n); err != nil {
-		return fmt.Errorf("tableReader.JumpNLines: %w", err)
-	}
-	return nil
-}
-
-// JumpNextNLines jumps n lines from the current position of the file reader.
-func (dr *TableReader) JumpNextNLines(n uint64) error {
-	if err := dr.rowsItr.jumpNLines(n); err != nil {
-		return fmt.Errorf("tableReader.JumpNextNLines: %w", err)
-	}
-	return nil
-}
+//func (dr *TableReader) JumpNLines(n uint64) error {
+//	dr.reader.Reset(dr.dataTable)
+//	if err := dr.discardInitialOffset(); err != nil {
+//		return fmt.Errorf("tableRader.JumpNLines: %w", err)
+//	}
+//	if err := dr.rowsItr.jumpNLines(n); err != nil {
+//		return fmt.Errorf("tableReader.JumpNLines: %w", err)
+//	}
+//	return nil
+//}
+//
+//// JumpNextNLines jumps n lines from the current position of the file reader.
+//func (dr *TableReader) JumpNextNLines(n uint64) error {
+//	if err := dr.rowsItr.jumpNLines(n); err != nil {
+//		return fmt.Errorf("tableReader.JumpNextNLines: %w", err)
+//	}
+//	return nil
+//}
