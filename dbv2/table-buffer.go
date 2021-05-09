@@ -8,12 +8,12 @@ import (
 
 // TableBuffer is a in-memory table that is in raw format and is yet to be commited.
 type TableBuffer struct {
-	bufferMux     sync.RWMutex
-	data          []writeData
-	cap           uint64
-	idata          uint64
-	tableCopy     *DataTable
-	writer        *tableWriter
+	bufferMux sync.RWMutex
+	data      []writeData
+	cap       uint64
+	idata     uint64
+	tableCopy *DataTable
+	writer    *tableWriter
 }
 
 const defaultBufferSize = int(1e4)
@@ -21,24 +21,25 @@ const defaultBufferSize = int(1e4)
 // NewTableBuffer returns a new TableBuffer.
 func NewTableBuffer(dataTable *DataTable, mux *sync.RWMutex, cap uint64, ioBufferSize int) *TableBuffer {
 	return &TableBuffer{
-		cap:           cap,
-		idata: 0,
-		data: make([]writeData, cap+10000),
-		tableCopy:     dataTable,
-		writer:        newTableWriter(dataTable, mux, ioBufferSize),
+		cap:       cap,
+		idata:     0,
+		data:      make([]writeData, cap+10000),
+		tableCopy: dataTable,
+		writer:    newTableWriter(dataTable, mux, ioBufferSize),
 	}
 }
 
 type writeData struct {
 	timestamp uint64
 	id        uint64
+	typeId    uint64
 	valueSet  string
 }
 
-func (tbuf *TableBuffer) Write(timestamp, id uint64, valueSet string) error {
+func (tbuf *TableBuffer) Write(timestamp, id, typeId uint64, valueSet string) error {
 	tbuf.bufferMux.Lock()
 	defer tbuf.bufferMux.Unlock()
-	row := writeData{id: id, valueSet: valueSet, timestamp: timestamp}
+	row := writeData{id: id, typeId: typeId, valueSet: valueSet, timestamp: timestamp}
 	tbuf.data[tbuf.idata] = row
 	tbuf.idata++
 	if tbuf.idata > tbuf.cap {
@@ -68,7 +69,7 @@ func (tbuf *TableBuffer) flushToIOBuffer(flushIOBuffer bool) error {
 	})
 	for i := uint64(0); i < tbuf.idata; i++ {
 		r := tbuf.data[i]
-		if err := tbuf.writer.writeToTable(r.timestamp, r.id, r.valueSet); err != nil {
+		if err := tbuf.writer.writeToTable(r.timestamp, r.id, r.typeId, r.valueSet); err != nil {
 			return fmt.Errorf("flush to io-buffer: %w", err)
 		}
 	}

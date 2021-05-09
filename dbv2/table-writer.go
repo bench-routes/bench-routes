@@ -12,12 +12,12 @@ const (
 	typeSeparator  = '|'
 	space          = " "
 	newLineSymbol  = '\n'
-	colon = valueSeparator
+	colon          = valueSeparator
 	rowEndSymbol   = '\ufffe'
 )
 
 var (
-	bufferSize         = 10000
+	bufferSize        = 10000
 	newLineSymbolByte = newLineSymbol
 	rowEndSymbolByte  = rowEndSymbol
 )
@@ -33,19 +33,19 @@ type tableWriter struct {
 func newTableWriter(dataTable *DataTable, mux *sync.RWMutex, tableIOBufferSize int) *tableWriter {
 	return &tableWriter{
 		mux:         mux,
-		index: NewTableIndex(dataTable.path),
+		index:       NewTableIndex(dataTable.path),
 		tableWriter: bufio.NewWriterSize(dataTable, tableIOBufferSize), // Buffer size corresponds to total number of rows.
 	}
 }
 
 // writeToTable writes to the table. It must get timestamps in increasing order only.
-func (w *tableWriter) writeToTable(timestamp, id uint64, valueSet string) error {
+func (w *tableWriter) writeToTable(timestamp, id uint64, typeId uint64, valueSet string) error {
 	w.mux.Lock()
 	defer w.mux.Unlock()
 	if timestamp < w.minAcceptableTs {
 		return fmt.Errorf("timestamp cannot be less than minAcceptableTs: wanted >= %d received %d", w.minAcceptableTs, timestamp)
 	}
-	serialized, err := serializeWrite(timestamp, id, valueSet)
+	serialized, err := serializeWrite(timestamp, id, typeId, valueSet)
 	if err != nil {
 		return fmt.Errorf("serialize-write: %w", err)
 	}
@@ -85,7 +85,7 @@ func (w *tableWriter) commit() error {
 	return nil
 }
 
-func serializeWrite(timestamp, seriesID uint64, value string) ([]byte, error) {
-	str := fmt.Sprintf("%d%c%d%c%s\n", timestamp, typeSeparator, seriesID, typeSeparator, value)
+func serializeWrite(timestamp, seriesID, typeId uint64, value string) ([]byte, error) {
+	str := fmt.Sprintf("%d%c%d%c%d%c%s\n", timestamp, typeSeparator, seriesID, typeSeparator, typeId, typeSeparator, value)
 	return []byte(str), nil
 }

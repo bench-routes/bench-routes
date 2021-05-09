@@ -8,13 +8,14 @@ import (
 
 const nullCell = "null"
 
-var rowEmpty = row{-1, nullCell, nullCell}
+var rowEmpty = row{-1, nullCell, nullCell, nullCell}
 
 type (
-	row          struct {
-		t int64
-		rtype string
-		v string
+	row struct {
+		t      int64
+		id     string
+		typeId string
+		v      string
 	}
 	rowsIterator struct {
 		rowLength   int // In number of bytes involved in a complete row.

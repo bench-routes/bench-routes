@@ -33,7 +33,7 @@ func NewTableReader(path string) (*TableReader, error) {
 		dataTable: &DataTable{
 			File: f,
 		},
-		reader: bufio.NewReaderSize(f, readerBufferSize),
+		reader: bufio.NewReader(f),
 	}
 	tr.rowsItr = newRowsIterator(tr.reader, 0)
 	return tr, nil
@@ -59,17 +59,26 @@ func (dr *TableReader) Parse() error {
 	return nil
 }
 
+type reader struct {
+	tableReader *bufio.Reader
+	rowsItr   *rowsIterator
+}
+
+func (dr *TableReader) Reader() *reader {
+	r := bufio.NewReader(dr.dataTable.File)
+	return &reader{r, newRowsIterator(r, 0)}
+}
+
 // skipBytes skips the given number bytes from the current position.
-func (dr *TableReader) skipBytes(numBytes int) error {
-	_, err := dr.reader.Discard(numBytes)
+func (dr *reader) skipBytes(numBytes int) error {
+	_, err := dr.tableReader.Discard(numBytes)
 	if err != nil {
 		return fmt.Errorf("skipBytes: %w", err)
 	}
 	return nil
 }
 
-func (dr *TableReader) read(seriesIdIndex []uint64) (*[]row, error) {
-	dr.reader.Reset(dr.dataTable)
+func (dr *reader) ReadAll(seriesIdIndex []uint64) (*[]row, error) {
 	var (
 		skip, previousRead uint64
 		bytesRead          int
@@ -97,8 +106,8 @@ func (dr *TableReader) read(seriesIdIndex []uint64) (*[]row, error) {
 }
 
 // row returns the row after parsing the byte slice from current reader position.
-func (dr *TableReader) row() (row, int, error) {
-	line, err := dr.reader.ReadBytes(newLineSymbol)
+func (dr *reader) row() (row, int, error) {
+	line, err := dr.tableReader.ReadBytes(newLineSymbol)
 	if err != nil {
 		return rowEmpty, 0, fmt.Errorf("tableReader.row: %w", err)
 	}
@@ -111,23 +120,43 @@ func (dr *TableReader) row() (row, int, error) {
 }
 
 func parseBytesToRow(buf []byte) (row, error) {
-	row := buf
+	var (
+		row = buf
 
-	timestampEndIndex := bytes.Index(row, []byte{typeSeparator})
-	typeEndIndex := bytes.LastIndex(row, []byte{typeSeparator})
-	timestampInt, err := strconv.Atoi(string(row[:timestampEndIndex]))
+		timestampBuf []byte
+		seriesIdBuf  []byte
+		typeIdBuf    []byte
+		valueBuf     []byte
+	)
+	// Parse timestamp.
+	index := bytes.Index(row, []byte{typeSeparator})
+	timestampBuf = row[:index]
+	row = row[index+1:]
+	fmt.Println("row now", string(row))
+
+	// Parse series id.
+	index = bytes.Index(row, []byte{typeSeparator})
+	seriesIdBuf = row[:index]
+	row = row[index+1:]
+
+	// Parse type id.
+	index = bytes.Index(row, []byte{typeSeparator})
+	typeIdBuf = row[:index]
+	row = row[index+1:]
+
+	// Parse value.
+	index = bytes.Index(row, []byte{typeSeparator})
+	valueBuf = row
+
+	timestampInt, err := strconv.Atoi(string(timestampBuf))
 	if err != nil {
-		return rowEmpty, fmt.Errorf("parse-row: corrupted timestamp byte slice: %s", string(row[:timestampEndIndex]))
+		return rowEmpty, fmt.Errorf("parse-row: corrupted timestamp byte slice: %s", string(timestampBuf))
 	}
 
-	timestamp := timestampInt
-	typeVal := string(row[timestampEndIndex+1 : typeEndIndex])
-	value := string(row[typeEndIndex+1:])
-
-	return makeRow(int64(timestamp), typeVal, value), nil
+	return makeRow(int64(timestampInt), seriesIdBuf, typeIdBuf, valueBuf), nil
 }
 
 // makeRow builds a table row.
-func makeRow(timestamp int64, rtype string, value string) row {
-	return row{timestamp, rtype, value}
+func makeRow(timestamp int64, seriesId, typeId, value []byte) row {
+	return row{timestamp, string(seriesId), string(typeId), string(value)}
 }
