@@ -47,7 +47,7 @@ func (dr *TableReader) Parse() error {
 		isLast bool
 	)
 	for {
-		r, isLast, err = dr.rowsItr.readNext(true)
+		r, isLast, err = dr.rowsItr.readNext(false)
 		if err != nil {
 			return fmt.Errorf("parse: %w", err)
 		}
@@ -55,7 +55,7 @@ func (dr *TableReader) Parse() error {
 			break
 		}
 	}
-	dr.dataTable.minWriteTimestamp = uint64(r.rowTimestamp)
+	dr.dataTable.minWriteTimestamp = uint64(r.t)
 	return nil
 }
 
@@ -68,20 +68,6 @@ func (dr *TableReader) skipBytes(numBytes int) error {
 	return nil
 }
 
-// row returns the row after parsing the byte slice from current reader position.
-func (dr *TableReader) row() (row, int, error) {
-	line, err := dr.reader.ReadBytes(newLineSymbol)
-	if err != nil {
-		return rowEmpty, 0, fmt.Errorf("tableReader.row: %w", err)
-	}
-	bytesRead := len(line)
-	row, err := parseBytesToRow(line[:len(line)-1]) // 1 corresponds to newLineSymbolByte. Ignore newLine symbol, otherwise the value field will contain a new line.
-	if err != nil {
-		return rowEmpty, bytesRead, fmt.Errorf("tableReader.row: %w", err)
-	}
-	return row, bytesRead, nil
-}
-
 func (dr *TableReader) read(seriesIdIndex []uint64) (*[]row, error) {
 	dr.reader.Reset(dr.dataTable)
 	var (
@@ -91,9 +77,6 @@ func (dr *TableReader) read(seriesIdIndex []uint64) (*[]row, error) {
 		err                error
 		result             []row
 	)
-	//if err = dr.discardInitialOffset(); err != nil {
-	//	return nil, fmt.Errorf("tableReader.read: %w", err)
-	//}
 	for i := range seriesIdIndex {
 		skip = seriesIdIndex[i]
 		if i > 0 {
@@ -113,6 +96,20 @@ func (dr *TableReader) read(seriesIdIndex []uint64) (*[]row, error) {
 	return &result, nil
 }
 
+// row returns the row after parsing the byte slice from current reader position.
+func (dr *TableReader) row() (row, int, error) {
+	line, err := dr.reader.ReadBytes(newLineSymbol)
+	if err != nil {
+		return rowEmpty, 0, fmt.Errorf("tableReader.row: %w", err)
+	}
+	bytesRead := len(line)
+	row, err := parseBytesToRow(line[:len(line)-1]) // 1 corresponds to newLineSymbolByte. Ignore newLine symbol, otherwise the value field will contain a new line.
+	if err != nil {
+		return rowEmpty, bytesRead, fmt.Errorf("tableReader.row: %w", err)
+	}
+	return row, bytesRead, nil
+}
+
 func parseBytesToRow(buf []byte) (row, error) {
 	row := buf
 
@@ -123,29 +120,14 @@ func parseBytesToRow(buf []byte) (row, error) {
 		return rowEmpty, fmt.Errorf("parse-row: corrupted timestamp byte slice: %s", string(row[:timestampEndIndex]))
 	}
 
-	timestamp := rowTimestamp(timestampInt)
-	typeVal := rowType(row[timestampEndIndex+1 : typeEndIndex])
-	value := rowValue(row[typeEndIndex+1:])
+	timestamp := timestampInt
+	typeVal := string(row[timestampEndIndex+1 : typeEndIndex])
+	value := string(row[typeEndIndex+1:])
 
-	return makeRow(timestamp, typeVal, value), nil
+	return makeRow(int64(timestamp), typeVal, value), nil
 }
 
-// JumpNLines jumps n lines from the starting of the file, after the meta-data.
-//func (dr *TableReader) JumpNLines(n uint64) error {
-//	dr.reader.Reset(dr.dataTable)
-//	if err := dr.discardInitialOffset(); err != nil {
-//		return fmt.Errorf("tableRader.JumpNLines: %w", err)
-//	}
-//	if err := dr.rowsItr.jumpNLines(n); err != nil {
-//		return fmt.Errorf("tableReader.JumpNLines: %w", err)
-//	}
-//	return nil
-//}
-//
-//// JumpNextNLines jumps n lines from the current position of the file reader.
-//func (dr *TableReader) JumpNextNLines(n uint64) error {
-//	if err := dr.rowsItr.jumpNLines(n); err != nil {
-//		return fmt.Errorf("tableReader.JumpNextNLines: %w", err)
-//	}
-//	return nil
-//}
+// makeRow builds a table row.
+func makeRow(timestamp int64, rtype string, value string) row {
+	return row{timestamp, rtype, value}
+}

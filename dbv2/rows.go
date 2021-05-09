@@ -2,10 +2,8 @@ package dbv2
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io"
-	"strconv"
 )
 
 const nullCell = "null"
@@ -13,13 +11,10 @@ const nullCell = "null"
 var rowEmpty = row{-1, nullCell, nullCell}
 
 type (
-	rowTimestamp int64
-	rowType      string
-	rowValue     string
 	row          struct {
-		rowTimestamp
-		rowType
-		rowValue
+		t int64
+		rtype string
+		v string
 	}
 	rowsIterator struct {
 		rowLength   int // In number of bytes involved in a complete row.
@@ -29,11 +24,6 @@ type (
 		reader      *bufio.Reader
 	}
 )
-
-// makeRow builds a table row.
-func makeRow(timestamp rowTimestamp, rtype rowType, value rowValue) row {
-	return row{timestamp, rtype, value}
-}
 
 // newRowsIterator returns a new rowsIterator. A rowsIterator must be used only on the row elements. This means that
 // it must not be used from the initial metadata string, otherwise the operation will complain about corruptness. Hence,
@@ -45,24 +35,6 @@ func newRowsIterator(reader *bufio.Reader, rowLength int) *rowsIterator {
 		rowLength:   rowLength,
 		reader:      reader,
 	}
-}
-
-func parseRow(buf []byte) (row, error) {
-	rowEndingPosition := bytes.Index(buf, []byte{newLineSymbol})
-	row := buf[:rowEndingPosition]
-
-	timestampEndIndex := bytes.Index(row, []byte{typeSeparator})
-	typeEndIndex := bytes.LastIndex(row, []byte{typeSeparator})
-	timestampInt, err := strconv.Atoi(string(row[:timestampEndIndex]))
-	if err != nil {
-		return rowEmpty, fmt.Errorf("parse-row: corrupted timestamp byte slice: %s", string(row[:timestampEndIndex]))
-	}
-
-	timestamp := rowTimestamp(timestampInt)
-	typeVal := rowType(row[timestampEndIndex+1 : typeEndIndex])
-	value := rowValue(row[typeEndIndex+1:])
-
-	return makeRow(timestamp, typeVal, value), nil
 }
 
 // readNext reads the next row. If returnRow is false, then the iterator just iterates to the next row, while returning
@@ -77,7 +49,7 @@ func (ri *rowsIterator) readNext(returnRow bool) (r row, isLast bool, err error)
 	if err != nil {
 		if err == io.EOF {
 			isLast = true
-			row, err := parseRow(ri.previousRow)
+			row, err := parseBytesToRow(ri.previousRow)
 			if err != nil {
 				return rowEmpty, false, fmt.Errorf("read-next: %w", err)
 			}
@@ -89,16 +61,13 @@ func (ri *rowsIterator) readNext(returnRow bool) (r row, isLast bool, err error)
 	if len(string(ri.buf)) == 0 {
 		return rowEmpty, false, nil
 	}
-	//if n != numBytesSingleLine {
-	//	return rowEmpty, false, fmt.Errorf("mismatch read: row can be corrupted: %s", string(ri.buf))
-	//}
 	if !returnRow {
 		// This is helpful if the caller just wants to iterate over the rows and not return any stuff. This can be
 		// done to move down a couple of lines and in such cases, we do not aim to do computation behind parsing
 		// a complete row, which can save a lot of time and resources.
 		return rowEmpty, false, nil
 	}
-	row, err := parseRow(ri.buf)
+	row, err := parseBytesToRow(ri.buf)
 	if err != nil {
 		return rowEmpty, false, fmt.Errorf("read-next: %w", err)
 	}

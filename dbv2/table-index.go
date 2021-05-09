@@ -108,7 +108,7 @@ func (ti *tableIndex) Load() error {
 			}
 			return fmt.Errorf("load: %w", err)
 		}
-		indexSep := bytes.Index(b, []byte{newLineSymbol})
+		indexSep := bytes.Index(b, []byte{colon})
 		idBytes := b[:indexSep]
 		indicesBytes := b[indexSep+1:]
 		var (

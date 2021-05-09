@@ -12,6 +12,7 @@ const (
 	typeSeparator  = '|'
 	space          = " "
 	newLineSymbol  = '\n'
+	colon = valueSeparator
 	rowEndSymbol   = '\ufffe'
 )
 

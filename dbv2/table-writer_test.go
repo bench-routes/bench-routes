@@ -36,51 +36,51 @@ func TestCreateFile_Write_Read(t *testing.T) {
 		{
 			timestamp: 10,
 			seriesID:  1,
-			values:    []string{"234.5", "11.2", "3"},
+			values:    []string{"1.5", "11.2", "3"},
 		},
 		{
 			timestamp: 100,
 			seriesID:  1,
-			values:    []string{"234.5", "11.2", "3"},
+			values:    []string{"3.5", "11.2", "3"},
 		},
 		{
 			timestamp: 200,
 			seriesID:  1,
-			values:    []string{"234.5", "11.2", "3"},
+			values:    []string{"5.5", "11.2", "3"},
 		},
 		{
 			timestamp: 300,
 			seriesID:  1,
-			values:    []string{"234.5", "11.2", "3"},
+			values:    []string{"7", "11.2", "3"},
 		},
 		{
 			timestamp: 500,
 			seriesID:  1,
-			values:    []string{"234.5", "11.2", "3"},
+			values:    []string{"9.5", "11.2", "3"},
 		},
 		{
 			timestamp: 800,
 			seriesID:  1,
-			values:    []string{"234.5", "11.2", "3"},
+			values:    []string{"11.5", "11.2", "3"},
 		},
 	}
 	expected := `1|1|234.5:11.2:3
-10|1|234.5:11.2:3
+10|1|1.5:11.2:3
 100|2|234.5:11.2:3
-100|1|234.5:11.2:3
+100|1|3.5:11.2:3
 200|2|234.5:11.2:3
-200|1|234.5:11.2:3
+200|1|5.5:11.2:3
 300|2|234.5:11.2:3
-300|1|234.5:11.2:3
-500|1|234.5:11.2:3
-800|1|234.5:11.2:3
+300|1|7:11.2:3
+500|1|9.5:11.2:3
+800|1|11.5:11.2:3
 `
 	testFile := "test_writer_file"
 	dtbl, created, err := OpenRWDataTable(testFile)
 	require.NoError(t, err)
 	defer func() {
-		require.NoError(t, os.Remove(testFile))
-		require.NoError(t, os.Remove(testFile+".index"))
+		//require.NoError(t, os.Remove(testFile))
+		//require.NoError(t, os.Remove(testFile+".index"))
 	}()
 	require.True(t, created, "RWDatatable")
 
