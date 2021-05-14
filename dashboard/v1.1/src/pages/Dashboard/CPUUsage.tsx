@@ -2,6 +2,7 @@ import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import { chartData } from '../../utils/queryTypes';
 import { ThemeContext } from '../../layouts/BaseLayout';
+import { ApexOptions } from 'apexcharts';
 
 interface CPUUsageProps {
   cpuMetrics: chartData[];
@@ -9,6 +10,12 @@ interface CPUUsageProps {
 
 const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
   const themeMode = useContext(ThemeContext);
+  let theme;
+  if (themeMode === {}) {
+    theme = 'light';
+  } else {
+    theme = themeMode;
+  }
   const dataFormatted = cpuMetrics;
   const series = [
     {
@@ -16,19 +23,19 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
       data: dataFormatted
     }
   ];
-  const options = {
+  const options: ApexOptions = {
     chart: {
-      type: 'area',
-      xaxis: {
-        type: 'category',
-        categories: [],
-        labels: {
-          show: true,
-          rotate: 45,
-          rotateAlways: true,
-          hideOverlappingLabels: true,
-          trim: true
-        }
+      type: 'area'
+    },
+    xaxis: {
+      type: 'category',
+      categories: [],
+      labels: {
+        show: true,
+        rotate: 45,
+        rotateAlways: true,
+        hideOverlappingLabels: true,
+        trim: true
       }
     },
     dataLabels: {
@@ -57,7 +64,7 @@ const CPUUsage: FC<CPUUsageProps> = ({ cpuMetrics }) => {
       }
     },
     theme: {
-      mode: themeMode
+      mode: theme
     }
   };
 

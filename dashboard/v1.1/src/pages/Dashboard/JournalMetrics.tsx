@@ -9,6 +9,7 @@ import { formatTime } from '../../utils/brt';
 import { useStyles, TabPanel, a11yProps } from './SystemMetrics';
 import TimePanel from './TimePanel';
 import { ThemeContext } from '../../layouts/BaseLayout';
+import { ApexOptions } from 'apexcharts';
 
 const format = (data: QueryValues[] | any) => {
   const cerr: chartData[] = [];
@@ -81,6 +82,12 @@ const JournalMetrics: FC<JournalMetricsProps> = ({
   const handleChange = (_event, newValue) => {
     setValue(newValue);
   };
+  let theme;
+  if (themeMode === {}) {
+    theme = 'light';
+  } else {
+    theme = themeMode;
+  }
 
   const fetchDetails = async (): Promise<QueryResponse> => {
     return new Promise<QueryResponse>(async (resolve, reject) => {
@@ -150,7 +157,7 @@ const JournalMetrics: FC<JournalMetricsProps> = ({
       data: data.ckevents
     }
   ];
-  const optionsSystemd = {
+  const optionsSystemd: ApexOptions = {
     chart: {
       type: 'area'
     },
@@ -180,10 +187,10 @@ const JournalMetrics: FC<JournalMetricsProps> = ({
       }
     },
     theme: {
-      mode: themeMode
+      mode: theme
     }
   };
-  const optionsKernel = {
+  const optionsKernel: ApexOptions = {
     chart: {
       type: 'area'
     },
@@ -213,7 +220,7 @@ const JournalMetrics: FC<JournalMetricsProps> = ({
       }
     },
     theme: {
-      mode: themeMode
+      mode: theme
     }
   };
 

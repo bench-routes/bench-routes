@@ -3,6 +3,7 @@ import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
 import { ThemeContext } from '../../layouts/BaseLayout';
 import { chartData } from '../../utils/queryTypes';
+import { ApexOptions } from 'apexcharts';
 
 interface ResLengthProps {
   resLength: chartData[];
@@ -10,13 +11,19 @@ interface ResLengthProps {
 
 const ResLength: FC<ResLengthProps> = ({ resLength }) => {
   const themeMode = useContext(ThemeContext);
+  let theme;
+  if (themeMode === {}) {
+    theme = 'light';
+  } else {
+    theme = themeMode;
+  }
   const series = [
     {
       name: 'Response length',
       data: resLength
     }
   ];
-  const options = {
+  const options: ApexOptions = {
     chart: {
       type: 'area',
       animations: {
@@ -44,7 +51,7 @@ const ResLength: FC<ResLengthProps> = ({ resLength }) => {
       }
     },
     theme: {
-      mode: themeMode
+      mode: theme
     }
   };
   return (

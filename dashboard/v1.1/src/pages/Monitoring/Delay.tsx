@@ -3,6 +3,7 @@ import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
 import { ThemeContext } from '../../layouts/BaseLayout';
 import { chartData } from '../../utils/queryTypes';
+import { ApexOptions } from 'apexcharts';
 
 interface DelayProps {
   delay: chartData[];
@@ -10,13 +11,19 @@ interface DelayProps {
 
 const Delay: FC<DelayProps> = ({ delay }) => {
   const themeMode = useContext(ThemeContext);
+  let theme;
+  if (themeMode === {}) {
+    theme = 'light';
+  } else {
+    theme = themeMode;
+  }
   const series = [
     {
       name: 'Delay',
       data: delay
     }
   ];
-  const options = {
+  const options: ApexOptions = {
     chart: {
       type: 'area',
       animations: {
@@ -44,7 +51,7 @@ const Delay: FC<DelayProps> = ({ delay }) => {
       }
     },
     theme: {
-      mode: themeMode
+      mode: theme
     }
   };
   return (

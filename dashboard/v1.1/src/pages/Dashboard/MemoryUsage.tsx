@@ -2,6 +2,7 @@ import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import { chartData } from '../../utils/queryTypes';
 import { ThemeContext } from '../../layouts/BaseLayout';
+import { ApexOptions } from 'apexcharts';
 
 interface MemoryUsagePercentProps {
   memoryUsagePercentMetrics: chartData[];
@@ -11,6 +12,12 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
   memoryUsagePercentMetrics
 }) => {
   const themeMode = useContext(ThemeContext);
+  let theme;
+  if (themeMode === {}) {
+    theme = 'light';
+  } else {
+    theme = themeMode;
+  }
   const dataFormatted = memoryUsagePercentMetrics;
   const series = [
     {
@@ -18,7 +25,7 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
       data: dataFormatted
     }
   ];
-  const options = {
+  const options: ApexOptions = {
     chart: {
       type: 'area'
     },
@@ -48,7 +55,7 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
       }
     },
     theme: {
-      mode: themeMode
+      mode: theme
     }
   };
 

@@ -2,6 +2,7 @@ import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import { chartData } from '../../utils/queryTypes';
 import { ThemeContext } from '../../layouts/BaseLayout';
+import { ApexOptions } from 'apexcharts';
 
 interface DiskUsageProps {
   diskIO: chartData[];
@@ -10,6 +11,12 @@ interface DiskUsageProps {
 
 const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
   const themeMode = useContext(ThemeContext);
+  let theme;
+  if (themeMode === {}) {
+    theme = 'light';
+  } else {
+    theme = themeMode;
+  }
   const seriesDiskIO = [
     {
       name: 'Disk IO in bytes (+ve means write / -ve means read)',
@@ -23,7 +30,7 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
     }
   ];
 
-  const optionsDiskIO = {
+  const optionsDiskIO: ApexOptions = {
     chart: {
       type: 'area'
     },
@@ -41,10 +48,10 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
       align: 'center'
     },
     theme: {
-      mode: themeMode
+      mode: theme
     }
   };
-  const optionsCache = {
+  const optionsCache: ApexOptions = {
     chart: {
       type: 'area',
       animations: {
@@ -87,7 +94,7 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
       }
     },
     theme: {
-      mode: themeMode
+      mode: theme
     }
   };
 

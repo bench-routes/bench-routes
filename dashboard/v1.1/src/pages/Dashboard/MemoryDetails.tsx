@@ -2,6 +2,7 @@ import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import { chartData } from '../../utils/queryTypes';
 import { ThemeContext } from '../../layouts/BaseLayout';
+import { ApexOptions } from 'apexcharts';
 
 interface MemoryDetailsProps {
   availableBytes: chartData[];
@@ -17,6 +18,12 @@ const MemoryDetails: FC<MemoryDetailsProps> = ({
   usedBytes
 }) => {
   const themeMode = useContext(ThemeContext);
+  let theme;
+  if (themeMode === {}) {
+    theme = 'light';
+  } else {
+    theme = themeMode;
+  }
   const series = [
     {
       name: 'Available',
@@ -35,7 +42,7 @@ const MemoryDetails: FC<MemoryDetailsProps> = ({
       data: usedBytes
     }
   ];
-  const options = {
+  const options: ApexOptions = {
     chart: {
       type: 'area'
     },
@@ -65,7 +72,7 @@ const MemoryDetails: FC<MemoryDetailsProps> = ({
       }
     },
     theme: {
-      mode: themeMode
+      mode: theme
     }
   };
 

@@ -3,6 +3,7 @@ import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
 import { ThemeContext } from '../../layouts/BaseLayout';
 import { chartData } from '../../utils/queryTypes';
+import { ApexOptions } from 'apexcharts';
 
 interface PingProps {
   min: chartData[];
@@ -12,6 +13,12 @@ interface PingProps {
 
 const Ping: FC<PingProps> = ({ min, mean, max }) => {
   const themeMode = useContext(ThemeContext);
+  let theme;
+  if (themeMode === {}) {
+    theme = 'light';
+  } else {
+    theme = themeMode;
+  }
   const series = [
     {
       name: 'min',
@@ -26,20 +33,9 @@ const Ping: FC<PingProps> = ({ min, mean, max }) => {
       data: max
     }
   ];
-  const options = {
+  const options: ApexOptions = {
     chart: {
       type: 'area',
-      xaxis: {
-        type: 'category',
-        categories: [],
-        labels: {
-          show: true,
-          rotate: 0,
-          rotateAlways: false,
-          hideOverlappingLabels: true,
-          trim: true
-        }
-      },
       animations: {
         enabled: true,
         easing: 'easeinout',
@@ -54,18 +50,27 @@ const Ping: FC<PingProps> = ({ min, mean, max }) => {
         }
       }
     },
+    xaxis: {
+      title: {
+        text: 'Time'
+      },
+      type: 'category',
+      categories: [],
+      labels: {
+        show: true,
+        rotate: 0,
+        rotateAlways: false,
+        hideOverlappingLabels: true,
+        trim: true
+      }
+    },
     yaxis: {
       title: {
         text: 'milliseconds'
       }
     },
-    xaxis: {
-      title: {
-        text: 'Time'
-      }
-    },
     theme: {
-      mode: themeMode
+      mode: theme
     }
   };
   return (

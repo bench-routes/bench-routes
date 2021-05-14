@@ -107,7 +107,6 @@ export default function BaseLayout(props: any): ReactElement {
     localStorage.setItem('dark-mode', darkMode ? 'false' : 'true');
     toggleDarkMode(!darkMode);
   };
-
   return (
     <ThemeContext.Provider value={!props.darkMode ? 'light' : 'dark'}>
       <div className={classes.root}>
