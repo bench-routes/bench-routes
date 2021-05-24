@@ -43,6 +43,7 @@ type Body struct {
 
 // Route sets routes mentioned in configuration file
 type Route struct {
+	RouteID int64     `yaml:"id"`
 	Method string    `yaml:"method"`
 	URL    string    `yaml:"url"`
 	Header []Headers `yaml:"headers"`
@@ -74,6 +75,8 @@ type UConfig struct {
 
 // ConfigurationBR sets a type for configuration file which also acts as a local DB
 type ConfigurationBR struct {
+	RouteCount int64      `yaml:"route_count"`
+	TotalRoute int64      `yaml:"total_routes"`
 	Password  string     `yaml:"password"`
 	UtilsConf UConfig    `yaml:"utils"`
 	Interval  []Interval `yaml:"test_interval"`
@@ -102,6 +105,12 @@ func (inst *Config) Load() *Config {
 	if e != nil {
 		panic(e)
 	}
+	for n := range yInstance.Routes {
+		yInstance.Routes[n].RouteID = int64(n + 1)
+	}
+	totalRoutes := len(yInstance.Routes)
+	yInstance.TotalRoute = int64(totalRoutes)
+	yInstance.RouteCount = int64(totalRoutes)
 	inst.Config = &yInstance
 	return inst
 }
@@ -132,6 +141,9 @@ func (inst *Config) Refresh() {
 func (inst *Config) AddRoute(route Route) {
 	inst.mutex.Lock()
 	defer inst.mutex.Unlock()
+	inst.Config.RouteCount = inst.Config.RouteCount + 1
+	inst.Config.TotalRoute = inst.Config.TotalRoute + 1
+	route.RouteID = inst.Config.RouteCount
 	inst.Config.Routes = append(inst.Config.Routes, route)
 	if _, err := inst.Write(); err != nil {
 		panic(err)
