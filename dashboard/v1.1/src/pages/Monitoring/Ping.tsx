@@ -29,6 +29,7 @@ const Ping: FC<PingProps> = ({ min, mean, max }) => {
   const options = {
     chart: {
       type: 'area',
+      background: themeMode === 'light' ? '#fff' : '#424242',
       xaxis: {
         type: 'category',
         categories: [],
