@@ -307,7 +307,10 @@ func (a *API) QuickTestInput(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		go req.Send(request.POST, response)
 	default:
-		fmt.Printf("invalid request method: %s\n", t.Method)
+		go func() {
+			fmt.Printf("invalid request method: %s\n", t.Method)
+			response <- request.ResponseWrapper{ReponseStringified: "Invalid method", Status: 404}
+		}()
 	}
 	a.Data = <-response
 	a.send(w, a.marshalled())
