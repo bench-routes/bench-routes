@@ -103,6 +103,9 @@ func (q *Query) exec(blockStream []tsdb.Block, encoding bool) (i interface{}) {
 	// the total time involved in performing a particular query.
 	// This can be later benchmarked and compared with other algorithms.
 	base, stamp := getBaseResponse(q.Range)
+	if len(blockStream) == 0 {
+		return q.ReturnMessageResponse("EMPTY_SAMPLES")
+	}
 	defer func() {
 		var res QueryResponse
 		if !q.encoding {
@@ -128,9 +131,6 @@ func (q *Query) exec(blockStream []tsdb.Block, encoding bool) (i interface{}) {
 	q.encoding = encoding
 	q.stamp = stamp
 	q.queryResponse = base
-	if len(blockStream) == 0 {
-		return q.ReturnMessageResponse("EMPTY_SAMPLES")
-	}
 
 	var (
 		lengthBlockStream = len(blockStream)
