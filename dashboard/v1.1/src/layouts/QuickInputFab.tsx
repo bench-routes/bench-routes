@@ -1,5 +1,6 @@
 import { Fab, makeStyles, Tooltip } from '@material-ui/core';
 import { PostAdd as PostAddIcon } from '@material-ui/icons';
+import { withRouter } from 'react-router-dom';
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -22,8 +23,12 @@ const useStyles = makeStyles(theme => ({
 }));
 
 // Floating Action Button for Quick Input
-const QuickInputFab = () => {
+const QuickInputFab = props => {
   const classes = useStyles();
+  const { location } = props;
+  if (location.pathname.match('/quick-input')) {
+    return null;
+  }
   return (
     <Link to="/quick-input">
       <Tooltip placement="top" title="Quick Route Input">
@@ -40,4 +45,4 @@ const QuickInputFab = () => {
   );
 };
 
-export default QuickInputFab;
+export default withRouter(QuickInputFab);
