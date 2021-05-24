@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"reflect"
-	"strconv"
 	"sync"
 	"time"
 
@@ -438,31 +437,38 @@ func (a *API) ModifyIntervalDuration(w http.ResponseWriter, r *http.Request) {
 	}
 	var req struct {
 		IntervalName string `json:"intervalName"`
-		Value        string `json:"value"`
+		Value        uint32 `json:"value"`
 	}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&req); err != nil {
-		panic(err)
-	}
-	if num, err := strconv.Atoi(req.Value); err == nil {
-		n := int64(num)
-		for i, interval := range a.config.Config.Interval {
-			if interval.Test == req.IntervalName {
-				a.config.Config.Interval[i].Duration = &n
-			}
-		}
-		_, err := a.config.Write()
-		if err == nil {
-			a.ResponseStatus = "200"
-			a.Data = a.config
-		} else {
-			a.ResponseStatus = "400"
-			a.Data = "Could not modify the config file"
-		}
-	} else {
-		// The string is not an integer.
 		a.ResponseStatus = "400"
-		a.Data = "The string passed is not an integer"
+		a.Data = "Could not modify the config file"
+		w.WriteHeader(http.StatusBadRequest)
+		a.send(w, a.marshalled())
+		return
+	}
+	n := int64(req.Value)
+	updated := false
+	for i, interval := range a.config.Config.Interval {
+		if interval.Test == req.IntervalName {
+			a.config.Config.Interval[i].Duration = &n
+			updated = true
+		}
+	}
+	if !updated {
+		a.ResponseStatus = "400"
+		a.Data = "Could not modify the config file as their is no interval with name " + fmt.Sprintf(req.IntervalName)
+		w.WriteHeader(http.StatusBadRequest)
+		a.send(w, a.marshalled())
+		return
+	}
+	_, err := a.config.Write()
+	if err == nil {
+		a.ResponseStatus = "200"
+		a.Data = "Updated the value of " + req.IntervalName + " to " + fmt.Sprint(req.Value)
+	} else {
+		a.ResponseStatus = "400"
+		a.Data = "Could not modify the config file"
 	}
 	a.send(w, a.marshalled())
 }
