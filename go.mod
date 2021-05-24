@@ -8,6 +8,7 @@ require (
 	github.com/go-ole/go-ole v1.2.5 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/mackerelio/go-osstat v0.1.0
+	github.com/pkg/browser v0.0.0-20210115035449-ce105d075bb4
 	github.com/prometheus/client_golang v1.9.0
 	github.com/prometheus/common v0.15.0
 	github.com/prometheus/procfs v0.3.0 // indirect

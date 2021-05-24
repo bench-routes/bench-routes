@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/pkg/browser"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 	"github.com/rs/cors"
@@ -305,6 +306,11 @@ func main() {
 		os.Exit(0)
 	}()
 	log.Infoln("Bench-routes is up and running")
+	browserableUrl := fmt.Sprintf("http://localhost%v", port)
+	err := browser.OpenURL(browserableUrl)
+	if err == nil {
+		log.Infoln("Dashbord is opened in default browser at " + browserableUrl)
+	}
 	log.Errorln(http.ListenAndServe(port, cors.Default().Handler(router)).Error())
 }
 
