@@ -2,8 +2,7 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { useTheme } from '@material-ui/core/styles';
 import {
   HelpOutline as HelpOutlineIcon,
-  Close as CloseIcon,
-  Done as DoneIcon
+  Done as DoneIcon,
 } from '@material-ui/icons';
 import AddIcon from '@material-ui/icons/Add';
 import Autocomplete, {
@@ -39,6 +38,9 @@ export default function MaterialLabelSelector(props: LabelSelectorType) {
       name: labelValue,
       color: stc(labelValue)
     };
+    setPendingValue([...pendingValue, newLabel]);
+    setValue(pendingValue);
+    updateLabels(pendingValue);
     setLabelList([...labelList, newLabel]);
   };
 
@@ -57,12 +59,13 @@ export default function MaterialLabelSelector(props: LabelSelectorType) {
         return labels;
       })
       .then(labels => {
+        if(labelList.length===0) // This ensures that labelist from backend is only updated once at first rendering of the page.
         setLabelList(labels);
         setValue(defaultLabels);
         setPendingValue(defaultLabels);
       })
       .then(() => setLoading(false));
-  }, [loading, defaultLabels]);
+  }, [loading, defaultLabels,labelList]);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setPendingValue(value);
@@ -160,10 +163,6 @@ export default function MaterialLabelSelector(props: LabelSelectorType) {
               }
               renderOption={(option, { selected }) => (
                 <React.Fragment>
-                  <DoneIcon
-                    className={classes.iconSelected}
-                    style={{ visibility: selected ? 'visible' : 'hidden' }}
-                  />
                   <span
                     className={classes.color}
                     style={{ backgroundColor: option.color }}
@@ -171,8 +170,8 @@ export default function MaterialLabelSelector(props: LabelSelectorType) {
                   <div className={classes.text}>
                     {truncate(option.name, 20)}
                   </div>
-                  <CloseIcon
-                    className={classes.close}
+                  <DoneIcon
+                    className={classes.iconSelected}
                     style={{ visibility: selected ? 'visible' : 'hidden' }}
                   />
                 </React.Fragment>
