@@ -3,6 +3,7 @@ import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
 import { ThemeContext } from '../../layouts/BaseLayout';
 import { chartData } from '../../utils/queryTypes';
+import { useXticks } from '../../utils/useXticks';
 
 interface DelayProps {
   delay: chartData[];
@@ -10,6 +11,7 @@ interface DelayProps {
 
 const Delay: FC<DelayProps> = ({ delay }) => {
   const themeMode = useContext(ThemeContext);
+  const xticks = useXticks();
   const series = [
     {
       name: 'Delay',
@@ -41,7 +43,8 @@ const Delay: FC<DelayProps> = ({ delay }) => {
     xaxis: {
       title: {
         text: 'Time'
-      }
+      },
+      tickAmount: Number(xticks['xticks'])
     },
     theme: {
       mode: themeMode

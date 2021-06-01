@@ -13,8 +13,11 @@ import React, { ReactElement, useCallback, useState } from 'react';
 import Switch from 'react-switch';
 import Navigator from '../router/Navigation';
 import Sidebar from './Sidebar';
+import { ProvideXticks } from '../utils/useXticks';
+
 const drawerWidth = 240;
 export const ThemeContext = React.createContext({});
+export const XticksContext = React.createContext({});
 const _useStyles = makeStyles(theme => ({
   // AppBar styles
   appBar: {
@@ -110,59 +113,61 @@ export default function BaseLayout(props: any): ReactElement {
 
   return (
     <ThemeContext.Provider value={!props.darkMode ? 'light' : 'dark'}>
-      <div className={classes.root}>
-        <CssBaseline />
-        {/* Navbar */}
-        <div className="_navbar">
-          <AppBar
-            position="absolute"
-            className={clsx(_classes.appBar, open && _classes.appBarShift)}
-          >
-            <Toolbar className={_classes.toolbar}>
-              <IconButton
-                edge="start"
-                color="inherit"
-                aria-label="open drawer"
-                onClick={handleDrawerOpen}
-                className={clsx(
-                  _classes.menuButton,
-                  open && _classes.menuButtonHidden
-                )}
-              >
-                <MenuIcon />
-              </IconButton>
-              <Typography
-                component="h1"
-                variant="h6"
-                color="inherit"
-                noWrap={true}
-                className={_classes.title}
-              >
-                Bench Routes
-              </Typography>
-              <Switch
-                checked={props.darkMode}
-                onChange={handleToggleDarkMode}
-                offColor="#145D97"
-                onColor="#303030"
-                height={18}
-                handleDiameter={20}
-                width={36}
-                uncheckedIcon={<Brightness7Sharp className={classes.sunIcon} />}
-                checkedIcon={<Brightness2Sharp className={classes.moonIcon} />}
-              />
-            </Toolbar>
-            {loader ? <LinearProgress /> : null}
-          </AppBar>
+      <ProvideXticks>
+        <div className={classes.root}>
+          <CssBaseline />
+          {/* Navbar */}
+          <div className="_navbar">
+            <AppBar
+              position="absolute"
+              className={clsx(_classes.appBar, open && _classes.appBarShift)}
+            >
+              <Toolbar className={_classes.toolbar}>
+                <IconButton
+                  edge="start"
+                  color="inherit"
+                  aria-label="open drawer"
+                  onClick={handleDrawerOpen}
+                  className={clsx(
+                    _classes.menuButton,
+                    open && _classes.menuButtonHidden
+                  )}
+                >
+                  <MenuIcon />
+                </IconButton>
+                <Typography
+                  component="h1"
+                  variant="h6"
+                  color="inherit"
+                  noWrap={true}
+                  className={_classes.title}
+                >
+                  Bench Routes
+                </Typography>
+                <Switch
+                  checked={props.darkMode}
+                  onChange={handleToggleDarkMode}
+                  offColor="#145D97"
+                  onColor="#303030"
+                  height={18}
+                  handleDiameter={20}
+                  width={36}
+                  uncheckedIcon={<Brightness7Sharp className={classes.sunIcon} />}
+                  checkedIcon={<Brightness2Sharp className={classes.moonIcon} />}
+                />
+              </Toolbar>
+              {loader ? <LinearProgress /> : null}
+            </AppBar>
+          </div>
+          <Sidebar handleDrawerClose={handleDrawerClose} open={open} />
+          <main className={classes.content}>
+            <div className={classes.appBarSpacer} />
+            <Container maxWidth="lg" className={classes.container}>
+              <Navigator updateLoader={updateLoader} />
+            </Container>
+          </main>
         </div>
-        <Sidebar handleDrawerClose={handleDrawerClose} open={open} />
-        <main className={classes.content}>
-          <div className={classes.appBarSpacer} />
-          <Container maxWidth="lg" className={classes.container}>
-            <Navigator updateLoader={updateLoader} />
-          </Container>
-        </main>
-      </div>
+      </ProvideXticks>
     </ThemeContext.Provider>
   );
 }

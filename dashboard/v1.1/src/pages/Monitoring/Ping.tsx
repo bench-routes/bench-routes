@@ -3,6 +3,7 @@ import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
 import { ThemeContext } from '../../layouts/BaseLayout';
 import { chartData } from '../../utils/queryTypes';
+import { useXticks } from '../../utils/useXticks';
 
 interface PingProps {
   min: chartData[];
@@ -12,6 +13,7 @@ interface PingProps {
 
 const Ping: FC<PingProps> = ({ min, mean, max }) => {
   const themeMode = useContext(ThemeContext);
+  const xticks = useXticks();
   const series = [
     {
       name: 'min',
@@ -62,7 +64,8 @@ const Ping: FC<PingProps> = ({ min, mean, max }) => {
     xaxis: {
       title: {
         text: 'Time'
-      }
+      },
+      tickAmount: Number(xticks['xticks'])
     },
     theme: {
       mode: themeMode

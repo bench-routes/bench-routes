@@ -9,6 +9,7 @@ import { formatTime } from '../../utils/brt';
 import { useStyles, TabPanel, a11yProps } from './SystemMetrics';
 import TimePanel from './TimePanel';
 import { ThemeContext } from '../../layouts/BaseLayout';
+import { useXticks } from '../../utils/useXticks';
 
 const format = (data: QueryValues[] | any) => {
   const cerr: chartData[] = [];
@@ -74,6 +75,7 @@ const JournalMetrics: FC<JournalMetricsProps> = ({
 }) => {
   const classes = useStyles();
   const themeMode = useContext(ThemeContext);
+  const xticks = useXticks();
   const [response, setResponse] = useState(init());
   const [fetchTime, setfetchTime] = useState(0);
   const [error, setError] = useState('');
@@ -181,6 +183,9 @@ const JournalMetrics: FC<JournalMetricsProps> = ({
     },
     theme: {
       mode: themeMode
+    },
+    xaxis: {
+      tickAmount: Number(xticks['xticks'])
     }
   };
   const optionsKernel = {
@@ -214,6 +219,9 @@ const JournalMetrics: FC<JournalMetricsProps> = ({
     },
     theme: {
       mode: themeMode
+    },
+    xaxis: {
+      tickAmount: Number(xticks['xticks'])
     }
   };
 
