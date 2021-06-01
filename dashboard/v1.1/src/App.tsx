@@ -5,6 +5,7 @@ import {
   ThemeProvider
 } from '@material-ui/core/styles';
 import React, { useState } from 'react';
+import 'react-datetime/css/react-datetime.css';
 import './App.css';
 import './assets/bootstrap.min.css';
 import BaseLayout from './layouts/BaseLayout';
