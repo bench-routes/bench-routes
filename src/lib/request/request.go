@@ -49,7 +49,7 @@ func New(url string, headers, params, body map[string]string, labels []string) *
 }
 
 // Send sends the requests to the host/target. It can be executed
-// parallely along with other goroutines.
+// parallelly along with other goroutines.
 func (q *QuickInput) Send(method uint, getResponse chan ResponseWrapper) {
 	var client http.Client
 	switch method {

@@ -151,19 +151,17 @@ const Input = (props: InputScreenProps) => {
 
       try {
         response = await fetch(`${HOST_IP}/routes-summary`);
+        const { data } = await response.json();
+        const routes = data.monitoringRoutes;
+        const duplicateRoutes: string[] = [];
+        routes.forEach(route => {
+          let splitURL: string[] = route.split(/(\s+)/);
+          duplicateRoutes.push(splitURL[2]);
+        });
+        setExistingRoutes(duplicateRoutes);
       } catch (err) {
         console.log(err);
       }
-
-      const { data } = await response.json();
-      const routes = data.monitoringRoutes;
-      const duplicateRoutes: string[] = [];
-      routes.forEach(route => {
-        let splitURL: string[] = route.split(/(\s+)/);
-        duplicateRoutes.push(splitURL[2]);
-      });
-
-      setExistingRoutes(duplicateRoutes);
     })();
   }, []);
 
@@ -200,6 +198,7 @@ const Input = (props: InputScreenProps) => {
     setApplyHeader(false);
     setApplyParams(false);
     setApplyBody(false);
+    setSelectedLabels([]);
   };
   const testAndEdit = () => {
     const params = {};

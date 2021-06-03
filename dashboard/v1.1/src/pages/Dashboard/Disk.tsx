@@ -1,14 +1,15 @@
-import React, { FC } from 'react';
+import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import { chartData } from '../../utils/queryTypes';
+import { ThemeContext } from '../../layouts/BaseLayout';
 
 interface DiskUsageProps {
   diskIO: chartData[];
   cache: chartData[];
-  darkMode(status: boolean): any;
 }
 
-const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache, darkMode }) => {
+const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache }) => {
+  const themeMode = useContext(ThemeContext);
   const seriesDiskIO = [
     {
       name: 'Disk IO in bytes (+ve means write / -ve means read)',
@@ -24,8 +25,7 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache, darkMode }) => {
 
   const optionsDiskIO = {
     chart: {
-      type: 'area',
-      background: '#fff'
+      type: 'area'
     },
     dataLabels: {
       enabled: false
@@ -40,8 +40,8 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache, darkMode }) => {
       text: 'Disk IO in bytes (+ve means write / -ve means read)',
       align: 'center'
     },
-    tooltip: {
-      theme: !darkMode ? 'light' : 'dark'
+    theme: {
+      mode: themeMode
     }
   };
   const optionsCache = {
@@ -59,8 +59,7 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache, darkMode }) => {
           enabled: true,
           speed: 350
         }
-      },
-      background: '#fff'
+      }
     },
     dataLabels: {
       enabled: false
@@ -87,8 +86,8 @@ const DiskUsage: FC<DiskUsageProps> = ({ diskIO, cache, darkMode }) => {
         opacityTo: 0.2
       }
     },
-    tooltip: {
-      theme: !darkMode ? 'light' : 'dark'
+    theme: {
+      mode: themeMode
     }
   };
 

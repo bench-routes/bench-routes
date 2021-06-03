@@ -13,6 +13,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import Alert from '@material-ui/lab/Alert';
 import { formatTime } from '../../utils/brt';
 import Jitter from '../Monitoring/Jitter';
+import TimePanel from '../Dashboard/TimePanel';
 
 const format = (datas: QueryResponse) => {
   const jitter: chartData[] = [];
@@ -40,6 +41,8 @@ const JitterModule: FC<{}> = () => {
   const [inputValue, setInputValue] = useState('');
   const [showCharts, setShowCharts] = useState(false);
   const [renderError, setRenderError] = useState(false);
+  const [fetchTime, setFetchTime] = useState(0);
+  const [evaluationTime, setEvaluationTime] = useState('');
   const [jitterData, setJitterData] = useState<showChartsDataParam>();
 
   const { response, error } = useFetch<service_states>(
@@ -65,12 +68,16 @@ const JitterModule: FC<{}> = () => {
 
   async function getChartsData(v: string) {
     try {
+      const start = performance.now();
       const response = await fetch(
         `${HOST_IP}/query?timeSeriesPath=storage/jitter/chunk_jitter_${hashRoutMap.get(
           v
         )}`
       );
+      const end = performance.now();
+      setFetchTime(end - start);
       const matrix = (await response.json()) as APIQueryResponse;
+      setEvaluationTime(matrix.data.evaluationTime);
       var formatdata = format(matrix.data);
       setJitterData(formatdata);
       setShowCharts(true);
@@ -78,6 +85,8 @@ const JitterModule: FC<{}> = () => {
     } catch (e) {
       console.error(e);
       setRenderError(true);
+      setFetchTime(0);
+      setEvaluationTime('');
     }
   }
 
@@ -95,9 +104,18 @@ const JitterModule: FC<{}> = () => {
   return (
     <Card>
       <CardContent>
-        <div>
-          <h4>Jitter</h4>
-          <div style={{ float: 'right', marginTop: '-45px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <h4 style={{ margin: '0 20px 0 0' }}>Jitter</h4>
+            <TimePanel fetchTime={fetchTime} evaluationTime={evaluationTime} />
+          </div>
+          <div>
             <Autocomplete
               value={value[0]}
               onChange={(event, newValue) => {}}

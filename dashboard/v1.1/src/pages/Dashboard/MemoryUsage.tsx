@@ -1,16 +1,16 @@
-import React, { FC } from 'react';
+import React, { FC, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import { chartData } from '../../utils/queryTypes';
+import { ThemeContext } from '../../layouts/BaseLayout';
 
 interface MemoryUsagePercentProps {
   memoryUsagePercentMetrics: chartData[];
-  darkMode(status: boolean): void;
 }
 
 const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
-  memoryUsagePercentMetrics,
-  darkMode
+  memoryUsagePercentMetrics
 }) => {
+  const themeMode = useContext(ThemeContext);
   const dataFormatted = memoryUsagePercentMetrics;
   const series = [
     {
@@ -20,8 +20,7 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
   ];
   const options = {
     chart: {
-      type: 'area',
-      background: '#fff'
+      type: 'area'
     },
     dataLabels: {
       enabled: false
@@ -48,8 +47,8 @@ const MemoryUsagePercent: FC<MemoryUsagePercentProps> = ({
         opacityTo: 0.2
       }
     },
-    tooltip: {
-      theme: !darkMode ? 'light' : 'dark'
+    theme: {
+      mode: themeMode
     }
   };
 

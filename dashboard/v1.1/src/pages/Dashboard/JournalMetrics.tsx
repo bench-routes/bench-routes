@@ -1,14 +1,14 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState, useContext } from 'react';
 import Chart from 'react-apexcharts';
 import Alert from '@material-ui/lab/Alert';
-import AppBar from '@material-ui/core/AppBar';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
+import { Tabs, Tab, AppBar } from '@material-ui/core';
 import { APIResponse, init } from '../../utils/service';
 import { QueryResponse, QueryValues, chartData } from '../../utils/queryTypes';
 import { HOST_IP } from '../../utils/types';
-import TimeInstance, { formatTime } from '../../utils/brt';
+import { formatTime } from '../../utils/brt';
 import { useStyles, TabPanel, a11yProps } from './SystemMetrics';
+import TimePanel from './TimePanel';
+import { ThemeContext } from '../../layouts/BaseLayout';
 
 const format = (data: QueryValues[] | any) => {
   const cerr: chartData[] = [];
@@ -29,27 +29,27 @@ const format = (data: QueryValues[] | any) => {
   }
   for (const value of data) {
     cerr.push({
-      y: value.value.cerr,
+      y: value.value ? value.value.cerr : null,
       x: formatTime(value.timestamp)
     });
     cwarn.push({
-      y: value.value.cwarn,
+      y: value.value ? value.value.cwarn : null,
       x: formatTime(value.timestamp)
     });
     cevents.push({
-      y: value.value.cevents,
+      y: value.value ? value.value.cevents : null,
       x: formatTime(value.timestamp)
     });
     ckerr.push({
-      y: value.value.ckerr,
+      y: value.value ? value.value.ckerr : null,
       x: formatTime(value.timestamp)
     });
     ckwarn.push({
-      y: value.value.ckwarn,
+      y: value.value ? value.value.ckwarn : null,
       x: formatTime(value.timestamp)
     });
     ckevents.push({
-      y: value.value.ckevents,
+      y: value.value ? value.value.ckevents : null,
       x: formatTime(value.timestamp)
     });
   }
@@ -64,41 +64,64 @@ const format = (data: QueryValues[] | any) => {
 };
 
 interface JournalMetricsProps {
-  darkMode(status: boolean): any;
+  startTimestamp?: number;
+  endTimestamp?: number;
 }
 
-const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
+const JournalMetrics: FC<JournalMetricsProps> = ({
+  startTimestamp,
+  endTimestamp
+}) => {
   const classes = useStyles();
+  const themeMode = useContext(ThemeContext);
   const [response, setResponse] = useState(init());
+  const [fetchTime, setfetchTime] = useState(0);
   const [error, setError] = useState('');
-  const endTimestamp = new Date().getTime() * 1000000 - TimeInstance.Hour;
   const [value, setValue] = React.useState(0);
   const handleChange = (_event, newValue) => {
     setValue(newValue);
   };
+
+  const fetchDetails = async (): Promise<QueryResponse> => {
+    return new Promise<QueryResponse>(async (resolve, reject) => {
+      try {
+        const response = await fetch(
+          endTimestamp
+            ? `${HOST_IP}/query?timeSeriesPath=storage/journal&startTimestamp=${endTimestamp}&endTimestamp=${startTimestamp}`
+            : `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${startTimestamp}`
+        );
+        const data = (await response.json()) as APIResponse<QueryResponse>;
+        resolve(data.data);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  const fetchSystemData = async () => {
+    try {
+      const start = performance.now();
+      const details = await fetchDetails();
+      const end = performance.now();
+      setResponse(details);
+      setfetchTime(end - start);
+    } catch (error) {
+      setError(error);
+    }
+  };
+
   useEffect(() => {
-    fetch(
-      `${HOST_IP}/query?timeSeriesPath=storage/journal&endTimestamp=${endTimestamp}`
-    )
-      .then(res => res.json())
-      .then(
-        (response: APIResponse<QueryResponse>) => {
-          setResponse(response);
-        },
-        (err: string) => {
-          setError(err);
-        }
-      );
+    setResponse(init());
+    fetchSystemData();
     // eslint-disable-next-line
-  }, []);
+  }, [endTimestamp, startTimestamp]);
   if (error) {
     return <Alert severity="error">Unable to reach the service: error</Alert>;
   }
-  if (!response.data) {
+  if (!response.values.length) {
     return <Alert severity="info">Fetching data from sources</Alert>;
   }
-  const data = format(response.data.values);
-
+  const data = format(response.values);
   const seriesSystemd = [
     {
       name: 'Errors',
@@ -129,8 +152,7 @@ const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
   ];
   const optionsSystemd = {
     chart: {
-      type: 'area',
-      background: '#fff'
+      type: 'area'
     },
     dataLabels: {
       enabled: false
@@ -157,14 +179,13 @@ const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
         opacityTo: 0.2
       }
     },
-    tooltip: {
-      theme: !darkMode ? 'light' : 'dark'
+    theme: {
+      mode: themeMode
     }
   };
   const optionsKernel = {
     chart: {
-      type: 'area',
-      background: '#fff'
+      type: 'area'
     },
     dataLabels: {
       enabled: false
@@ -191,12 +212,24 @@ const JournalMetrics: FC<JournalMetricsProps> = ({ darkMode }) => {
         opacityTo: 0.2
       }
     },
-    tooltip: {
-      theme: !darkMode ? 'light' : 'dark'
+    theme: {
+      mode: themeMode
     }
   };
+
   return (
     <div className={classes.root}>
+      <div
+        style={{
+          display: 'flex',
+          padding: '0 0 16px 0'
+        }}
+      >
+        <TimePanel
+          fetchTime={fetchTime}
+          evaluationTime={response.evaluationTime}
+        />
+      </div>
       <AppBar position="static">
         <Tabs value={value} onChange={handleChange} indicatorColor="secondary">
           <Tab label="Kernel" {...a11yProps(0)} />
