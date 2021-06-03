@@ -6,7 +6,8 @@ import {
   List,
   ListItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  Tooltip
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import {
@@ -81,50 +82,58 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
 
   // Sidebar element
   const [testListOpen, setTestListOpen] = useState(false);
-  const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [close, setClose] = useState(true);
   const showTestList = () => {
     setTestListOpen(!testListOpen);
+    setClose(!close);
   };
-
-  const handleListItemClick = (event, index) => {
-    setSelectedIndex(index);
-  };
-
   const menuItems = (
     <div>
-      <ListItem
-        button={true}
-        selected={selectedIndex === 0}
-        onClick={(event: any) => handleListItemClick(event, 0)}
-        component={Link}
-        to="/"
-      >
-        <ListItemIcon>
-          <DashboardIcon />
-        </ListItemIcon>
+      <ListItem button={true} component={Link} to="/">
+        {!open ? (
+          <Tooltip title="Dashboard" placement="right">
+            <ListItemIcon>
+              <DashboardIcon />
+            </ListItemIcon>
+          </Tooltip>
+        ) : (
+          <ListItemIcon>
+            <DashboardIcon />
+          </ListItemIcon>
+        )}
         <ListItemText primary="Dashboard" />
       </ListItem>
-      <ListItem
-        button={true}
-        selected={selectedIndex === 1}
-        onClick={(event: any) => handleListItemClick(event, 1)}
-        component={Link}
-        to="/monitoring"
-      >
-        <ListItemIcon>
-          <AccessAlarmIcon />
-        </ListItemIcon>
+      <ListItem button={true} component={Link} to="/monitoring">
+        {!open ? (
+          <Tooltip title="Monitoring" placement="right">
+            <ListItemIcon>
+              <AccessAlarmIcon />
+            </ListItemIcon>
+          </Tooltip>
+        ) : (
+          <ListItemIcon>
+            <AccessAlarmIcon />
+          </ListItemIcon>
+        )}
         <ListItemText primary="Monitoring" />
       </ListItem>
-      <ListItem button={true} selected={selectedIndex >= 3}>
-        <ListItemIcon>
-          <NetworkCheckIcon />
-        </ListItemIcon>
-        <ListItemText primary="Tests" onClick={showTestList} />
-        {open ? (
-          <ExpandLessIcon onClick={showTestList} />
+      <ListItem button={true}>
+        {!open ? (
+          <Tooltip title="Tests" placement="right">
+            <ListItemIcon>
+              <NetworkCheckIcon />
+            </ListItemIcon>
+          </Tooltip>
         ) : (
+          <ListItemIcon>
+            <NetworkCheckIcon />
+          </ListItemIcon>
+        )}
+        <ListItemText primary="Tests" onClick={showTestList} />
+        {close ? (
           <ExpandMoreIcon onClick={showTestList} />
+        ) : (
+          <ExpandLessIcon onClick={showTestList} />
         )}
       </ListItem>
       {/* Nested List */}
@@ -132,8 +141,6 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
         <List component="div" disablePadding={true}>
           <ListItem
             button={true}
-            selected={selectedIndex === 3}
-            onClick={(event: any) => handleListItemClick(event, 3)}
             component={Link}
             to="/ping"
             className={classes.nested}
@@ -145,8 +152,6 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
           </ListItem>
           <ListItem
             button={true}
-            selected={selectedIndex === 4}
-            onClick={(event: any) => handleListItemClick(event, 4)}
             component={Link}
             to="/floodping"
             className={classes.nested}
@@ -158,8 +163,6 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
           </ListItem>
           <ListItem
             button={true}
-            selected={selectedIndex === 5}
-            onClick={(event: any) => handleListItemClick(event, 5)}
             component={Link}
             to="/jitter"
             className={classes.nested}
@@ -171,16 +174,18 @@ const Sidebar: FC<SidebarProps> = ({ handleDrawerClose, open }) => {
           </ListItem>
         </List>
       </Collapse>
-      <ListItem
-        button={true}
-        selected={selectedIndex === 2}
-        onClick={(event: any) => handleListItemClick(event, 2)}
-        component={Link}
-        to="/configurations"
-      >
-        <ListItemIcon>
-          <SettingsIcon />
-        </ListItemIcon>
+      <ListItem button={true} component={Link} to="/configurations">
+        {!open ? (
+          <Tooltip title="Config" placement="right">
+            <ListItemIcon>
+              <SettingsIcon />
+            </ListItemIcon>
+          </Tooltip>
+        ) : (
+          <ListItemIcon>
+            <SettingsIcon />
+          </ListItemIcon>
+        )}
         <ListItemText primary="Config" />
       </ListItem>
     </div>
