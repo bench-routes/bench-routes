@@ -11,12 +11,12 @@ const (
 var (
 	inst = Config{
 		Address: path,
-		Root: &RootConfig{},
+		Root:    &RootConfig{},
 	}
 )
 
 func TestLoad(t *testing.T) {
-	config,err := inst.Load()
+	config, err := inst.Load()
 	if err != nil {
 		t.Error(err)
 	}
