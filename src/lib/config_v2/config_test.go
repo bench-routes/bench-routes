@@ -1,8 +1,6 @@
 package configparser
 
 import (
-	"fmt"
-	"log"
 	"testing"
 )
 
@@ -20,12 +18,10 @@ var (
 func TestLoad(t *testing.T) {
 	config,err := inst.Load()
 	if err != nil {
-		log.Fatal(err)
-		return 
+		t.Error(err)
 	}
-	res := *config.Root
-	// if len(res.Interval) == 0 || len(res.Password) == 0 || len(res.Routes) == 0 {
-	// 	t.Errorf("faulty load of configuration.")
-	// }
-	fmt.Println(res)
+	err = config.Validate()
+	if err != nil {
+		t.Error(err)
+	}
 }
