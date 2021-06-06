@@ -58,3 +58,28 @@ func(c *Config) Load()(*Config,error){
 	c.Root = &confInstance
 	return c,nil
 }
+
+func(c *Config) WriteConf() error{
+	root := *c.Root
+	file,err := yaml.Marshal(root)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(c.Address,file,0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func(c *Config) AddAPI(api API) (*Config,error){
+	c.Mutex.Lock()
+	defer c.Mutex.Unlock()
+	c.Root.APIs = append(c.Root.APIs, api)
+	err := c.WriteConf()
+	if err != nil {
+		return nil,err
+	}
+	return c,nil
+}
