@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/prometheus/common/log"
-	//"gopkg.in/yaml.v2"
 	"gopkg.in/yaml.v3"
 )
 
@@ -23,7 +22,7 @@ type RootConfig struct{
 type API struct{
 	Name 		string 				`yaml:"name"`
 	Every 		time.Duration 		`yaml:"every"`
-	Domain 		string				`yaml:"domian_or_ip"`
+	Domain 		string				`yaml:"domain_or_ip"`
 	Route 		string				`yaml:"route"`
 	Method 		string				`yaml:"method"`
 	Headers 	map[string]string	`yaml:"headers"`
