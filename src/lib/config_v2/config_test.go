@@ -1,27 +1,96 @@
 package configparser
 
 import (
+	"errors"
 	"testing"
 )
 
 const (
-	path = "../../../tests/configs/config-test_v2.yml"
+	LoadType uint8 = 1
+	Validatetype uint8 = 2
+	AddAPIType uint8 = 3
 )
 
-var (
-	inst = Config{
-		Address: path,
-		Root:    &RootConfig{},
-	}
-)
+type Test struct{
+	name 		string	
+	file 		string
+	Type		uint8
+	err 		string
+	api			API
+	shouldErr	bool
+}
 
-func TestLoad(t *testing.T) {
-	config, err := inst.Load()
-	if err != nil {
-		t.Error(err)
-	}
-	err = config.Validate()
-	if err != nil {
-		t.Error(err)
+var tests = []Test{
+	{
+	name: "testing domain name missing",
+	file: "./testdata/config_domain_missing.yml",
+	Type: Validatetype,
+	shouldErr: true,
+	err: "Should have an error of missing domain",
+	},
+	{
+	name: "testing domain name missing",
+	file: "./testdata/config_domain_missing.yml",
+	Type: Validatetype,
+	shouldErr: true,
+	err: "Should have an error of missing domain",
+	},
+}
+
+func TestLoadAndValidate(t *testing.T) {
+	for _ ,s := range tests{
+		t.Run(s.name,func (t *testing.T)  {
+			inst := Config{
+				Address: s.file,
+			}
+
+			switch s.Type {
+			case 1:
+				_,err := inst.Load()
+				if (err != nil) != (!s.shouldErr) {
+					if(err == nil){
+						err = errors.New(s.err) 
+					}
+					t.Error(err);
+				} 
+			case 2:
+				conf,err := inst.Load()
+				if (err != nil) != (!s.shouldErr) {
+					if(err == nil){
+						err = errors.New(s.err) 
+					}
+					t.Error(err);
+					break
+				} 
+				err = conf.Validate()
+				if (err != nil) != (!s.shouldErr) {
+					if(err == nil){
+						err = errors.New(s.err) 
+					}
+					t.Error(err);
+				} 
+			case 3:
+				conf,err := inst.Load()
+				if (err != nil) != (!s.shouldErr) {
+					if(err == nil){
+						err = errors.New(s.err) 
+					}
+					t.Error(err);
+					break
+				} 
+				conf,err = conf.AddAPI(s.api)
+				if (err != nil) != (!s.shouldErr) {
+					if(err == nil){
+						err = errors.New(s.err) 
+					}
+					t.Error(err);
+				}
+				apis := conf.Root.APIs
+				api := apis[len(apis)-1]
+				if api.Name != s.api.Name{
+					t.Error(errors.New("ERROR occured in adding API"));
+				}
+			}
+		})
 	}
 }
