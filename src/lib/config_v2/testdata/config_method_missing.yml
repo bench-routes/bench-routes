@@ -1,9 +1,9 @@
 apis:
   - name: route-name-one
     every: 3h
-    domain_or_ip:
+    domain_or_ip: www.some-url-for-one.com
     route: /api/v1/test
-    method: get
+    method:
     headers:
       Content-Type: json
     params:
@@ -14,7 +14,7 @@ apis:
       key_2: value_2
   - name: route-name-two
     every: 5s
-    domain_or_ip: www.some_url_for_two.com
+    domain_or_ip: www.some-url-for-two.com
     route: /api/v1/test
     method: post
     params:
