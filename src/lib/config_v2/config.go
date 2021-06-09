@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prometheus/common/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -43,14 +42,12 @@ func (c *Config) Load() (*Config, error) {
 
 	file, err := ioutil.ReadFile(c.Address)
 	if err != nil {
-		log.Error("Error reading file")
 		return nil, err
 	}
 
 	err = yaml.Unmarshal(file, &confInstance)
 
 	if err != nil {
-		log.Error("Error marshalling config file")
 		return nil, err
 	}
 	c.Root = &confInstance

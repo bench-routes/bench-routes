@@ -2,6 +2,7 @@ package configparser
 
 import (
 	"errors"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -22,6 +23,10 @@ func validateAPI(index int, api API) error {
 	method := strings.ToLower(api.Method)
 	if method != "get" && method != "post" && method != "put" && method != "delete" && method != "patch" {
 		return errors.New("`Method` property of API #" + strconv.Itoa(index+1) + " is invalid")
+	}
+	RegExp := regexp.MustCompile(`^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$`)
+	if !RegExp.MatchString(api.Domain) {
+		return errors.New("`Domain` property of API #" + strconv.Itoa(index+1) + " is invalid")
 	}
 	return nil
 }
