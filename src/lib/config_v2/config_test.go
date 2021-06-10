@@ -103,7 +103,7 @@ func TestLoadAndValidate(t *testing.T) {
 
 			switch s.Type {
 			case 1:
-				_, err := inst.Load()
+				_, err := inst.Reload()
 				if (err != nil) != (s.shouldErr) {
 					if err == nil {
 						err = errors.New(s.err)
@@ -111,7 +111,7 @@ func TestLoadAndValidate(t *testing.T) {
 					t.Error(err)
 				}
 			case 2:
-				conf, err := inst.Load()
+				conf, err := inst.Reload()
 
 				if err != nil {
 					t.Error(err)
@@ -126,7 +126,7 @@ func TestLoadAndValidate(t *testing.T) {
 					t.Error(err)
 				}
 			case 3:
-				conf, err := inst.Load()
+				conf, err := inst.Reload()
 				if (err != nil) != (s.shouldErr) {
 					if err == nil {
 						err = errors.New(s.err)
@@ -149,4 +149,64 @@ func TestLoadAndValidate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func BenchmarkLoadAndValidate(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for _, s := range tests {
+			b.Run(s.name, func(b *testing.B) {
+				inst := Config{
+					Address: s.file,
+				}
+
+				switch s.Type {
+				case 1:
+					_, err := inst.Reload()
+					if (err != nil) != (s.shouldErr) {
+						if err == nil {
+							err = errors.New(s.err)
+						}
+						b.Error(err)
+					}
+				case 2:
+					conf, err := inst.Reload()
+
+					if err != nil {
+						b.Error(err)
+						break
+					}
+					err = conf.Validate()
+
+					if (err != nil) != (s.shouldErr) {
+						if err == nil {
+							err = errors.New(s.err)
+						}
+						b.Error(err)
+					}
+				case 3:
+					conf, err := inst.Reload()
+					if (err != nil) != (s.shouldErr) {
+						if err == nil {
+							err = errors.New(s.err)
+						}
+						b.Error(err)
+						break
+					}
+					conf, err = conf.AddAPI(s.api)
+					if (err != nil) != (s.shouldErr) {
+						if err == nil {
+							err = errors.New(s.err)
+						}
+						b.Error(err)
+					}
+					apis := conf.Root.APIs
+					api := apis[len(apis)-1]
+					if api.Name != s.api.Name {
+						b.Error(errors.New("ERROR occured in adding API"))
+					}
+				}
+			})
+		}
+	}
+
 }

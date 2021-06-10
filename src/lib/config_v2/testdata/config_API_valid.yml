@@ -40,3 +40,11 @@ apis:
       headers: {}
       params: {}
       body: {}
+    - name: API_name_1
+      every: 0s
+      domain_or_ip: ""
+      route: ""
+      method: ""
+      headers: {}
+      params: {}
+      body: {}

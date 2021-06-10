@@ -35,7 +35,7 @@ func NewConf(configPath string) *Config {
 	}
 }
 
-func (c *Config) Load() (*Config, error) {
+func (c *Config) Reload() (*Config, error) {
 	c.Mutex.RLock()
 	defer c.Mutex.RUnlock()
 	var confInstance RootConfig
