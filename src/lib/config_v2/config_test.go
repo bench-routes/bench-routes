@@ -108,7 +108,7 @@ func TestLoad(t *testing.T) {
 			c := &Config{
 				path: s.file,
 			}
-			c, err := c.Reload()
+			_, err := c.Reload()
 			if err != nil {
 				if !s.shouldErr {
 					t.Fatalf("%s: error was not expected", err)
