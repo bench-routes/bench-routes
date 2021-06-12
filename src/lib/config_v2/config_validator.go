@@ -1,43 +1,44 @@
-package configparser
+package config
 
 import (
-	"errors"
+	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
+// https://regexr.com/3au3g
+const validDomainRegex = `^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$`
+
 func validateAPI(index int, api API) error {
 	if api.Name == "" {
-		return errors.New("`Name` property of API #" + strconv.Itoa(index+1) + " is missing")
+		return fmt.Errorf("`Name` field of # %d API can not be empty", index+1)
 	}
 	if api.Every.String() == "0s" {
-		return errors.New("`Every` property of API #" + strconv.Itoa(index+1) + " is invalid")
+		return fmt.Errorf("`Every` field value of # %d API is not supported", index)
 	}
 	if api.Domain == "" {
-		return errors.New("`Domain_or_Ip` property of API #" + strconv.Itoa(index+1) + " is missing")
+		return fmt.Errorf("`Domain_or_Ip` field of # %d API can not be empty", index)
 	}
 	if api.Route == "" {
-		return errors.New("`Route` property of API #" + strconv.Itoa(index+1) + " is missing")
+		return fmt.Errorf("`Route` field of # %d API can not be empty", index)
 	}
 	method := strings.ToLower(api.Method)
 	if method != "get" && method != "post" && method != "put" && method != "delete" && method != "patch" {
-		return errors.New("`Method` property of API #" + strconv.Itoa(index+1) + " is invalid")
+		return fmt.Errorf("`Method` field of # %d API is not supported", index)
 	}
-	RegExp := regexp.MustCompile(`^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$`)
+	RegExp := regexp.MustCompile(validDomainRegex)
 	if !RegExp.MatchString(api.Domain) {
-		return errors.New("`Domain` property of API #" + strconv.Itoa(index+1) + " is invalid")
+		return fmt.Errorf("`Domain` field of # %d API does not match the valid regex : %s", index, validDomainRegex)
 	}
 	return nil
 }
 
 func (c *Config) Validate() error {
-	apis := c.Root.APIs
+	apis := c.APIs
 
 	for i, a := range apis {
-		err := validateAPI(i, a)
-		if err != nil {
-			return err
+		if err := validateAPI(i, a); err != nil {
+			return fmt.Errorf("Validation Error : %w", err)
 		}
 	}
 	return nil
