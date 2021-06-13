@@ -19,7 +19,7 @@ var validateTests = []test{
 		name:      "`Name` field is MISSING",
 		file:      "./testdata/config_name_missing.bad.yml",
 		shouldErr: true,
-		err:       "Should have an error of missing `Name` field",
+		err:       "Validation Error : `Name` field of # 1 API can not be empty",
 	},
 	{
 		name:      "VALID config file",
@@ -30,37 +30,37 @@ var validateTests = []test{
 		name:      "`Every` field is MISSING",
 		file:      "./testdata/config_every_missing.bad.yml",
 		shouldErr: true,
-		err:       "Should have an error of missing `Every` field",
+		err:       "Validation Error : `Every` field value of # 0 API is not supported",
 	},
 	{
 		name:      "`domain_or_ip` field is MISSING",
 		file:      "./testdata/config_domain_missing.bad.yml",
 		shouldErr: true,
-		err:       "Should have an error of missing `domain_or_ip` field",
+		err:       "Validation Error : `Domain_or_Ip` field of # 0 API can not be empty",
 	},
 	{
 		name:      "`Route` field is MISSING",
 		file:      "./testdata/config_route_missing.bad.yml",
 		shouldErr: true,
-		err:       "Should have an error of missing `Route` field",
+		err:       "Validation Error : `Route` field of # 0 API can not be empty",
 	},
 	{
 		name:      "`Method` field is MISSING",
 		file:      "./testdata/config_method_missing.bad.yml",
 		shouldErr: true,
-		err:       "Should have an error of missing `Method` field",
+		err:       "Validation Error : `Method` field of # 0 API can not be empty",
 	},
 	{
 		name:      "`Method` field is INVALID",
 		file:      "./testdata/config_method_invalid.bad.yml",
 		shouldErr: true,
-		err:       "Should have an error of INVALID `Method` field",
+		err:       "Validation Error : `Method` field of # 0 API is not supported",
 	},
 	{
 		name:      "`Domain` field is INVALID",
 		file:      "./testdata/config_domain_invalid.bad.yml",
 		shouldErr: true,
-		err:       "Should have an error of INVALID `Domain` field",
+		err:       "Validation Error : `Domain` field of # 0 API does not match the valid regex",
 	},
 }
 
@@ -74,7 +74,7 @@ var loadTests = []test{
 		name:      "Loading INVALID config file",
 		file:      "./testdata/invalid_load.bad.yml",
 		shouldErr: true,
-		err:       "Should have error loading due to invalid file structure",
+		err:       "unmarshalling file content: yaml: line 3: mapping values are not allowed in this context",
 	},
 }
 
@@ -113,6 +113,9 @@ func TestLoad(t *testing.T) {
 				if !s.shouldErr {
 					t.Fatalf("%s: error was not expected", err)
 				}
+				if err.Error() != s.err {
+					t.Fatalf("%s: error does not match", err)
+				}
 			} else {
 				if s.shouldErr {
 					t.Fatalf("%s: error was expected", s.err)
@@ -140,6 +143,9 @@ func TestValidate(t *testing.T) {
 				if !s.shouldErr {
 					t.Fatalf("%s: error was not expected", err)
 				}
+				if err.Error() != s.err {
+					t.Fatalf("%s: error does not match", err)
+				}
 			} else {
 				if s.shouldErr {
 					t.Fatalf("%s: error was expected", s.err)
@@ -164,6 +170,9 @@ func TestAddAPI(t *testing.T) {
 			if err != nil {
 				if !s.shouldErr {
 					t.Fatalf("%s: error was not expected", err)
+				}
+				if err.Error() != s.err {
+					t.Fatalf("%s: error does not match", err)
 				}
 			} else {
 				if s.shouldErr {

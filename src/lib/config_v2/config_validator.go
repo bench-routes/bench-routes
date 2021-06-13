@@ -23,16 +23,20 @@ func validateAPI(index int, api API) error {
 		return fmt.Errorf("`Route` field of # %d API can not be empty", index)
 	}
 	method := strings.ToLower(api.Method)
+	if method == "" {
+		return fmt.Errorf("`Method` field of # %d API can not be empty", index)
+	}
 	if method != "get" && method != "post" && method != "put" && method != "delete" && method != "patch" {
 		return fmt.Errorf("`Method` field of # %d API is not supported", index)
 	}
 	RegExp := regexp.MustCompile(validDomainRegex)
 	if !RegExp.MatchString(api.Domain) {
-		return fmt.Errorf("`Domain` field of # %d API does not match the valid regex : %s", index, validDomainRegex)
+		return fmt.Errorf("`Domain` field of # %d API does not match the valid regex", index)
 	}
 	return nil
 }
 
+//Validates APIs data which is parsed from the config file.
 func (c *Config) Validate() error {
 	apis := c.APIs
 
