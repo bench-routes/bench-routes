@@ -9,14 +9,14 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//Config struct stores the APIs parsed from local-config.yml file.
+// Config contains configuration in runtime.
 type Config struct {
 	path string
 	mux  sync.RWMutex
 	APIs []API `yaml:"apis"`
 }
 
-//API stores the information of the endpoints.
+// API stores the information of the endpoints.
 type API struct {
 	Name    string            `yaml:"name,omitempty"`
 	Every   time.Duration     `yaml:"every,omitempty"`
@@ -28,8 +28,8 @@ type API struct {
 	Body    map[string]string `yaml:"body,omitempty"`
 }
 
-//Instantiate a Config object and reloads the data from the given file location.
-func NewConf(path string) (*Config, error) {
+// New returns a new configuration after reloading from the given path.
+func New(path string) (*Config, error) {
 	c := &Config{
 		path: path,
 	}
@@ -40,7 +40,7 @@ func NewConf(path string) (*Config, error) {
 	return c, nil
 }
 
-//Reloads data from the config file.
+// Reloads data from the config file.
 func (c *Config) Reload() (*Config, error) {
 	conf := new(Config)
 
@@ -58,8 +58,8 @@ func (c *Config) Reload() (*Config, error) {
 	return conf, nil
 }
 
-//Adds API to the Config struct
-func (c *Config) AddAPI(api API) (*Config, error) {
+// Adds API to the Config struct
+func (c *Config) Add(api API) (*Config, error) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	c.APIs = append(c.APIs, api)

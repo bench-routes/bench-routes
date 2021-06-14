@@ -36,7 +36,7 @@ func validateAPI(index int, api API) error {
 	return nil
 }
 
-//Validates APIs data which is parsed from the config file.
+// Validates APIs data which is parsed from the config file.
 func (c *Config) Validate() error {
 	apis := c.APIs
 

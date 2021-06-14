@@ -162,11 +162,10 @@ func TestAddAPI(t *testing.T) {
 				path: s.file,
 			}
 			c, err := c.Reload()
-
 			if err != nil {
 				t.Fatal("Error in reloading: %w", err)
 			}
-			c, err = c.AddAPI(s.api)
+			c, err = c.Add(s.api)
 			if err != nil {
 				if !s.shouldErr {
 					t.Fatalf("%s: error was not expected", err)
