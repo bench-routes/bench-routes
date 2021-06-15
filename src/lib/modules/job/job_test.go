@@ -8,37 +8,44 @@ import (
 	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
 )
 
-func TestJob(t *testing.T){
+func TestJob(t *testing.T) {
 	ch := make(chan struct{})
 	api := config.API{
-		Name: "API_1",
-		Every: time.Second*5,
-		Domain: "https://www.google.com",
+		Name:   "API_1",
+		Every:  time.Second * 5,
+		Domain: "https://reqres.in/api/users",
 		// Route: "/watch?v=aaDaIGHTGT8",
-		Method: "GET",
+		Method: "POST",
 		Headers: map[string]string{
-			"Content-Type" : "application/json",
+			"Content-Type": "application/json",
+		},
+		Body: map[string]string{
+			"name": "tushar",
+			"job":  "SDE",
 		},
 	}
-	exec,err :=NewJob("monitor",ch,&api);
+	exec, err := NewJob("monitor", ch, &api)
 	if err != nil {
-		t.Fatalf("Error: %s",err)
+		t.Fatalf("Error: %s", err)
 	}
 
 	go exec.Execute()
-	ch<-struct{}{}
-	time.Sleep(time.Second*5)
+	ch <- struct{}{}
+	log.Println(exec.Info().lastExecute)
+	time.Sleep(time.Second * 5)
 
-	ch<-struct{}{}
-	time.Sleep(time.Second*5)
+	ch <- struct{}{}
+	log.Println(exec.Info().lastExecute)
+	time.Sleep(time.Second * 5)
 
-	ch<-struct{}{}
-	time.Sleep(time.Second*5)
+	ch <- struct{}{}
+	log.Println(exec.Info().lastExecute)
+	time.Sleep(time.Second * 5)
 
-	ch<-struct{}{}
-	time.Sleep(time.Second*5)
+	ch <- struct{}{}
+	log.Println(exec.Info().lastExecute)
+	time.Sleep(time.Second * 5)
 
-	log.Println(exec.Info())
 	exec.Abort()
 
 }
