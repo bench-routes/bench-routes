@@ -29,8 +29,8 @@ func validateAPI(index int, api API) error {
 	if method != "get" && method != "post" && method != "put" && method != "delete" && method != "patch" {
 		return fmt.Errorf("`Method` field of # %d API is not supported", index)
 	}
-	RegExp := regexp.MustCompile(validDomainRegex)
-	if !RegExp.MatchString(api.Domain) {
+	regExp := regexp.MustCompile(validDomainRegex)
+	if !regExp.MatchString(api.Domain) {
 		return fmt.Errorf("`Domain` field of # %d API does not match the valid regex", index)
 	}
 	return nil
