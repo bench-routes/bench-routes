@@ -13,16 +13,14 @@ func TestJob(t *testing.T){
 	api := config.API{
 		Name: "API_1",
 		Every: time.Second*5,
-		Domain: "https://www.youtube.com",
-		Route: "/watch?v=aaDaIGHTGT8",
+		Domain: "https://www.google.com",
+		// Route: "/watch?v=aaDaIGHTGT8",
 		Method: "GET",
 		Headers: map[string]string{
 			"Content-Type" : "application/json",
 		},
-		Body: nil,
-		Params: nil,
 	}
-	exec,err :=NewJob("monitor",ch,api);
+	exec,err :=NewJob("monitor",ch,&api);
 	if err != nil {
 		t.Fatalf("Error: %s",err)
 	}
