@@ -40,7 +40,7 @@ func New(path string) (*Config, error) {
 	return c, nil
 }
 
-// Reloads data from the config file.
+// Reload reloads data from the config file.
 func (c *Config) Reload() (*Config, error) {
 	conf := new(Config)
 
@@ -58,7 +58,7 @@ func (c *Config) Reload() (*Config, error) {
 	return conf, nil
 }
 
-// Adds API to the Config struct
+// Add adds API to the Config struct
 func (c *Config) Add(api API) (*Config, error) {
 	c.mux.Lock()
 	defer c.mux.Unlock()

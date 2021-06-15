@@ -36,13 +36,13 @@ func validateAPI(index int, api API) error {
 	return nil
 }
 
-// Validates APIs data which is parsed from the config file.
+// Validate validates APIs data which is parsed from the config file.
 func (c *Config) Validate() error {
 	apis := c.APIs
 
 	for i, a := range apis {
 		if err := validateAPI(i, a); err != nil {
-			return fmt.Errorf("Validation Error : %w", err)
+			return fmt.Errorf("validation error : %w", err)
 		}
 	}
 	return nil
