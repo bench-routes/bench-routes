@@ -104,7 +104,6 @@ var addAPITests = []test{
 func TestLoad(t *testing.T) {
 	for _, s := range loadTests {
 		t.Run(s.name, func(t *testing.T) {
-
 			c := &Config{
 				path: s.file,
 			}
@@ -127,18 +126,15 @@ func TestLoad(t *testing.T) {
 }
 
 func TestValidate(t *testing.T) {
-
 	for _, s := range validateTests {
 		t.Run(s.name, func(t *testing.T) {
 			c := &Config{
 				path: s.file,
 			}
 			c, err := c.Reload()
-
 			if err != nil {
 				t.Fatal("Error in reloading: %w", err)
 			}
-
 			if err = c.Validate(); err != nil {
 				if !s.shouldErr {
 					t.Fatalf("%s: error was not expected", err)
@@ -178,7 +174,6 @@ func TestAddAPI(t *testing.T) {
 					t.Fatalf("%s: error was expected", s.err)
 				}
 			}
-
 			api := c.APIs[len(c.APIs)-1]
 			if api.Name != s.api.Name {
 				t.Error(fmt.Errorf("ERROR occured in adding API"))
