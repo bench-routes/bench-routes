@@ -31,17 +31,17 @@ type jobInfo struct {
 
 type monitoringJob struct {
 	jobInfo
-	app     	*file.Appendable
-	sigCh   	chan struct{}
-	client  	*http.Client
-	request 	*http.Request
+	app     *file.Appendable
+	sigCh   chan struct{}
+	client  *http.Client
+	request *http.Request
 }
 
 type machineJob struct {
 	jobInfo
-	app   		*file.Appendable
-	sigCh 		chan struct{}
-	host 		string
+	app   *file.Appendable
+	sigCh chan struct{}
+	host  string
 }
 
 func NewJob(typ string, c chan struct{}, api *config.API) (Executable, error) {
@@ -160,29 +160,29 @@ func (mn *machineJob) Execute() {
 	for range mn.sigCh {
 		pinger, err := ping.NewPinger(mn.host)
 		if err != nil {
-			fmt.Println(fmt.Errorf("error creating ping : %w",err))
+			fmt.Println(fmt.Errorf("error creating ping : %w", err))
 		}
 		pinger.Count = 5
 		var lastTime time.Duration
 		var sum time.Duration
 		pinger.OnRecv = func(pkt *ping.Packet) {
-			if lastTime!= time.Second*0 {
-				sum += absDiff(lastTime,pkt.Rtt)	
-				fmt.Println("lastTime : ",lastTime," Current : ",pkt.Rtt," Diff : ",absDiff(lastTime,pkt.Rtt))
+			if lastTime != time.Second*0 {
+				sum += absDiff(lastTime, pkt.Rtt)
+				fmt.Println("lastTime : ", lastTime, " Current : ", pkt.Rtt, " Diff : ", absDiff(lastTime, pkt.Rtt))
 			}
 			lastTime = pkt.Rtt
 		}
-		
+
 		// Runing the pinger
 		if err := pinger.Run(); err != nil {
-			fmt.Println(fmt.Errorf("error running ping : %w",err))
+			fmt.Println(fmt.Errorf("error running ping : %w", err))
 		}
 		mn.jobInfo.mux.Lock()
 		mn.jobInfo.lastExecute = time.Now()
 		mn.jobInfo.mux.Unlock()
-		stats := pinger.Statistics();
-		fmt.Println("Ping : ",stats.AvgRtt)
-		fmt.Println("Jitter : ",sum/time.Duration(pinger.Count-1))
+		stats := pinger.Statistics()
+		fmt.Println("Ping : ", stats.AvgRtt)
+		fmt.Println("Jitter : ", sum/time.Duration(pinger.Count-1))
 	}
 }
 
@@ -197,8 +197,8 @@ func (mn *machineJob) Info() *jobInfo {
 }
 
 func absDiff(a, b time.Duration) time.Duration {
-    if a >= b {
-        return a - b
-    }
-    return b - a
+	if a >= b {
+		return a - b
+	}
+	return b - a
 }

@@ -56,7 +56,7 @@ func TestMachineJob(t *testing.T) {
 		Name:   "API_1",
 		Every:  time.Second * 5,
 		Domain: "reqres.in",
-		Route: "/api/users",
+		Route:  "/api/users",
 		Method: "POST",
 		Headers: map[string]string{
 			"Content-Type": "application/json",
