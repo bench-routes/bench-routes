@@ -13,6 +13,7 @@ import (
 
 	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
 	"github.com/bench-routes/bench-routes/tsdb/file"
+	"github.com/go-ping/ping"
 )
 
 type Executable interface {
@@ -30,17 +31,17 @@ type jobInfo struct {
 
 type monitoringJob struct {
 	jobInfo
-	app     *file.Appendable
-	sigCh   chan struct{}
-	client  *http.Client
-	request *http.Request
+	app     	*file.Appendable
+	sigCh   	chan struct{}
+	client  	*http.Client
+	request 	*http.Request
 }
 
 type machineJob struct {
 	jobInfo
-	app   *file.Appendable
-	sigCh chan struct{}
-	// ping  *ping.Pinger
+	app   		*file.Appendable
+	sigCh 		chan struct{}
+	host 		string
 }
 
 func NewJob(typ string, c chan struct{}, api *config.API) (Executable, error) {
@@ -149,6 +150,7 @@ func newMachineJob(app *file.Appendable, c chan struct{}, api *config.API) (*mac
 			every:       api.Every,
 			lastExecute: time.Now().Add(api.Every * -1),
 		},
+		host: api.Domain,
 	}
 	return newjob, nil
 }
@@ -156,8 +158,31 @@ func newMachineJob(app *file.Appendable, c chan struct{}, api *config.API) (*mac
 //Executing the
 func (mn *machineJob) Execute() {
 	for range mn.sigCh {
-		//do monitoring
-
+		pinger, err := ping.NewPinger(mn.host)
+		if err != nil {
+			fmt.Println(fmt.Errorf("error creating ping : %w",err))
+		}
+		pinger.Count = 5
+		var lastTime time.Duration
+		var sum time.Duration
+		pinger.OnRecv = func(pkt *ping.Packet) {
+			if lastTime!= time.Second*0 {
+				sum += absDiff(lastTime,pkt.Rtt)	
+				fmt.Println("lastTime : ",lastTime," Current : ",pkt.Rtt," Diff : ",absDiff(lastTime,pkt.Rtt))
+			}
+			lastTime = pkt.Rtt
+		}
+		
+		// Runing the pinger
+		if err := pinger.Run(); err != nil {
+			fmt.Println(fmt.Errorf("error running ping : %w",err))
+		}
+		mn.jobInfo.mux.Lock()
+		mn.jobInfo.lastExecute = time.Now()
+		mn.jobInfo.mux.Unlock()
+		stats := pinger.Statistics();
+		fmt.Println("Ping : ",stats.AvgRtt)
+		fmt.Println("Jitter : ",sum/time.Duration(pinger.Count-1))
 	}
 }
 
@@ -169,4 +194,11 @@ func (mn *machineJob) Abort() {
 func (mn *machineJob) Info() *jobInfo {
 	//do monitoring
 	return &mn.jobInfo
+}
+
+func absDiff(a, b time.Duration) time.Duration {
+    if a >= b {
+        return a - b
+    }
+    return b - a
 }
