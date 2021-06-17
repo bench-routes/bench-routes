@@ -5,17 +5,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
 	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
+	"github.com/bench-routes/bench-routes/src/lib/filters"
 	"github.com/bench-routes/bench-routes/tsdb/file"
 	"github.com/go-ping/ping"
 )
 
+// Executable is an interface that is implemented by machineJob and monitoringJob
 type Executable interface {
 	Execute()
 	Abort()
@@ -44,8 +45,8 @@ type machineJob struct {
 	host  string
 }
 
-func NewJob(typ string, c chan struct{}, api *config.API) (Executable, error) {
-	var app *file.Appendable
+// NewJob creates a new job based on the typ
+func NewJob(typ string, app *file.Appendable, c chan struct{}, api *config.API) (Executable, error) {
 	switch typ {
 	case "machine":
 		job, err := newMachineJob(app, c, api)
@@ -84,41 +85,44 @@ func newMonitoringJob(app *file.Appendable, c chan struct{}, api *config.API) (*
 	return newJob, nil
 }
 
-//Execute the monitoring function of the job when signal is passed to the chan sigCh
+// Execute executes the monitoringJob
 func (mn *monitoringJob) Execute() {
 	for range mn.sigCh {
-		log.Println("Inside Execute")
 		stamp := time.Now()
 		res, err := mn.client.Do(mn.request)
 		if err != nil {
 			fmt.Println(fmt.Errorf("error in sending request: %w", err))
+			continue
 		}
 		resDelay := time.Since(stamp)
 
 		resBody, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			fmt.Println(fmt.Errorf("error in reading response body: %w", err))
+			continue
 		}
 		res.Body.Close()
 		mn.jobInfo.mux.Lock()
 		mn.jobInfo.lastExecute = time.Now()
 		mn.jobInfo.mux.Unlock()
-		fmt.Printf("resDelay : %v\n", resDelay)
-		fmt.Printf("resLength : %v\n", len(resBody))
+		val := fmt.Sprintf("%s|%s", fmt.Sprint(resDelay), fmt.Sprint(len(resBody)))
+		fmt.Println(val)
+		// app := *mn.app
+		// app.Append(file.NewBlock(mn.jobInfo.name,val))
 	}
 }
 
-//Stop monitoring particular job
+// Aborts aborts the running job
 func (mn *monitoringJob) Abort() {
 	close(mn.sigCh)
 }
 
-// jobInfo of the monitored job
+// Info returns jobInfo of the job
 func (mn *monitoringJob) Info() *jobInfo {
 	return &mn.jobInfo
 }
 
-// Creates http client and request for the job
+// newReq creates http client and request for the job
 func newReq(job *monitoringJob, api *config.API) error {
 	var body []byte
 	var err error
@@ -140,7 +144,6 @@ func newReq(job *monitoringJob, api *config.API) error {
 	return nil
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 func newMachineJob(app *file.Appendable, c chan struct{}, api *config.API) (*machineJob, error) {
 	newjob := &machineJob{
 		app:   app,
@@ -150,21 +153,23 @@ func newMachineJob(app *file.Appendable, c chan struct{}, api *config.API) (*mac
 			every:       api.Every,
 			lastExecute: time.Now().Add(api.Every * -1),
 		},
-		host: api.Domain,
+		host: *filters.HTTPPingFilter(&api.Domain),
 	}
 	return newjob, nil
 }
 
-//Executing the
+// Execute execute the machineJob
 func (mn *machineJob) Execute() {
 	for range mn.sigCh {
 		pinger, err := ping.NewPinger(mn.host)
 		if err != nil {
 			fmt.Println(fmt.Errorf("error creating ping : %w", err))
+			continue
 		}
 		pinger.Count = 5
 		var lastTime time.Duration
 		var sum time.Duration
+		// Calculating jitter using ping values
 		pinger.OnRecv = func(pkt *ping.Packet) {
 			if lastTime != time.Second*0 {
 				sum += absDiff(lastTime, pkt.Rtt)
@@ -172,10 +177,10 @@ func (mn *machineJob) Execute() {
 			}
 			lastTime = pkt.Rtt
 		}
-
 		// Runing the pinger
 		if err := pinger.Run(); err != nil {
 			fmt.Println(fmt.Errorf("error running ping : %w", err))
+			continue
 		}
 		mn.jobInfo.mux.Lock()
 		mn.jobInfo.lastExecute = time.Now()
@@ -186,13 +191,14 @@ func (mn *machineJob) Execute() {
 	}
 }
 
+// Abort aborts the running job
 func (mn *machineJob) Abort() {
 	//do monitoring
 	close(mn.sigCh)
 }
 
+// Info returns the jobInfo of the job
 func (mn *machineJob) Info() *jobInfo {
-	//do monitoring
 	return &mn.jobInfo
 }
 
