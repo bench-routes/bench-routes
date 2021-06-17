@@ -9,20 +9,20 @@ import (
 	"github.com/bench-routes/bench-routes/tsdb/file"
 )
 
-type Runnable interface{
+type Runnable interface {
 	Run()
 	Reload(*config.Config)
 	Stop()
 }
 
 type Machine struct {
-    // scheduler
-    mux sync.RWMutex
-	jobs map[*job.JobInfo]chan<- struct{}
-    reload chan struct{}
+	// scheduler
+	mux    sync.RWMutex
+	jobs   map[*job.JobInfo]chan<- struct{}
+	reload chan struct{}
 }
 
-func NewModule(typ string) (Runnable,error){
+func NewModule(typ string) (Runnable, error) {
 	switch typ {
 	case "machine":
 		module, err := newMachineModule()
@@ -41,28 +41,28 @@ func NewModule(typ string) (Runnable,error){
 	}
 }
 
-func newMachineModule() (*Machine,error){
+func newMachineModule() (*Machine, error) {
 	job := &Machine{
-		jobs: make(map[*job.JobInfo]chan<- struct{}),
-		reload:	make(chan struct{}),
+		jobs:   make(map[*job.JobInfo]chan<- struct{}),
+		reload: make(chan struct{}),
 	}
-	return job,nil
+	return job, nil
 }
 
-func(m *Machine) Run() {
-	for range m.reload{
-		
+func (m *Machine) Run() {
+	for range m.reload {
+
 	}
 }
 
-func(m *Machine) Reload(conf *config.Config){
+func (m *Machine) Reload(conf *config.Config) {
 	jobs := make(map[*job.JobInfo]chan<- struct{})
-	for _,api := range conf.APIs{
+	for _, api := range conf.APIs {
 		var app file.Appendable
 		ch := make(chan struct{})
 		exec, err := job.NewJob("machine", &app, ch, &api)
 		if err != nil {
-			fmt.Println(fmt.Errorf("error creating job: %s",err))
+			fmt.Println(fmt.Errorf("error creating job: %s", err))
 		}
 		go exec.Execute()
 		jobs[exec.Info()] = ch
@@ -70,9 +70,9 @@ func(m *Machine) Reload(conf *config.Config){
 	m.mux.Lock()
 	m.jobs = jobs
 	m.mux.Unlock()
-	m.reload<- struct{}{}
+	m.reload <- struct{}{}
 }
 
-func(m *Machine) Stop() {
+func (m *Machine) Stop() {
 	close(m.reload)
 }
