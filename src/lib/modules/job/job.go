@@ -20,10 +20,10 @@ import (
 type Executable interface {
 	Execute()
 	Abort()
-	Info() *jobInfo
+	Info() *JobInfo
 }
 
-type jobInfo struct {
+type JobInfo struct {
 	mux         sync.RWMutex
 	name        string
 	every       time.Duration
@@ -31,7 +31,7 @@ type jobInfo struct {
 }
 
 type monitoringJob struct {
-	jobInfo
+	JobInfo
 	app     *file.Appendable
 	sigCh   chan struct{}
 	client  *http.Client
@@ -39,7 +39,7 @@ type monitoringJob struct {
 }
 
 type machineJob struct {
-	jobInfo
+	JobInfo
 	app   *file.Appendable
 	sigCh chan struct{}
 	host  string
@@ -69,7 +69,7 @@ func newMonitoringJob(app *file.Appendable, c chan struct{}, api *config.API) (*
 	newJob := &monitoringJob{
 		app:   app,
 		sigCh: c,
-		jobInfo: jobInfo{
+		JobInfo: JobInfo{
 			name:        api.Name,
 			every:       api.Every,
 			lastExecute: time.Now().Add(api.Every * -1),
@@ -102,9 +102,9 @@ func (mn *monitoringJob) Execute() {
 			continue
 		}
 		res.Body.Close()
-		mn.jobInfo.mux.Lock()
-		mn.jobInfo.lastExecute = time.Now()
-		mn.jobInfo.mux.Unlock()
+		mn.JobInfo.mux.Lock()
+		mn.JobInfo.lastExecute = time.Now()
+		mn.JobInfo.mux.Unlock()
 		val := fmt.Sprintf("%s|%s", fmt.Sprint(resDelay), fmt.Sprint(len(resBody)))
 		fmt.Println(val)
 		// app := *mn.app
@@ -118,8 +118,8 @@ func (mn *monitoringJob) Abort() {
 }
 
 // Info returns jobInfo of the job
-func (mn *monitoringJob) Info() *jobInfo {
-	return &mn.jobInfo
+func (mn *monitoringJob) Info() *JobInfo {
+	return &mn.JobInfo
 }
 
 // newReq creates http client and request for the job
@@ -148,7 +148,7 @@ func newMachineJob(app *file.Appendable, c chan struct{}, api *config.API) (*mac
 	newjob := &machineJob{
 		app:   app,
 		sigCh: c,
-		jobInfo: jobInfo{
+		JobInfo: JobInfo{
 			name:        api.Name,
 			every:       api.Every,
 			lastExecute: time.Now().Add(api.Every * -1),
@@ -182,9 +182,9 @@ func (mn *machineJob) Execute() {
 			fmt.Println(fmt.Errorf("error running ping : %w", err))
 			continue
 		}
-		mn.jobInfo.mux.Lock()
-		mn.jobInfo.lastExecute = time.Now()
-		mn.jobInfo.mux.Unlock()
+		mn.JobInfo.mux.Lock()
+		mn.JobInfo.lastExecute = time.Now()
+		mn.JobInfo.mux.Unlock()
 		stats := pinger.Statistics()
 		fmt.Println("Ping : ", stats.AvgRtt)
 		fmt.Println("Jitter : ", sum/time.Duration(pinger.Count-1))
@@ -198,8 +198,8 @@ func (mn *machineJob) Abort() {
 }
 
 // Info returns the jobInfo of the job
-func (mn *machineJob) Info() *jobInfo {
-	return &mn.jobInfo
+func (mn *machineJob) Info() *JobInfo {
+	return &mn.JobInfo
 }
 
 func absDiff(a, b time.Duration) time.Duration {
