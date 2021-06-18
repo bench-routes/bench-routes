@@ -82,9 +82,9 @@ func (c *chain) Append(b Block) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
-	if c.stream[0].Type == "null" {
-		c.stream = c.stream[:0]
-	}
+	// if c.stream[0].Type == "null" {
+	// 	c.stream = c.stream[:0]
+	// }
 	c.stream = append(c.stream, b)
 	c.containsNewBlocks = true
 	c.inActiveIterations = 0
