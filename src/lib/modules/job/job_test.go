@@ -42,7 +42,7 @@ func TestJob(t *testing.T) {
 	for _, api := range testapis {
 		fmt.Printf("testing ResDelay and resLength for %s\n", api.Name)
 		ch := make(chan struct{})
-		app,_ := set.NewChain(api.Name,api.Domain+api.Route,true)
+		app, _ := set.NewChain(api.Name, api.Domain+api.Route, true)
 		// var app file.Appendable
 		// utils.Path()
 		exec, err := NewJob("monitor", app, ch, &api)

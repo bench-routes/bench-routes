@@ -107,8 +107,8 @@ func (mn *monitoringJob) Execute() {
 		mn.JobInfo.mux.Unlock()
 		val := fmt.Sprintf("%s|%s", fmt.Sprint(resDelay), fmt.Sprint(len(resBody)))
 		fmt.Println(val)
-		
-		mn.app.Append(file.NewBlock("job-monitoring",val))
+
+		mn.app.Append(file.NewBlock("job-monitoring", val))
 	}
 }
 

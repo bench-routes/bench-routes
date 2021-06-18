@@ -21,10 +21,10 @@ func NewScheduler(jobs map[*job.JobInfo]chan<- struct{}) *Scheduler {
 }
 
 func (s *Scheduler) Run(ctx context.Context) {
-	for{
-		for info,ch := range s.timeline{
-			
-		}
+	for {
+		// for info, ch := range s.timeline {
+
+		// }
 		time.Sleep(time.Second)
 	}
 }
