@@ -32,7 +32,7 @@ type JobInfo struct {
 
 type monitoringJob struct {
 	JobInfo
-	app     *file.Appendable
+	app     file.Appendable
 	sigCh   chan struct{}
 	client  *http.Client
 	request *http.Request
@@ -40,13 +40,13 @@ type monitoringJob struct {
 
 type machineJob struct {
 	JobInfo
-	app   *file.Appendable
+	app   file.Appendable
 	sigCh chan struct{}
 	host  string
 }
 
 // NewJob creates a new job based on the typ
-func NewJob(typ string, app *file.Appendable, c chan struct{}, api *config.API) (Executable, error) {
+func NewJob(typ string, app file.Appendable, c chan struct{}, api *config.API) (Executable, error) {
 	switch typ {
 	case "machine":
 		job, err := newMachineJob(app, c, api)
@@ -65,7 +65,7 @@ func NewJob(typ string, app *file.Appendable, c chan struct{}, api *config.API) 
 	}
 }
 
-func newMonitoringJob(app *file.Appendable, c chan struct{}, api *config.API) (*monitoringJob, error) {
+func newMonitoringJob(app file.Appendable, c chan struct{}, api *config.API) (*monitoringJob, error) {
 	newJob := &monitoringJob{
 		app:   app,
 		sigCh: c,
@@ -107,8 +107,8 @@ func (mn *monitoringJob) Execute() {
 		mn.JobInfo.mux.Unlock()
 		val := fmt.Sprintf("%s|%s", fmt.Sprint(resDelay), fmt.Sprint(len(resBody)))
 		fmt.Println(val)
-		// app := *mn.app
-		// app.Append(file.NewBlock(mn.jobInfo.name,val))
+		
+		mn.app.Append(file.NewBlock("job-monitoring",val))
 	}
 }
 
@@ -144,7 +144,7 @@ func newReq(job *monitoringJob, api *config.API) error {
 	return nil
 }
 
-func newMachineJob(app *file.Appendable, c chan struct{}, api *config.API) (*machineJob, error) {
+func newMachineJob(app file.Appendable, c chan struct{}, api *config.API) (*machineJob, error) {
 	newjob := &machineJob{
 		app:   app,
 		sigCh: c,
