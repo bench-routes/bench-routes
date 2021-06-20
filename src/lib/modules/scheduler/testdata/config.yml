@@ -1,0 +1,8 @@
+apis:
+  - name: google
+    every: 5s
+    domain_or_ip: https://github.com
+    route: /bench-routes/bench-routes
+    method: GET
+    headers:
+      Content-Type: application/json
