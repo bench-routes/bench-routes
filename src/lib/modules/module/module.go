@@ -76,6 +76,7 @@ func (m *Machine) Run() {
 			if cancel != nil {
 				cancel()
 			}
+			fmt.Println("Stopping Module")
 			break
 		}
 		if cancel != nil {
