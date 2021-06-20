@@ -25,8 +25,8 @@ type Executable interface {
 
 type JobInfo struct {
 	mux         sync.RWMutex
-	name        string
-	every       time.Duration
+	Name        string
+	Every       time.Duration
 	lastExecute time.Time
 }
 
@@ -70,8 +70,8 @@ func newMonitoringJob(app file.Appendable, c chan struct{}, api *config.API) (*m
 		app:   app,
 		sigCh: c,
 		JobInfo: JobInfo{
-			name:        api.Name,
-			every:       api.Every,
+			Name:        api.Name,
+			Every:       api.Every,
 			lastExecute: time.Now().Add(api.Every * -1),
 		},
 		client: &http.Client{
@@ -88,6 +88,7 @@ func newMonitoringJob(app file.Appendable, c chan struct{}, api *config.API) (*m
 // Execute executes the monitoringJob
 func (mn *monitoringJob) Execute() {
 	for range mn.sigCh {
+		mn.JobInfo.writeTime()
 		stamp := time.Now()
 		res, err := mn.client.Do(mn.request)
 		if err != nil {
@@ -102,13 +103,10 @@ func (mn *monitoringJob) Execute() {
 			continue
 		}
 		res.Body.Close()
-		mn.JobInfo.mux.Lock()
-		mn.JobInfo.lastExecute = time.Now()
-		mn.JobInfo.mux.Unlock()
 		val := fmt.Sprintf("%s|%s", fmt.Sprint(resDelay), fmt.Sprint(len(resBody)))
 		fmt.Println(val)
 
-		mn.app.Append(file.NewBlock("job-monitoring", val))
+		// mn.app.Append(file.NewBlock("job-monitoring", val))
 	}
 }
 
@@ -149,8 +147,8 @@ func newMachineJob(app file.Appendable, c chan struct{}, api *config.API) (*mach
 		app:   app,
 		sigCh: c,
 		JobInfo: JobInfo{
-			name:        api.Name,
-			every:       api.Every,
+			Name:        api.Name,
+			Every:       api.Every,
 			lastExecute: time.Now().Add(api.Every * -1),
 		},
 		host: *filters.HTTPPingFilter(&api.Domain),
@@ -161,6 +159,7 @@ func newMachineJob(app file.Appendable, c chan struct{}, api *config.API) (*mach
 // Execute execute the machineJob
 func (mn *machineJob) Execute() {
 	for range mn.sigCh {
+		mn.JobInfo.writeTime()
 		pinger, err := ping.NewPinger(mn.host)
 		if err != nil {
 			fmt.Println(fmt.Errorf("error creating ping : %w", err))
@@ -173,7 +172,7 @@ func (mn *machineJob) Execute() {
 		pinger.OnRecv = func(pkt *ping.Packet) {
 			if lastTime != time.Second*0 {
 				sum += absDiff(lastTime, pkt.Rtt)
-				fmt.Println("lastTime : ", lastTime, " Current : ", pkt.Rtt, " Diff : ", absDiff(lastTime, pkt.Rtt))
+				// fmt.Println("lastTime : ", lastTime, " Current : ", pkt.Rtt, " Diff : ", absDiff(lastTime, pkt.Rtt))
 			}
 			lastTime = pkt.Rtt
 		}
@@ -182,12 +181,9 @@ func (mn *machineJob) Execute() {
 			fmt.Println(fmt.Errorf("error running ping : %w", err))
 			continue
 		}
-		mn.JobInfo.mux.Lock()
-		mn.JobInfo.lastExecute = time.Now()
-		mn.JobInfo.mux.Unlock()
 		stats := pinger.Statistics()
-		fmt.Println("Ping : ", stats.AvgRtt)
-		fmt.Println("Jitter : ", sum/time.Duration(pinger.Count-1))
+		fmt.Println(mn.JobInfo.Name, " : Ping : ", stats.AvgRtt)
+		fmt.Println(mn.JobInfo.Name, " : Jitter : ", sum/time.Duration(pinger.Count-1))
 	}
 }
 
@@ -207,4 +203,16 @@ func absDiff(a, b time.Duration) time.Duration {
 		return a - b
 	}
 	return b - a
+}
+func (j *JobInfo) ReadTime() time.Time {
+	j.mux.RLock()
+	t := j.lastExecute
+	j.mux.RUnlock()
+	return t
+}
+
+func (j *JobInfo) writeTime() {
+	j.mux.Lock()
+	j.lastExecute = time.Now()
+	j.mux.Unlock()
 }
