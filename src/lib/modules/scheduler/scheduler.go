@@ -8,20 +8,22 @@ import (
 	"github.com/bench-routes/bench-routes/src/lib/modules/job"
 )
 
-type Scheduler struct {
+type scheduler struct {
 	scanFrequency time.Duration
 	timeline      map[*job.JobInfo]chan<- struct{}
 }
 
-func NewScheduler(jobs map[*job.JobInfo]chan<- struct{}) *Scheduler {
-	scheduler := &Scheduler{
-		scanFrequency: time.Second*1 + time.Second/2,
+// NewScheduler returns a scheduler with new timeline
+func NewScheduler(jobs map[*job.JobInfo]chan<- struct{}) *scheduler {
+	s := &scheduler{
+		scanFrequency: time.Second*1,
 		timeline:      jobs,
 	}
-	return scheduler
+	return s
 }
 
-func (s *Scheduler) Run(ctx context.Context) {
+// Run runs the scheduler with a ticker of one second
+func (s *scheduler) Run(ctx context.Context) {
 	var d time.Duration = s.scanFrequency
 	for {
 		select {
