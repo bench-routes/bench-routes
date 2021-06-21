@@ -16,7 +16,7 @@ type scheduler struct {
 // NewScheduler returns a scheduler with new timeline
 func NewScheduler(jobs map[*job.JobInfo]chan<- struct{}) *scheduler {
 	s := &scheduler{
-		scanFrequency: time.Second*1,
+		scanFrequency: time.Second * 1,
 		timeline:      jobs,
 	}
 	return s

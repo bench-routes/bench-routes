@@ -4,16 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
 
 	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
-	"github.com/bench-routes/bench-routes/src/lib/filters"
+	"github.com/bench-routes/bench-routes/src/lib/modules/executor"
 	"github.com/bench-routes/bench-routes/tsdb/file"
-	"github.com/go-ping/ping"
 )
 
 // Executable is an interface that is implemented by machineJob and monitoringJob
@@ -89,24 +88,9 @@ func newMonitoringJob(app file.Appendable, c chan struct{}, api *config.API) (*m
 func (mn *monitoringJob) Execute() {
 	for range mn.sigCh {
 		mn.JobInfo.writeTime()
-		stamp := time.Now()
-		res, err := mn.client.Do(mn.request)
-		if err != nil {
-			fmt.Println(fmt.Errorf("error in sending request: %w", err))
-			continue
+		if err := executor.ExecuteMonitor(mn.app, mn.client, mn.request); err != nil {
+			fmt.Println(fmt.Errorf("%s", err))
 		}
-		resDelay := time.Since(stamp)
-
-		resBody, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			fmt.Println(fmt.Errorf("error in reading response body: %w", err))
-			continue
-		}
-		res.Body.Close()
-		val := fmt.Sprintf("%s|%s", fmt.Sprint(resDelay), fmt.Sprint(len(resBody)))
-		fmt.Println(val)
-
-		// mn.app.Append(file.NewBlock("job-monitoring", val))
 	}
 }
 
@@ -151,8 +135,13 @@ func newMachineJob(app file.Appendable, c chan struct{}, api *config.API) (*mach
 			Every:       api.Every,
 			lastExecute: time.Now().Add(api.Every * -1),
 		},
-		host: *filters.HTTPPingFilter(&api.Domain),
+		// host: *filters.HTTPPingFilter(&api.Domain),
 	}
+	url, err := url.Parse(api.Domain)
+	if err != nil {
+		return nil, err
+	}
+	newjob.host = url.Host
 	return newjob, nil
 }
 
@@ -160,30 +149,9 @@ func newMachineJob(app file.Appendable, c chan struct{}, api *config.API) (*mach
 func (mn *machineJob) Execute() {
 	for range mn.sigCh {
 		mn.JobInfo.writeTime()
-		pinger, err := ping.NewPinger(mn.host)
-		if err != nil {
-			fmt.Println(fmt.Errorf("error creating ping : %w", err))
-			continue
+		if err := executor.ExecuteMachine(mn.app, mn.host); err != nil {
+			fmt.Println(fmt.Errorf("%s", err))
 		}
-		pinger.Count = 5
-		var lastTime time.Duration
-		var sum time.Duration
-		// Calculating jitter using ping values
-		pinger.OnRecv = func(pkt *ping.Packet) {
-			if lastTime != time.Second*0 {
-				sum += absDiff(lastTime, pkt.Rtt)
-				// fmt.Println("lastTime : ", lastTime, " Current : ", pkt.Rtt, " Diff : ", absDiff(lastTime, pkt.Rtt))
-			}
-			lastTime = pkt.Rtt
-		}
-		// Runing the pinger
-		if err := pinger.Run(); err != nil {
-			fmt.Println(fmt.Errorf("error running ping : %w", err))
-			continue
-		}
-		stats := pinger.Statistics()
-		fmt.Println(mn.JobInfo.Name, " : Ping : ", stats.AvgRtt)
-		fmt.Println(mn.JobInfo.Name, " : Jitter : ", sum/time.Duration(pinger.Count-1))
 	}
 }
 
@@ -198,12 +166,7 @@ func (mn *machineJob) Info() *JobInfo {
 	return &mn.JobInfo
 }
 
-func absDiff(a, b time.Duration) time.Duration {
-	if a >= b {
-		return a - b
-	}
-	return b - a
-}
+// ReadTime reads lastExecute of the JobInfo
 func (j *JobInfo) ReadTime() time.Time {
 	j.mux.RLock()
 	t := j.lastExecute
@@ -211,6 +174,7 @@ func (j *JobInfo) ReadTime() time.Time {
 	return t
 }
 
+// writeTime writes lastExecute of the JobInfo
 func (j *JobInfo) writeTime() {
 	j.mux.Lock()
 	j.lastExecute = time.Now()
