@@ -7,7 +7,26 @@ import (
 	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
 )
 
-func TestModule(t *testing.T) {
+func TestMachineModule(t *testing.T) {
+	module, err := NewModule("machine")
+	if err != nil {
+		t.Fatalf("error creating module %s", err)
+	}
+
+	go module.Run()
+
+	conf, err := config.New("./testdata/config.yml")
+	if err != nil {
+		t.Fatalf("error loading config: %s", err)
+	}
+
+	module.Reload(conf)
+	time.Sleep(time.Second * 40)
+	module.Stop()
+	time.Sleep(time.Second * 5)
+}
+
+func TestMonitorModule(t *testing.T) {
 	module, err := NewModule("monitor")
 	if err != nil {
 		t.Fatalf("error creating module %s", err)
@@ -21,7 +40,7 @@ func TestModule(t *testing.T) {
 	}
 
 	module.Reload(conf)
-	time.Sleep(time.Minute)
+	time.Sleep(time.Second * 40)
 	module.Stop()
-	time.Sleep(time.Second * 5)
+	time.Sleep(time.Second * 2)
 }
