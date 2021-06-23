@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
-	"github.com/bench-routes/bench-routes/src/lib/modules/executor"
+	"github.com/bench-routes/bench-routes/src/lib/modules/evaluate"
 	"github.com/bench-routes/bench-routes/tsdb/file"
 )
 
@@ -27,21 +28,6 @@ type JobInfo struct {
 	Name        string
 	Every       time.Duration
 	lastExecute time.Time
-}
-
-type monitoringJob struct {
-	JobInfo
-	app     file.Appendable
-	sigCh   chan struct{}
-	client  *http.Client
-	request *http.Request
-}
-
-type machineJob struct {
-	JobInfo
-	app   file.Appendable
-	sigCh chan struct{}
-	host  string
 }
 
 // NewJob creates a new job based on the typ
@@ -62,6 +48,14 @@ func NewJob(typ string, app file.Appendable, c chan struct{}, api *config.API) (
 	default:
 		return nil, fmt.Errorf("`typ` provided is invalid")
 	}
+}
+
+type monitoringJob struct {
+	JobInfo
+	app     file.Appendable
+	sigCh   chan struct{}
+	client  *http.Client
+	request *http.Request
 }
 
 func newMonitoringJob(app file.Appendable, c chan struct{}, api *config.API) (*monitoringJob, error) {
@@ -88,9 +82,13 @@ func newMonitoringJob(app file.Appendable, c chan struct{}, api *config.API) (*m
 func (mn *monitoringJob) Execute() {
 	for range mn.sigCh {
 		mn.JobInfo.writeTime()
-		if err := executor.ExecuteMonitor(mn.app, mn.client, mn.request); err != nil {
+		response,err := evaluate.Monitor(mn.client, mn.request);
+		if err != nil {
 			fmt.Println(fmt.Errorf("%s", err))
 		}
+		val := fmt.Sprintf("%v|%v", response.Delay.Microseconds(), strconv.Itoa(response.Length))
+		fmt.Println(val)
+		mn.app.Append(file.NewBlock("monitoring", val))
 	}
 }
 
@@ -126,6 +124,13 @@ func newReq(job *monitoringJob, api *config.API) error {
 	return nil
 }
 
+type machineJob struct {
+	JobInfo
+	app   file.Appendable
+	sigCh chan struct{}
+	host  string
+}
+
 func newMachineJob(app file.Appendable, c chan struct{}, api *config.API) (*machineJob, error) {
 	newjob := &machineJob{
 		app:   app,
@@ -149,9 +154,16 @@ func newMachineJob(app file.Appendable, c chan struct{}, api *config.API) (*mach
 func (mn *machineJob) Execute() {
 	for range mn.sigCh {
 		mn.JobInfo.writeTime()
-		if err := executor.ExecuteMachine(mn.app, mn.host); err != nil {
+		ping,jitter,err := evaluate.Machine(mn.host);
+		if err != nil {
 			fmt.Println(fmt.Errorf("%s", err))
 		}
+		pingval := fmt.Sprintf("%v|%v|%v",ping.Max.Microseconds(),ping.Mean.Microseconds(),ping.Mean.Microseconds())
+		jitterval := fmt.Sprintf("%v",jitter.Value.Microseconds())
+		fmt.Println(pingval)
+		fmt.Println(jitterval)
+		mn.app.Append(file.NewBlock("ping", pingval))
+		mn.app.Append(file.NewBlock("jitter", jitterval))
 	}
 }
 

@@ -1,7 +1,6 @@
 build/
 tmp_build/
 src/build/
-src/lib/config_v2/testdata
 bench-routes
 glide.lock
 tests/node_modules
