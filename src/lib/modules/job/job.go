@@ -82,12 +82,11 @@ func newMonitoringJob(app file.Appendable, c chan struct{}, api *config.API) (*m
 func (mn *monitoringJob) Execute() {
 	for range mn.sigCh {
 		mn.JobInfo.writeTime()
-		response,err := evaluate.Monitor(mn.client, mn.request);
+		response, err := evaluate.Monitor(mn.client, mn.request)
 		if err != nil {
 			fmt.Println(fmt.Errorf("%s", err))
 		}
 		val := fmt.Sprintf("%v|%v", response.Delay.Microseconds(), strconv.Itoa(response.Length))
-		fmt.Println(val)
 		mn.app.Append(file.NewBlock("monitoring", val))
 	}
 }
@@ -140,7 +139,6 @@ func newMachineJob(app file.Appendable, c chan struct{}, api *config.API) (*mach
 			Every:       api.Every,
 			lastExecute: time.Now().Add(api.Every * -1),
 		},
-		// host: *filters.HTTPPingFilter(&api.Domain),
 	}
 	url, err := url.Parse(api.Domain)
 	if err != nil {
@@ -154,14 +152,12 @@ func newMachineJob(app file.Appendable, c chan struct{}, api *config.API) (*mach
 func (mn *machineJob) Execute() {
 	for range mn.sigCh {
 		mn.JobInfo.writeTime()
-		ping,jitter,err := evaluate.Machine(mn.host);
+		ping, jitter, err := evaluate.Machine(mn.host)
 		if err != nil {
 			fmt.Println(fmt.Errorf("%s", err))
 		}
-		pingval := fmt.Sprintf("%v|%v|%v",ping.Max.Microseconds(),ping.Mean.Microseconds(),ping.Mean.Microseconds())
-		jitterval := fmt.Sprintf("%v",jitter.Value.Microseconds())
-		fmt.Println(pingval)
-		fmt.Println(jitterval)
+		pingval := fmt.Sprintf("%v|%v|%v", ping.Max.Microseconds(), ping.Mean.Microseconds(), ping.Mean.Microseconds())
+		jitterval := fmt.Sprintf("%v", jitter.Value.Microseconds())
 		mn.app.Append(file.NewBlock("ping", pingval))
 		mn.app.Append(file.NewBlock("jitter", jitterval))
 	}
@@ -169,7 +165,6 @@ func (mn *machineJob) Execute() {
 
 // Abort aborts the running job
 func (mn *machineJob) Abort() {
-	//do monitoring
 	close(mn.sigCh)
 }
 
