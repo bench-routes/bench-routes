@@ -87,6 +87,7 @@ func (mn *monitoringJob) Execute() {
 			fmt.Println(fmt.Errorf("%s", err))
 		}
 		val := fmt.Sprintf("%v|%v", response.Delay.Microseconds(), strconv.Itoa(response.Length))
+		fmt.Println(val)
 		mn.app.Append(file.NewBlock("monitoring", val))
 	}
 }
@@ -158,6 +159,8 @@ func (mn *machineJob) Execute() {
 		}
 		pingval := fmt.Sprintf("%v|%v|%v", ping.Max.Microseconds(), ping.Mean.Microseconds(), ping.Mean.Microseconds())
 		jitterval := fmt.Sprintf("%v", jitter.Value.Microseconds())
+		fmt.Println(pingval)
+		fmt.Println(jitterval)
 		mn.app.Append(file.NewBlock("ping", pingval))
 		mn.app.Append(file.NewBlock("jitter", jitterval))
 	}

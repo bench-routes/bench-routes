@@ -17,11 +17,13 @@ func TestScheduler(t *testing.T) {
 		t.Fatalf("error loading config: %s", err)
 	}
 	jobs := make(map[*job.JobInfo]chan<- struct{})
+	set := file.NewChainSet(0, time.Second*10)
+	set.Run()
 	for i, api := range conf.APIs {
-		var app file.Appendable
+		app, _ := set.NewChain(api.Name, api.Domain+api.Route, true)
 		ch := make(chan struct{})
 		// creating the jobs
-		exec, err := job.NewJob("machine", app, ch, &api)
+		exec, err := job.NewJob("monitor", app, ch, &api)
 		if err != nil {
 			fmt.Println(fmt.Errorf("error creating # %d job: %s\n", i, err))
 			continue
@@ -32,8 +34,11 @@ func TestScheduler(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	scheduler := NewScheduler(jobs)
+	if len(scheduler.timeline) != len(jobs) {
+		t.Errorf("error creating job : number of jobs in timeline is inaccurate")
+	}
 	go scheduler.Run(ctx)
-	time.Sleep(time.Second * 28)
+	time.Sleep(time.Second * 30)
 	cancel()
 	time.Sleep(time.Second * 8)
 }

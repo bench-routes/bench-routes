@@ -36,27 +36,28 @@ var testapis []config.API = []config.API{
 	},
 }
 
-func TestJob(t *testing.T) {
+func TestMonitorJob(t *testing.T) {
 	set := file.NewChainSet(0, time.Second*10)
 	set.Run()
-	for _, api := range testapis {
+	for index, api := range testapis {
 		fmt.Printf("testing ResDelay and resLength for %s\n", api.Name)
 		ch := make(chan struct{})
 		app, _ := set.NewChain(api.Name, api.Domain+api.Route, true)
 		exec, err := NewJob("monitor", app, ch, &api)
 		if err != nil {
-			t.Fatalf("Error: %s", err)
+			t.Errorf("error creating %d # job : %s", index, err)
 		}
-
+		if exec == nil {
+			t.Errorf("error creating %d # job : returns nil", index)
+		}
+		if exec.Info().Every != api.Every || exec.Info().Name != api.Name {
+			t.Errorf("error creating %d # job : jobInfo is not correct", index)
+		}
 		go exec.Execute()
-		ch <- struct{}{}
-		time.Sleep(time.Second * 5)
-		ch <- struct{}{}
-		time.Sleep(time.Second * 5)
-		ch <- struct{}{}
-		time.Sleep(time.Second * 5)
-		ch <- struct{}{}
-		time.Sleep(time.Second * 5)
+		for i := 0; i < 3; i++ {
+			ch <- struct{}{}
+			time.Sleep(time.Second * 5)
+		}
 		exec.Abort()
 	}
 }
@@ -64,24 +65,25 @@ func TestJob(t *testing.T) {
 func TestMachineJob(t *testing.T) {
 	set := file.NewChainSet(0, time.Second*10)
 	set.Run()
-	for _, api := range testapis {
-		fmt.Printf("testing Ping and Jitter for %s\n", api.Name)
+	for index, api := range testapis {
+		fmt.Printf("testing ResDelay and resLength for %s\n", api.Name)
 		ch := make(chan struct{})
 		app, _ := set.NewChain(api.Name, api.Domain+api.Route, true)
 		exec, err := NewJob("machine", app, ch, &api)
 		if err != nil {
-			t.Fatalf("Error: %s", err)
+			t.Errorf("error creating %d # job : %s", index, err)
 		}
-
+		if exec == nil {
+			t.Errorf("error creating %d # job : returns nil", index)
+		}
+		if exec.Info().Every != api.Every || exec.Info().Name != api.Name {
+			t.Errorf("error creating %d # job : jobInfo is not correct", index)
+		}
 		go exec.Execute()
-		ch <- struct{}{}
-		time.Sleep(time.Second * 10)
-		ch <- struct{}{}
-		time.Sleep(time.Second * 10)
-		ch <- struct{}{}
-		time.Sleep(time.Second * 10)
-		ch <- struct{}{}
-		time.Sleep(time.Second * 10)
+		for i := 0; i < 3; i++ {
+			ch <- struct{}{}
+			time.Sleep(time.Second * 10)
+		}
 		exec.Abort()
 	}
 }
