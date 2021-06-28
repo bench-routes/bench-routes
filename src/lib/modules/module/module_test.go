@@ -1,6 +1,7 @@
 package module
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -21,9 +22,10 @@ func TestMachineModule(t *testing.T) {
 	}
 
 	module.Reload(conf)
-	time.Sleep(time.Second * 40)
+	time.Sleep(time.Second * 30)
 	module.Stop()
-	time.Sleep(time.Second * 5)
+	time.Sleep(time.Second * 2)
+	os.RemoveAll("storage")
 }
 
 func TestMonitorModule(t *testing.T) {
@@ -43,4 +45,5 @@ func TestMonitorModule(t *testing.T) {
 	time.Sleep(time.Second * 40)
 	module.Stop()
 	time.Sleep(time.Second * 2)
+	os.RemoveAll("storage")
 }
