@@ -2,11 +2,13 @@ package job
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
 	"github.com/bench-routes/bench-routes/tsdb/file"
+	"github.com/stretchr/testify/require"
 )
 
 var testapis []config.API = []config.API{
@@ -14,10 +16,13 @@ var testapis []config.API = []config.API{
 		Name:   "API_1",
 		Every:  time.Second * 5,
 		Domain: "https://www.youtube.com",
-		Route:  "/watch?v=qqNenU-sQZI",
+		Route:  "/watch",
 		Method: "GET",
 		Headers: map[string]string{
 			"Content-Type": "application/json",
+		},
+		Params: map[string]string{
+			"v": "qqNenU-s",
 		},
 	},
 	{
@@ -39,10 +44,14 @@ var testapis []config.API = []config.API{
 func TestMonitorJob(t *testing.T) {
 	set := file.NewChainSet(0, time.Second*10)
 	set.Run()
+	var paths []string
+
+	// Running test for all the given apis.
 	for index, api := range testapis {
 		fmt.Printf("testing ResDelay and resLength for %s\n", api.Name)
 		ch := make(chan struct{})
-		app, _ := set.NewChain(api.Name, api.Domain+api.Route, true)
+		app, utils := set.NewChain(api.Name, api.Domain+api.Route, true)
+		paths = append(paths, utils.Path())
 		exec, err := NewJob("monitor", app, ch, &api)
 		if err != nil {
 			t.Errorf("error creating %d # job : %s", index, err)
@@ -56,19 +65,31 @@ func TestMonitorJob(t *testing.T) {
 		go exec.Execute()
 		for i := 0; i < 3; i++ {
 			ch <- struct{}{}
-			time.Sleep(time.Second * 5)
+			time.Sleep(exec.Info().Every)
 		}
 		exec.Abort()
 	}
+
+	// Deleting all the test files generated.
+	for _, path := range paths {
+		err := os.Remove(path)
+		require.NoError(t, err)
+	}
+	err := os.Remove("testdata")
+	require.NoError(t, err)
 }
 
 func TestMachineJob(t *testing.T) {
 	set := file.NewChainSet(0, time.Second*10)
 	set.Run()
+	var paths []string
+
+	// Running tests for all the apis.
 	for index, api := range testapis {
 		fmt.Printf("testing ResDelay and resLength for %s\n", api.Name)
 		ch := make(chan struct{})
-		app, _ := set.NewChain(api.Name, api.Domain+api.Route, true)
+		app, utils := set.NewChain(api.Name, api.Domain+api.Route, true)
+		paths = append(paths, utils.Path())
 		exec, err := NewJob("machine", app, ch, &api)
 		if err != nil {
 			t.Errorf("error creating %d # job : %s", index, err)
@@ -82,8 +103,16 @@ func TestMachineJob(t *testing.T) {
 		go exec.Execute()
 		for i := 0; i < 3; i++ {
 			ch <- struct{}{}
-			time.Sleep(time.Second * 10)
+			time.Sleep(exec.Info().Every)
 		}
 		exec.Abort()
 	}
+
+	// Deleting all the test files generated.
+	for _, path := range paths {
+		err := os.Remove(path)
+		require.NoError(t, err)
+	}
+	err := os.Remove("testdata")
+	require.NoError(t, err)
 }

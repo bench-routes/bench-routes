@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -43,20 +45,6 @@ func newMonitoringJob(app file.Appendable, c chan struct{}, api *config.API) (*m
 	return newJob, nil
 }
 
-// Execute executes the monitoringJob.
-func (mn *monitoringJob) Execute() {
-	for range mn.sigCh {
-		mn.JobInfo.writeTime()
-		response, err := evaluate.Monitor(mn.client, mn.request)
-		if err != nil {
-			fmt.Println(fmt.Errorf("%s", err))
-		}
-		val := fmt.Sprintf("%v|%v", response.Delay.Microseconds(), strconv.Itoa(response.Length))
-		fmt.Println(val)
-		mn.app.Append(file.NewBlock("monitoring", val))
-	}
-}
-
 // newReq creates http client and request for the job.
 func newReq(job *monitoringJob, api *config.API) error {
 	var body []byte
@@ -76,7 +64,26 @@ func newReq(job *monitoringJob, api *config.API) error {
 	for k, v := range api.Headers {
 		job.request.Header.Set(k, v)
 	}
+	// adding params to the request.
+	params := url.Values{}
+	for k, v := range api.Params {
+		params.Add(k, v)
+	}
+	job.request.URL.RawQuery = params.Encode()
 	return nil
+}
+
+// Execute executes the monitoringJob.
+func (mn *monitoringJob) Execute() {
+	for range mn.sigCh {
+		mn.JobInfo.writeTime()
+		response, err := evaluate.Monitor(mn.client, mn.request)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "job: %s: error: %s", mn.JobInfo.Name, err.Error())
+		}
+		val := fmt.Sprintf("%v|%v|%v", response.Delay.Microseconds(), strconv.Itoa(response.Length), strconv.Itoa(response.Size))
+		mn.app.Append(file.NewBlock("monitoring", val))
+	}
 }
 
 // Aborts aborts the running job.
