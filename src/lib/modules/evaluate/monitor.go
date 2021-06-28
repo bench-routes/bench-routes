@@ -9,9 +9,9 @@ import (
 
 // Response contains evaluations of response delay and length, calculated during monitoring of an API.
 type Response struct {
-	Delay  time.Duration	`json:"delay"`
-	Length int          	`json:"length"`
-	Size   int       		`json:"size"`
+	Delay  time.Duration `json:"delay"`
+	Length int           `json:"length"`
+	Size   int           `json:"size"`
 }
 
 // ExecuteMonitor monitors resDelay and resLength
