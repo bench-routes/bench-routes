@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+	"unicode/utf8"
 )
 
 // Response contains evaluations of response delay and length, calculated during monitoring of an API.
@@ -30,8 +31,8 @@ func Monitor(client *http.Client, request *http.Request) (*Response, error) {
 	defer res.Body.Close()
 	response := &Response{
 		Delay:  resDelay,
-		Length: len(string(resBody)),
-		Size:   len(resBody),
+		Length: len(resBody),
+		Size:   utf8.RuneCountInString(string(resBody)),
 	}
 	return response, nil
 }
