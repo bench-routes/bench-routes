@@ -6,6 +6,7 @@ import (
 	"time"
 
 	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMachineModule(t *testing.T) {
@@ -25,7 +26,8 @@ func TestMachineModule(t *testing.T) {
 	time.Sleep(time.Second * 30)
 	module.Stop()
 	time.Sleep(time.Second * 2)
-	os.RemoveAll("storage")
+	err = os.Remove("testdata")
+	require.NoError(t, err)
 }
 
 func TestMonitorModule(t *testing.T) {
@@ -45,5 +47,6 @@ func TestMonitorModule(t *testing.T) {
 	time.Sleep(time.Second * 40)
 	module.Stop()
 	time.Sleep(time.Second * 2)
-	os.RemoveAll("storage")
+	err = os.Remove("testdata")
+	require.NoError(t, err)
 }

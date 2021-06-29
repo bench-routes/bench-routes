@@ -2,7 +2,7 @@ package scheduler
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/bench-routes/bench-routes/src/lib/modules/job"
@@ -24,19 +24,21 @@ func NewScheduler(jobs map[*job.JobInfo]chan<- struct{}) *scheduler {
 
 // Run runs the scheduler with a ticker of one second
 func (s *scheduler) Run(ctx context.Context) {
-	var d time.Duration = s.scanFrequency
+	d := s.scanFrequency
 	for {
 		select {
 		case <-time.After(d):
-			fmt.Printf("Rechecking APIs : %s\n", time.Now().Format("15:04:05"))
 			for info, ch := range s.timeline {
+				// We do not stop the scheduler even if we get a cancel request while scheduling
+				// the jobs. The cancel should happen only when all the jobs have been served
+				// and then come out (or get cancelled) in the next iteration. This keeps the system
+				// with a deterministic behaviour.
 				if info.Every <= time.Since(info.ReadTime()) {
-					fmt.Printf("Execute %s : %s\n", info.Name, info.ReadTime().Format("15:04:05"))
 					ch <- struct{}{}
 				}
 			}
 		case <-ctx.Done():
-			fmt.Println("Stopping Scheduler")
+			log.Println("Stopping Scheduler")
 			return
 		}
 	}

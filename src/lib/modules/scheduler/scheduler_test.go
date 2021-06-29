@@ -3,12 +3,14 @@ package scheduler
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
 	"github.com/bench-routes/bench-routes/src/lib/modules/job"
 	"github.com/bench-routes/bench-routes/tsdb/file"
+	"github.com/stretchr/testify/require"
 )
 
 func TestScheduler(t *testing.T) {
@@ -20,7 +22,7 @@ func TestScheduler(t *testing.T) {
 	set := file.NewChainSet(0, time.Second*10)
 	set.Run()
 	for i, api := range conf.APIs {
-		app, _ := set.NewChain(api.Name, api.Domain+api.Route, true)
+		app, _ := set.NewChain(api.Name, api.Domain+api.Route, false)
 		ch := make(chan struct{})
 		// creating the jobs
 		exec, err := job.NewJob("monitor", app, ch, &api)
@@ -40,5 +42,7 @@ func TestScheduler(t *testing.T) {
 	go scheduler.Run(ctx)
 	time.Sleep(time.Second * 30)
 	cancel()
-	time.Sleep(time.Second * 8)
+	time.Sleep(time.Second * 2)
+	err = os.RemoveAll("storage")
+	require.NoError(t, err)
 }
