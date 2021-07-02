@@ -18,10 +18,11 @@ type machineJob struct {
 	host  string
 }
 
-func newMachineJob(app file.Appendable, c chan struct{}, api *config.API) (*machineJob, error) {
+func newMachineJob(app file.Appendable, api *config.API) (*machineJob, chan<- struct{}, error) {
+	sig := make(chan struct{})
 	newjob := &machineJob{
 		app:   app,
-		sigCh: c,
+		sigCh: sig,
 		JobInfo: JobInfo{
 			Name:        api.Name,
 			Every:       api.Every,
@@ -30,10 +31,10 @@ func newMachineJob(app file.Appendable, c chan struct{}, api *config.API) (*mach
 	}
 	url, err := url.Parse(api.Domain)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	newjob.host = url.Host
-	return newjob, nil
+	return newjob, sig, nil
 }
 
 // Execute execute the machineJob.
@@ -44,10 +45,12 @@ func (mn *machineJob) Execute() {
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "job: %s: error: %s", mn.JobInfo.Name, err.Error())
 		}
-		pingval := fmt.Sprintf("%v|%v|%v", ping.Max.Microseconds(), ping.Mean.Microseconds(), ping.Mean.Microseconds())
-		jitterval := fmt.Sprintf("%v", jitter.Value.Microseconds())
-		mn.app.Append(file.NewBlock("ping", pingval))
-		mn.app.Append(file.NewBlock("jitter", jitterval))
+		pingVal := fmt.Sprintf("%v|%v|%v", ping.Max.Microseconds(), ping.Mean.Microseconds(), ping.Mean.Microseconds())
+		jitterVal := fmt.Sprintf("%v", jitter.Value.Microseconds())
+		fmt.Println(pingVal)
+		fmt.Println(jitterVal)
+		mn.app.Append(file.NewBlock("ping", pingVal))
+		mn.app.Append(file.NewBlock("jitter", jitterVal))
 	}
 }
 

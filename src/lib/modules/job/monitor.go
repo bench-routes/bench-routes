@@ -25,10 +25,11 @@ type monitoringJob struct {
 }
 
 // newMonitoringJob creates a new monitoringJob.
-func newMonitoringJob(app file.Appendable, c chan struct{}, api *config.API) (*monitoringJob, error) {
+func newMonitoringJob(app file.Appendable, api *config.API) (*monitoringJob, chan<- struct{}, error) {
+	sig := make(chan struct{})
 	newJob := &monitoringJob{
 		app:   app,
-		sigCh: c,
+		sigCh: sig,
 		JobInfo: JobInfo{
 			Name:        api.Name,
 			Every:       api.Every,
@@ -40,15 +41,17 @@ func newMonitoringJob(app file.Appendable, c chan struct{}, api *config.API) (*m
 		request: &http.Request{},
 	}
 	if err := newReq(newJob, api); err != nil {
-		return nil, fmt.Errorf("error making http request : %w", err)
+		return nil, nil, fmt.Errorf("error making http request : %w", err)
 	}
-	return newJob, nil
+	return newJob, sig, nil
 }
 
 // newReq creates http client and request for the job.
 func newReq(job *monitoringJob, api *config.API) error {
-	var body []byte
-	var err error
+	var (
+		body []byte
+		err  error
+	)
 	if len(api.Body) != 0 {
 		body, err = json.Marshal(api.Body)
 		if err != nil {
@@ -82,6 +85,7 @@ func (mn *monitoringJob) Execute() {
 			fmt.Fprintf(os.Stderr, "job: %s: error: %s", mn.JobInfo.Name, err.Error())
 		}
 		val := fmt.Sprintf("%v|%v|%v", response.Delay.Microseconds(), strconv.Itoa(response.Length), strconv.Itoa(response.Size))
+		fmt.Println(val)
 		mn.app.Append(file.NewBlock("monitoring", val))
 	}
 }

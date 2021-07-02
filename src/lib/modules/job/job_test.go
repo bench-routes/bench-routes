@@ -49,18 +49,17 @@ func TestMonitorJob(t *testing.T) {
 	// Running test for all the given apis.
 	for index, api := range testapis {
 		fmt.Printf("testing ResDelay and resLength for %s\n", api.Name)
-		ch := make(chan struct{})
 		app, utils := set.NewChain(api.Name, api.Domain+api.Route, true)
 		paths = append(paths, utils.Path())
-		exec, err := NewJob("monitor", app, ch, &api)
+		exec, ch, err := NewJob("monitor", app, &api)
 		if err != nil {
-			t.Errorf("error creating %d # job : %s", index, err)
+			require.FailNow(t, "error creating %d # job : %s", index, err)
 		}
 		if exec == nil {
-			t.Errorf("error creating %d # job : returns nil", index)
+			require.FailNow(t, "error creating %d # job : returns nil", index)
 		}
 		if exec.Info().Every != api.Every || exec.Info().Name != api.Name {
-			t.Errorf("error creating %d # job : jobInfo is not correct", index)
+			require.FailNow(t, "error creating %d # job : jobInfo is not correct", index)
 		}
 		go exec.Execute()
 		for i := 0; i < 3; i++ {
@@ -87,18 +86,17 @@ func TestMachineJob(t *testing.T) {
 	// Running tests for all the apis.
 	for index, api := range testapis {
 		fmt.Printf("testing ResDelay and resLength for %s\n", api.Name)
-		ch := make(chan struct{})
 		app, utils := set.NewChain(api.Name, api.Domain+api.Route, true)
 		paths = append(paths, utils.Path())
-		exec, err := NewJob("machine", app, ch, &api)
+		exec, ch, err := NewJob("machine", app, &api)
 		if err != nil {
-			t.Errorf("error creating %d # job : %s", index, err)
+			require.FailNow(t, "error creating %d # job : %s", index, err)
 		}
 		if exec == nil {
-			t.Errorf("error creating %d # job : returns nil", index)
+			require.FailNow(t, "error creating %d # job : returns nil", index)
 		}
 		if exec.Info().Every != api.Every || exec.Info().Name != api.Name {
-			t.Errorf("error creating %d # job : jobInfo is not correct", index)
+			require.FailNow(t, "error creating %d # job : jobInfo is not correct", index)
 		}
 		go exec.Execute()
 		for i := 0; i < 3; i++ {
