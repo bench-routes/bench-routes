@@ -17,12 +17,12 @@ type Response struct {
 
 // ExecuteMonitor monitors resDelay and resLength
 func Monitor(client *http.Client, request *http.Request) (*Response, error) {
-	stamp := time.Now()
+	begin := time.Now()
 	res, err := client.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("error in sending request: %w", err)
 	}
-	resDelay := time.Since(stamp)
+	resDelay := time.Since(begin)
 
 	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -31,8 +31,8 @@ func Monitor(client *http.Client, request *http.Request) (*Response, error) {
 	defer res.Body.Close()
 	response := &Response{
 		Delay:  resDelay,
-		Length: len(resBody),
-		Size:   utf8.RuneCountInString(string(resBody)),
+		Length: utf8.RuneCountInString(string(resBody)),
+		Size:   len(resBody),
 	}
 	return response, nil
 }

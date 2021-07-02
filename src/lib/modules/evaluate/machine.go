@@ -23,11 +23,10 @@ type Jitter struct {
 func Machine(host string) (*Ping, *Jitter, error) {
 	pinger, err := ping.NewPinger(host)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error creating ping : %w", err)
+		return nil, nil, fmt.Errorf("error creating pinger : %w", err)
 	}
 	pinger.Count = 5
-	var lastTime time.Duration
-	var sum time.Duration
+	var lastTime, sum time.Duration
 	// Calculating jitter using ping values.
 	pinger.OnRecv = func(pkt *ping.Packet) {
 		if lastTime != time.Second*0 {
@@ -40,17 +39,17 @@ func Machine(host string) (*Ping, *Jitter, error) {
 		return nil, nil, fmt.Errorf("error running ping : %w", err)
 	}
 	stats := pinger.Statistics()
-	avgjitter := sum / time.Duration(pinger.Count-1)
-	pingval := &Ping{
+	jitter := sum / time.Duration(pinger.Count-1)
+	pingVal := &Ping{
 		Min:  stats.MaxRtt,
 		Mean: stats.AvgRtt,
 		Max:  stats.MinRtt,
 	}
-	jitterval := &Jitter{
-		Value: avgjitter,
+	jitterVal := &Jitter{
+		Value: jitter,
 	}
 
-	return pingval, jitterval, nil
+	return pingVal, jitterVal, nil
 }
 
 func absDiff(a, b time.Duration) time.Duration {
