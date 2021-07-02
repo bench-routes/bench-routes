@@ -2,7 +2,6 @@ package scheduler
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -16,18 +15,17 @@ import (
 func TestScheduler(t *testing.T) {
 	conf, err := config.New("./testdata/config.yml")
 	if err != nil {
-		t.Fatalf("error loading config: %s", err)
+		require.FailNow(t, "error loading config: %w\n", err)
 	}
 	jobs := make(map[*job.JobInfo]chan<- struct{})
 	set := file.NewChainSet(0, time.Second*10)
 	set.Run()
 	for i, api := range conf.APIs {
 		app, _ := set.NewChain(api.Name, api.Domain+api.Route, false)
-		ch := make(chan struct{})
 		// creating the jobs
-		exec, err := job.NewJob("monitor", app, ch, &api)
+		exec, ch, err := job.NewJob("monitor", app, &api)
 		if err != nil {
-			fmt.Println(fmt.Errorf("error creating # %d job: %s\n", i, err))
+			require.FailNow(t, "error creating # %d job: %s\n", i, err)
 			continue
 		}
 		// launching the jobs
