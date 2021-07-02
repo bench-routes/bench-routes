@@ -9,7 +9,7 @@ import (
 // Runnable is an interface that is implmented by Machine and Monitor.
 type Runnable interface {
 	Run()
-	Reload(*config.Config)
+	Reload(*config.Config, chan<- error)
 	Stop()
 }
 
@@ -19,13 +19,13 @@ func NewModule(typ string) (Runnable, error) {
 	case "machine":
 		module, err := newMachineModule()
 		if err != nil {
-			return nil, fmt.Errorf("error creating module : %w", err)
+			return nil, fmt.Errorf("creating machine module : %w", err)
 		}
 		return module, nil
 	case "monitor":
 		module, err := newMonitorModule()
 		if err != nil {
-			return nil, fmt.Errorf("error creating module : %w", err)
+			return nil, fmt.Errorf("creating monitoring module : %w", err)
 		}
 		return module, nil
 	default:

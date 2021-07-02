@@ -33,17 +33,20 @@ func (m *Monitor) Run() {
 		ctx    context.Context
 		cancel context.CancelFunc
 	)
-	for {
-		_, open := <-m.reload
-		if !open {
-			if cancel != nil {
-				cancel()
-			}
-			break
-		}
+	cancelCurrentScheduler := func(cancel context.CancelFunc) {
 		if cancel != nil {
 			cancel()
 		}
+	}
+	for {
+		_, open := <-m.reload
+		if !open {
+			cancelCurrentScheduler(cancel)
+			break
+		}
+
+		// canceling scheduler if already present
+		cancelCurrentScheduler(cancel)
 		ctx, cancel = context.WithCancel(context.Background())
 		scheduler := scheduler.NewScheduler(m.jobs)
 		go scheduler.Run(ctx)
@@ -51,18 +54,17 @@ func (m *Monitor) Run() {
 }
 
 // Reload reloads the new config and signals reload channel.
-func (m *Monitor) Reload(conf *config.Config) {
+func (m *Monitor) Reload(conf *config.Config, errCh chan<- error) {
 	jobs := make(map[*job.JobInfo]chan<- struct{})
 	set := file.NewChainSet(0, time.Second*10)
 	set.Run()
 	for i, api := range conf.APIs {
 		app, _ := set.NewChain(api.Name, api.Domain+api.Route, false)
 
-		ch := make(chan struct{})
 		// creating the jobs
-		exec, err := job.NewJob("monitor", app, ch, &api)
+		exec, ch, err := job.NewJob("monitor", app, &api)
 		if err != nil {
-			fmt.Println(fmt.Errorf("error creating # %d job: %s", i, err))
+			errCh <- fmt.Errorf("error creating # %d job: %s", i, err)
 			continue
 		}
 		// launching the jobs
@@ -74,6 +76,7 @@ func (m *Monitor) Reload(conf *config.Config) {
 	m.mux.Unlock()
 	// signaling to reload
 	m.reload <- struct{}{}
+	errCh <- nil
 }
 
 // Stop stops the module.
