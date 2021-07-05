@@ -6,6 +6,7 @@ require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/alecthomas/units v0.0.0-20201120081800-1786d5ef83d4 // indirect
 	github.com/go-ole/go-ole v1.2.5 // indirect
+	github.com/go-ping/ping v0.0.0-20210506233800-ff8be3320020
 	github.com/gorilla/mux v1.8.0
 	github.com/mackerelio/go-osstat v0.1.0
 	github.com/prometheus/client_golang v1.9.0
