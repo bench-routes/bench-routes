@@ -34,7 +34,7 @@ func Machine(host string) (*Ping, *Jitter, error) {
 		}
 		lastTime = pkt.Rtt
 	}
-	// Runing the pinger
+	// Runing the pinger.
 	if err := pinger.Run(); err != nil {
 		return nil, nil, fmt.Errorf("error running ping : %w", err)
 	}

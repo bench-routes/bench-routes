@@ -13,8 +13,8 @@ type scheduler struct {
 	timeline      map[*job.JobInfo]chan<- struct{}
 }
 
-// NewScheduler returns a scheduler with new timeline
-func NewScheduler(jobs map[*job.JobInfo]chan<- struct{}) *scheduler {
+// New returns a scheduler with new timeline.
+func New(jobs map[*job.JobInfo]chan<- struct{}) *scheduler {
 	s := &scheduler{
 		scanFrequency: time.Second * 1,
 		timeline:      jobs,
@@ -22,7 +22,7 @@ func NewScheduler(jobs map[*job.JobInfo]chan<- struct{}) *scheduler {
 	return s
 }
 
-// Run runs the scheduler with a ticker of one second
+// Run runs the scheduler with a ticker of one second.
 func (s *scheduler) Run(ctx context.Context) {
 	d := s.scanFrequency
 	for {

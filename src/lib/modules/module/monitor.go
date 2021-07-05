@@ -45,10 +45,10 @@ func (m *Monitor) Run() {
 			break
 		}
 
-		// canceling scheduler if already present
+		// canceling scheduler if already present.
 		cancelCurrentScheduler(cancel)
 		ctx, cancel = context.WithCancel(context.Background())
-		scheduler := scheduler.NewScheduler(m.jobs)
+		scheduler := scheduler.New(m.jobs)
 		go scheduler.Run(ctx)
 	}
 }
@@ -61,20 +61,20 @@ func (m *Monitor) Reload(conf *config.Config, errCh chan<- error) {
 	for i, api := range conf.APIs {
 		app, _ := set.NewChain(api.Name, api.Domain+api.Route, false)
 
-		// creating the jobs
+		// creating the jobs.
 		exec, ch, err := job.NewJob("monitor", app, &api)
 		if err != nil {
 			errCh <- fmt.Errorf("error creating # %d job: %s", i, err)
 			continue
 		}
-		// launching the jobs
+		// launching the jobs.
 		go exec.Execute()
 		jobs[exec.Info()] = ch
 	}
 	m.mux.Lock()
 	m.jobs = jobs
 	m.mux.Unlock()
-	// signaling to reload
+	// signaling to reload.
 	m.reload <- struct{}{}
 	errCh <- nil
 }

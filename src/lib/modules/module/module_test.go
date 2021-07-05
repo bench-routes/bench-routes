@@ -10,7 +10,7 @@ import (
 )
 
 func TestMachineModule(t *testing.T) {
-	module, err := NewModule("machine")
+	module, err := New("machine")
 	if err != nil {
 		t.Fatalf("error creating module %s", err)
 	}
@@ -35,7 +35,7 @@ func TestMachineModule(t *testing.T) {
 }
 
 func TestMonitorModule(t *testing.T) {
-	module, err := NewModule("monitor")
+	module, err := New("monitor")
 	if err != nil {
 		t.Fatalf("error creating module %s", err)
 	}

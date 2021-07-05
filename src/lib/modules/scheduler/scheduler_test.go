@@ -33,7 +33,7 @@ func TestScheduler(t *testing.T) {
 		jobs[exec.Info()] = ch
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	scheduler := NewScheduler(jobs)
+	scheduler := New(jobs)
 	if len(scheduler.timeline) != len(jobs) {
 		t.Errorf("error creating job : number of jobs in timeline is inaccurate")
 	}

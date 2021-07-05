@@ -13,8 +13,8 @@ type Runnable interface {
 	Stop()
 }
 
-// NewModule returns a Runnable interface to implment machine and monitoring jobs.
-func NewModule(typ string) (Runnable, error) {
+// New returns a Runnable interface to implment machine and monitoring jobs.
+func New(typ string) (Runnable, error) {
 	switch typ {
 	case "machine":
 		module, err := newMachineModule()

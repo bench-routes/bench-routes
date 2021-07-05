@@ -85,7 +85,6 @@ func (mn *monitoringJob) Execute() {
 			fmt.Fprintf(os.Stderr, "job: %s: error: %s", mn.JobInfo.Name, err.Error())
 		}
 		val := fmt.Sprintf("%v|%v|%v", response.Delay.Microseconds(), strconv.Itoa(response.Length), strconv.Itoa(response.Size))
-		fmt.Println(val)
 		mn.app.Append(file.NewBlock("monitoring", val))
 	}
 }

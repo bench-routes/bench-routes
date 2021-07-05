@@ -15,7 +15,7 @@ type Response struct {
 	Size   int           `json:"size"`
 }
 
-// ExecuteMonitor monitors resDelay and resLength
+// ExecuteMonitor monitors resDelay and resLength.
 func Monitor(client *http.Client, request *http.Request) (*Response, error) {
 	begin := time.Now()
 	res, err := client.Do(request)

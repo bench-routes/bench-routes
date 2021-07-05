@@ -47,8 +47,6 @@ func (mn *machineJob) Execute() {
 		}
 		pingVal := fmt.Sprintf("%v|%v|%v", ping.Max.Microseconds(), ping.Mean.Microseconds(), ping.Mean.Microseconds())
 		jitterVal := fmt.Sprintf("%v", jitter.Value.Microseconds())
-		fmt.Println(pingVal)
-		fmt.Println(jitterVal)
 		mn.app.Append(file.NewBlock("ping", pingVal))
 		mn.app.Append(file.NewBlock("jitter", jitterVal))
 	}

@@ -45,10 +45,10 @@ func (m *Machine) Run() {
 			break
 		}
 
-		// canceling scheduler if already present
+		// canceling scheduler if already present.
 		cancelCurrentScheduler(cancel)
 		ctx, cancel = context.WithCancel(context.Background())
-		scheduler := scheduler.NewScheduler(m.jobs)
+		scheduler := scheduler.New(m.jobs)
 		go scheduler.Run(ctx)
 	}
 }
@@ -73,7 +73,7 @@ func (m *Machine) Reload(conf *config.Config, errCh chan<- error) {
 	m.mux.Lock()
 	m.jobs = jobs
 	m.mux.Unlock()
-	// signaling to reload the scheduler
+	// signaling to reload the scheduler.
 	m.reload <- struct{}{}
 	errCh <- nil
 }
