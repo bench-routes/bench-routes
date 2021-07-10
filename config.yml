@@ -1,0 +1,11 @@
+apis:
+  - name: sample-google
+    every: 5s
+    protocol: https
+    domain_or_ip: www.google.com
+    route: /search
+    method: get
+    headers:
+      Content-Type: json
+    params:
+      q: bench-routes

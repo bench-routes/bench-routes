@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
+	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/modules/evaluate"
 	"github.com/bench-routes/bench-routes/tsdb/file"
 )
@@ -59,7 +58,7 @@ func newReq(job *monitoringJob, api *config.API) error {
 		}
 	}
 	// creating http request for job.
-	job.request, err = http.NewRequest(strings.ToUpper(api.Method), api.Domain+api.Route, bytes.NewBuffer(body))
+	job.request, err = http.NewRequest(strings.ToUpper(api.Method), api.Protocol+"://"+api.Domain+api.Route, bytes.NewBuffer(body))
 	if err != nil {
 		return fmt.Errorf("error making http request : %w", err)
 	}
@@ -77,19 +76,20 @@ func newReq(job *monitoringJob, api *config.API) error {
 }
 
 // Execute executes the monitoringJob.
-func (mn *monitoringJob) Execute() {
+func (mn *monitoringJob) Execute(errCh chan<- error) {
 	for range mn.sigCh {
 		mn.JobInfo.writeTime()
 		response, err := evaluate.Monitor(mn.client, mn.request)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "job: %s: error: %s", mn.JobInfo.Name, err.Error())
+			errCh <- fmt.Errorf("job: %s: %w", mn.JobInfo.Name, err)
+			return
 		}
 		val := fmt.Sprintf("%v|%v|%v", response.Delay.Microseconds(), strconv.Itoa(response.Length), strconv.Itoa(response.Size))
 		mn.app.Append(file.NewBlock("monitoring", val))
 	}
 }
 
-// Aborts aborts the running job.
+// Abort aborts the running job.
 func (mn *monitoringJob) Abort() {
 	close(mn.sigCh)
 }

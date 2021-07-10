@@ -7,16 +7,16 @@ import (
 	"os"
 	"sync"
 
-	"github.com/prometheus/common/log"
+	"github.com/bench-routes/bench-routes/src/lib/log"
 )
 
 type Appendable interface {
-	// Appends allows to append a block into the chain.
+	// Append allows to append a block into the chain.
 	Append(b Block)
 }
 
 type ChainUtils interface {
-	// getPath returns the path of the chain.
+	// Path returns the path of the chain.
 	Path() string
 	// ForceCommit commits the chain irrespective of chain-set's runner.
 	ForceCommit()
@@ -56,7 +56,7 @@ func newChain(name, url string, useTestDir bool) *chain {
 func (c *chain) init() {
 	data, err := parse(c.path)
 	if err != nil {
-		log.Infof("creating in-memory chain '%s' with path at '%s'\n", c.name, c.path)
+		log.Info("creating in-memory chain '%s' with path at '%s'\n", c.name, c.path)
 		if err := saveToHDD(c.path, parseToJSON(c.stream)); err != nil {
 			panic(err)
 		}
@@ -82,6 +82,7 @@ func (c *chain) Append(b Block) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
+	// This is knowingly kept as comment. Will be useful when we mark nil points on graphs.
 	// if c.stream[0].Type == "null" {
 	// 	c.stream = c.stream[:0]
 	// }

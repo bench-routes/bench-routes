@@ -10,10 +10,10 @@ import (
 	"time"
 )
 
-var Chains *chainSet
+var Chains *ChainSet
 
 func init() {
-	Chains = NewChainSet(FlushAsTime, time.Second*30)
+	Chains = NewChainSet(FlushAsTime, time.Second*10)
 	Chains.Run()
 }
 
@@ -35,12 +35,12 @@ const (
 	// inActiveIterationsLimit = 5
 )
 
-// chainSet is a set of chain that manages the operations related to chains
+// ChainSet is a set of chain that manages the operations related to chains
 // on a macro level. These include flushing chains to the storage based on
 // regular time intervals or size (to be done). It can delete chains that are
 // not active, thus being low on the memory. Scheduling operations on
 // time-series values in chain can be done as well with slight customization.
-type chainSet struct {
+type ChainSet struct {
 	FlushDuration time.Duration
 	flushType     int
 	Cmap          map[string]*chain
@@ -49,8 +49,8 @@ type chainSet struct {
 }
 
 // NewChainSet returns a new ChainSet for managing chains during runtime.
-func NewChainSet(flushType int, flushDuration time.Duration) *chainSet {
-	return &chainSet{
+func NewChainSet(flushType int, flushDuration time.Duration) *ChainSet {
+	return &ChainSet{
 		FlushDuration: flushDuration,
 		flushType:     flushType,
 		Cmap:          make(map[string]*chain),
@@ -59,14 +59,14 @@ func NewChainSet(flushType int, flushDuration time.Duration) *chainSet {
 }
 
 // Cancel cancels or stops the execution of chain scheduler.
-func (cs *chainSet) Cancel() {
+func (cs *ChainSet) Cancel() {
 	cs.cancel <- ""
 }
 
 // Get returns the chain corresponding to the passed name. It returns
 // false if the chain is not found in the Cmap. This can be the case if the
 // chain has been deleted by the Run() in order to save the memory resources.
-func (cs *chainSet) Get(name string) (*chain, bool) {
+func (cs *ChainSet) Get(name string) (*chain, bool) {
 	if _, ok := cs.Cmap[name]; !ok {
 		return nil, false
 	}
@@ -74,7 +74,7 @@ func (cs *chainSet) Get(name string) (*chain, bool) {
 }
 
 // NewChain returns a new in-memory chain after registering in chain-set.
-func (cs *chainSet) NewChain(name, url string, useTestDir bool) (Appendable, ChainUtils) {
+func (cs *ChainSet) NewChain(name, url string, useTestDir bool) (Appendable, ChainUtils) {
 	c := newChain(name, url, useTestDir)
 	c.init()
 	cs.register(name, c)
@@ -82,7 +82,7 @@ func (cs *chainSet) NewChain(name, url string, useTestDir bool) (Appendable, Cha
 }
 
 // DeleteChain removes the chain.
-func (cs *chainSet) DeleteChain(name string) error {
+func (cs *ChainSet) DeleteChain(name string) error {
 	_, exists := cs.Cmap[name]
 	if !exists {
 		return fmt.Errorf("chain '%s' does not exists", name)
@@ -96,7 +96,7 @@ func (cs *chainSet) DeleteChain(name string) error {
 // name as Key and Chain address as value respectively. Repeated
 // calls with same name will overwrite the chain contents and hence
 // not recommended.
-func (cs *chainSet) register(name string, c *chain) {
+func (cs *ChainSet) register(name string, c *chain) {
 	cs.mux.Lock()
 	defer cs.mux.Unlock()
 	cs.Cmap[name] = c
@@ -106,7 +106,7 @@ func (cs *chainSet) register(name string, c *chain) {
 // flushing those chains that have newer blocks only. This is done
 // keeping in mind the performance of the system, thus being effective
 // on the resources.
-func (cs *chainSet) Run() {
+func (cs *ChainSet) Run() {
 	switch cs.flushType {
 	case FlushAsTime:
 		go func() {
