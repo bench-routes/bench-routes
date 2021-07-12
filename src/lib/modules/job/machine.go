@@ -45,7 +45,7 @@ func (mn *machineJob) Execute(errCh chan<- error) {
 			errCh <- fmt.Errorf("job: %s: %w", mn.JobInfo.Name, err)
 			return
 		}
-		pingVal := fmt.Sprintf("%v|%v|%v", ping.Max.Microseconds(), ping.Mean.Microseconds(), ping.Mean.Microseconds())
+		pingVal := fmt.Sprintf("%v|%v|%v", ping.Max.Microseconds(), ping.Mean.Microseconds(), ping.Min.Microseconds())
 		jitterVal := fmt.Sprintf("%v", jitter.Value.Microseconds())
 		mn.app.Append(file.NewBlock("ping", pingVal))
 		mn.app.Append(file.NewBlock("jitter", jitterVal))

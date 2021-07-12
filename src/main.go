@@ -27,18 +27,18 @@ func main() {
 	parsesFlags(conf, os.Args[1:])
 	err := validateFlags(conf)
 	if err != nil {
-		printErr("validate-flags", err)
+		printErrAndExit("validate-flags", err)
 		return
 	}
 
 	if err = log.Init(log.Config{Format: conf.logFormat, Level: conf.logLevel}); err != nil {
-		printErr("initializing logger", err)
+		printErrAndExit("initializing logger", err)
 		return
 	}
 
 	brConf, err := brConfig.New(conf.path)
 	if err != nil {
-		printErr("initializing bench-routes configuration", err)
+		printErrAndExit("initializing bench-routes configuration", err)
 		return
 	}
 
@@ -47,27 +47,27 @@ func main() {
 	machineErrCh := make(chan error)
 	machine, err := module.New(module.MachineType, memChainsRef, machineErrCh)
 	if err != nil {
-		printErr("creating machine jobs", err)
+		printErrAndExit("creating machine jobs", err)
 		return
 	}
 	log.Info("msg", "launching machine routine")
 	go machine.Run()
 	if err = machine.Reload(brConf); err != nil {
-		printErr("reloading machine with configuration", err)
+		printErrAndExit("reloading machine with configuration", err)
 		return
 	}
 
 	monitorErrCh := make(chan error)
 	monitor, err := module.New(module.MonitorType, memChainsRef, monitorErrCh)
 	if err != nil {
-		printErr("creating monitor jobs", err)
+		printErrAndExit("creating monitor jobs", err)
 		return
 	}
 
 	log.Info("msg", "launching monitor routine")
 	go monitor.Run()
 	if err = monitor.Reload(brConf); err != nil {
-		printErr("reloading monitor with configuration", err)
+		printErrAndExit("reloading monitor with configuration", err)
 		return
 	}
 
@@ -80,18 +80,10 @@ func main() {
 		// Right now, we are treating all errors as crashable.
 		for i := 1; i <= 2; i++ {
 			select {
-			case err, ok := <-machineErrCh:
-				if !ok {
-					continue
-				}
-				printErr("running machine", err)
-				return
-			case err, ok := <-monitorErrCh:
-				if !ok {
-					continue
-				}
-				printErr("running monitor", err)
-				return
+			case err := <-machineErrCh:
+				printErrAndExit("running machine", err)
+			case err := <-monitorErrCh:
+				printErrAndExit("running monitor", err)
 			}
 		}
 	}()
@@ -163,8 +155,8 @@ func verifyLoggerLevel(level string) error {
 	}
 }
 
-// printErr prints the wrapped the err with the message and halts the execution of program.
-func printErr(message string, err error) {
+// printErrAndExit prints the wrapped the err with the message and halts the execution of program.
+func printErrAndExit(message string, err error) {
 	log.Error("msg", message, "error", fmt.Errorf("%s: %w", message, err).Error())
 	os.Exit(1)
 }

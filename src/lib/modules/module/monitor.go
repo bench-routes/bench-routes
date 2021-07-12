@@ -3,8 +3,6 @@ package module
 import (
 	"context"
 	"fmt"
-	"sync"
-
 	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/log"
 	"github.com/bench-routes/bench-routes/src/lib/modules/job"
@@ -14,7 +12,6 @@ import (
 
 // Monitor handles monitoring of the endpoints.
 type Monitor struct {
-	mux          sync.RWMutex
 	jobs         map[*job.JobInfo]chan<- struct{}
 	existingJobs map[string]struct{}
 	chainSet     *file.ChainSet
@@ -78,8 +75,6 @@ func (m *Monitor) Reload(conf *config.Config) error {
 		m.jobs[exec.Info()] = ch
 		m.existingJobs[api.Name] = struct{}{}
 	}
-	m.mux.Lock()
-	m.mux.Unlock()
 	// signaling to reload.
 	m.reload <- struct{}{}
 	return nil
