@@ -5,13 +5,13 @@ import (
 	"sync"
 	"time"
 
-	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
+	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/tsdb/file"
 )
 
 // Executable is an interface that is implemented by machineJob and monitoringJob.
 type Executable interface {
-	Execute()
+	Execute(chan<- error)
 	Abort()
 	Info() *JobInfo
 }

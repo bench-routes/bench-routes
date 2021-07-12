@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
+	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/stretchr/testify/require"
 )
 

@@ -3,19 +3,18 @@ package job
 import (
 	"fmt"
 	"net/url"
-	"os"
 	"time"
 
-	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
+	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/modules/evaluate"
 	"github.com/bench-routes/bench-routes/tsdb/file"
 )
 
 type machineJob struct {
 	JobInfo
-	app   file.Appendable
-	sigCh chan struct{}
-	host  string
+	app     file.Appendable
+	sigCh   chan struct{}
+	urlPath string
 }
 
 func newMachineJob(app file.Appendable, api *config.API) (*machineJob, chan<- struct{}, error) {
@@ -29,23 +28,24 @@ func newMachineJob(app file.Appendable, api *config.API) (*machineJob, chan<- st
 			lastExecute: time.Now().Add(api.Every * -1),
 		},
 	}
-	url, err := url.Parse(api.Domain)
+	urlParsed, err := url.Parse(api.Domain)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("parsing api.Domain: %w", err)
 	}
-	newjob.host = url.Host
+	newjob.urlPath = urlParsed.Path
 	return newjob, sig, nil
 }
 
 // Execute execute the machineJob.
-func (mn *machineJob) Execute() {
+func (mn *machineJob) Execute(errCh chan<- error) {
 	for range mn.sigCh {
 		mn.JobInfo.writeTime()
-		ping, jitter, err := evaluate.Machine(mn.host)
+		ping, jitter, err := evaluate.Machine(mn.urlPath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "job: %s: error: %s", mn.JobInfo.Name, err.Error())
+			errCh <- fmt.Errorf("job: %s: %w", mn.JobInfo.Name, err)
+			return
 		}
-		pingVal := fmt.Sprintf("%v|%v|%v", ping.Max.Microseconds(), ping.Mean.Microseconds(), ping.Mean.Microseconds())
+		pingVal := fmt.Sprintf("%v|%v|%v", ping.Max.Microseconds(), ping.Mean.Microseconds(), ping.Min.Microseconds())
 		jitterVal := fmt.Sprintf("%v", jitter.Value.Microseconds())
 		mn.app.Append(file.NewBlock("ping", pingVal))
 		mn.app.Append(file.NewBlock("jitter", jitterVal))

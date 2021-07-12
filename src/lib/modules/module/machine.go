@@ -3,10 +3,8 @@ package module
 import (
 	"context"
 	"fmt"
-	"sync"
-	"time"
-
-	config "github.com/bench-routes/bench-routes/src/lib/config_v2"
+	config "github.com/bench-routes/bench-routes/src/lib/config"
+	"github.com/bench-routes/bench-routes/src/lib/log"
 	"github.com/bench-routes/bench-routes/src/lib/modules/job"
 	"github.com/bench-routes/bench-routes/src/lib/modules/scheduler"
 	"github.com/bench-routes/bench-routes/tsdb/file"
@@ -14,15 +12,20 @@ import (
 
 // Machine handles scraping ping and jitter of the endpoints.
 type Machine struct {
-	mux    sync.RWMutex
-	jobs   map[*job.JobInfo]chan<- struct{}
-	reload chan struct{}
+	jobs         map[*job.JobInfo]chan<- struct{}
+	existingJobs map[string]struct{}
+	reload       chan struct{}
+	chainSet     *file.ChainSet
+	errCh        chan<- error
 }
 
-func newMachineModule() (*Machine, error) {
+func newMachineModule(chainSet *file.ChainSet, errCh chan<- error) (*Machine, error) {
 	job := &Machine{
-		jobs:   make(map[*job.JobInfo]chan<- struct{}),
-		reload: make(chan struct{}),
+		jobs:         make(map[*job.JobInfo]chan<- struct{}),
+		existingJobs: make(map[string]struct{}),
+		reload:       make(chan struct{}),
+		chainSet:     chainSet,
+		errCh:        errCh,
 	}
 	return job, nil
 }
@@ -48,34 +51,33 @@ func (m *Machine) Run() {
 		// canceling scheduler if already present.
 		cancelCurrentScheduler(cancel)
 		ctx, cancel = context.WithCancel(context.Background())
-		scheduler := scheduler.New(m.jobs)
-		go scheduler.Run(ctx)
+		schd := scheduler.New(m.jobs)
+		go schd.Run(ctx)
 	}
 }
 
 // Reload reloads the new config and signals reload channel.
-func (m *Machine) Reload(conf *config.Config, errCh chan<- error) {
-	jobs := make(map[*job.JobInfo]chan<- struct{})
-	set := file.NewChainSet(0, time.Second*10)
-	set.Run()
+func (m *Machine) Reload(conf *config.Config) error {
 	for i, api := range conf.APIs {
-		app, _ := set.NewChain(api.Name, api.Domain+api.Route, false)
-		// creating the jobs
-		exec, ch, err := job.NewJob("machine", app, &api)
-		if err != nil {
-			errCh <- fmt.Errorf("error creating # %d job: %s", i, err)
+		_, exists := m.existingJobs[api.Name]
+		if exists {
+			// todo: deletion of jobs that are no longer existing
+			log.Info("component", "reload", "msg", "job already exists with name "+api.Name+". Skipping creation.")
 			continue
 		}
+		app, _ := m.chainSet.NewChain(api.Name+"_machine", api.Domain+api.Route, false)
+		exec, ch, err := job.NewJob("machine", app, &api)
+		if err != nil {
+			return fmt.Errorf("error creating # %d job: %s", i, err)
+		}
 		// launching the jobs
-		go exec.Execute()
-		jobs[exec.Info()] = ch
+		go exec.Execute(m.errCh)
+		m.jobs[exec.Info()] = ch
+		m.existingJobs[api.Name] = struct{}{}
 	}
-	m.mux.Lock()
-	m.jobs = jobs
-	m.mux.Unlock()
 	// signaling to reload the scheduler.
 	m.reload <- struct{}{}
-	errCh <- nil
+	return nil
 }
 
 // Stop stops the module.
