@@ -13,11 +13,12 @@ import (
 
 var testapis []config.API = []config.API{
 	{
-		Name:   "API_1",
-		Every:  time.Second * 5,
-		Domain: "https://www.youtube.com",
-		Route:  "/watch",
-		Method: "GET",
+		Name:     "API_1",
+		Every:    time.Second * 5,
+		Protocol: "http",
+		Domain:   "www.youtube.com",
+		Route:    "/watch",
+		Method:   "GET",
 		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},
@@ -26,11 +27,12 @@ var testapis []config.API = []config.API{
 		},
 	},
 	{
-		Name:   "API_2",
-		Every:  time.Second * 10,
-		Domain: "https://reqres.in",
-		Route:  "/api/users",
-		Method: "POST",
+		Name:     "API_2",
+		Every:    time.Second * 10,
+		Protocol: "http",
+		Domain:   "reqres.in",
+		Route:    "/api/users",
+		Method:   "POST",
 		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},
@@ -61,7 +63,18 @@ func TestMonitorJob(t *testing.T) {
 		if exec.Info().Every != api.Every || exec.Info().Name != api.Name {
 			require.FailNow(t, "error creating %d # job : jobInfo is not correct", index)
 		}
-		go exec.Execute()
+		errCh := make(chan error)
+		go func() {
+			err, ok := <-errCh
+			if !ok {
+				return
+			}
+			if err != nil {
+				fmt.Printf("job error : %v", err)
+				return
+			}
+		}()
+		go exec.Execute(errCh)
 		for i := 0; i < 3; i++ {
 			ch <- struct{}{}
 			time.Sleep(exec.Info().Every)
@@ -98,7 +111,18 @@ func TestMachineJob(t *testing.T) {
 		if exec.Info().Every != api.Every || exec.Info().Name != api.Name {
 			require.FailNow(t, "error creating %d # job : jobInfo is not correct", index)
 		}
-		go exec.Execute()
+		errCh := make(chan error)
+		go func() {
+			err, ok := <-errCh
+			if !ok {
+				return
+			}
+			if err != nil {
+				fmt.Printf("job error : %v", err)
+				return
+			}
+		}()
+		go exec.Execute(errCh)
 		for i := 0; i < 3; i++ {
 			ch <- struct{}{}
 			time.Sleep(exec.Info().Every)

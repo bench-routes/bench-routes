@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -29,7 +30,18 @@ func TestScheduler(t *testing.T) {
 			continue
 		}
 		// launching the jobs
-		go exec.Execute()
+		errCh := make(chan error)
+		go func() {
+			err, ok := <-errCh
+			if !ok {
+				return
+			}
+			if err != nil {
+				fmt.Printf("job error : %v", err)
+				return
+			}
+		}()
+		go exec.Execute(errCh)
 		jobs[exec.Info()] = ch
 	}
 	ctx, cancel := context.WithCancel(context.Background())
