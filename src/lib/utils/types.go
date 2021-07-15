@@ -4,7 +4,6 @@
 package utils
 
 import (
-	parser "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/tsdb"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -85,14 +84,6 @@ type MatrixResponse struct {
 	JitterBlocks  []byte `json:"jitter"`
 	FpingBlocks   []byte `json:"fping"`
 	MonitorBlocks []byte `json:"monitor"`
-}
-
-// BRMatrix type for storing multi-dimensional information related to a route.
-type BRMatrix struct {
-	Route                    parser.Route
-	PingChain, JitterChain   *tsdb.Chain
-	FPingChain, MonitorChain *tsdb.Chain
-	Metrics                  *EndpointMetrics
 }
 
 // MachineType type for targets. These are servers/vm-instances/load-balancer
