@@ -3,11 +3,15 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/log"
+	"github.com/bench-routes/bench-routes/tsdb"
+	"github.com/bench-routes/bench-routes/tsdb/querier"
 	"github.com/gorilla/mux"
 )
 
@@ -48,7 +52,7 @@ func (a *API) RegisterRoutes() {
 	a.router.HandleFunc("/api/v1/reload", a.Reload)
 	a.router.HandleFunc("/get-machines", a.getMachines)
 	a.router.HandleFunc("/get-domain-entities", a.getDomainEntity)
-	// a.router.HandleFunc("/query-entity", a.Reload)
+	a.router.HandleFunc("/query-entity", a.queryEntity)
 }
 
 func (a *API) Reload(w http.ResponseWriter, r *http.Request) {
@@ -80,6 +84,45 @@ func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
 		res = append(res, response{Name: api.Name, Route: api.Route, Status: true})
 	}
 	a.send(w, res, http.StatusOK)
+}
+
+func (a *API) queryEntity(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Query().Get("name")
+	startStr := r.URL.Query().Get("start")
+	endStr := r.URL.Query().Get("end")
+
+	start, err := parseTime(startStr)
+	if err != nil {
+		a.send(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	end, err := parseTime(endStr)
+	if err != nil {
+		a.send(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	path = path + tsdb.FileExtension
+	if ok := tsdb.VerifyChainPathExists(path); !ok {
+		a.send(w, "INVALID_PATH", http.StatusBadRequest)
+		return
+	}
+
+	qry := querier.New(path, "", querier.TypeRange)
+	query := qry.QueryBuilder()
+	query.SetRange(start, end)
+	a.send(w, query.ExecWithoutEncode(), http.StatusOK)
+}
+
+func parseTime(t string) (int64, error) {
+	if t == "" {
+		return int64(math.MaxInt64), nil
+	}
+	time, err := time.Parse(time.RFC3339, t)
+	if err != nil {
+		return 0, fmt.Errorf("error in timestamp: %s", err.Error())
+	}
+	return time.UnixNano(), nil
 }
 
 func (a *API) send(w http.ResponseWriter, response interface{}, status int) {
