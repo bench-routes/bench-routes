@@ -83,25 +83,25 @@ func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
 	// append ping path if it exists.
 	// ping path can be structured as <domain_or_ip> + "_ping" + <tsdb fileExtension>
 	pingPath := "./storage/" + domain_or_ip + "_ping" + tsdb.FileExtension
-	if ok := tsdb.VerifyChainPathExists(pingPath); ok{
-		res = append(res, response{Name: pingPath,Route: "Ping",Status: true})
-	} 
+	if ok := tsdb.VerifyChainPathExists(pingPath); ok {
+		res = append(res, response{Name: pingPath, Route: "Ping", Status: true})
+	}
 
 	// append jitter path if it exists.
 	// jitter path can be structured as <domain_or_ip> + "_jitter" + <tsdb fileExtension>
 	jitterPath := "./storage/" + domain_or_ip + "_jitter" + tsdb.FileExtension
-	if ok := tsdb.VerifyChainPathExists(jitterPath); ok{
-		res = append(res, response{Name: jitterPath,Route: "Jitter",Status: true})
-	} 
+	if ok := tsdb.VerifyChainPathExists(jitterPath); ok {
+		res = append(res, response{Name: jitterPath, Route: "Jitter", Status: true})
+	}
 
 	for _, api := range a.domainMap[domain_or_ip] {
 		//rest routes are for monitoring
 		// append monitor path if it exists.
 		// monitor path can be structured as <domain_or_ip> + "_monitor" + <tsdb fileExtension>
 		monitorPath := "./storage/" + api.Name + "_monitor" + tsdb.FileExtension
-		if ok := tsdb.VerifyChainPathExists(monitorPath); ok{
-		res = append(res, response{Name: monitorPath, Route: api.Route, Status: true})
-		} 
+		if ok := tsdb.VerifyChainPathExists(monitorPath); ok {
+			res = append(res, response{Name: monitorPath, Route: api.Route, Status: true})
+		}
 	}
 	a.send(w, res, http.StatusOK)
 }
