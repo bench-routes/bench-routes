@@ -10,7 +10,7 @@ import (
 
 	"github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/log"
-	"github.com/bench-routes/bench-routes/tsdb"
+	tsdb "github.com/bench-routes/bench-routes/tsdb/file"
 	"github.com/bench-routes/bench-routes/tsdb/querier"
 	"github.com/gorilla/mux"
 )
@@ -52,7 +52,7 @@ func (a *API) RegisterRoutes() {
 	a.router.HandleFunc("/api/v1/reload", a.Reload)
 	a.router.HandleFunc("/get-machines", a.getMachines)
 	a.router.HandleFunc("/get-domain-entities", a.getDomainEntity)
-	a.router.HandleFunc("/query-entity", a.queryEntity)
+	// a.router.HandleFunc("/query-entity", a.queryEntity)
 }
 
 func (a *API) Reload(w http.ResponseWriter, r *http.Request) {
@@ -73,15 +73,35 @@ func (a *API) getMachines(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
+	domain_or_ip := r.URL.Query().Get("domain_or_ip")
 	type response struct {
 		Name   string `json:"name"`
 		Route  string `json:"route"`
 		Status bool   `json:"status"`
 	}
 	res := []response{}
-	domain_or_ip := r.URL.Query().Get("domain_or_ip")
+	// append ping path if it exists.
+	// ping path can be structured as <domain_or_ip> + "_ping" + <tsdb fileExtension>
+	pingPath := "./storage/" + domain_or_ip + "_ping" + tsdb.FileExtension
+	if ok := tsdb.VerifyChainPathExists(pingPath); ok{
+		res = append(res, response{Name: pingPath,Route: "Ping",Status: true})
+	} 
+
+	// append jitter path if it exists.
+	// jitter path can be structured as <domain_or_ip> + "_jitter" + <tsdb fileExtension>
+	jitterPath := "./storage/" + domain_or_ip + "_jitter" + tsdb.FileExtension
+	if ok := tsdb.VerifyChainPathExists(jitterPath); ok{
+		res = append(res, response{Name: jitterPath,Route: "Jitter",Status: true})
+	} 
+
 	for _, api := range a.domainMap[domain_or_ip] {
-		res = append(res, response{Name: api.Name, Route: api.Route, Status: true})
+		//rest routes are for monitoring
+		// append monitor path if it exists.
+		// monitor path can be structured as <domain_or_ip> + "_monitor" + <tsdb fileExtension>
+		monitorPath := "./storage/" + api.Name + "_monitor" + tsdb.FileExtension
+		if ok := tsdb.VerifyChainPathExists(monitorPath); ok{
+		res = append(res, response{Name: monitorPath, Route: api.Route, Status: true})
+		} 
 	}
 	a.send(w, res, http.StatusOK)
 }
