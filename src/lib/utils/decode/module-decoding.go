@@ -4,109 +4,73 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/bench-routes/bench-routes/src/lib/modules/jitter"
-	"github.com/bench-routes/bench-routes/src/lib/modules/ping"
-	"github.com/bench-routes/bench-routes/src/lib/utils"
-	"github.com/bench-routes/bench-routes/src/metrics/journal"
-	"github.com/bench-routes/bench-routes/src/metrics/system"
+	"github.com/bench-routes/bench-routes/src/lib/modules/evaluate"
 )
 
-// systemDecode converts the block into Response type for easy http based JSON response.
-func systemDecode(block string) system.Response {
-	arr := strings.Split(block, "|")
-	if len(arr) != 14 {
-		panic(fmt.Errorf("Invalid block segments length: Segments must be 14 in number: length: %d", len(arr)))
-	}
-
-	return system.Response{
-		CPUTotalUsage: arr[0],
-		Memory: system.MemoryStatsStringified{
-			Total:       arr[1],
-			Available:   arr[2],
-			Used:        arr[3],
-			UsedPercent: arr[4],
-			Free:        arr[5],
-		},
-		Disk: system.DiskStatsStringified{
-			DiskIO: arr[6],
-			Cached: arr[7],
-		},
-		Network: system.NetworkStats{
-			PtcpIncoming: convertToInt(arr[8]),
-			PtcpOutgoing: convertToInt(arr[9]),
-			StcpIncoming: convertToInt(arr[10]),
-			StcpOutgoing: convertToInt(arr[11]),
-			PudpIncoming: convertToInt(arr[12]),
-			PudpOutgoing: convertToInt(arr[13]),
-		},
-	}
-}
-
-func pingDecode(block string) ping.Response {
-	arr := strings.Split(block, "|")
-	if len(arr) != 4 {
-		panic(fmt.Errorf("Invalid block segments length: Segments must be 4 in number: length: %d", len(arr)))
-	}
-	return ping.Response{
-		Min:  arr[0],
-		Avg:  arr[1],
-		Max:  arr[2],
-		Mdev: arr[3],
-	}
-}
-
-func jitterDecode(block string) jitter.Response {
-	arr := strings.Split(block, "|")
-	return jitter.Response{
-		Value: arr[0],
-	}
-}
-
-func floodPingDecode(block string) ping.FloodPingResponse {
-	arr := strings.Split(block, "|")
-	if len(arr) != 5 {
-		panic(fmt.Errorf("Invalid block segments length: Segments must be 5 in number: length: %d", len(arr)))
-	}
-	return ping.FloodPingResponse{
-		Min:   arr[0],
-		Avg:   arr[1],
-		Max:   arr[2],
-		Mdev:  arr[3],
-		Ploss: arr[4],
-	}
-}
-
-func monitorDecode(block string) utils.Response {
+func pingDecode(block string) evaluate.Ping {
 	arr := strings.Split(block, "|")
 	if len(arr) != 3 {
-		panic(fmt.Errorf("Invalid block segments length: Segments must be 3 in number: length: %d", len(arr)))
+		panic(fmt.Errorf("invalid block segments length: Segments must be 3 in number: length: %d", len(arr)))
 	}
-	return utils.Response{
-		Delay:         int64(convertToInt(arr[0])),
-		ResLength:     convertToInt(arr[1]),
-		ResStatusCode: convertToInt(arr[2]),
-	}
-}
 
-func journalDecode(block string) journal.Points {
-	arr := strings.Split(block, "|")
-	if len(arr) != 6 {
-		panic(fmt.Errorf("Invalid block segments length: Segments must be 6 in number: length: %d", len(arr)))
-	}
-	return journal.Decode(arr)
-}
-
-func convertToInt(s string) int {
-	// Old unit tests in tsdb/querier have only 8 values and rest as empty strings.
-	// In order to make that working and as a general response, we can make empty
-	// strings return a zero value.
-	if s == "" {
-		return 0
-	}
-	v, err := strconv.Atoi(s)
+	min, err := strconv.Atoi(arr[2])
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("error parsing datapoint of type Ping Min"))
 	}
-	return v
+	mean, err := strconv.Atoi(arr[1])
+	if err != nil {
+		panic(fmt.Errorf("error parsing datapoint of type Ping Mean"))
+	}
+	max, err := strconv.Atoi(arr[0])
+	if err != nil {
+		panic(fmt.Errorf("error parsing datapoint of type Ping Max"))
+	}
+	return evaluate.Ping{
+		Min:  time.Duration(min) / time.Duration(1000),
+		Mean: time.Duration(mean) / time.Duration(1000),
+		Max:  time.Duration(max) / time.Duration(1000),
+	}
+}
+
+func jitterDecode(block string) evaluate.Jitter {
+	arr := strings.Split(block, "|")
+	if len(arr) != 1 {
+		panic(fmt.Errorf("invalid block segments length: Segments must be 1 in number: length: %d", len(arr)))
+	}
+
+	jitter, err := strconv.Atoi(arr[0])
+	if err != nil {
+		panic(fmt.Errorf("error parsing datapoint of type Jitter"))
+	}
+
+	return evaluate.Jitter{
+		Value: time.Duration(jitter) / time.Duration(1000),
+	}
+}
+
+func monitorDecode(block string) evaluate.Response {
+	arr := strings.Split(block, "|")
+	if len(arr) != 3 {
+		panic(fmt.Errorf("invalid block segments length: Segments must be 3 in number: length: %d", len(arr)))
+	}
+
+	delay, err := strconv.Atoi(arr[0])
+	if err != nil {
+		panic(fmt.Errorf("error parsing Delay datapoint"))
+	}
+	length, err := strconv.Atoi(arr[0])
+	if err != nil {
+		panic(fmt.Errorf("error parsing Delay datapoint"))
+	}
+	size, err := strconv.Atoi(arr[0])
+	if err != nil {
+		panic(fmt.Errorf("error parsing Delay datapoint"))
+	}
+	return evaluate.Response{
+		Delay:  time.Duration(delay) / time.Duration(1000),
+		Length: length,
+		Size:   size,
+	}
 }

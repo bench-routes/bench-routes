@@ -89,6 +89,7 @@ func main() {
 	}()
 
 	reloadSig := make(chan struct{})
+	apiModule := api.New(reloadSig, brConf)
 	reloader := func(sig <-chan struct{}) {
 		// Reloader should not stop the already running application in case of
 		// any error in the new changes. If error is found, log and continue using
@@ -108,10 +109,10 @@ func main() {
 				log.Error("msg", fmt.Sprintf("error reloading monitor jobs: %s", err.Error()))
 				continue
 			}
+			apiModule.UpdateConf(brConf)
 		}
 	}
 	go reloader(reloadSig)
-	apiModule := api.New(reloadSig)
 
 	log.Info("msg", "Listening at "+conf.port)
 	log.Error(http.ListenAndServe(conf.port, cors.Default().Handler(apiModule.Router())).Error())

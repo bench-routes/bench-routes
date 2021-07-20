@@ -3,6 +3,7 @@ package module
 import (
 	"context"
 	"fmt"
+
 	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/log"
 	"github.com/bench-routes/bench-routes/src/lib/modules/job"
@@ -65,9 +66,9 @@ func (m *Monitor) Reload(conf *config.Config) error {
 			log.Info("component", "reload", "msg", "job already exists with name "+api.Name+". Skipping creation.")
 			continue
 		}
-		app, _ := m.chainSet.NewChain(api.Name+"_monitor", api.Domain+api.Route, false)
+		app, _ := m.chainSet.NewChain(api.Name+"_monitor", api.Protocol+api.Domain+api.Route, false)
 
-		exec, ch, err := job.NewJob("monitor", app, &api)
+		exec, ch, err := job.NewJob("monitor", app, nil, &api)
 		if err != nil {
 			return fmt.Errorf("error creating # %d job: %s", i, err)
 		}

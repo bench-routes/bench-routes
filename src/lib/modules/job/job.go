@@ -17,16 +17,16 @@ type Executable interface {
 }
 
 // NewJob creates a new job based on the typ.
-func NewJob(typ string, app file.Appendable, api *config.API) (Executable, chan<- struct{}, error) {
+func NewJob(typ string, app_1 file.Appendable, app_2 file.Appendable, api *config.API) (Executable, chan<- struct{}, error) {
 	switch typ {
 	case "machine":
-		job, ch, err := newMachineJob(app, api)
+		job, ch, err := newMachineJob(app_1, app_2, api)
 		if err != nil {
 			return nil, nil, fmt.Errorf("creating machine job : %w", err)
 		}
 		return job, ch, nil
 	case "monitor":
-		job, ch, err := newMonitoringJob(app, api)
+		job, ch, err := newMonitoringJob(app_1, api)
 		if err != nil {
 			return nil, nil, fmt.Errorf("creating monitoring job : %w", err)
 		}

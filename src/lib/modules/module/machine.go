@@ -3,6 +3,7 @@ package module
 import (
 	"context"
 	"fmt"
+
 	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/log"
 	"github.com/bench-routes/bench-routes/src/lib/modules/job"
@@ -59,21 +60,22 @@ func (m *Machine) Run() {
 // Reload reloads the new config and signals reload channel.
 func (m *Machine) Reload(conf *config.Config) error {
 	for i, api := range conf.APIs {
-		_, exists := m.existingJobs[api.Name]
+		_, exists := m.existingJobs[api.Domain]
 		if exists {
 			// todo: deletion of jobs that are no longer existing
-			log.Info("component", "reload", "msg", "job already exists with name "+api.Name+". Skipping creation.")
+			log.Info("component", "reload", "msg", "job already exists with domain name "+api.Domain+". Skipping creation.")
 			continue
 		}
-		app, _ := m.chainSet.NewChain(api.Name+"_machine", api.Domain+api.Route, false)
-		exec, ch, err := job.NewJob("machine", app, &api)
+		appPing, _ := m.chainSet.NewChain(api.Domain+"_ping", api.Protocol+"://"+api.Domain+api.Route, false)
+		appJitter, _ := m.chainSet.NewChain(api.Domain+"_jitter", api.Protocol+"://"+api.Domain+api.Route, false)
+		exec, ch, err := job.NewJob("machine", appPing, appJitter, &api)
 		if err != nil {
 			return fmt.Errorf("error creating # %d job: %s", i, err)
 		}
 		// launching the jobs
 		go exec.Execute(m.errCh)
 		m.jobs[exec.Info()] = ch
-		m.existingJobs[api.Name] = struct{}{}
+		m.existingJobs[api.Domain] = struct{}{}
 	}
 	// signaling to reload the scheduler.
 	m.reload <- struct{}{}
