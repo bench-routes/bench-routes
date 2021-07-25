@@ -75,23 +75,23 @@ func (a *API) getMachines(w http.ResponseWriter, r *http.Request) {
 func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
 	domain_or_ip := r.URL.Query().Get("domain_or_ip")
 	type response struct {
-		Name   string `json:"name"`
-		Route  string `json:"route"`
-		Status bool   `json:"status"`
+		ChainName  string `json:"name"`
+		EntityName string `json:"route"`
+		Status     string `json:"status"`
 	}
 	res := []response{}
 	// append ping path if it exists.
 	// ping path can be structured as <domain_or_ip> + "_ping" + <tsdb fileExtension>
 	pingPath := "./storage/" + domain_or_ip + "_ping" + tsdb.FileExtension
 	if ok := tsdb.VerifyChainPathExists(pingPath); ok {
-		res = append(res, response{Name: pingPath, Route: "Ping", Status: true})
+		res = append(res, response{ChainName: pingPath, EntityName: "Ping", Status: "none"})
 	}
 
 	// append jitter path if it exists.
 	// jitter path can be structured as <domain_or_ip> + "_jitter" + <tsdb fileExtension>
 	jitterPath := "./storage/" + domain_or_ip + "_jitter" + tsdb.FileExtension
 	if ok := tsdb.VerifyChainPathExists(jitterPath); ok {
-		res = append(res, response{Name: jitterPath, Route: "Jitter", Status: true})
+		res = append(res, response{ChainName: jitterPath, EntityName: "Jitter", Status: "none"})
 	}
 
 	for _, api := range a.domainMap[domain_or_ip] {
@@ -100,7 +100,7 @@ func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
 		// monitor path can be structured as <domain_or_ip> + "_monitor" + <tsdb fileExtension>
 		monitorPath := "./storage/" + api.Name + "_monitor" + tsdb.FileExtension
 		if ok := tsdb.VerifyChainPathExists(monitorPath); ok {
-			res = append(res, response{Name: monitorPath, Route: api.Route, Status: true})
+			res = append(res, response{ChainName: monitorPath, EntityName: api.Route, Status: "true"})
 		}
 	}
 	a.send(w, res, http.StatusOK)
