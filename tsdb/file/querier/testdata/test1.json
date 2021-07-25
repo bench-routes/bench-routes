@@ -1,0 +1,842 @@
+[
+  {
+    "datapoint": "",
+    "normalized-time": 1627239815957942901,
+    "type": "null",
+    "timestamp": "2021|July|26|0|33|35"
+  },
+  {
+    "datapoint": "",
+    "normalized-time": 1627239815957942901,
+    "type": "null",
+    "timestamp": "2021|July|26|0|33|35"
+  },
+  {
+    "datapoint": "393293|6279|6279|400",
+    "normalized-time": 1627239817356426880,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|33|37"
+  },
+  {
+    "datapoint": "119114|6279|6279|400",
+    "normalized-time": 1627239822087002842,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|33|42"
+  },
+  {
+    "datapoint": "116109|6279|6279|400",
+    "normalized-time": 1627239827082465275,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|33|47"
+  },
+  {
+    "datapoint": "121586|6279|6279|400",
+    "normalized-time": 1627239832089782374,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|33|52"
+  },
+  {
+    "datapoint": "110190|6279|6279|400",
+    "normalized-time": 1627239837082114931,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|33|57"
+  },
+  {
+    "datapoint": "111906|6279|6279|400",
+    "normalized-time": 1627239842085017308,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|34|2"
+  },
+  {
+    "datapoint": "105540|6279|6279|400",
+    "normalized-time": 1627239847076304341,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|34|7"
+  },
+  {
+    "datapoint": "120252|6279|6279|400",
+    "normalized-time": 1627239852092379861,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|34|12"
+  },
+  {
+    "datapoint": "115606|6279|6279|400",
+    "normalized-time": 1627239857089551591,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|34|17"
+  },
+  {
+    "datapoint": "115681|6279|6279|400",
+    "normalized-time": 1627239862091413563,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|34|22"
+  },
+  {
+    "datapoint": "110136|6279|6279|400",
+    "normalized-time": 1627239868085930974,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|34|28"
+  },
+  {
+    "datapoint": "113357|6279|6279|400",
+    "normalized-time": 1627239873089501842,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|34|33"
+  },
+  {
+    "datapoint": "114716|6279|6279|400",
+    "normalized-time": 1627239878092758696,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|34|38"
+  },
+  {
+    "datapoint": "110817|6279|6279|400",
+    "normalized-time": 1627239883089701814,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|34|43"
+  },
+  {
+    "datapoint": "110450|6279|6279|400",
+    "normalized-time": 1627239888091263701,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|34|48"
+  },
+  {
+    "datapoint": "115696|6279|6279|400",
+    "normalized-time": 1627239893098548350,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|34|53"
+  },
+  {
+    "datapoint": "116345|6279|6279|400",
+    "normalized-time": 1627239898098787368,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|34|58"
+  },
+  {
+    "datapoint": "111820|6279|6279|400",
+    "normalized-time": 1627239903096284303,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|35|3"
+  },
+  {
+    "datapoint": "111383|6279|6279|400",
+    "normalized-time": 1627239908097134046,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|35|8"
+  },
+  {
+    "datapoint": "109776|6279|6279|400",
+    "normalized-time": 1627239913099037470,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|35|13"
+  },
+  {
+    "datapoint": "116701|6279|6279|400",
+    "normalized-time": 1627239918101585606,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|35|18"
+  },
+  {
+    "datapoint": "110395|6279|6279|400",
+    "normalized-time": 1627239923100427286,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|35|23"
+  },
+  {
+    "datapoint": "112076|6279|6279|400",
+    "normalized-time": 1627239928103302243,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|35|28"
+  },
+  {
+    "datapoint": "111513|6279|6279|400",
+    "normalized-time": 1627239933103688763,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|35|33"
+  },
+  {
+    "datapoint": "111581|6279|6279|400",
+    "normalized-time": 1627239938105295157,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|35|38"
+  },
+  {
+    "datapoint": "112080|6279|6279|400",
+    "normalized-time": 1627239943104809147,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|35|43"
+  },
+  {
+    "datapoint": "120438|6279|6279|400",
+    "normalized-time": 1627239948113193535,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|35|48"
+  },
+  {
+    "datapoint": "113390|6279|6279|400",
+    "normalized-time": 1627239953109790254,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|35|53"
+  },
+  {
+    "datapoint": "110683|6279|6279|400",
+    "normalized-time": 1627239959166847492,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|35|59"
+  },
+  {
+    "datapoint": "114357|6279|6279|400",
+    "normalized-time": 1627239963111839507,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|36|3"
+  },
+  {
+    "datapoint": "106519|6279|6279|400",
+    "normalized-time": 1627239968108116454,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|36|8"
+  },
+  {
+    "datapoint": "143304|6279|6279|400",
+    "normalized-time": 1627239973146485214,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|36|13"
+  },
+  {
+    "datapoint": "108441|6279|6279|400",
+    "normalized-time": 1627239978112422290,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|36|18"
+  },
+  {
+    "datapoint": "109730|6279|6279|400",
+    "normalized-time": 1627239983114460726,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|36|23"
+  },
+  {
+    "datapoint": "111206|6279|6279|400",
+    "normalized-time": 1627239988116878556,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|36|28"
+  },
+  {
+    "datapoint": "113425|6279|6279|400",
+    "normalized-time": 1627239993121182612,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|36|33"
+  },
+  {
+    "datapoint": "114333|6279|6279|400",
+    "normalized-time": 1627239998122736653,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|36|38"
+  },
+  {
+    "datapoint": "111316|6279|6279|400",
+    "normalized-time": 1627240003120613549,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|36|43"
+  },
+  {
+    "datapoint": "122936|6279|6279|400",
+    "normalized-time": 1627240008130255715,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|36|48"
+  },
+  {
+    "datapoint": "109660|6279|6279|400",
+    "normalized-time": 1627240013121006395,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|36|53"
+  },
+  {
+    "datapoint": "116656|6279|6279|400",
+    "normalized-time": 1627240018125254755,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|36|58"
+  },
+  {
+    "datapoint": "109551|6279|6279|400",
+    "normalized-time": 1627240023122534417,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|37|3"
+  },
+  {
+    "datapoint": "111430|6279|6279|400",
+    "normalized-time": 1627240028125755312,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|37|8"
+  },
+  {
+    "datapoint": "111804|6279|6279|400",
+    "normalized-time": 1627240033129058012,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|37|13"
+  },
+  {
+    "datapoint": "109995|6279|6279|400",
+    "normalized-time": 1627240038125759533,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|37|18"
+  },
+  {
+    "datapoint": "110405|6279|6279|400",
+    "normalized-time": 1627240043127494129,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|37|23"
+  },
+  {
+    "datapoint": "113203|6279|6279|400",
+    "normalized-time": 1627240048130837494,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|37|28"
+  },
+  {
+    "datapoint": "109914|6279|6279|400",
+    "normalized-time": 1627240053128704780,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|37|33"
+  },
+  {
+    "datapoint": "113540|6279|6279|400",
+    "normalized-time": 1627240058133230561,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|37|38"
+  },
+  {
+    "datapoint": "108969|6279|6279|400",
+    "normalized-time": 1627240063156387335,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|37|43"
+  },
+  {
+    "datapoint": "114186|6279|6279|400",
+    "normalized-time": 1627240068136980656,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|37|48"
+  },
+  {
+    "datapoint": "110298|6279|6279|400",
+    "normalized-time": 1627240073133469574,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|37|53"
+  },
+  {
+    "datapoint": "113912|6279|6279|400",
+    "normalized-time": 1627240078138054328,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|37|58"
+  },
+  {
+    "datapoint": "111410|6279|6279|400",
+    "normalized-time": 1627240083135892266,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|38|3"
+  },
+  {
+    "datapoint": "111267|6279|6279|400",
+    "normalized-time": 1627240088139777841,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|38|8"
+  },
+  {
+    "datapoint": "109132|6279|6279|400",
+    "normalized-time": 1627240093136559951,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|38|13"
+  },
+  {
+    "datapoint": "108471|6279|6279|400",
+    "normalized-time": 1627240098137141962,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|38|18"
+  },
+  {
+    "datapoint": "105832|6279|6279|400",
+    "normalized-time": 1627240103134573161,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|38|23"
+  },
+  {
+    "datapoint": "107996|6279|6279|400",
+    "normalized-time": 1627240108139121741,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|38|28"
+  },
+  {
+    "datapoint": "110306|6279|6279|400",
+    "normalized-time": 1627240113144018048,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|38|33"
+  },
+  {
+    "datapoint": "107205|6279|6279|400",
+    "normalized-time": 1627240118142189455,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|38|38"
+  },
+  {
+    "datapoint": "115661|6279|6279|400",
+    "normalized-time": 1627240123150083999,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|38|43"
+  },
+  {
+    "datapoint": "111674|6279|6279|400",
+    "normalized-time": 1627240128147785919,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|38|48"
+  },
+  {
+    "datapoint": "113942|6279|6279|400",
+    "normalized-time": 1627240133150813059,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|38|53"
+  },
+  {
+    "datapoint": "134210|6279|6279|400",
+    "normalized-time": 1627240138172834037,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|38|58"
+  },
+  {
+    "datapoint": "111608|6279|6279|400",
+    "normalized-time": 1627240143150234293,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|39|3"
+  },
+  {
+    "datapoint": "115760|6279|6279|400",
+    "normalized-time": 1627240148155962464,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|39|8"
+  },
+  {
+    "datapoint": "114216|6279|6279|400",
+    "normalized-time": 1627240153155465133,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|39|13"
+  },
+  {
+    "datapoint": "111050|6279|6279|400",
+    "normalized-time": 1627240158152686837,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|39|18"
+  },
+  {
+    "datapoint": "108727|6279|6279|400",
+    "normalized-time": 1627240163152211295,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|39|23"
+  },
+  {
+    "datapoint": "110736|6279|6279|400",
+    "normalized-time": 1627240168154911640,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|39|28"
+  },
+  {
+    "datapoint": "110766|6279|6279|400",
+    "normalized-time": 1627240173157696102,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|39|33"
+  },
+  {
+    "datapoint": "106166|6279|6279|400",
+    "normalized-time": 1627240178151801337,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|39|38"
+  },
+  {
+    "datapoint": "110763|6279|6279|400",
+    "normalized-time": 1627240183158531832,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|39|43"
+  },
+  {
+    "datapoint": "113577|6279|6279|400",
+    "normalized-time": 1627240188159445318,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|39|48"
+  },
+  {
+    "datapoint": "111034|6279|6279|400",
+    "normalized-time": 1627240193161149303,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|39|53"
+  },
+  {
+    "datapoint": "127318|6279|6279|400",
+    "normalized-time": 1627240198233023159,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|39|58"
+  },
+  {
+    "datapoint": "137833|6279|6279|400",
+    "normalized-time": 1627240203191653190,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|40|3"
+  },
+  {
+    "datapoint": "108060|6279|6279|400",
+    "normalized-time": 1627240208163250223,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|40|8"
+  },
+  {
+    "datapoint": "129648|6279|6279|400",
+    "normalized-time": 1627240213183429423,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|40|13"
+  },
+  {
+    "datapoint": "108850|6279|6279|400",
+    "normalized-time": 1627240218165488026,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|40|18"
+  },
+  {
+    "datapoint": "111477|6279|6279|400",
+    "normalized-time": 1627240223168277968,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|40|23"
+  },
+  {
+    "datapoint": "113744|6279|6279|400",
+    "normalized-time": 1627240228169091388,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|40|28"
+  },
+  {
+    "datapoint": "109377|6279|6279|400",
+    "normalized-time": 1627240233169282382,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|40|33"
+  },
+  {
+    "datapoint": "113422|6279|6279|400",
+    "normalized-time": 1627240238174511785,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|40|38"
+  },
+  {
+    "datapoint": "129031|6279|6279|400",
+    "normalized-time": 1627240243187448938,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|40|43"
+  },
+  {
+    "datapoint": "107964|6279|6279|400",
+    "normalized-time": 1627240248172866484,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|40|48"
+  },
+  {
+    "datapoint": "113510|6279|6279|400",
+    "normalized-time": 1627240253174315685,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|40|53"
+  },
+  {
+    "datapoint": "113413|6279|6279|400",
+    "normalized-time": 1627240258181493058,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|40|58"
+  },
+  {
+    "datapoint": "112798|6279|6279|400",
+    "normalized-time": 1627240263176460989,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|41|3"
+  },
+  {
+    "datapoint": "111691|6279|6279|400",
+    "normalized-time": 1627240268178582196,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|41|8"
+  },
+  {
+    "datapoint": "112625|6279|6279|400",
+    "normalized-time": 1627240273182018707,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|41|13"
+  },
+  {
+    "datapoint": "115983|6279|6279|400",
+    "normalized-time": 1627240278181853209,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|41|18"
+  },
+  {
+    "datapoint": "112738|6279|6279|400",
+    "normalized-time": 1627240283183248436,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|41|23"
+  },
+  {
+    "datapoint": "107677|6279|6279|400",
+    "normalized-time": 1627240288179318363,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|41|28"
+  },
+  {
+    "datapoint": "110148|6279|6279|400",
+    "normalized-time": 1627240293181418030,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|41|33"
+  },
+  {
+    "datapoint": "110251|6279|6279|400",
+    "normalized-time": 1627240298186595104,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|41|38"
+  },
+  {
+    "datapoint": "125113|6279|6279|400",
+    "normalized-time": 1627240303197460399,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|41|43"
+  },
+  {
+    "datapoint": "111037|6279|6279|400",
+    "normalized-time": 1627240308186884212,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|41|48"
+  },
+  {
+    "datapoint": "112326|6279|6279|400",
+    "normalized-time": 1627240313189660150,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|41|53"
+  },
+  {
+    "datapoint": "112171|6279|6279|400",
+    "normalized-time": 1627240318189492018,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|41|58"
+  },
+  {
+    "datapoint": "110158|6279|6279|400",
+    "normalized-time": 1627240323189658650,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|42|3"
+  },
+  {
+    "datapoint": "109603|6279|6279|400",
+    "normalized-time": 1627240328193340014,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|42|8"
+  },
+  {
+    "datapoint": "138500|6279|6279|400",
+    "normalized-time": 1627240333220574032,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|42|13"
+  },
+  {
+    "datapoint": "108191|6279|6279|400",
+    "normalized-time": 1627240338191093833,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|42|18"
+  },
+  {
+    "datapoint": "110457|6279|6279|400",
+    "normalized-time": 1627240343195358100,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|42|23"
+  },
+  {
+    "datapoint": "113990|6279|6279|400",
+    "normalized-time": 1627240348199459376,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|42|28"
+  },
+  {
+    "datapoint": "110451|6279|6279|400",
+    "normalized-time": 1627240353196940977,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|42|33"
+  },
+  {
+    "datapoint": "111158|6279|6279|400",
+    "normalized-time": 1627240358200793074,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|42|38"
+  },
+  {
+    "datapoint": "108130|6279|6279|400",
+    "normalized-time": 1627240363197443533,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|42|43"
+  },
+  {
+    "datapoint": "107494|6279|6279|400",
+    "normalized-time": 1627240368195300298,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|42|48"
+  },
+  {
+    "datapoint": "109636|6279|6279|400",
+    "normalized-time": 1627240373201872066,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|42|53"
+  },
+  {
+    "datapoint": "112876|6279|6279|400",
+    "normalized-time": 1627240378206385855,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|42|58"
+  },
+  {
+    "datapoint": "108516|6279|6279|400",
+    "normalized-time": 1627240383202919549,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|43|3"
+  },
+  {
+    "datapoint": "111673|6279|6279|400",
+    "normalized-time": 1627240388210813765,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|43|8"
+  },
+  {
+    "datapoint": "111339|6279|6279|400",
+    "normalized-time": 1627240393208668838,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|43|13"
+  },
+  {
+    "datapoint": "125667|6279|6279|400",
+    "normalized-time": 1627240398223559379,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|43|18"
+  },
+  {
+    "datapoint": "104797|6279|6279|400",
+    "normalized-time": 1627240403206413333,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|43|23"
+  },
+  {
+    "datapoint": "108844|6279|6279|400",
+    "normalized-time": 1627240408205886917,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|43|28"
+  },
+  {
+    "datapoint": "141696|6279|6279|400",
+    "normalized-time": 1627240413243860716,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|43|33"
+  },
+  {
+    "datapoint": "107096|6279|6279|400",
+    "normalized-time": 1627240418212816266,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|43|38"
+  },
+  {
+    "datapoint": "105008|6279|6279|400",
+    "normalized-time": 1627240423208887712,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|43|43"
+  },
+  {
+    "datapoint": "106620|6279|6279|400",
+    "normalized-time": 1627240428211202321,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|43|48"
+  },
+  {
+    "datapoint": "111098|6279|6279|400",
+    "normalized-time": 1627240433217323880,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|43|53"
+  },
+  {
+    "datapoint": "110871|6279|6279|400",
+    "normalized-time": 1627240438215325088,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|43|58"
+  },
+  {
+    "datapoint": "109105|6279|6279|400",
+    "normalized-time": 1627240443218060501,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|44|3"
+  },
+  {
+    "datapoint": "111148|6279|6279|400",
+    "normalized-time": 1627240448219997649,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|44|8"
+  },
+  {
+    "datapoint": "107287|6279|6279|400",
+    "normalized-time": 1627240453217161471,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|44|13"
+  },
+  {
+    "datapoint": "117003|6279|6279|400",
+    "normalized-time": 1627240458224739206,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|44|18"
+  },
+  {
+    "datapoint": "107458|6279|6279|400",
+    "normalized-time": 1627240463219806805,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|44|23"
+  },
+  {
+    "datapoint": "110246|6279|6279|400",
+    "normalized-time": 1627240468221681640,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|44|28"
+  },
+  {
+    "datapoint": "108868|6279|6279|400",
+    "normalized-time": 1627240473220127165,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|44|33"
+  },
+  {
+    "datapoint": "105783|6279|6279|400",
+    "normalized-time": 1627240478221095050,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|44|38"
+  },
+  {
+    "datapoint": "106837|6279|6279|400",
+    "normalized-time": 1627240483222821138,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|44|43"
+  },
+  {
+    "datapoint": "105592|6279|6279|400",
+    "normalized-time": 1627240488222198581,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|44|48"
+  },
+  {
+    "datapoint": "103300|6279|6279|400",
+    "normalized-time": 1627240493221971878,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|44|53"
+  },
+  {
+    "datapoint": "100734|6279|6279|400",
+    "normalized-time": 1627240498219917785,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|44|58"
+  },
+  {
+    "datapoint": "113409|6279|6279|400",
+    "normalized-time": 1627240503236982732,
+    "type": "monitoring",
+    "timestamp": "2021|July|26|0|45|3"
+  }
+]

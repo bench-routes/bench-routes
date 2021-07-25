@@ -70,13 +70,13 @@ func (q *Query) Exec() (*QueryResponse, error) {
 		TimeSeriesPath: q.dbPath,
 		Value:          resStream,
 		Range:          q.rang,
-		EvaluationTime: string(rune(time.Since(q.timestamp))),
+		EvaluationTime: time.Since(q.timestamp).String(),
 	}, nil
 }
 
 func (q *Query) fetchBlocks(stream *[]tsdb.Block) ([]tsdb.Block, error) {
 	streamLen := len(*stream)
-	if streamLen < 1 {
+	if streamLen == 0{
 		return nil, fmt.Errorf("no blocks found in chain path")
 	}
 
@@ -88,7 +88,7 @@ func (q *Query) fetchBlocks(stream *[]tsdb.Block) ([]tsdb.Block, error) {
 	firstBlockTime, lastBlockTime := (*stream)[0].NormalizedTime, (*stream)[streamLen-1].NormalizedTime
 	switch q.typ {
 	case TypeFirst:
-		return []tsdb.Block{(*stream)[lastBlockIndex]}, nil
+		return []tsdb.Block{(*stream)[streamLen-1]}, nil
 	case TypeRange:
 
 		if q.rang.Start < firstBlockTime {
@@ -127,6 +127,10 @@ func (q *Query) Validate() error {
 }
 
 func binSearch(stream *[]tsdb.Block, time int64, startIndex int, endIndex int) int {
+	if startIndex >= endIndex{
+		return startIndex
+	}
+
 	mid := (startIndex + endIndex) / 2
 	if (*stream)[mid].NormalizedTime == time {
 		return mid

@@ -50,8 +50,8 @@ func (a *API) UpdateConf(conf *config.Config) {
 
 func (a *API) RegisterRoutes() {
 	a.router.HandleFunc("/api/v1/reload", a.Reload)
-	a.router.HandleFunc("/get-machines", a.getMachines)
-	a.router.HandleFunc("/get-domain-entities", a.getDomainEntity)
+	a.router.HandleFunc("/api/v1/get-machines", a.getMachines)
+	a.router.HandleFunc("/api/v1/get-domain-entities", a.getDomainEntity)
 	// a.router.HandleFunc("/query-entity", a.queryEntity)
 }
 
