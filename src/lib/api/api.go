@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/log"
+	"github.com/bench-routes/bench-routes/src/lib/modules/evaluate"
 	tsdb "github.com/bench-routes/bench-routes/tsdb/file"
-	"github.com/bench-routes/bench-routes/tsdb/querier"
+	"github.com/bench-routes/bench-routes/tsdb/file/querier"
 	"github.com/gorilla/mux"
 )
 
@@ -52,7 +54,7 @@ func (a *API) RegisterRoutes() {
 	a.router.HandleFunc("/api/v1/reload", a.Reload)
 	a.router.HandleFunc("/api/v1/get-machines", a.getMachines)
 	a.router.HandleFunc("/api/v1/get-domain-entities", a.getDomainEntity)
-	// a.router.HandleFunc("/query-entity", a.queryEntity)
+	a.router.HandleFunc("/api/v1/query-entity", a.queryEntity)
 }
 
 func (a *API) Reload(w http.ResponseWriter, r *http.Request) {
@@ -75,8 +77,8 @@ func (a *API) getMachines(w http.ResponseWriter, r *http.Request) {
 func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
 	domain_or_ip := r.URL.Query().Get("domain_or_ip")
 	type response struct {
-		ChainName  string `json:"name"`
-		EntityName string `json:"route"`
+		ChainName  string `json:"chain_name"`
+		EntityName string `json:"entity_name"`
 		Status     string `json:"status"`
 	}
 	res := []response{}
@@ -100,7 +102,23 @@ func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
 		// monitor path can be structured as <domain_or_ip> + "_monitor" + <tsdb fileExtension>
 		monitorPath := "./storage/" + api.Name + "_monitor" + tsdb.FileExtension
 		if ok := tsdb.VerifyChainPathExists(monitorPath); ok {
-			res = append(res, response{ChainName: monitorPath, EntityName: api.Route, Status: "true"})
+			qry, err := querier.New(querier.TypeFirst, monitorPath, math.MinInt64, math.MaxInt64)
+			if err != nil {
+				a.send(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			qryRes, err := qry.Exec()
+			if err != nil {
+				a.send(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			var status string
+			if qryRes.Values[0].Value.(evaluate.Response).Status != 200 {
+				status = "false"
+			} else {
+				status = "true"
+			}
+			res = append(res, response{ChainName: monitorPath, EntityName: api.Route, Status: status})
 		}
 	}
 	a.send(w, res, http.StatusOK)
@@ -110,39 +128,72 @@ func (a *API) queryEntity(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("name")
 	startStr := r.URL.Query().Get("start")
 	endStr := r.URL.Query().Get("end")
+	stepStr := r.URL.Query().Get("step")
 
-	start, err := parseTime(startStr)
+	start, err := parseTime(startStr, "start")
 	if err != nil {
 		a.send(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	end, err := parseTime(endStr)
+	end, err := parseTime(endStr, "end")
 	if err != nil {
 		a.send(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	path = path + tsdb.FileExtension
+	step, err := parseStep(stepStr)
+	if err != nil {
+		a.send(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	if ok := tsdb.VerifyChainPathExists(path); !ok {
 		a.send(w, "INVALID_PATH", http.StatusBadRequest)
 		return
 	}
 
-	qry := querier.New(path, "", querier.TypeRange)
-	query := qry.QueryBuilder()
-	query.SetRange(start, end)
-	a.send(w, query.ExecWithoutEncode(), http.StatusOK)
-}
-
-func parseTime(t string) (int64, error) {
-	if t == "" {
-		return int64(math.MaxInt64), nil
-	}
-	time, err := time.Parse(time.RFC3339, t)
+	qry, err := querier.New(querier.TypeRange, path, start, end)
 	if err != nil {
-		return 0, fmt.Errorf("error in timestamp: %s", err.Error())
+		a.send(w, err.Error(), http.StatusBadRequest)
+		return
 	}
-	return time.UnixNano(), nil
+	qryRes, err := qry.Exec()
+	if err != nil {
+		a.send(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	type block struct {
+		Timestamp int64       `json:"timestamp"`
+		Value     interface{} `json:"value"`
+	}
+
+	type response struct {
+		Unit string  `json:"unit"`
+		Data []block `json:"data"`
+	}
+	var res response
+	for i := 0; i < len(qryRes.Values); i += (1 + step) {
+		switch qryRes.Type {
+		case "jitter":
+			res.Unit = "ms"
+			res.Data = append(res.Data, block{
+				Timestamp: qryRes.Values[i].NormalizedTime / int64(time.Millisecond),
+				Value:     qryRes.Values[i].Value.(evaluate.Jitter).Value.Milliseconds(),
+			})
+		case "ping":
+			res.Unit = "ms"
+			res.Data = append(res.Data, block{
+				Timestamp: qryRes.Values[i].NormalizedTime / int64(time.Millisecond),
+				Value:     qryRes.Values[i].Value.(evaluate.Ping).Mean.Milliseconds(),
+			})
+		case "monitoring":
+			res.Unit = "ms"
+			res.Data = append(res.Data, block{
+				Timestamp: qryRes.Values[i].NormalizedTime / int64(time.Millisecond),
+				Value:     qryRes.Values[i].Value.(evaluate.Response).Delay.Milliseconds(),
+			})
+		}
+	}
+	a.send(w, res, http.StatusOK)
 }
 
 func (a *API) send(w http.ResponseWriter, response interface{}, status int) {
@@ -153,4 +204,29 @@ func (a *API) send(w http.ResponseWriter, response interface{}, status int) {
 		return
 	}
 	w.Write([]byte(resp))
+}
+
+func parseTime(t string, typ string) (int64, error) {
+	if t == "" && typ == "end" {
+		return int64(math.MaxInt64), nil
+	}
+	if t == "" && typ == "start" {
+		return int64(math.MinInt64), nil
+	}
+	time, err := time.Parse(time.RFC3339, t)
+	if err != nil {
+		return 0, fmt.Errorf("error in timestamp: %s", err.Error())
+	}
+	return time.UnixNano(), nil
+}
+
+func parseStep(stepStr string) (int, error) {
+	if stepStr == "" {
+		return 0, nil
+	}
+	step, err := strconv.Atoi(stepStr)
+	if err != nil {
+		return 0, fmt.Errorf("step parsing error: %s", err.Error())
+	}
+	return step, nil
 }
