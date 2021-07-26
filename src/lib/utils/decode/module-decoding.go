@@ -10,6 +10,9 @@ import (
 )
 
 func pingDecode(block string) evaluate.Ping {
+	if block == "" {
+		return evaluate.Ping{}
+	}
 	arr := strings.Split(block, "|")
 	if len(arr) != 3 {
 		panic(fmt.Errorf("invalid block segments length: Segments must be 3 in number: length: %d", len(arr)))
@@ -35,6 +38,9 @@ func pingDecode(block string) evaluate.Ping {
 }
 
 func jitterDecode(block string) evaluate.Jitter {
+	if block == "" {
+		return evaluate.Jitter{}
+	}
 	arr := strings.Split(block, "|")
 	if len(arr) != 1 {
 		panic(fmt.Errorf("invalid block segments length: Segments must be 1 in number: length: %d", len(arr)))
@@ -51,6 +57,9 @@ func jitterDecode(block string) evaluate.Jitter {
 }
 
 func monitorDecode(block string) evaluate.Response {
+	if block == "" {
+		return evaluate.Response{}
+	}
 	arr := strings.Split(block, "|")
 	if len(arr) != 4 {
 		panic(fmt.Errorf("invalid block segments length: Segments must be 4 in number: length: %d", len(arr)))

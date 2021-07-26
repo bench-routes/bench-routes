@@ -19,21 +19,3 @@ apis:
       Content-Type: json
     params:
       v: kn271kr_ks0
-  - name: sample-youtube_2
-    every: 5s
-    protocol: https
-    domain_or_ip: www.youtube.com
-    route: /watch
-    method: get
-    headers:
-      Content-Type: json
-    params:
-      v: BYm69wGN2Gg
-  - name: sample-stackoverflow
-    every: 5s
-    protocol: https
-    domain_or_ip: stackoverflow.com
-    route: /questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-go/31832326#31832326
-    method: get
-    headers:
-      Content-Type: json
