@@ -25,17 +25,17 @@ type queryRange struct {
 
 // QueryResponse is the response sent after processing the query.
 type QueryResponse struct {
-	TimeSeriesPath string      `json:"timeSeriesPath"`
-	Type           string      `json:"type"`
-	Range          queryRange  `json:"range"`
-	EvaluationTime string      `json:"evaluationTime"`
-	Value          interface{} `json:"values"`
+	TimeSeriesPath string         `json:"timeSeriesPath"`
+	Type           string         `json:"type"`
+	Range          queryRange     `json:"range"`
+	EvaluationTime string         `json:"evaluationTime"`
+	Values         []DecodedBlock `json:"values"`
 }
 
 type DecodedBlock struct {
-	Value          interface{}
-	Timestamp      string
-	NormalizedTime int64
+	Value          interface{} `json:"value"`
+	Timestamp      string      `json:"timestamp"`
+	NormalizedTime int64       `json:"normalizedTime"`
 }
 
 const (
@@ -77,15 +77,16 @@ func (q *Query) Exec() (*QueryResponse, error) {
 	if len(resStream) == 0 {
 		return &QueryResponse{
 			TimeSeriesPath: q.dbPath,
-			Value:          resStream,
+			Values:         []DecodedBlock{},
 			Type:           "",
 			Range:          q.rang,
 			EvaluationTime: time.Since(q.timestamp).String(),
 		}, nil
 	}
+	typ := fetchType(resStream)
 
 	// decoding blockstream according to block type
-	blocksDecoder := decode.NewBlockDecoding(resStream[0].Type)
+	blocksDecoder := decode.NewBlockDecoding(typ)
 	var decodedStream []DecodedBlock
 	for _, block := range resStream {
 		decodedStream = append(decodedStream, DecodedBlock{
@@ -94,10 +95,11 @@ func (q *Query) Exec() (*QueryResponse, error) {
 			NormalizedTime: block.NormalizedTime,
 		})
 	}
+
 	return &QueryResponse{
 		TimeSeriesPath: q.dbPath,
 		Type:           blocksDecoder.Type,
-		Value:          decodedStream,
+		Values:         decodedStream,
 		Range:          q.rang,
 		EvaluationTime: time.Since(q.timestamp).String(),
 	}, nil
@@ -185,4 +187,13 @@ func (a blockStream) Less(i, j int) bool {
 func sortStream(stream []tsdb.Block) *[]tsdb.Block {
 	sort.Sort(blockStream(stream))
 	return &stream
+}
+
+func fetchType(stream []tsdb.Block) string {
+	for _, b := range stream {
+		if b.Type != "null" {
+			return b.Type
+		}
+	}
+	return "null"
 }

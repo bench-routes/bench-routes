@@ -1,7 +1,6 @@
 package querier
 
 import (
-	"fmt"
 	"testing"
 
 	tsdb "github.com/bench-routes/bench-routes/tsdb/file"
@@ -50,10 +49,9 @@ func TestQurier(t *testing.T) {
 			t.Fatalf("fetching block error : length of response is not expected : %d != %d\n", len(stream), endIdx-strIdx+1)
 		}
 
-		res, err := q.Exec()
+		_, err = q.Exec()
 		if err != nil {
 			t.Fatalf("query exec error : %s\n", err.Error())
 		}
-		fmt.Printf("%+v\n", res)
 	}
 }
