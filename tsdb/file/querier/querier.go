@@ -5,6 +5,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/bench-routes/bench-routes/src/lib/utils/decode"
 	tsdb "github.com/bench-routes/bench-routes/tsdb/file"
 )
 
@@ -25,9 +26,16 @@ type queryRange struct {
 // QueryResponse is the response sent after processing the query.
 type QueryResponse struct {
 	TimeSeriesPath string      `json:"timeSeriesPath"`
+	Type           string      `json:"type"`
 	Range          queryRange  `json:"range"`
 	EvaluationTime string      `json:"evaluationTime"`
 	Value          interface{} `json:"values"`
+}
+
+type DecodedBlock struct {
+	Value          interface{}
+	Timestamp      string
+	NormalizedTime int64
 }
 
 const (
@@ -66,9 +74,30 @@ func (q *Query) Exec() (*QueryResponse, error) {
 	if err != nil {
 		return nil, fmt.Errorf("query exec error : %s", err)
 	}
+	if len(resStream) == 0 {
+		return &QueryResponse{
+			TimeSeriesPath: q.dbPath,
+			Value:          resStream,
+			Type:           "",
+			Range:          q.rang,
+			EvaluationTime: time.Since(q.timestamp).String(),
+		}, nil
+	}
+
+	// decoding blockstream according to block type
+	blocksDecoder := decode.NewBlockDecoding(resStream[0].Type)
+	var decodedStream []DecodedBlock
+	for _, block := range resStream {
+		decodedStream = append(decodedStream, DecodedBlock{
+			Value:          blocksDecoder.Decode(block),
+			Timestamp:      block.Timestamp,
+			NormalizedTime: block.NormalizedTime,
+		})
+	}
 	return &QueryResponse{
 		TimeSeriesPath: q.dbPath,
-		Value:          resStream,
+		Type:           blocksDecoder.Type,
+		Value:          decodedStream,
 		Range:          q.rang,
 		EvaluationTime: time.Since(q.timestamp).String(),
 	}, nil
@@ -76,7 +105,7 @@ func (q *Query) Exec() (*QueryResponse, error) {
 
 func (q *Query) fetchBlocks(stream *[]tsdb.Block) ([]tsdb.Block, error) {
 	streamLen := len(*stream)
-	if streamLen == 0{
+	if streamLen == 0 {
 		return nil, fmt.Errorf("no blocks found in chain path")
 	}
 
@@ -127,7 +156,7 @@ func (q *Query) Validate() error {
 }
 
 func binSearch(stream *[]tsdb.Block, time int64, startIndex int, endIndex int) int {
-	if startIndex >= endIndex{
+	if startIndex >= endIndex {
 		return startIndex
 	}
 
