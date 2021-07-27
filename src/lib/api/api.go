@@ -24,11 +24,19 @@ type API struct {
 	domainMap map[string][]config.API
 }
 
+type response struct {
+	Status int         `json:"status"`
+	Data   interface{} `json:"data"`
+}
+
+type errResponse struct {
+	Error string `json:"error"`
+}
+
 func New(reloadSig chan<- struct{}, conf *config.Config) *API {
 	tmp := &API{
 		router:    mux.NewRouter(),
 		reloadSig: reloadSig,
-		domainMap: make(map[string][]config.API),
 	}
 	tmp.UpdateConf(conf)
 	tmp.RegisterRoutes()
@@ -60,40 +68,40 @@ func (a *API) RegisterRoutes() {
 func (a *API) Reload(w http.ResponseWriter, r *http.Request) {
 	a.reloadSig <- struct{}{}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"success":true, "Data": "reloaded success"}`))
+	w.Write([]byte(`{"success":true, "data": "reload success"}`))
 }
 
 func (a *API) getMachines(w http.ResponseWriter, r *http.Request) {
-	type response struct {
+	type data struct {
 		Machines []string `json:"machines"`
 	}
-	var res response
+	var res data
 	for k := range a.domainMap {
 		res.Machines = append(res.Machines, k)
 	}
-	a.send(w, res, http.StatusOK)
+	a.send(w, makeResponse(res), http.StatusOK)
 }
 
 func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
 	domain_or_ip := r.URL.Query().Get("domain_or_ip")
-	type response struct {
+	type data struct {
 		ChainName  string `json:"chain_name"`
 		EntityName string `json:"entity_name"`
 		Status     string `json:"status"`
 	}
-	res := []response{}
+	res := []data{}
 	// append ping path if it exists.
 	// ping path can be structured as <domain_or_ip> + "_ping" + <tsdb fileExtension>
 	pingPath := "./storage/" + domain_or_ip + "_ping" + tsdb.FileExtension
 	if ok := tsdb.VerifyChainPathExists(pingPath); ok {
-		res = append(res, response{ChainName: pingPath, EntityName: "Ping", Status: "none"})
+		res = append(res, data{ChainName: pingPath, EntityName: "Ping", Status: "none"})
 	}
 
 	// append jitter path if it exists.
 	// jitter path can be structured as <domain_or_ip> + "_jitter" + <tsdb fileExtension>
 	jitterPath := "./storage/" + domain_or_ip + "_jitter" + tsdb.FileExtension
 	if ok := tsdb.VerifyChainPathExists(jitterPath); ok {
-		res = append(res, response{ChainName: jitterPath, EntityName: "Jitter", Status: "none"})
+		res = append(res, data{ChainName: jitterPath, EntityName: "Jitter", Status: "none"})
 	}
 
 	for _, api := range a.domainMap[domain_or_ip] {
@@ -104,12 +112,12 @@ func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
 		if ok := tsdb.VerifyChainPathExists(monitorPath); ok {
 			qry, err := querier.New(querier.TypeFirst, monitorPath, math.MinInt64, math.MaxInt64)
 			if err != nil {
-				a.send(w, err.Error(), http.StatusBadRequest)
+				a.send(w, makeError(err), http.StatusBadRequest)
 				return
 			}
 			qryRes, err := qry.Exec()
 			if err != nil {
-				a.send(w, err.Error(), http.StatusBadRequest)
+				a.send(w, makeError(err), http.StatusBadRequest)
 				return
 			}
 			var status string
@@ -118,10 +126,10 @@ func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
 			} else {
 				status = "true"
 			}
-			res = append(res, response{ChainName: monitorPath, EntityName: api.Route, Status: status})
+			res = append(res, data{ChainName: monitorPath, EntityName: api.Route, Status: status})
 		}
 	}
-	a.send(w, res, http.StatusOK)
+	a.send(w, makeResponse(res), http.StatusOK)
 }
 
 func (a *API) queryEntity(w http.ResponseWriter, r *http.Request) {
@@ -129,35 +137,39 @@ func (a *API) queryEntity(w http.ResponseWriter, r *http.Request) {
 	startStr := r.URL.Query().Get("start")
 	endStr := r.URL.Query().Get("end")
 	stepStr := r.URL.Query().Get("step")
+	if path == "" {
+		a.send(w, makeError(fmt.Errorf("`name` query missing")), http.StatusBadRequest)
+		return
+	}
 
 	start, err := parseTime(startStr, "start")
 	if err != nil {
-		a.send(w, err.Error(), http.StatusBadRequest)
+		a.send(w, makeError(err), http.StatusBadRequest)
 		return
 	}
 	end, err := parseTime(endStr, "end")
 	if err != nil {
-		a.send(w, err.Error(), http.StatusBadRequest)
+		a.send(w, makeError(err), http.StatusBadRequest)
 		return
 	}
 	step, err := parseStep(stepStr)
 	if err != nil {
-		a.send(w, err.Error(), http.StatusBadRequest)
+		a.send(w, makeError(err), http.StatusBadRequest)
 		return
 	}
 	if ok := tsdb.VerifyChainPathExists(path); !ok {
-		a.send(w, "INVALID_PATH", http.StatusBadRequest)
+		a.send(w, makeError(fmt.Errorf("%s", "INVALID_PATH")), http.StatusBadRequest)
 		return
 	}
 
 	qry, err := querier.New(querier.TypeRange, path, start, end)
 	if err != nil {
-		a.send(w, err.Error(), http.StatusBadRequest)
+		a.send(w, makeError(err), http.StatusBadRequest)
 		return
 	}
 	qryRes, err := qry.Exec()
 	if err != nil {
-		a.send(w, err.Error(), http.StatusBadRequest)
+		a.send(w, makeError(err), http.StatusBadRequest)
 		return
 	}
 
@@ -166,11 +178,11 @@ func (a *API) queryEntity(w http.ResponseWriter, r *http.Request) {
 		Value     interface{} `json:"value"`
 	}
 
-	type response struct {
+	type data struct {
 		Unit string  `json:"unit"`
 		Data []block `json:"data"`
 	}
-	var res response
+	var res data
 	for i := 0; i < len(qryRes.Values); i += (1 + step) {
 		switch qryRes.Type {
 		case "jitter":
@@ -193,12 +205,12 @@ func (a *API) queryEntity(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 	}
-	a.send(w, res, http.StatusOK)
+	a.send(w, makeResponse(res), http.StatusOK)
 }
 
-func (a *API) send(w http.ResponseWriter, response interface{}, status int) {
+func (a *API) send(w http.ResponseWriter, data interface{}, status int) {
 	w.WriteHeader(status)
-	resp, err := json.Marshal(response)
+	resp, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println(fmt.Errorf("error marshalling : %w", err))
 		return
@@ -218,6 +230,20 @@ func parseTime(t string, typ string) (int64, error) {
 		return 0, fmt.Errorf("error in timestamp: %s", err.Error())
 	}
 	return time.UnixNano(), nil
+}
+
+func makeResponse(i interface{}) *response {
+	return &response{
+		Status: http.StatusOK,
+		Data:   i,
+	}
+}
+
+func makeError(err error) *errResponse {
+	fmt.Println(err.Error())
+	return &errResponse{
+		Error: err.Error(),
+	}
 }
 
 func parseStep(stepStr string) (int, error) {
