@@ -1,6 +1,8 @@
 package decode
 
-import "github.com/bench-routes/bench-routes/tsdb"
+import (
+	tsdb "github.com/bench-routes/bench-routes/tsdb/file"
+)
 
 // BlockDecodingBR implements the decoding of tsdb blocks into the respective types.
 type BlockDecodingBR struct {
@@ -18,22 +20,14 @@ func NewBlockDecoding(Type string) *BlockDecodingBR {
 // the same to the respective functions to get the decoded value which
 // is to be passed to the front end
 func (bd *BlockDecodingBR) Decode(block tsdb.Block) interface{} {
-	if block.Datapoint == "null" {
-		return nil
-	}
 	switch bd.Type {
-	case "sys":
-		return systemDecode(block.Datapoint)
 	case "ping":
 		return pingDecode(block.Datapoint)
 	case "jitter":
 		return jitterDecode(block.Datapoint)
-	case "journal":
-		return journalDecode(block.Datapoint)
-	case "flood-ping":
-		return floodPingDecode(block.Datapoint)
-	case "req-res":
+	case "monitoring":
 		return monitorDecode(block.Datapoint)
+	default:
+		return nil
 	}
-	return nil
 }

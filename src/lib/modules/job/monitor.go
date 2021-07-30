@@ -84,7 +84,7 @@ func (mn *monitoringJob) Execute(errCh chan<- error) {
 			errCh <- fmt.Errorf("job: %s: %w", mn.JobInfo.Name, err)
 			return
 		}
-		val := fmt.Sprintf("%v|%v|%v", response.Delay.Microseconds(), strconv.Itoa(response.Length), strconv.Itoa(response.Size))
+		val := fmt.Sprintf("%v|%v|%v|%v", response.Delay.Microseconds(), strconv.Itoa(response.Length), strconv.Itoa(response.Size), strconv.Itoa(response.Status))
 		mn.app.Append(file.NewBlock("monitoring", val))
 	}
 }

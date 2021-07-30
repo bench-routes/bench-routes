@@ -136,6 +136,14 @@ func loadBlocks(raw []byte) []Block {
 	return stream
 }
 
+func FetchChainStream(path string) ([]Block, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("loading file error: %s", err)
+	}
+	return loadBlocks(data), nil
+}
+
 func saveToHDD(path string, data []byte) error {
 	checkAndCreatePath(path)
 	e := ioutil.WriteFile(path, data, 0755)

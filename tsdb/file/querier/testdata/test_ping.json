@@ -1,0 +1,116 @@
+[
+  {
+    "datapoint": "",
+    "normalized-time": 1627239815957481976,
+    "type": "null",
+    "timestamp": "2021|July|26|0|33|35"
+  },
+  {
+    "datapoint": "",
+    "normalized-time": 1627239815957481976,
+    "type": "null",
+    "timestamp": "2021|July|26|0|33|35"
+  },
+  {
+    "datapoint": "47495|53205|69384",
+    "normalized-time": 1627239821152603977,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|33|41"
+  },
+  {
+    "datapoint": "49528|50824|53322",
+    "normalized-time": 1627239826153439667,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|33|46"
+  },
+  {
+    "datapoint": "49766|51340|54392",
+    "normalized-time": 1627239831167365967,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|33|51"
+  },
+  {
+    "datapoint": "50057|54963|73745",
+    "normalized-time": 1627239836190510367,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|33|56"
+  },
+  {
+    "datapoint": "50362|52202|57090",
+    "normalized-time": 1627239841159134215,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|34|1"
+  },
+  {
+    "datapoint": "49534|50156|50674",
+    "normalized-time": 1627239846208808522,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|34|6"
+  },
+  {
+    "datapoint": "49445|59096|78163",
+    "normalized-time": 1627239851145552300,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|34|11"
+  },
+  {
+    "datapoint": "49459|50086|50399",
+    "normalized-time": 1627239856207989840,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|34|16"
+  },
+  {
+    "datapoint": "50042|50709|51705",
+    "normalized-time": 1627239861155310162,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|34|21"
+  },
+  {
+    "datapoint": "49604|50745|53924",
+    "normalized-time": 1627239866116198595,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|34|26"
+  },
+  {
+    "datapoint": "49981|55130|71561",
+    "normalized-time": 1627239871287817071,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|34|31"
+  },
+  {
+    "datapoint": "49770|51334|53666",
+    "normalized-time": 1627239876181547122,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|34|36"
+  },
+  {
+    "datapoint": "49921|54107|66849",
+    "normalized-time": 1627239881213661694,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|34|41"
+  },
+  {
+    "datapoint": "49760|51193|55372",
+    "normalized-time": 1627239886149912080,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|34|46"
+  },
+  {
+    "datapoint": "49361|50707|52397",
+    "normalized-time": 1627239891192042725,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|34|51"
+  },
+  {
+    "datapoint": "49818|51293|54685",
+    "normalized-time": 1627239896200167608,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|34|56"
+  },
+  {
+    "datapoint": "49590|50008|50568",
+    "normalized-time": 1627239901168132156,
+    "type": "ping",
+    "timestamp": "2021|July|26|0|35|1"
+  }
+]
