@@ -46,6 +46,7 @@ const (
 	TypeFirst uint8 = 1
 )
 
+// New Creates a new Query which can be executed.
 func New(typ uint8, path string, start int64, end int64) (*Query, error) {
 	rang := queryRange{
 		Start: start,
@@ -63,6 +64,7 @@ func New(typ uint8, path string, start int64, end int64) (*Query, error) {
 	return query, nil
 }
 
+//Exec executes the query for the given range and returns the QueryResponse.
 func (q *Query) Exec() (*QueryResponse, error) {
 	bstream, err := tsdb.FetchChainStream(q.dbPath)
 	if err != nil {
@@ -105,6 +107,7 @@ func (q *Query) Exec() (*QueryResponse, error) {
 	}, nil
 }
 
+//fetchBlocks fetches the blocks from the stream within the query range using binary search.
 func (q *Query) fetchBlocks(stream *[]tsdb.Block) ([]tsdb.Block, error) {
 	streamLen := len(*stream)
 	if streamLen == 0 {
@@ -121,7 +124,6 @@ func (q *Query) fetchBlocks(stream *[]tsdb.Block) ([]tsdb.Block, error) {
 	case TypeFirst:
 		return []tsdb.Block{(*stream)[streamLen-1]}, nil
 	case TypeRange:
-
 		if q.rang.Start < firstBlockTime {
 			firstBlockIndex = 0
 		} else if q.rang.Start > lastBlockTime {
@@ -143,6 +145,7 @@ func (q *Query) fetchBlocks(stream *[]tsdb.Block) ([]tsdb.Block, error) {
 	return (*stream)[firstBlockIndex : lastBlockIndex+1], nil
 }
 
+// Validate validates the query.
 func (q *Query) Validate() error {
 	if q.rang.Start > q.rang.End {
 		return fmt.Errorf("rang error: start time is greater than end time")
@@ -157,6 +160,7 @@ func (q *Query) Validate() error {
 	return nil
 }
 
+// binSearch searches for the index of the block in the stream in O(log(n))
 func binSearch(stream *[]tsdb.Block, time int64, startIndex int, endIndex int) int {
 	if startIndex >= endIndex {
 		return startIndex

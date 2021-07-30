@@ -9,13 +9,3 @@ apis:
       Content-Type: json
     params:
       q: bench-routes
-  - name: sample-youtube
-    every: 5s
-    protocol: https
-    domain_or_ip: www.youtube.com
-    route: /watch
-    method: get
-    headers:
-      Content-Type: json
-    params:
-      v: kn271kr_ks0

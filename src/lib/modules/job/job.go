@@ -18,6 +18,9 @@ type Executable interface {
 
 // NewJob creates a new job based on the typ.
 func NewJob(typ string, app_1 file.Appendable, app_2 file.Appendable, api *config.API) (Executable, chan<- struct{}, error) {
+	// Here we use app_1 and app_2 to represent two appenders. In case of
+	// machine : app_1 will represent ping appendable and app_2 will represent jitter appendable
+	// monitor : app_1 will represent monitor appendable and app_2 will be nil.
 	switch typ {
 	case "machine":
 		job, ch, err := newMachineJob(app_1, app_2, api)

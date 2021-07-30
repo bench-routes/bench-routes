@@ -29,10 +29,6 @@ type response struct {
 	Data   interface{} `json:"data"`
 }
 
-type errResponse struct {
-	Error string `json:"error"`
-}
-
 func New(reloadSig chan<- struct{}, conf *config.Config) *API {
 	tmp := &API{
 		router:    mux.NewRouter(),
@@ -54,7 +50,7 @@ func (a *API) UpdateConf(conf *config.Config) {
 	}
 	a.mutex.Lock()
 	a.domainMap = d
-	log.Info("msg", "Updated API domain map")
+	log.Debug("msg", "Updated API domain map")
 	a.mutex.Unlock()
 }
 
@@ -67,19 +63,17 @@ func (a *API) RegisterRoutes() {
 
 func (a *API) Reload(w http.ResponseWriter, r *http.Request) {
 	a.reloadSig <- struct{}{}
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"success":true, "data": "reload success"}`))
+	a.send(w, http.StatusOK, `{"success":true, "data": "reload success"}`)
 }
 
 func (a *API) getMachines(w http.ResponseWriter, r *http.Request) {
-	type data struct {
+	var res struct {
 		Machines []string `json:"machines"`
 	}
-	var res data
 	for k := range a.domainMap {
 		res.Machines = append(res.Machines, k)
 	}
-	a.send(w, makeResponse(res), http.StatusOK)
+	a.send(w, http.StatusOK, res)
 }
 
 func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
@@ -89,12 +83,14 @@ func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
 		EntityName string `json:"entity_name"`
 		Status     string `json:"status"`
 	}
-	res := []data{}
+	res := make([]data, 0)
 	// append ping path if it exists.
 	// ping path can be structured as <domain_or_ip> + "_ping" + <tsdb fileExtension>
 	pingPath := "./storage/" + domain_or_ip + "_ping" + tsdb.FileExtension
 	if ok := tsdb.VerifyChainPathExists(pingPath); ok {
 		res = append(res, data{ChainName: pingPath, EntityName: "Ping", Status: "none"})
+	} else {
+		log.Warn("component", "api", "msg", fmt.Sprintf("ping: path not found at %s", pingPath))
 	}
 
 	// append jitter path if it exists.
@@ -102,6 +98,8 @@ func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
 	jitterPath := "./storage/" + domain_or_ip + "_jitter" + tsdb.FileExtension
 	if ok := tsdb.VerifyChainPathExists(jitterPath); ok {
 		res = append(res, data{ChainName: jitterPath, EntityName: "Jitter", Status: "none"})
+	} else {
+		log.Warn("component", "api", "msg", fmt.Sprintf("jitter: path not found at %s", jitterPath))
 	}
 
 	for _, api := range a.domainMap[domain_or_ip] {
@@ -112,24 +110,27 @@ func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
 		if ok := tsdb.VerifyChainPathExists(monitorPath); ok {
 			qry, err := querier.New(querier.TypeFirst, monitorPath, math.MinInt64, math.MaxInt64)
 			if err != nil {
-				a.send(w, makeError(err), http.StatusBadRequest)
+				a.send(w, http.StatusInternalServerError, err.Error())
 				return
 			}
 			qryRes, err := qry.Exec()
 			if err != nil {
-				a.send(w, makeError(err), http.StatusBadRequest)
+				a.send(w, http.StatusInternalServerError, err.Error())
 				return
 			}
 			var status string
+			// We verify if status is 200, and only then ask the UI to show `UP` for the route.
 			if qryRes.Values[0].Value.(evaluate.Response).Status != 200 {
 				status = "false"
 			} else {
 				status = "true"
 			}
 			res = append(res, data{ChainName: monitorPath, EntityName: api.Route, Status: status})
+		} else {
+			log.Warn("component", "api", "msg", fmt.Sprintf("monitoring: path not found at %s", monitorPath))
 		}
 	}
-	a.send(w, makeResponse(res), http.StatusOK)
+	a.send(w, http.StatusOK, res)
 }
 
 func (a *API) queryEntity(w http.ResponseWriter, r *http.Request) {
@@ -138,38 +139,38 @@ func (a *API) queryEntity(w http.ResponseWriter, r *http.Request) {
 	endStr := r.URL.Query().Get("end")
 	stepStr := r.URL.Query().Get("step")
 	if path == "" {
-		a.send(w, makeError(fmt.Errorf("`name` query missing")), http.StatusBadRequest)
+		a.send(w, http.StatusBadRequest, fmt.Errorf("`name` query missing").Error())
 		return
 	}
 
 	start, err := parseTime(startStr, "start")
 	if err != nil {
-		a.send(w, makeError(err), http.StatusBadRequest)
+		a.send(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	end, err := parseTime(endStr, "end")
 	if err != nil {
-		a.send(w, makeError(err), http.StatusBadRequest)
+		a.send(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	step, err := parseStep(stepStr)
 	if err != nil {
-		a.send(w, makeError(err), http.StatusBadRequest)
+		a.send(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	if ok := tsdb.VerifyChainPathExists(path); !ok {
-		a.send(w, makeError(fmt.Errorf("%s", "INVALID_PATH")), http.StatusBadRequest)
+		a.send(w, http.StatusBadRequest, fmt.Errorf("%s", "INVALID_PATH").Error())
 		return
 	}
 
 	qry, err := querier.New(querier.TypeRange, path, start, end)
 	if err != nil {
-		a.send(w, makeError(err), http.StatusBadRequest)
+		a.send(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	qryRes, err := qry.Exec()
 	if err != nil {
-		a.send(w, makeError(err), http.StatusBadRequest)
+		a.send(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -205,12 +206,13 @@ func (a *API) queryEntity(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 	}
-	a.send(w, makeResponse(res), http.StatusOK)
+	a.send(w, http.StatusOK, res)
 }
 
-func (a *API) send(w http.ResponseWriter, data interface{}, status int) {
+func (a *API) send(w http.ResponseWriter, status int, data interface{}) {
 	w.WriteHeader(status)
-	resp, err := json.Marshal(data)
+	res := makeResponse(data, status)
+	resp, err := json.Marshal(res)
 	if err != nil {
 		fmt.Println(fmt.Errorf("error marshalling : %w", err))
 		return
@@ -232,17 +234,10 @@ func parseTime(t string, typ string) (int64, error) {
 	return time.UnixNano(), nil
 }
 
-func makeResponse(i interface{}) *response {
+func makeResponse(data interface{}, status int) *response {
 	return &response{
-		Status: http.StatusOK,
-		Data:   i,
-	}
-}
-
-func makeError(err error) *errResponse {
-	fmt.Println(err.Error())
-	return &errResponse{
-		Error: err.Error(),
+		Status: status,
+		Data:   data,
 	}
 }
 
