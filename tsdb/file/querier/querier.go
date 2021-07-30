@@ -148,7 +148,7 @@ func (q *Query) fetchBlocks(stream *[]tsdb.Block) ([]tsdb.Block, error) {
 // Validate validates the query.
 func (q *Query) Validate() error {
 	if q.rang.Start > q.rang.End {
-		return fmt.Errorf("rang error: start time is greater than end time")
+		return fmt.Errorf("range error: start time is greater than end time")
 	}
 	if ok := tsdb.VerifyChainPathExists(q.dbPath); !ok {
 		return fmt.Errorf("dbpath error: path doesn't exists")

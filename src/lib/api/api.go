@@ -63,7 +63,7 @@ func (a *API) RegisterRoutes() {
 
 func (a *API) Reload(w http.ResponseWriter, r *http.Request) {
 	a.reloadSig <- struct{}{}
-	a.send(w, http.StatusOK, `{"success":true, "data": "reload success"}`)
+	a.send(w, http.StatusOK, `reload success`)
 }
 
 func (a *API) getMachines(w http.ResponseWriter, r *http.Request) {
