@@ -6,7 +6,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/bench-routes/bench-routes/src/lib/utils/decode"
 	"github.com/bench-routes/bench-routes/tsdb"
 	"github.com/prometheus/common/log"
 )
@@ -208,11 +207,11 @@ func (q *Query) exec(blockStream []tsdb.Block, encoding bool) (i interface{}) {
 		return q.ReturnNILResponse()
 	}
 	// decode the selected range of blocks
-	blocksDecoder := decode.NewBlockDecoding(resultingBlockSlice[0].Type)
+	// blocksDecoder := decode.NewBlockDecoding(resultingBlockSlice[0].Type)
 	for i := range resultingBlockSlice {
 		decodedBlockStream = append(decodedBlockStream, queryValue{
-			Timestamp:      resultingBlockSlice[i].Timestamp,
-			Value:          blocksDecoder.Decode(resultingBlockSlice[i]),
+			Timestamp: resultingBlockSlice[i].Timestamp,
+			// Value:          blocksDecoder.Decode(resultingBlockSlice[i]),
 			NormalizedTime: resultingBlockSlice[i].GetNormalizedTime(),
 		})
 	}

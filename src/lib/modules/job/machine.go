@@ -12,16 +12,18 @@ import (
 
 type machineJob struct {
 	JobInfo
-	app     file.Appendable
-	sigCh   chan struct{}
-	urlPath string
+	appPing   file.Appendable
+	appJitter file.Appendable
+	sigCh     chan struct{}
+	urlPath   string
 }
 
-func newMachineJob(app file.Appendable, api *config.API) (*machineJob, chan<- struct{}, error) {
+func newMachineJob(appPing file.Appendable, appJitter file.Appendable, api *config.API) (*machineJob, chan<- struct{}, error) {
 	sig := make(chan struct{})
 	newjob := &machineJob{
-		app:   app,
-		sigCh: sig,
+		appPing:   appPing,
+		appJitter: appJitter,
+		sigCh:     sig,
 		JobInfo: JobInfo{
 			Name:        api.Name,
 			Every:       api.Every,
@@ -47,8 +49,8 @@ func (mn *machineJob) Execute(errCh chan<- error) {
 		}
 		pingVal := fmt.Sprintf("%v|%v|%v", ping.Max.Microseconds(), ping.Mean.Microseconds(), ping.Min.Microseconds())
 		jitterVal := fmt.Sprintf("%v", jitter.Value.Microseconds())
-		mn.app.Append(file.NewBlock("ping", pingVal))
-		mn.app.Append(file.NewBlock("jitter", jitterVal))
+		mn.appPing.Append(file.NewBlock("ping", pingVal))
+		mn.appJitter.Append(file.NewBlock("jitter", jitterVal))
 	}
 }
 

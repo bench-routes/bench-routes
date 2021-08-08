@@ -13,6 +13,7 @@ type Response struct {
 	Delay  time.Duration `json:"delay"`
 	Length int           `json:"length"`
 	Size   int           `json:"size"`
+	Status int           `json:"status"`
 }
 
 // ExecuteMonitor monitors resDelay and resLength.
@@ -33,6 +34,7 @@ func Monitor(client *http.Client, request *http.Request) (*Response, error) {
 		Delay:  resDelay,
 		Length: utf8.RuneCountInString(string(resBody)),
 		Size:   len(resBody),
+		Status: res.StatusCode,
 	}
 	return response, nil
 }
