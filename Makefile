@@ -63,8 +63,6 @@ run-collector:
 ## Fixes webapp and server code style.
 fix:
 	go fmt ./...
-	cd dashboard/v1.1/ && npm run prettier-fix
-	cd dashboard/v1.1/ && npm run tlint-fix
 
 ## Runs golangci-lint (assuming golangci-lint is installed).
 lint:

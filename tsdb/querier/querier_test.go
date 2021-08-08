@@ -1,202 +1,57 @@
 package querier
 
 import (
-	"encoding/json"
-	"math"
 	"testing"
+
+	tsdb "github.com/bench-routes/bench-routes/tsdb"
 )
 
-func Test_Querier_NULL_Range(t *testing.T) {
-	// tests the case where the range is not provided. This should return all the blocks.
-	var resp QueryResponse
-	q := New("test_sample_blocks.json", "", TypeRange)
-	query := q.QueryBuilder()
-	result := query.Exec()
-	if err := json.Unmarshal(result, &resp); err != nil {
-		panic(err)
-	}
-	decodedBlocks := resp.Value.([]interface{})
-	if len(decodedBlocks) != 334 {
-		t.Errorf("NULL_Range: decoded blocks are not in required numbers, %d, should actually be 334", len(decodedBlocks))
-	}
+var tests []string = []string{
+	"./testdata/test_ping.json",
+	"./testdata/test_jitter.json",
+	"./testdata/test_monitor.json",
 }
 
-func Test_Querier_Range_within_complete_start_end(t *testing.T) {
-	var resp QueryResponse
-	q := New("test_sample_blocks.json", "", TypeRange)
-	query := q.QueryBuilder()
-	query.SetRange(1588420763115213398, 1588231243752392414)
-	result := query.Exec()
-	if err := json.Unmarshal(result, &resp); err != nil {
-		panic(err)
-	}
-	decodedBlocks := resp.Value.([]interface{})
-	if len(decodedBlocks) != 334 {
-		t.Errorf("Range_within_complete_start_end: decoded blocks are not in required numbers, %d, should actually be 334", len(decodedBlocks))
-	}
-}
+func TestQurier(t *testing.T) {
+	for _, path := range tests {
+		bstream, err := tsdb.FetchChainStream(path)
+		if err != nil {
+			t.Fatalf("loading chain error: %s\n", err)
+		}
+		sortedStream := sortStream(bstream)
+		for i := 0; i < (len(*sortedStream) - 1); i++ {
+			if (*sortedStream)[i].NormalizedTime > (*sortedStream)[i+1].NormalizedTime {
+				t.Fatalf("error sorting : %d > %d \n", (*sortedStream)[i].NormalizedTime, (*sortedStream)[i+1].NormalizedTime)
+			}
+		}
+		tIndex := len(*sortedStream)/2 + len(*sortedStream)/6
 
-func Test_Querier_Range_within_infinite_start_and_finite_last_end(t *testing.T) {
-	var resp QueryResponse
-	q := New("test_sample_blocks.json", "", TypeRange)
-	query := q.QueryBuilder()
-	query.SetRange(int64(math.MaxInt64), 1588231243752392414)
-	result := query.Exec()
-	if err := json.Unmarshal(result, &resp); err != nil {
-		panic(err)
-	}
-	decodedBlocks := resp.Value.([]interface{})
-	if len(decodedBlocks) != 334 {
-		t.Errorf("Range_within_complete_start_end: decoded blocks are not in required numbers, %d, should actually be 334", len(decodedBlocks))
-	}
-}
+		gIndex := binSearch(sortedStream, (*sortedStream)[tIndex].NormalizedTime, 0, len(*sortedStream))
 
-func Test_Querier_Range_within_infinite_start_and_finite_middle_end(t *testing.T) {
-	var resp QueryResponse
-	q := New("test_sample_blocks.json", "", TypeRange)
-	query := q.QueryBuilder()
-	query.SetRange(int64(math.MaxInt64), 1588320025023992340)
-	result := query.Exec()
-	if err := json.Unmarshal(result, &resp); err != nil {
-		panic(err)
-	}
-	decodedBlocks := resp.Value.([]interface{})
-	if len(decodedBlocks) != 225 {
-		t.Errorf("Range_within_complete_start_end: decoded blocks are not in required numbers, %d, should actually be 225", len(decodedBlocks))
-	}
-}
+		if tIndex != gIndex {
+			t.Fatalf("binSearch not working : %d != %d\n", tIndex, gIndex)
+		}
+		strIdx := len(*sortedStream) / 3
+		endIdx := len(*sortedStream) / 2
 
-func Test_Querier_Range_within_finite_first_start_and_infinite_end(t *testing.T) {
-	var resp QueryResponse
-	q := New("test_sample_blocks.json", "", TypeRange)
-	query := q.QueryBuilder()
-	query.SetRange(1588420763115213398, int64(math.MinInt64))
-	result := query.Exec()
-	if err := json.Unmarshal(result, &resp); err != nil {
-		panic(err)
-	}
-	decodedBlocks := resp.Value.([]interface{})
-	if len(decodedBlocks) != 334 {
-		t.Errorf("Range_within_complete_start_end: decoded blocks are not in required numbers, %d, should actually be 334", len(decodedBlocks))
-	}
-}
+		q, err := New(TypeRange, path, (*sortedStream)[strIdx].NormalizedTime, (*sortedStream)[endIdx].NormalizedTime)
+		if err != nil {
+			t.Fatalf("query error : %s\n", err.Error())
+		}
 
-func Test_Querier_Range_within_finite_middle_start_and_infinite_end(t *testing.T) {
-	var resp QueryResponse
-	q := New("test_sample_blocks.json", "", TypeRange)
-	query := q.QueryBuilder()
-	query.SetRange(1588326076041632077, int64(math.MinInt64))
-	result := query.Exec()
-	if err := json.Unmarshal(result, &resp); err != nil {
-		panic(err)
-	}
-	decodedBlocks := resp.Value.([]interface{})
-	if len(decodedBlocks) != 234 {
-		t.Errorf("Range_within_complete_start_end: decoded blocks are not in required numbers, %d, should actually be 234", len(decodedBlocks))
-	}
-}
+		stream, err := q.fetchBlocks(sortedStream)
 
-func Test_Querier_Range_within_finite_middle_start_and_finite_middle_end(t *testing.T) {
-	var resp QueryResponse
-	q := New("test_sample_blocks.json", "", TypeRange)
-	query := q.QueryBuilder()
-	query.SetRange(1588326076041632077, 1588319816131081362)
-	result := query.Exec()
-	if err := json.Unmarshal(result, &resp); err != nil {
-		panic(err)
-	}
-	decodedBlocks := resp.Value.([]interface{})
-	if len(decodedBlocks) != 140 {
-		t.Errorf("Range_within_complete_start_end: decoded blocks are not in required numbers, %d, should actually be 140", len(decodedBlocks))
-	}
-}
+		if err != nil {
+			t.Fatalf("fetching block error : %s\n", err.Error())
+		}
 
-func Test_Querier_Range_two_block_test(t *testing.T) {
-	var resp QueryResponse
-	q := New("test_sample_blocks.json", "", TypeRange)
-	query := q.QueryBuilder()
-	query.SetRange(1588319829132430602, 1588319816131081362)
-	result := query.Exec()
-	if err := json.Unmarshal(result, &resp); err != nil {
-		panic(err)
-	}
-	decodedBlocks := resp.Value.([]interface{})
-	if len(decodedBlocks) != 2 {
-		t.Errorf("Range_within_complete_start_end: decoded blocks are not in required numbers, %d, should actually be 2", len(decodedBlocks))
-	}
-}
+		if len(stream) != (endIdx - strIdx + 1) {
+			t.Fatalf("fetching block error : length of response is not expected : %d != %d\n", len(stream), endIdx-strIdx+1)
+		}
 
-func Test_Querier_Range_single_block_test(t *testing.T) {
-	var resp QueryResponse
-	q := New("test_sample_blocks.json", "", TypeRange)
-	query := q.QueryBuilder()
-	query.SetRange(1588319829132430601, 1588319816131081362)
-	result := query.Exec()
-	if err := json.Unmarshal(result, &resp); err != nil {
-		panic(err)
-	}
-	decodedBlocks := resp.Value.([]interface{})
-	if len(decodedBlocks) != 1 {
-		t.Errorf("Range_within_complete_start_end: decoded blocks are not in required numbers, %d, should actually be 1", len(decodedBlocks))
-	}
-}
-
-func Test_Querier_Range_Invalid_test(t *testing.T) {
-	var resp QueryResponse
-	q := New("test_sample_blocks.json", "", TypeRange)
-	query := q.QueryBuilder()
-	query.SetRange(1588319816131081362, 1588319829132430602)
-	result := query.Exec()
-	if err := json.Unmarshal(result, &resp); err != nil {
-		panic(err)
-	}
-	_, ok := resp.Value.([]interface{})
-	if ok {
-		t.Errorf("Range_Invalid_test: type should be string, but received %t", resp.Value)
-	}
-}
-
-func Test_Querier_Range_on_point(t *testing.T) {
-	var resp QueryResponse
-	q := New("test_sample_blocks.json", "", TypeRange)
-	query := q.QueryBuilder()
-	query.SetRange(1588319816131081362, 1588319816131081362)
-	result := query.Exec()
-	if err := json.Unmarshal(result, &resp); err != nil {
-		panic(err)
-	}
-	decodedBlocks := resp.Value.([]interface{})
-	if len(decodedBlocks) != 1 {
-		t.Errorf("Range_within_complete_start_end: decoded blocks are not in required numbers, %d, should actually be 1", len(decodedBlocks))
-	}
-}
-
-func Test_Querier_Range_single_block_near_line(t *testing.T) {
-	var resp QueryResponse
-	q := New("test_sample_blocks.json", "", TypeRange)
-	query := q.QueryBuilder()
-	query.SetRange(1588319816131081363, 1588319816131081363)
-	result := query.Exec()
-	if err := json.Unmarshal(result, &resp); err != nil {
-		panic(err)
-	}
-	decodedBlocks := resp.Value.([]interface{})
-	if len(decodedBlocks) != 1 {
-		t.Errorf("Range_within_complete_start_end: decoded blocks are not in required numbers, %d, should actually be 1", len(decodedBlocks))
-	}
-}
-
-func Test_Querier_Range_no_resultant_block(t *testing.T) {
-	var resp QueryResponse
-	q := New("test_sample_blocks.json", "", TypeRange)
-	query := q.QueryBuilder()
-	query.SetRange(1688420763115213398, 1658420763115213398)
-	result := query.Exec()
-	if err := json.Unmarshal(result, &resp); err != nil {
-		panic(err)
-	}
-	_, ok := resp.Value.([]interface{})
-	if ok {
-		t.Errorf("Range_Invalid_test: type should be string, but received %t", resp.Value)
+		_, err = q.Exec()
+		if err != nil {
+			t.Fatalf("query exec error : %s\n", err.Error())
+		}
 	}
 }

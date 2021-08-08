@@ -6,7 +6,7 @@ import (
 	"time"
 
 	config "github.com/bench-routes/bench-routes/src/lib/config"
-	"github.com/bench-routes/bench-routes/tsdb/file"
+	file "github.com/bench-routes/bench-routes/tsdb"
 )
 
 // Executable is an interface that is implemented by machineJob and monitoringJob.

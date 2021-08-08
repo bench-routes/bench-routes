@@ -9,7 +9,7 @@ import (
 
 	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/modules/job"
-	"github.com/bench-routes/bench-routes/tsdb/file"
+	file "github.com/bench-routes/bench-routes/tsdb"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,7 +24,7 @@ func TestScheduler(t *testing.T) {
 	for i, api := range conf.APIs {
 		app, _ := set.NewChain(api.Name+"_monitor", api.Protocol+api.Domain+api.Route, false)
 		// creating the jobs
-		exec, ch, err := job.NewJob("monitor", app, nil,&api)
+		exec, ch, err := job.NewJob("monitor", app, nil, &api)
 		if err != nil {
 			require.FailNow(t, "error creating # %d job: %s\n", i, err)
 			continue

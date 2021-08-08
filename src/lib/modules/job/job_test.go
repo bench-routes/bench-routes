@@ -7,7 +7,7 @@ import (
 	"time"
 
 	config "github.com/bench-routes/bench-routes/src/lib/config"
-	"github.com/bench-routes/bench-routes/tsdb/file"
+	file "github.com/bench-routes/bench-routes/tsdb"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,7 +53,7 @@ func TestMonitorJob(t *testing.T) {
 		fmt.Printf("testing ResDelay and resLength for %s\n", api.Name)
 		app, utils := set.NewChain(api.Name+"_monitor", api.Protocol+api.Domain+api.Route, true)
 		paths = append(paths, utils.Path())
-		exec, ch, err := NewJob("monitor", app,nil, &api)
+		exec, ch, err := NewJob("monitor", app, nil, &api)
 		if err != nil {
 			require.FailNow(t, "error creating %d # job : %s", index, err)
 		}

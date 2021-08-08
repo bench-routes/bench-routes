@@ -1,7 +1,7 @@
 package decode
 
 import (
-	tsdb "github.com/bench-routes/bench-routes/tsdb/file"
+	tsdb "github.com/bench-routes/bench-routes/tsdb"
 )
 
 // BlockDecodingBR implements the decoding of tsdb blocks into the respective types.

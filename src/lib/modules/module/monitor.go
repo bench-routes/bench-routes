@@ -8,7 +8,7 @@ import (
 	"github.com/bench-routes/bench-routes/src/lib/log"
 	"github.com/bench-routes/bench-routes/src/lib/modules/job"
 	"github.com/bench-routes/bench-routes/src/lib/modules/scheduler"
-	"github.com/bench-routes/bench-routes/tsdb/file"
+	file "github.com/bench-routes/bench-routes/tsdb"
 )
 
 // Monitor handles monitoring of the endpoints.

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	config "github.com/bench-routes/bench-routes/src/lib/config"
-	"github.com/bench-routes/bench-routes/tsdb/file"
+	file "github.com/bench-routes/bench-routes/tsdb"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,8 +37,10 @@ func TestMachineModule(t *testing.T) {
 		t.Fatalf("error loading config: %s", err)
 	}
 
-	go module.Reload(conf)
-
+	go func() {
+		err := module.Reload(conf)
+		fmt.Println(err)
+	}()
 	time.Sleep(time.Second * 30)
 	module.Stop()
 	time.Sleep(time.Second * 2)
@@ -71,7 +73,10 @@ func TestMonitorModule(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error loading config: %s", err)
 	}
-	go module.Reload(conf)
+	go func() {
+		err := module.Reload(conf)
+		fmt.Println(err)
+	}()
 
 	time.Sleep(time.Second * 30)
 	module.Stop()

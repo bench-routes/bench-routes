@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	config "github.com/bench-routes/bench-routes/src/lib/config"
-	"github.com/bench-routes/bench-routes/tsdb/file"
+	file "github.com/bench-routes/bench-routes/tsdb"
 )
 
 // Runnable is an interface that is implmented by Machine and Monitor.
