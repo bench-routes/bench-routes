@@ -51,9 +51,9 @@ func TestMonitorJob(t *testing.T) {
 	// Running test for all the given apis.
 	for index, api := range testapis {
 		fmt.Printf("testing ResDelay and resLength for %s\n", api.Name)
-		app, utils := set.NewChain(api.Name, api.Domain+api.Route, true)
+		app, utils := set.NewChain(api.Name+"_monitor", api.Protocol+api.Domain+api.Route, true)
 		paths = append(paths, utils.Path())
-		exec, ch, err := NewJob("monitor", app, &api)
+		exec, ch, err := NewJob("monitor", app,nil, &api)
 		if err != nil {
 			require.FailNow(t, "error creating %d # job : %s", index, err)
 		}
@@ -99,9 +99,11 @@ func TestMachineJob(t *testing.T) {
 	// Running tests for all the apis.
 	for index, api := range testapis {
 		fmt.Printf("testing ResDelay and resLength for %s\n", api.Name)
-		app, utils := set.NewChain(api.Name, api.Domain+api.Route, true)
-		paths = append(paths, utils.Path())
-		exec, ch, err := NewJob("machine", app, &api)
+		appPing, utils1 := set.NewChain(api.Domain+"_ping", api.Protocol+"://"+api.Domain+api.Route, true)
+		appJitter, utils2 := set.NewChain(api.Domain+"_jitter", api.Protocol+"://"+api.Domain+api.Route, true)
+		paths = append(paths, utils1.Path())
+		paths = append(paths, utils2.Path())
+		exec, ch, err := NewJob("machine", appPing, appJitter, &api)
 		if err != nil {
 			require.FailNow(t, "error creating %d # job : %s", index, err)
 		}
