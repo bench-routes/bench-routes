@@ -41,9 +41,9 @@ func TestMachineModule(t *testing.T) {
 		err := module.Reload(conf)
 		fmt.Println(err)
 	}()
-	time.Sleep(time.Second * 30)
+	time.Sleep(time.Second * 8)
 	module.Stop()
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 5)
 	err = os.RemoveAll("storage")
 	require.NoError(t, err)
 }
@@ -78,9 +78,9 @@ func TestMonitorModule(t *testing.T) {
 		fmt.Println(err)
 	}()
 
-	time.Sleep(time.Second * 30)
+	time.Sleep(time.Second * 8)
 	module.Stop()
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 5)
 	err = os.RemoveAll("storage")
 	require.NoError(t, err)
 }

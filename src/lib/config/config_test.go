@@ -19,7 +19,7 @@ var validateTests = []test{
 		name:      "`Name` field is MISSING",
 		file:      "./testdata/config_name_missing.bad.yml",
 		shouldErr: true,
-		err:       "validation error : `Name` field of # 1 API can not be empty",
+		err:       "validation error : `Name` field of # 1 API cannot be empty",
 	},
 	{
 		name:      "VALID config file",
@@ -36,19 +36,19 @@ var validateTests = []test{
 		name:      "`domain_or_ip` field is MISSING",
 		file:      "./testdata/config_domain_missing.bad.yml",
 		shouldErr: true,
-		err:       "validation error : `Domain_or_Ip` field of # 0 API can not be empty",
+		err:       "validation error : `Domain_or_Ip` field of # 0 API cannot be empty",
 	},
 	{
 		name:      "`Route` field is MISSING",
 		file:      "./testdata/config_route_missing.bad.yml",
 		shouldErr: true,
-		err:       "validation error : `Route` field of # 0 API can not be empty",
+		err:       "validation error : `Route` field of # 0 API cannot be empty",
 	},
 	{
 		name:      "`Method` field is MISSING",
 		file:      "./testdata/config_method_missing.bad.yml",
 		shouldErr: true,
-		err:       "validation error : `Method` field of # 0 API can not be empty",
+		err:       "validation error : `Method` field of # 0 API cannot be empty",
 	},
 	{
 		name:      "`Method` field is INVALID",
@@ -131,11 +131,11 @@ func TestValidate(t *testing.T) {
 			c := &Config{
 				path: s.file,
 			}
-			c, err := c.Reload()
+			_, err := c.Reload()
+			// if err != nil {
+			// 	t.Fatal("Error in reloading: %w", err)
+			// }
 			if err != nil {
-				t.Fatal("Error in reloading: %w", err)
-			}
-			if err = c.Validate(); err != nil {
 				if !s.shouldErr {
 					t.Fatalf("%s: error was not expected", err)
 				}

@@ -14,7 +14,7 @@ import (
 var testapis []config.API = []config.API{
 	{
 		Name:     "API_1",
-		Every:    time.Second * 5,
+		Every:    time.Second * 2,
 		Protocol: "http",
 		Domain:   "www.youtube.com",
 		Route:    "/watch",
@@ -28,7 +28,7 @@ var testapis []config.API = []config.API{
 	},
 	{
 		Name:     "API_2",
-		Every:    time.Second * 10,
+		Every:    time.Second * 3,
 		Protocol: "http",
 		Domain:   "reqres.in",
 		Route:    "/api/users",
@@ -75,13 +75,14 @@ func TestMonitorJob(t *testing.T) {
 			}
 		}()
 		go exec.Execute(errCh)
-		for i := 0; i < 3; i++ {
+		for i := 0; i < 1; i++ {
 			ch <- struct{}{}
 			time.Sleep(exec.Info().Every)
 		}
 		exec.Abort()
 	}
 
+	time.Sleep(time.Second * 10)
 	// Deleting all the test files generated.
 	for _, path := range paths {
 		err := os.Remove(path)
@@ -125,13 +126,14 @@ func TestMachineJob(t *testing.T) {
 			}
 		}()
 		go exec.Execute(errCh)
-		for i := 0; i < 3; i++ {
+		for i := 0; i < 1; i++ {
 			ch <- struct{}{}
 			time.Sleep(exec.Info().Every)
 		}
 		exec.Abort()
 	}
 
+	time.Sleep(time.Second * 10)
 	// Deleting all the test files generated.
 	for _, path := range paths {
 		err := os.Remove(path)

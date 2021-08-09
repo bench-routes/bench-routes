@@ -1,6 +1,7 @@
 apis:
   - name: route-name-one
     every: 3h
+    protocol: https
     domain_or_ip: ub.mk_yong.com
     route: /api/v1/test
     method: get
@@ -14,6 +15,7 @@ apis:
       key_2: value_2
   - name: route-name-two
     every: 5s
+    protocol: https
     domain_or_ip: -www.someurlfortwo.com
     route: /api/v1/test
     method: post
