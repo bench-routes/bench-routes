@@ -8,19 +8,6 @@ build:
 	echo "building bench-routes ..."
 	go build -o bench-routes src/main.go
 
-## Runs the UI (assuming all dependencies in dashboard/v1.1 are installed).
-view-v1.1:
-	cd dashboard/v1.1/ && yarn start
-
-## Installs the UI dependencies, checks for style guide compliance and builds and runs the app.
-test-views-v1.1:
-	cd dashboard/v1.1/ && yarn install
-	cd dashboard/v1.1/ && yarn run lint
-	cd dashboard/v1.1/ && yarn run tlint
-	cd dashboard/v1.1/ && prettier '**/*.tsx' --list-different
-	cd dashboard/v1.1/ && yarn run build
-	cd dashboard/v1.1/ && yarn start &
-
 ## Removes all residual files.
 clean:
 	rm -R build/ bench-routes
@@ -30,21 +17,10 @@ test: build
 	go clean -testcache
 	go test -v ./...
 
-## Installs UI dependencies and builds the frontend.
-build-frontend:
-	cd dashboard/v1.1/ && yarn install --network-timeout 1000000 && yarn build
-
 ## Runs Golang unit tests without mentioning the skipped tests.
 test-non-verbose: build
 	go clean -testcache
 	go test ./...
-
-## Runs selenium tests.
-test-services: build
-	./bench-routes &
-	cd tests && yarn install
-	yarn global add mocha
-	mocha tests/browser.js
 
 ## Complete testing include building for all supported OS.
 test_complete: build
@@ -56,9 +32,6 @@ run:
 	echo "compiling go-code and executing bench-routes"
 	echo "using 9990 as default service listener port"
 	go run src/*.go 9990
-
-run-collector:
-	go run src/collector/main.go
 
 ## Fixes webapp and server code style.
 fix:
