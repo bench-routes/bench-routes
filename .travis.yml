@@ -8,12 +8,11 @@ sudo: required
 
 matrix:
   include:
-    - language: 
-      - go
-      
-      go:
-        1.13.x
-      
+    - language:
+        - go
+
+      go: 1.13.x
+
       notifications:
         gitter:
           on_success: always
@@ -39,7 +38,6 @@ matrix:
         - echo "perfect go format. moving ahead ..."
 
       script:
-        - make build-frontend
         - make build
         - make test-non-verbose
         - make test_complete
@@ -50,7 +48,7 @@ matrix:
     - language: node_js
 
       node_js:
-        - "12"
+        - '12'
 
       cache:
         directories:
