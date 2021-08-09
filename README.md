@@ -6,7 +6,7 @@
 [![Gitter](https://img.shields.io/badge/join%20discussions%20on%20gitter-%23benchroutes-green/)](https://gitter.im/bench-routes/community#)
 
 Modern web applications can have routes ranging from a few to millions in numbers. This makes it tough to discover then
-condition and state of the such application at any given point. Bench-routes monitors the routes of a web application
+condition and state of such application at any given point. Bench-routes monitors the routes of a web application
 and helps you know about the current state of each route, along with various related performance metrics.
 
 ### Dataflow
