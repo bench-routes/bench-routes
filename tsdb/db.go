@@ -1,18 +1,21 @@
-package tsdb
+package file
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/prometheus/common/log"
 )
+
+var Chains *ChainSet
+
+func init() {
+	Chains = NewChainSet(FlushAsTime, time.Second*10)
+	Chains.Run()
+}
 
 const (
 	// BlockDataSeparator sets a separator for block data value.
@@ -20,200 +23,6 @@ const (
 	// FileExtension file extension for db files.
 	FileExtension = ".json"
 )
-
-// Block use case block for the TSDB chain
-type Block struct {
-	Datapoint      string `json:"datapoint"`       // complex data would be decoded by using a blockSeparator
-	NormalizedTime int64  `json:"normalized-time"` // based on time.UnixNano()
-	Type           string `json:"type"`            // would be used to decide the marshalling struct
-	Timestamp      string `json:"timestamp"`
-}
-
-// GetNewBlock creates and returns a new block with the specified type.
-func GetNewBlock(blockType, value string) *Block {
-	return &Block{
-		Timestamp:      GetTimeStampCalc(),
-		NormalizedTime: GetNormalizedTimeCalc(),
-		Datapoint:      value,
-		Type:           blockType,
-	}
-}
-
-// Encode decodes the structure and marshals into a string
-func (b Block) Encode() string {
-	bbyte, err := json.Marshal(b)
-	if err != nil {
-		panic(err)
-	}
-	return string(bbyte)
-}
-
-// GetType returns the type of the block
-func (b Block) GetType() string {
-	return b.Type
-}
-
-// GetDatapointEnc returns the data point to the caller.
-// The encoded refers to the combined _(containing *|*)_ values in the string
-// form.
-func (b Block) GetDatapointEnc() string {
-	return b.Datapoint
-}
-
-// GetNormalizedTimeStringified returns the normalized time of the block.
-func (b Block) GetNormalizedTimeStringified() string {
-	return string(rune(b.NormalizedTime))
-}
-
-// GetNormalizedTime returns the normalized time of the block.
-func (b Block) GetNormalizedTime() int64 {
-	return b.NormalizedTime
-}
-
-// GetTimeStamp returns the timestamp of the block.
-func (b Block) GetTimeStamp() string {
-	return b.Timestamp
-}
-
-// Chain contains Blocks arranged as a chain
-type Chain struct {
-	Path               string
-	Name               string
-	Route              string
-	Chain              []Block
-	LengthElements     int
-	containsNewBlocks  bool
-	inActiveIterations uint32
-	mux                sync.Mutex
-}
-
-// ChainReadOnly is a read-only structure that contains
-// a stream of blocks from the tsdb. This is meant to
-// be used by the querier for performing read operations
-// over the time-series samples.
-type ChainReadOnly struct {
-	Path  string
-	Chain *[]Block
-}
-
-// NewChain returns a in-memory chain that implements the TSDB interface.
-func NewChain(path string) *Chain {
-	return &Chain{
-		Name:              filterChainPath(path),
-		Path:              path,
-		Chain:             []Block{},
-		LengthElements:    0,
-		containsNewBlocks: true,
-	}
-}
-
-// ReadOnly returns a in-memory chain that implements the TSDB interface.
-func ReadOnly(path string) *ChainReadOnly {
-	var blockStream []Block
-	return &ChainReadOnly{
-		Path:  path,
-		Chain: &blockStream,
-	}
-}
-
-func filterChainPath(name string) string {
-	name = strings.ReplaceAll(name, ".", "___")
-	return strings.ReplaceAll(name, "/", "_")
-}
-
-// TSDB implements the idea of tsdb
-type TSDB interface {
-	// Init helps to initialize the tsdb chain for the respective component. This function
-	// should be capable to detect existing wals(write ahead log) of the required type and
-	// build from the local storage at the init of main thread and return the chain address
-	// in order to have a minimal effect on the performance.
-	// Takes *path* as path to the existing chain or for creating a new one.
-	// Returns address of the chain in RAM.
-	Init() (*[]Block, Chain)
-
-	// GetChain returns the positional pointer address of the first element of the chain.
-	GetChain() *[]Block
-}
-
-// Init initialize Chain properties
-func (c *Chain) Init() *Chain {
-	if _, err := parse(c.Path); err != nil {
-		log.Infof("creating in-memory chain: %s\n", c.Name)
-		c.LengthElements = 0
-		c.Chain = []Block{}
-		if err := saveToHDD(c.Path, []byte("[]")); err != nil {
-			panic(err)
-		}
-		return c
-	}
-	c.Chain = []Block{}
-	c.LengthElements = len(c.Chain)
-	c.addNullBlock()
-	return c
-}
-
-// Append function appends the new block in the chain
-func (c *Chain) Append(b Block) *Chain {
-	c.mux.Lock()
-	defer c.mux.Unlock()
-
-	c.Chain = append(c.Chain, b)
-	c.LengthElements = len(c.Chain)
-	c.containsNewBlocks = true
-	if c.inActiveIterations != 0 {
-		c.inActiveIterations = 0
-	}
-	return c
-}
-
-// Commit saves or commits the existing chain in the secondary memory.
-// Returns the success status
-func (c *Chain) commit() *Chain {
-	c.mux.Lock()
-	pathPointer, err := parse(c.Path)
-	if err != nil {
-		panic(err)
-	}
-	existingBlocks := loadFromStorage(pathPointer)
-	mergedBlocks := mergeBlocksSlice(existingBlocks, &c.Chain)
-	bytes := parseToJSON(*mergedBlocks)
-	if err := saveToHDD(c.Path, bytes); err != nil {
-		panic(err)
-	}
-	c.Chain = []Block{}
-	c.containsNewBlocks = false
-	c.mux.Unlock()
-	return c
-}
-
-// VerifyChainPathExists verifies the existence of chain in the tsdb directory.
-func VerifyChainPathExists(chainPath string) bool {
-	_, err := os.Stat(chainPath)
-	if err == nil {
-		return true
-	}
-	return os.IsExist(err)
-}
-
-// EXPERIMENTAL (ref: https://github.com/bench-routes/bench-routes/issues/242)
-func (c *Chain) addNullBlock() {
-	chainReadOnly := ReadOnly(c.Path).Refresh()
-	bstream := chainReadOnly.BlockStream()
-	blockStream := *bstream
-	lengthBlockStream := len(blockStream)
-	if lengthBlockStream == 0 {
-		return
-	}
-	block := blockStream[lengthBlockStream-1] // getting the most recent block added to the disk
-	blockType := block.Type
-	if blockType != "sys" && blockType != "journal" {
-		return
-	}
-	scrapeTime := 5
-	b := GetNewBlock(blockType, "null")
-	b.Timestamp = CalcTimeStamp(scrapeTime)
-	c.Append(*b)
-}
 
 const (
 	// FlushAsTime for flushing in regular intervals of seconds.
@@ -234,7 +43,7 @@ const (
 type ChainSet struct {
 	FlushDuration time.Duration
 	flushType     int
-	Cmap          map[string]*Chain
+	Cmap          map[string]*chain
 	cancel        chan interface{}
 	mux           sync.RWMutex
 }
@@ -244,18 +53,9 @@ func NewChainSet(flushType int, flushDuration time.Duration) *ChainSet {
 	return &ChainSet{
 		FlushDuration: flushDuration,
 		flushType:     flushType,
-		Cmap:          make(map[string]*Chain),
+		Cmap:          make(map[string]*chain),
 		cancel:        make(chan interface{}),
 	}
-}
-
-// Append currently not supported.
-// Appends the block into the chain name passed. The new block is added
-// only in the memory. Commit is done by the chain scheduler and only after
-// commit, the changes appear in the secondary storage.
-func (cs *ChainSet) Append(name string, block Block) *Chain {
-	cs.Cmap[name].Append(block)
-	return cs.Cmap[name]
 }
 
 // Cancel cancels or stops the execution of chain scheduler.
@@ -266,21 +66,40 @@ func (cs *ChainSet) Cancel() {
 // Get returns the chain corresponding to the passed name. It returns
 // false if the chain is not found in the Cmap. This can be the case if the
 // chain has been deleted by the Run() in order to save the memory resources.
-func (cs *ChainSet) Get(name string) (*Chain, bool) {
+func (cs *ChainSet) Get(name string) (*chain, bool) {
 	if _, ok := cs.Cmap[name]; !ok {
 		return nil, false
 	}
 	return cs.Cmap[name], true
 }
 
-// Register makes a new property in the Chain map (Cmap) with
+// NewChain returns a new in-memory chain after registering in chain-set.
+func (cs *ChainSet) NewChain(name, url string, useTestDir bool) (Appendable, ChainUtils) {
+	c := newChain(name, url, useTestDir)
+	c.init()
+	cs.register(name, c)
+	return c, c
+}
+
+// DeleteChain removes the chain.
+func (cs *ChainSet) DeleteChain(name string) error {
+	_, exists := cs.Cmap[name]
+	if !exists {
+		return fmt.Errorf("chain '%s' does not exists", name)
+	}
+	cs.Cmap[name] = nil
+	delete(cs.Cmap, name)
+	return nil
+}
+
+// register makes a new property in the Chain map (Cmap) with
 // name as Key and Chain address as value respectively. Repeated
 // calls with same name will overwrite the chain contents and hence
 // not recommended.
-func (cs *ChainSet) Register(name string, chainAddress *Chain) {
+func (cs *ChainSet) register(name string, c *chain) {
 	cs.mux.Lock()
 	defer cs.mux.Unlock()
-	cs.Cmap[name] = chainAddress
+	cs.Cmap[name] = c
 }
 
 // Run is a chain scheduler that triggers the ChainSet tasks which currently includes
@@ -299,12 +118,14 @@ func (cs *ChainSet) Run() {
 				}
 				cs.mux.Lock()
 				for _, chain := range cs.Cmap {
+					chain.mux.Lock()
 					if chain.containsNewBlocks {
 						chain.commit()
 					} else {
 						// TODO: delete inactive chains and add them back to Cmap when active.
 						chain.inActiveIterations++
 					}
+					chain.mux.Unlock()
 				}
 				cs.mux.Unlock()
 				runtime.GC()
@@ -318,38 +139,6 @@ func (cs *ChainSet) Run() {
 	}
 }
 
-// BlockStream returns the address of stream (or list)
-// of blocks from the in-memory chain.
-func (c *ChainReadOnly) BlockStream() *[]Block {
-	return c.Chain
-}
-
-// Refresh loads/reloads the chain from the secondary storage
-// which contains the latest samples/blocks.
-func (c *ChainReadOnly) Refresh() *ChainReadOnly {
-	response, err := parse(c.Path)
-	if err != nil {
-		log.Errorf("error reading the chain: %s\n", c.Path)
-	}
-	c.Chain = loadFromStorage(response)
-	return c
-}
-
-// mergeBlocksSlice merges the slices of two blocks into one.
-func mergeBlocksSlice(oldSlice, newSlice *[]Block) *[]Block {
-	*oldSlice = append(*oldSlice, *newSlice...)
-	return oldSlice
-}
-
-func parse(path string) (*string, error) {
-	res, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, errors.New("file not existed. create a new chain")
-	}
-	str := string(res)
-	return &str, nil
-}
-
 // parseToJSON converts the chain into Marshallable JSON.
 func parseToJSON(a []Block) (j []byte) {
 	j, e := json.Marshal(a)
@@ -357,16 +146,6 @@ func parseToJSON(a []Block) (j []byte) {
 		panic(e)
 	}
 	return
-}
-
-func loadFromStorage(raw *string) *[]Block {
-	var inst []Block
-	b := []byte(*raw)
-	e := json.Unmarshal(b, &inst)
-	if e != nil {
-		panic(e)
-	}
-	return &inst
 }
 
 func checkAndCreatePath(path string) {
@@ -380,15 +159,6 @@ func checkAndCreatePath(path string) {
 			panic(e)
 		}
 	}
-}
-
-func saveToHDD(path string, data []byte) error {
-	checkAndCreatePath(path)
-	e := ioutil.WriteFile(path, data, 0755)
-	if e != nil {
-		return e
-	}
-	return nil
 }
 
 // GetTimeStampCalc returns the timestamp

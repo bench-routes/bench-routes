@@ -1,0 +1,116 @@
+[
+  {
+    "datapoint": "",
+    "normalized-time": 1627239815957359220,
+    "type": "null",
+    "timestamp": "2021|July|26|0|33|35"
+  },
+  {
+    "datapoint": "",
+    "normalized-time": 1627239815957359220,
+    "type": "null",
+    "timestamp": "2021|July|26|0|33|35"
+  },
+  {
+    "datapoint": "2797",
+    "normalized-time": 1627239821201127478,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|33|41"
+  },
+  {
+    "datapoint": "861",
+    "normalized-time": 1627239826076069851,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|33|46"
+  },
+  {
+    "datapoint": "971",
+    "normalized-time": 1627239831085014126,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|33|51"
+  },
+  {
+    "datapoint": "1800",
+    "normalized-time": 1627239836096399614,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|33|56"
+  },
+  {
+    "datapoint": "13100",
+    "normalized-time": 1627239841092384547,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|34|1"
+  },
+  {
+    "datapoint": "8491",
+    "normalized-time": 1627239846021340557,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|34|6"
+  },
+  {
+    "datapoint": "1520",
+    "normalized-time": 1627239851078784187,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|34|11"
+  },
+  {
+    "datapoint": "982",
+    "normalized-time": 1627239856084172283,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|34|16"
+  },
+  {
+    "datapoint": "1676",
+    "normalized-time": 1627239861116513847,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|34|21"
+  },
+  {
+    "datapoint": "452",
+    "normalized-time": 1627239866066947579,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|34|26"
+  },
+  {
+    "datapoint": "15988",
+    "normalized-time": 1627239871100694165,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|34|31"
+  },
+  {
+    "datapoint": "1159",
+    "normalized-time": 1627239876106424467,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|34|36"
+  },
+  {
+    "datapoint": "8626",
+    "normalized-time": 1627239881058027664,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|34|41"
+  },
+  {
+    "datapoint": "1908",
+    "normalized-time": 1627239886114595889,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|34|46"
+  },
+  {
+    "datapoint": "1671",
+    "normalized-time": 1627239891098708109,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|34|51"
+  },
+  {
+    "datapoint": "1433",
+    "normalized-time": 1627239896081453297,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|34|56"
+  },
+  {
+    "datapoint": "1226",
+    "normalized-time": 1627239901097172868,
+    "type": "jitter",
+    "timestamp": "2021|July|26|0|35|1"
+  }
+]

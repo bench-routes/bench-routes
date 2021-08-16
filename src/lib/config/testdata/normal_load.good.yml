@@ -1,0 +1,27 @@
+apis:
+  - name: route-name-one
+    every: 3h
+    protocol: https
+    domain_or_ip: www.some-url-for-one.com
+    route: /api/v1/test
+    method: get
+    headers:
+      Content-Type: json
+    params:
+      key_1: value_1
+      key_2: value_2
+    body:
+      key_1: value_1
+      key_2: value_2
+  - name: route-name-two
+    every: 5s
+    protocol: https
+    domain_or_ip: www.some-url-for-two.com
+    route: /api/v1/test
+    method: post
+    params:
+      key_1: value_1
+      key_2: value_2
+    body:
+      key_1: value_1
+      key_2: value_2
