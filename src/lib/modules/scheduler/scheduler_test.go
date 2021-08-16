@@ -2,13 +2,14 @@ package scheduler
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/modules/job"
-	"github.com/bench-routes/bench-routes/tsdb/file"
+	file "github.com/bench-routes/bench-routes/tsdb"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,15 +22,26 @@ func TestScheduler(t *testing.T) {
 	set := file.NewChainSet(0, time.Second*10)
 	set.Run()
 	for i, api := range conf.APIs {
-		app, _ := set.NewChain(api.Name, api.Domain+api.Route, false)
+		app, _ := set.NewChain(api.Name+"_monitor", api.Protocol+api.Domain+api.Route, false)
 		// creating the jobs
-		exec, ch, err := job.NewJob("monitor", app, &api)
+		exec, ch, err := job.NewJob("monitor", app, nil, &api)
 		if err != nil {
 			require.FailNow(t, "error creating # %d job: %s\n", i, err)
 			continue
 		}
 		// launching the jobs
-		go exec.Execute()
+		errCh := make(chan error)
+		go func() {
+			err, ok := <-errCh
+			if !ok {
+				return
+			}
+			if err != nil {
+				fmt.Printf("job error : %v", err)
+				return
+			}
+		}()
+		go exec.Execute(errCh)
 		jobs[exec.Info()] = ch
 	}
 	ctx, cancel := context.WithCancel(context.Background())

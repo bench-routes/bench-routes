@@ -10,7 +10,7 @@ import (
 	brConfig "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/log"
 	"github.com/bench-routes/bench-routes/src/lib/modules/module"
-	"github.com/bench-routes/bench-routes/tsdb/file"
+	file "github.com/bench-routes/bench-routes/tsdb"
 	"github.com/rs/cors"
 )
 

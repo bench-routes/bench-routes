@@ -12,8 +12,8 @@ import (
 	"github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/log"
 	"github.com/bench-routes/bench-routes/src/lib/modules/evaluate"
-	tsdb "github.com/bench-routes/bench-routes/tsdb/file"
-	"github.com/bench-routes/bench-routes/tsdb/file/querier"
+	tsdb "github.com/bench-routes/bench-routes/tsdb"
+	"github.com/bench-routes/bench-routes/tsdb/querier"
 	"github.com/gorilla/mux"
 )
 
@@ -217,7 +217,10 @@ func (a *API) send(w http.ResponseWriter, status int, data interface{}) {
 		fmt.Println(fmt.Errorf("error marshalling : %w", err))
 		return
 	}
-	w.Write([]byte(resp))
+	_, err = w.Write([]byte(resp))
+	if err != nil {
+		log.Warn("component", "api", "msg", "error writing data to http")
+	}
 }
 
 func parseTime(t string, typ string) (int64, error) {

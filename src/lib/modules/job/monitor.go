@@ -12,7 +12,7 @@ import (
 
 	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/modules/evaluate"
-	"github.com/bench-routes/bench-routes/tsdb/file"
+	file "github.com/bench-routes/bench-routes/tsdb"
 )
 
 type monitoringJob struct {

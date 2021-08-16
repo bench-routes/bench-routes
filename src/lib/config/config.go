@@ -57,7 +57,7 @@ func (c *Config) Reload() (*Config, error) {
 	}
 
 	if err = conf.Validate(); err != nil {
-		return nil, fmt.Errorf("validating configuration: %w", err)
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return conf, nil

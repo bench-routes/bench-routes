@@ -3,16 +3,18 @@ package module
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/log"
 	"github.com/bench-routes/bench-routes/src/lib/modules/job"
 	"github.com/bench-routes/bench-routes/src/lib/modules/scheduler"
-	"github.com/bench-routes/bench-routes/tsdb/file"
+	file "github.com/bench-routes/bench-routes/tsdb"
 )
 
 // Machine handles scraping ping and jitter of the endpoints.
 type Machine struct {
+	mux          sync.Mutex
 	jobs         map[*job.JobInfo]chan<- struct{}
 	existingJobs map[string]struct{}
 	reload       chan struct{}
@@ -78,11 +80,15 @@ func (m *Machine) Reload(conf *config.Config) error {
 		m.existingJobs[api.Domain] = struct{}{}
 	}
 	// signaling to reload the scheduler.
+	m.mux.Lock()
+	defer m.mux.Unlock()
 	m.reload <- struct{}{}
 	return nil
 }
 
 // Stop stops the module.
 func (m *Machine) Stop() {
+	m.mux.Lock()
+	defer m.mux.Unlock()
 	close(m.reload)
 }

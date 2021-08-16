@@ -11,22 +11,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install dependencies
+      - name: Check format and lint
         run: |
-          go get -u ./...
-          npm install --dev
-          npm install
-          sudo npm install -g eslint  tslint prettier
-          sudo npm install electron electron-packager --unsafe-perm=true --allow-root
-          cd tests/ && npm install chromedriver@latest && cd ..
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.34.1
-          echo "checking linting in golang ..."
-          $(go env GOPATH)/bin/golangci-lint run
-          echo "perfect linting standards! moving ahead ..."
-          echo "checking go format ..."
           diff -u <(echo -n) <(gofmt -d ./src ./tsdb)
-          echo "perfect go format. moving ahead ..."
-      - name: Build the frontend
-        run: make build-frontend
-      - name: Build bench routes
+          echo "format all good"
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.34.1
+          $(go env GOPATH)/bin/golangci-lint run
+          echo "lint all good"
+      - name: Build
         run: make build
+      - name: Unit test
+        run: make test
