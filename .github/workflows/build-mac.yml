@@ -14,17 +14,15 @@ jobs:
         run: brew update
       - name: Install dependencies
         run: |
-            brew install node
-            npm install -g yarn
             brew install golangci/tap/golangci-lint
             brew upgrade golangci/tap/golangci-lint
-      - name: Lint for errors
-        run: golangci-lint run --timeout=10m
-      - name: Update make
-        run: make update
-      - name: Build the frontend
-        run: make build-frontend
-      - name: Build bench routes
+      - name: Check format and lint
+        run: |
+            diff -u <(echo -n) <(gofmt -d ./src ./tsdb)
+            echo "format all good"
+            golangci-lint run --timeout=10m
+            echo "lint all good"
+      - name: Build
         run: make build
-      - name: Run the test suite
+      - name: Unit test
         run: make test

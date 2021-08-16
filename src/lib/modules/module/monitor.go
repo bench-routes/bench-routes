@@ -3,6 +3,7 @@ package module
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	config "github.com/bench-routes/bench-routes/src/lib/config"
 	"github.com/bench-routes/bench-routes/src/lib/log"
@@ -13,6 +14,7 @@ import (
 
 // Monitor handles monitoring of the endpoints.
 type Monitor struct {
+	mux          sync.Mutex
 	jobs         map[*job.JobInfo]chan<- struct{}
 	existingJobs map[string]struct{}
 	chainSet     *file.ChainSet
@@ -77,11 +79,15 @@ func (m *Monitor) Reload(conf *config.Config) error {
 		m.existingJobs[api.Name] = struct{}{}
 	}
 	// signaling to reload.
+	m.mux.Lock()
+	defer m.mux.Unlock()
 	m.reload <- struct{}{}
 	return nil
 }
 
 // Stop stops the module.
 func (m *Monitor) Stop() {
+	m.mux.Lock()
+	defer m.mux.Unlock()
 	close(m.reload)
 }
