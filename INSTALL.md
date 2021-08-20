@@ -13,6 +13,7 @@ environment.
 5. Navigate into the cloned repo `cd bench-routes`.
 6. Install all dependencies via `go get -v -u ./...`.
 7. To start running, `make run` will start the service.
+8. To setup and run the UI for the project kindly follow the instructions mentioned [here](https://github.com/bench-routes/dashboard#readme).
 
 ## Docker
 
