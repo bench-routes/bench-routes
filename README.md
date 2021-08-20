@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/bench-routes/bench-routes)](https://goreportcard.com/report/github.com/bench-routes/bench-routes)
 [![Gitter](https://img.shields.io/badge/join%20discussions%20on%20gitter-%23benchroutes-green/)](https://gitter.im/bench-routes/community#)
 
-Modern web applications can have routes ranging from a few to millions in numbers. This makes it tough to discover then
+Modern web applications can have routes ranging from a few to millions in numbers. This makes it tough to discover the
 condition and state of such application at any given point. Bench-routes monitors the routes of a web application
 and helps you know about the current state of each route, along with various related performance metrics.
 
@@ -27,12 +27,14 @@ Follow the commands to make the development process easier:
 
 1. Updating the dependencies: `make update`
 2. Executing the application (assuming all dependencies are installed): `make run`
-2. Run UI (assuming all dependencies in `dashboard/v1.1` are installed): `make view-v1.1`
 2. Building the application for the current OS: `make build`
 3. Testing Golang code: `make test`
 4. Complete testing include building for all OSs out there: `make test_complete`
 5. Cleaning up the residual files: `make clean`
 6. *(optional)* Check linting (assuming [golangci-lint](https://github.com/golangci/golangci-lint#install) is installed): `make lint`
+
+## UI of Bench-routes
+The old UI for the project is depreceated for now and no longer mantained. Kindly have a look at our new UI [here](https://github.com/bench-routes/dashboard).
 
 ## Postman Usage
 1. Download [Postman](https://www.postman.com/downloads/) and Install it.
