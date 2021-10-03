@@ -118,14 +118,12 @@ func (cs *ChainSet) Run() {
 				}
 				cs.mux.Lock()
 				for _, chain := range cs.Cmap {
-					chain.mux.Lock()
 					if chain.containsNewBlocks {
 						chain.commit()
 					} else {
 						// TODO: delete inactive chains and add them back to Cmap when active.
 						chain.inActiveIterations++
 					}
-					chain.mux.Unlock()
 				}
 				cs.mux.Unlock()
 				runtime.GC()
