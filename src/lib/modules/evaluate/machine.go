@@ -2,6 +2,7 @@ package evaluate
 
 import (
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/go-ping/ping"
@@ -22,6 +23,9 @@ type Jitter struct {
 // Machine evaluates calculations related to ping and jitter.
 func Machine(host string) (*Ping, *Jitter, error) {
 	pinger, err := ping.NewPinger(host)
+	if runtime.GOOS == "windows" {
+		pinger.SetPrivileged(true)
+	}
 	if err != nil {
 		return nil, nil, fmt.Errorf("error creating pinger : %w", err)
 	}
