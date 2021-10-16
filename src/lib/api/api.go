@@ -120,7 +120,7 @@ func (a *API) getDomainEntity(w http.ResponseWriter, r *http.Request) {
 			}
 			var status string
 			// We verify if status is 200, and only then ask the UI to show `UP` for the route.
-			if qryRes.Values[0].Value.(evaluate.Response).Status != 200 {
+			if qryRes.Values[0].Value == nil || qryRes.Values[0].Value.(evaluate.Response).Status != 200 {
 				status = "false"
 			} else {
 				status = "true"
