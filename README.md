@@ -57,12 +57,6 @@ The old UI for the project is depreceated for now and no longer mantained. Kindl
 5. This API returns the list of all URLs/Routes that are being monitored for testing using the application.
 
 For more information, regarding the APIs. Visit [Bench-Routes](https://documenter.getpostman.com/view/6521254/SzRuWqq9?version=latest).
- 
-### 👬 Active maintainers
-
-- Aquib Baig (aquibbaig97@gmail.com)
-- Muskan Khedia (muskan.khedia2000@gmail.com)
-- Harkishen Singh (harkishensingh909@gmail.com)
 
 ### Communication
 
